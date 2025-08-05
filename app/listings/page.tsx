@@ -317,6 +317,11 @@ export default function AdvancedListingsPage() {
     setLocationSearch('')
     setMakeSearch('')
     setModelSearch('')
+    
+    // Clear localStorage cache
+    localStorage.removeItem('vehiclePostDraft')
+    localStorage.removeItem('listingsCache')
+    localStorage.removeItem('userPreferences')
   }
 
   const toggleSavedListing = (listingId: string) => {

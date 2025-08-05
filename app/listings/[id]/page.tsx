@@ -1,14 +1,36 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import ListingDetailClient from './ListingDetailClient'
 
 export const revalidate = 60
+
+// Generate metadata for SEO
+export async function generateMetadata({ params }: { params: { id: string } }) {
+  const { data: listing } = await supabase
+    .from('listings')
+    .select('*')
+    .eq('id', params.id)
+    .single()
+
+  if (!listing) {
+    return {
+      title: 'Listing Not Found',
+    }
+  }
+
+  return {
+    title: `${listing.title} - Rs. ${listing.price.toLocaleString()} | AutoTrader.lk`,
+    description: listing.description || listing.ai_generated_description || `${listing.make} ${listing.model} ${listing.year} for sale in ${listing.location}`,
+  }
+}
 
 export default async function ListingDetailPage({
   params,
 }: {
   params: { id: string }
 }) {
+  // Fetch main listing
   const { data: listing } = await supabase
     .from('listings')
     .select('*')
@@ -19,116 +41,142 @@ export default async function ListingDetailPage({
     notFound()
   }
 
+  // Increment view count
+  await supabase
+    .from('listings')
+    .update({ views: (listing.views || 0) + 1 })
+    .eq('id', params.id)
+
+  // Fetch similar vehicles
+  const { data: similarListings } = await supabase
+    .from('listings')
+    .select('*')
+    .neq('id', params.id)
+    .eq('make', listing.make)
+    .eq('is_sold', false)
+    .limit(6)
+    .order('created_at', { ascending: false })
+
+  // Prepare image array
+  const images = listing.image_urls || (listing.image_url ? [listing.image_url] : [])
+
+  // Mock dealer data (in production, this would come from a dealers table)
+  const dealer = {
+    name: "Premium Auto Dealers",
+    rating: 4.5,
+    reviewCount: 127,
+    location: listing.location,
+    phone: listing.phone,
+    whatsapp: listing.whatsapp || listing.phone,
+    avatar: null,
+    responseTime: "Usually responds within 2 hours"
+  }
+
+  // Prepare features list (mock data - in production, this would be in the database)
+  const features = {
+    safety: [
+      'Dual Airbags',
+      'ABS',
+      'Electronic Stability Control',
+      'Hill Start Assist',
+      'Reverse Camera',
+      'Parking Sensors'
+    ],
+    technology: [
+      '7" Touch Display',
+      'Bluetooth Connectivity',
+      'USB Ports',
+      'Apple CarPlay',
+      'Android Auto',
+      'Wireless Charging'
+    ],
+    comfort: [
+      'Automatic Climate Control',
+      'Power Windows',
+      'Power Mirrors',
+      'Keyless Entry',
+      'Push Start',
+      'Cruise Control'
+    ],
+    performance: [
+      'Hybrid Engine',
+      'CVT Transmission',
+      'Eco Mode',
+      'Sport Mode',
+      'Regenerative Braking'
+    ]
+  }
+
+  // Prepare specifications
+  const specifications = {
+    'Make': listing.make,
+    'Model': listing.model,
+    'Year': listing.year,
+    'Mileage': listing.mileage ? `${listing.mileage.toLocaleString()} km` : 'N/A',
+    'Fuel Type': listing.fuel_type || 'N/A',
+    'Transmission': listing.transmission || 'N/A',
+    'Engine Capacity': '1800cc', // Mock data
+    'Body Type': 'Sedan', // Mock data
+    'Color': 'Pearl White', // Mock data
+    'Seating Capacity': '5 Seats', // Mock data
+    'Drive Type': 'Front Wheel Drive', // Mock data
+    'Number of Owners': '1st Owner', // Mock data
+  }
+
+  // Vehicle history (mock data)
+  const vehicleHistory = [
+    {
+      date: '2024-06-15',
+      type: 'Service',
+      description: 'Regular service at authorized dealer',
+      mileage: 45000
+    },
+    {
+      date: '2024-01-10',
+      type: 'Service',
+      description: 'Oil change and filter replacement',
+      mileage: 40000
+    },
+    {
+      date: '2023-07-20',
+      type: 'Insurance',
+      description: 'Full insurance renewal',
+      mileage: 35000
+    }
+  ]
+
   return (
-    <div className="py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Back Button */}
-        <Link href="/listings" className="text-blue-600 hover:text-blue-700 mb-6 inline-block">
-          ← Back to listings
-        </Link>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Breadcrumb */}
+        <nav className="mb-6">
+          <ol className="flex items-center space-x-2 text-sm">
+            <li>
+              <Link href="/" className="text-gray-600 hover:text-blue-600">
+                Home
+              </Link>
+            </li>
+            <li className="text-gray-400">/</li>
+            <li>
+              <Link href="/listings" className="text-gray-600 hover:text-blue-600">
+                Listings
+              </Link>
+            </li>
+            <li className="text-gray-400">/</li>
+            <li className="text-gray-900 font-medium">{listing.title}</li>
+          </ol>
+        </nav>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Image Section */}
-          <div>
-            {listing.image_url ? (
-              <img
-                src={listing.image_url}
-                alt={listing.title}
-                className="w-full h-96 object-cover rounded-lg"
-              />
-            ) : (
-              <div className="w-full h-96 bg-gray-300 rounded-lg flex items-center justify-center">
-                <span className="text-gray-500 text-lg">No image available</span>
-              </div>
-            )}
-          </div>
-
-          {/* Details Section */}
-          <div>
-            <h1 className="text-3xl font-bold mb-4">{listing.title}</h1>
-            
-            <p className="text-4xl font-bold text-blue-600 mb-6">
-              Rs. {listing.price.toLocaleString()}
-            </p>
-
-            {/* Key Details */}
-            <div className="bg-gray-50 p-6 rounded-lg mb-6">
-              <h2 className="text-xl font-semibold mb-4">Vehicle Details</h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-gray-600">Make</p>
-                  <p className="font-semibold">{listing.make}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Model</p>
-                  <p className="font-semibold">{listing.model}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Year</p>
-                  <p className="font-semibold">{listing.year}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Mileage</p>
-                  <p className="font-semibold">{listing.mileage?.toLocaleString() || 'N/A'} km</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Fuel Type</p>
-                  <p className="font-semibold">{listing.fuel_type || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Transmission</p>
-                  <p className="font-semibold">{listing.transmission || 'N/A'}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Description */}
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-3">Description</h2>
-              <p className="text-gray-700 whitespace-pre-line">
-                {listing.description || listing.ai_generated_description || 'No description available.'}
-              </p>
-            </div>
-
-            {/* AI Summary if available */}
-            {listing.ai_summary && (
-              <div className="bg-blue-50 p-4 rounded-lg mb-6">
-                <p className="text-sm text-blue-800">
-                  <span className="font-semibold">AI Summary:</span> {listing.ai_summary}
-                </p>
-              </div>
-            )}
-
-            {/* Contact Information */}
-            <div className="bg-gray-900 text-white p-6 rounded-lg">
-              <h2 className="text-xl font-semibold mb-4">Contact Seller</h2>
-              <div className="space-y-3">
-                <div>
-                  <p className="text-gray-400">Location</p>
-                  <p className="font-semibold">{listing.location}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Phone</p>
-                  <p className="font-semibold text-lg">{listing.phone}</p>
-                </div>
-                <div className="pt-4">
-                  <a 
-                    href={`tel:${listing.phone}`}
-                    className="btn-primary bg-blue-600 hover:bg-blue-700 block text-center"
-                  >
-                    Call Seller
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Additional Info */}
-        <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>Listed on {new Date(listing.created_at).toLocaleDateString()}</p>
-          <p className="mt-2">⚠️ Always verify vehicle documents before purchase</p>
-        </div>
+        {/* Pass all data to client component */}
+        <ListingDetailClient 
+          listing={listing}
+          images={images}
+          dealer={dealer}
+          features={features}
+          specifications={specifications}
+          vehicleHistory={vehicleHistory}
+          similarListings={similarListings || []}
+        />
       </div>
     </div>
   )
