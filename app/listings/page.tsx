@@ -91,7 +91,8 @@ export default function AdvancedListingsPage() {
     year: false,
     price: false,
     fuel: false,
-    transmission: false
+    transmission: false,
+    mobile: false  // Add mobile filter toggle
   })
   
   const [savedListings, setSavedListings] = useState<string[]>([])
@@ -349,6 +350,282 @@ export default function AdvancedListingsPage() {
     return 'Cars for sale in all of Sri Lanka'
   }
 
+  // Render filter content - reusable for both mobile and desktop
+  const renderFilterContent = () => (
+    <>
+      {/* Location Filter */}
+      <div className="mb-4 border-b pb-4">
+        <button
+          onClick={() => toggleFilter('location')}
+          className="flex justify-between items-center w-full py-2 text-left font-medium"
+        >
+          Location
+          <span>{expandedFilters.location ? '▲' : '▼'}</span>
+        </button>
+        {expandedFilters.location && (
+          <div className="mt-2">
+            <input
+              type="text"
+              placeholder="Search locations..."
+              value={locationSearch}
+              onChange={(e) => setLocationSearch(e.target.value)}
+              className="w-full px-3 py-2 mb-2 border border-gray-300 rounded text-sm"
+            />
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {SRI_LANKAN_LOCATIONS
+                .filter(location => 
+                  location.toLowerCase().includes(locationSearch.toLowerCase())
+                )
+                .map(location => (
+                  <label key={location} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedLocations.includes(location)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedLocations([...selectedLocations, location])
+                        } else {
+                          setSelectedLocations(selectedLocations.filter(l => l !== location))
+                        }
+                      }}
+                      className="mr-2 rounded"
+                    />
+                    <span className="text-sm">{location}</span>
+                  </label>
+                ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Make Filter */}
+      <div className="mb-4 border-b pb-4">
+        <button
+          onClick={() => toggleFilter('make')}
+          className="flex justify-between items-center w-full py-2 text-left font-medium"
+        >
+          Make
+          <span>{expandedFilters.make ? '▲' : '▼'}</span>
+        </button>
+        {expandedFilters.make && (
+          <div className="mt-2">
+            <input
+              type="text"
+              placeholder="Search makes..."
+              value={makeSearch}
+              onChange={(e) => setMakeSearch(e.target.value)}
+              className="w-full px-3 py-2 mb-2 border border-gray-300 rounded text-sm"
+            />
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {CAR_MAKES
+                .filter(make => 
+                  make.toLowerCase().includes(makeSearch.toLowerCase())
+                )
+                .map(make => (
+                  <label key={make} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedMakes.includes(make)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedMakes([...selectedMakes, make])
+                        } else {
+                          const newSelectedMakes = selectedMakes.filter(m => m !== make)
+                          setSelectedMakes(newSelectedMakes)
+                          if (newSelectedMakes.length === 0) {
+                            setSelectedModels([])
+                          } else {
+                            const availableModels = newSelectedMakes.flatMap(m => MODELS_BY_MAKE[m] || [])
+                            setSelectedModels(selectedModels.filter(model => availableModels.includes(model)))
+                          }
+                        }
+                      }}
+                      className="mr-2 rounded"
+                    />
+                    <span className="text-sm">{make}</span>
+                  </label>
+                ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Model Filter */}
+      <div className="mb-4 border-b pb-4">
+        <button
+          onClick={() => toggleFilter('model')}
+          className="flex justify-between items-center w-full py-2 text-left font-medium"
+        >
+          Model
+          <span>{expandedFilters.model ? '▲' : '▼'}</span>
+        </button>
+        {expandedFilters.model && (
+          <div className="mt-2">
+            <input
+              type="text"
+              placeholder="Search models..."
+              value={modelSearch}
+              onChange={(e) => setModelSearch(e.target.value)}
+              className="w-full px-3 py-2 mb-2 border border-gray-300 rounded text-sm"
+            />
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {(selectedMakes.length > 0 
+                ? selectedMakes.flatMap(make => MODELS_BY_MAKE[make] || [])
+                : ALL_MODELS
+              )
+                .filter(model => 
+                  model.toLowerCase().includes(modelSearch.toLowerCase())
+                )
+                .map(model => (
+                  <label key={model} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedModels.includes(model)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedModels([...selectedModels, model])
+                        } else {
+                          setSelectedModels(selectedModels.filter(m => m !== model))
+                        }
+                      }}
+                      className="mr-2 rounded"
+                    />
+                    <span className="text-sm">{model}</span>
+                  </label>
+                ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Year Range Filter */}
+      <div className="mb-4 border-b pb-4">
+        <button
+          onClick={() => toggleFilter('year')}
+          className="flex justify-between items-center w-full py-2 text-left font-medium"
+        >
+          Year
+          <span>{expandedFilters.year ? '▲' : '▼'}</span>
+        </button>
+        {expandedFilters.year && (
+          <div className="mt-2 space-y-2">
+            <input
+              type="number"
+              placeholder="Min Year"
+              value={minYear}
+              onChange={(e) => setMinYear(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+              min="1990"
+              max="2025"
+            />
+            <input
+              type="number"
+              placeholder="Max Year"
+              value={maxYear}
+              onChange={(e) => setMaxYear(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+              min="1990"
+              max="2025"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Price Range Filter */}
+      <div className="mb-4 border-b pb-4">
+        <button
+          onClick={() => toggleFilter('price')}
+          className="flex justify-between items-center w-full py-2 text-left font-medium"
+        >
+          Price (LKR)
+          <span>{expandedFilters.price ? '▲' : '▼'}</span>
+        </button>
+        {expandedFilters.price && (
+          <div className="mt-2 space-y-2">
+            <input
+              type="number"
+              placeholder="Min Price"
+              value={minPrice}
+              onChange={(e) => setMinPrice(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+            />
+            <input
+              type="number"
+              placeholder="Max Price"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Fuel Type Filter */}
+      <div className="mb-4 border-b pb-4">
+        <button
+          onClick={() => toggleFilter('fuel')}
+          className="flex justify-between items-center w-full py-2 text-left font-medium"
+        >
+          Fuel Type
+          <span>{expandedFilters.fuel ? '▲' : '▼'}</span>
+        </button>
+        {expandedFilters.fuel && (
+          <div className="mt-2 space-y-2">
+            {['Petrol', 'Diesel', 'Hybrid', 'Electric'].map(fuel => (
+              <label key={fuel} className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={fuelTypes.includes(fuel)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setFuelTypes([...fuelTypes, fuel])
+                    } else {
+                      setFuelTypes(fuelTypes.filter(f => f !== fuel))
+                    }
+                  }}
+                  className="mr-2 rounded"
+                />
+                <span className="text-sm">{fuel}</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Transmission Filter */}
+      <div className="mb-4">
+        <button
+          onClick={() => toggleFilter('transmission')}
+          className="flex justify-between items-center w-full py-2 text-left font-medium"
+        >
+          Transmission
+          <span>{expandedFilters.transmission ? '▲' : '▼'}</span>
+        </button>
+        {expandedFilters.transmission && (
+          <div className="mt-2 space-y-2">
+            {['Automatic', 'Manual'].map(trans => (
+              <label key={trans} className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={transmissionTypes.includes(trans)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setTransmissionTypes([...transmissionTypes, trans])
+                    } else {
+                      setTransmissionTypes(transmissionTypes.filter(t => t !== trans))
+                    }
+                  }}
+                  className="mr-2 rounded"
+                />
+                <span className="text-sm">{trans}</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  )
+
 
 
 
@@ -359,26 +636,37 @@ export default function AdvancedListingsPage() {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <h1 className="text-3xl font-bold mb-4">{getPageTitle()}</h1>
           
-          {/* Search Bar */}
-          <div className="flex gap-4 mb-4">
-            <div className="flex-1 relative">
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={placeholderText}
-                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                onKeyPress={(e) => e.key === 'Enter' && applyFilters()}
-              />
-              <span className="absolute right-4 top-3.5 text-gray-400">🔍</span>
+          {/* Search Bar with Mobile Filter Button */}
+          <div className="mb-4">
+            <div className="flex gap-2">
+              {/* Mobile Filter Button - Left of Search */}
+              <button
+                onClick={() => setExpandedFilters(prev => ({ ...prev, mobile: !prev.mobile }))}
+                className="lg:hidden px-3 py-3 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center justify-center"
+              >
+                <i className="fas fa-filter"></i>
+              </button>
+              
+              {/* Search Input */}
+              <div className="relative flex-1">
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder={placeholderText}
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  onKeyPress={(e) => e.key === 'Enter' && applyFilters()}
+                />
+                <button
+                  onClick={applyFilters}
+                  className="absolute right-3 top-3 p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  aria-label="Search"
+                >
+                  <i className="fas fa-search"></i>
+                </button>
+              </div>
             </div>
-            <button 
-              onClick={applyFilters}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-            >
-              🔍 Search
-            </button>
           </div>
 
           {/* Results count and sort */}
@@ -403,9 +691,32 @@ export default function AdvancedListingsPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Mobile Filter Panel - Full Screen Overlay */}
+        {(expandedFilters as any).mobile && (
+          <div className="fixed inset-0 bg-white z-50 lg:hidden overflow-y-auto">
+            <div className="p-4">
+              {/* Mobile Filter Header */}
+              <div className="flex items-center justify-between mb-4 pb-4 border-b">
+                <h2 className="text-xl font-semibold">Filters</h2>
+                <button
+                  onClick={() => setExpandedFilters(prev => ({ ...prev, mobile: false }))}
+                  className="p-2 text-gray-600 hover:text-gray-900"
+                >
+                  <i className="fas fa-times text-2xl"></i>
+                </button>
+              </div>
+              
+              {/* Filter Content - Copy of desktop filters */}
+              <div className="space-y-4">
+                {renderFilterContent()}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex gap-6">
-          {/* Filters Sidebar */}
-          <div className="w-72 flex-shrink-0">
+          {/* Filters Sidebar - Desktop */}
+          <div className="hidden lg:block w-72 flex-shrink-0">
             <div className="bg-white rounded-lg shadow-sm p-4 sticky top-32">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-semibold">Filters</h2>
@@ -416,6 +727,7 @@ export default function AdvancedListingsPage() {
                   Clear All
                 </button>
               </div>
+              {renderFilterContent()}
 
               {/* Location Filter */}
               <div className="mb-4 border-b pb-4">

@@ -96,7 +96,7 @@ export default async function HomePage() {
                     <p className="text-gray-600 text-sm mb-2">
                       {listing.year} • {listing.mileage?.toLocaleString()} km • {listing.fuel_type}
                     </p>
-                    <p className="text-gray-600 text-sm">📍 {listing.location}</p>
+                    <p className="text-gray-600 text-sm"><i className="fas fa-map-marker-alt mr-1"></i> {listing.location}</p>
                   </div>
                 </Link>
               ))}

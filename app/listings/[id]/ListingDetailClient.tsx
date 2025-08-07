@@ -283,19 +283,19 @@ export default function ListingDetailClient({
             {/* Key Details Pills */}
             <div className="flex flex-wrap gap-2 mb-6">
               <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
-                📅 {listing.year}
+                <i className="fas fa-calendar-alt mr-1"></i> {listing.year}
               </span>
               <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
-                🛣️ {listing.mileage?.toLocaleString() || 'N/A'} km
+                <i className="fas fa-road mr-1"></i> {listing.mileage?.toLocaleString() || 'N/A'} km
               </span>
               <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
-                ⛽ {listing.fuel_type || 'N/A'}
+                <i className="fas fa-gas-pump mr-1"></i> {listing.fuel_type || 'N/A'}
               </span>
               <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
-                ⚙️ {listing.transmission || 'N/A'}
+                <i className="fas fa-cog mr-1"></i> {listing.transmission || 'N/A'}
               </span>
               <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
-                📍 {listing.location}
+                <i className="fas fa-map-marker-alt mr-1"></i> {listing.location}
               </span>
             </div>
 
@@ -318,7 +318,7 @@ export default function ListingDetailClient({
             {listing.ai_summary && (
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
                 <div className="flex items-start gap-2">
-                  <span className="text-blue-600">✨</span>
+                  <i className="fas fa-magic text-blue-600"></i>
                   <div>
                     <p className="text-sm font-semibold text-blue-900 mb-1">AI Summary</p>
                     <p className="text-sm text-gray-700">{listing.ai_summary}</p>
@@ -597,19 +597,19 @@ export default function ListingDetailClient({
             <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
             <div className="space-y-3">
               <button className="w-full py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-left flex items-center gap-3">
-                <span className="text-xl">❤️</span>
+                <i className="fas fa-heart text-red-500 text-xl"></i>
                 <span>Save to Favorites</span>
               </button>
               <button className="w-full py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-left flex items-center gap-3">
-                <span className="text-xl">📊</span>
+                <i className="fas fa-chart-bar text-blue-500 text-xl"></i>
                 <span>Compare Vehicles</span>
               </button>
               <button className="w-full py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-left flex items-center gap-3">
-                <span className="text-xl">💰</span>
+                <i className="fas fa-dollar-sign text-green-500 text-xl"></i>
                 <span>Get Valuation</span>
               </button>
               <button className="w-full py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-left flex items-center gap-3">
-                <span className="text-xl">🚗</span>
+                <i className="fas fa-car text-blue-600 text-xl"></i>
                 <span>Request Test Drive</span>
               </button>
             </div>
@@ -661,7 +661,7 @@ export default function ListingDetailClient({
                     <span>•</span>
                     <span>{similar.fuel_type || 'N/A'}</span>
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">📍 {similar.location}</p>
+                  <p className="text-sm text-gray-500 mt-1"><i className="fas fa-map-marker-alt mr-1"></i> {similar.location}</p>
                 </div>
               </Link>
             ))}

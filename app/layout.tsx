@@ -17,6 +17,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <script src="https://kit.fontawesome.com/5a82e6e998.js" crossOrigin="anonymous"></script>
+      </head>
       <body className={inter.className}>
         <Header />
         <main className="min-h-screen">

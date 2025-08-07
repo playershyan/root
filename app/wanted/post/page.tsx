@@ -4,18 +4,15 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import { 
+  DISTRICTS, 
+  getCitiesByDistrictId,
+  getDistrictByName 
+} from '@/lib/constants/locations'
 
 // Import constants - if you created separate files, use these imports:
 // import { SRI_LANKA_LOCATIONS, VEHICLE_MAKES, MAKE_MODEL_MAP, FUEL_TYPES, TRANSMISSION_TYPES } from '@/lib/constants/vehicles'
 
-// If not using separate files, define them here:
-const SRI_LANKA_LOCATIONS = [
-  'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Galle', 
-  'Matara', 'Negombo', 'Kurunegala', 'Anuradhapura', 'Jaffna',
-  'Hambantota', 'Batticaloa', 'Trincomalee', 'Ratnapura', 'Badulla',
-  'Kegalle', 'Polonnaruwa', 'Nuwara Eliya', 'Ampara', 'Monaragala',
-  'Puttalam', 'Vavuniya', 'Mannar', 'Mullativu', 'Kilinochchi'
-]
 
 const VEHICLE_MAKES = [
   'Toyota', 'Honda', 'Nissan', 'Mazda', 'Suzuki', 
@@ -67,6 +64,8 @@ export default function PostWantedPage() {
   const [showPreview, setShowPreview] = useState(false)
   const [errors, setErrors] = useState<FormErrors>({})
   const [availableModels, setAvailableModels] = useState<string[]>([])
+  const [selectedDistrict, setSelectedDistrict] = useState<string>('')
+  const [availableCities, setAvailableCities] = useState<string[]>([])
   const [formData, setFormData] = useState<FormData>({
     title: '',
     description: '',
@@ -120,6 +119,20 @@ export default function PostWantedPage() {
     }
   }, [formData.make, formData.model, formData.min_year, formData.max_year])
 
+  useEffect(() => {
+    if (selectedDistrict) {
+      const district = getDistrictByName(selectedDistrict)
+      if (district) {
+        const cities = getCitiesByDistrictId(district.id)
+        setAvailableCities(cities.map(c => c.name))
+      }
+    } else {
+      setAvailableCities([])
+      // Reset city selection when district is cleared
+      setFormData(prev => ({ ...prev, location: '' }))
+    }
+  }, [selectedDistrict])
+
   const validateStep = (stepNumber: number): boolean => {
     const newErrors: FormErrors = {}
 
@@ -138,8 +151,11 @@ export default function PostWantedPage() {
         }
         break
       case 2:
+        if (!selectedDistrict) {
+          newErrors.district = 'District is required'
+        }
         if (!formData.location) {
-          newErrors.location = 'Location is required'
+          newErrors.location = 'City is required'
         }
         if (!formData.phone) {
           newErrors.phone = 'Phone number is required'
@@ -176,6 +192,11 @@ export default function PostWantedPage() {
 
     setLoading(true)
 
+    // Combine city and district for location
+    const locationString = formData.location && selectedDistrict 
+      ? `${formData.location}, ${selectedDistrict}` 
+      : formData.location || selectedDistrict
+
     try {
       const { error } = await supabase.from('wanted_requests').insert([
         {
@@ -187,7 +208,7 @@ export default function PostWantedPage() {
           model: formData.model || null,
           min_year: formData.min_year ? parseInt(formData.min_year) : null,
           max_year: formData.max_year ? parseInt(formData.max_year) : null,
-          location: formData.location,
+          location: locationString,
           phone: formData.phone,
           fuel_type: formData.fuel_type || null,
           transmission: formData.transmission || null,
@@ -265,7 +286,7 @@ export default function PostWantedPage() {
         {/* Info Box */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
           <div className="flex items-start gap-3">
-            <span className="text-blue-600 text-xl">💡</span>
+            <i className="fas fa-lightbulb text-blue-600 text-xl"></i>
             <div>
               <p className="text-blue-900 font-semibold mb-1">How it works:</p>
               <ul className="text-blue-800 text-sm space-y-1">
@@ -528,28 +549,65 @@ export default function PostWantedPage() {
                 {errors.user_name && <p className="text-red-500 text-sm mt-1">{errors.user_name}</p>}
               </div>
 
-              {/* Location */}
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Your Location <span className="text-red-500">*</span>
-                </label>
-                <select
-                  required
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
-                    errors.location ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  value={formData.location}
-                  onChange={(e) => {
-                    setFormData({ ...formData, location: e.target.value })
-                    if (errors.location) setErrors({ ...errors, location: '' })
-                  }}
-                >
-                  <option value="">Select your location</option>
-                  {SRI_LANKA_LOCATIONS.map(location => (
-                    <option key={location} value={location}>{location}</option>
-                  ))}
-                </select>
-                {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location}</p>}
+              {/* Location Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* District Select */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    District <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={selectedDistrict}
+                    onChange={(e) => {
+                      setSelectedDistrict(e.target.value)
+                      setFormData(prev => ({ ...prev, location: '' })) // Reset city when district changes
+                    }}
+                    className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      errors.district ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  >
+                    <option value="">Select District</option>
+                    {DISTRICTS.map(district => (
+                      <option key={district.id} value={district.name}>
+                        {district.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                {/* City Select - Only show if district is selected */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    City/Area <span className="text-red-500">*</span>
+                  </label>
+                  {selectedDistrict ? (
+                    <select
+                      value={formData.location}
+                      onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                      className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        errors.location ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    >
+                      <option value="">Select City</option>
+                      {availableCities.map(city => (
+                        <option key={city} value={city}>
+                          {city}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value=""
+                      disabled
+                      placeholder="Please select a district first"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                    />
+                  )}
+                  {errors.location && (
+                    <p className="mt-1 text-sm text-red-600">{errors.location}</p>
+                  )}
+                </div>
               </div>
 
               {/* Phone */}

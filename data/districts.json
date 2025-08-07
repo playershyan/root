@@ -1,0 +1,202 @@
+[
+  {
+    "id": 1,
+    "province_id": 6,
+    "name": "Ampara",
+    "name_si": "අම්පාර",
+    "name_ta": "அம்பாறை",
+    "province": "Eastern"
+  },
+  {
+    "id": 2,
+    "province_id": 8,
+    "name": "Anuradhapura",
+    "name_si": "අනුරාධපුරය",
+    "name_ta": "அனுராதபுரம்",
+    "province": "Uva"
+  },
+  {
+    "id": 3,
+    "province_id": 7,
+    "name": "Badulla",
+    "name_si": "බදුල්ල",
+    "name_ta": "பதுளை",
+    "province": "North Central"
+  },
+  {
+    "id": 4,
+    "province_id": 6,
+    "name": "Batticaloa",
+    "name_si": "මඩකලපුව",
+    "name_ta": "மட்டக்களப்பு",
+    "province": "Eastern"
+  },
+  {
+    "id": 5,
+    "province_id": 1,
+    "name": "Colombo",
+    "name_si": "කොළඹ",
+    "name_ta": "கொழும்பு",
+    "province": "Western"
+  },
+  {
+    "id": 6,
+    "province_id": 3,
+    "name": "Galle",
+    "name_si": "ගාල්ල",
+    "name_ta": "காலி",
+    "province": "Sabaragamuwa"
+  },
+  {
+    "id": 7,
+    "province_id": 1,
+    "name": "Gampaha",
+    "name_si": "ගම්පහ",
+    "name_ta": "கம்பஹா",
+    "province": "Western"
+  },
+  {
+    "id": 8,
+    "province_id": 3,
+    "name": "Hambantota",
+    "name_si": "හම්බන්තොට",
+    "name_ta": "அம்பாந்தோட்டை",
+    "province": "Sabaragamuwa"
+  },
+  {
+    "id": 9,
+    "province_id": 9,
+    "name": "Jaffna",
+    "name_si": "යාපනය",
+    "name_ta": "யாழ்ப்பாணம்",
+    "province": "Southern"
+  },
+  {
+    "id": 10,
+    "province_id": 1,
+    "name": "Kalutara",
+    "name_si": "කළුතර",
+    "name_ta": "களுத்துறை",
+    "province": "Western"
+  },
+  {
+    "id": 11,
+    "province_id": 2,
+    "name": "Kandy",
+    "name_si": "මහනුවර",
+    "name_ta": "கண்டி",
+    "province": "Central"
+  },
+  {
+    "id": 12,
+    "province_id": 5,
+    "name": "Kegalle",
+    "name_si": "කෑගල්ල",
+    "name_ta": "கேகாலை",
+    "province": "Northern"
+  },
+  {
+    "id": 13,
+    "province_id": 9,
+    "name": "Kilinochchi",
+    "name_si": "කිලිනොච්චිය",
+    "name_ta": "கிளிநொச்சி",
+    "province": "Southern"
+  },
+  {
+    "id": 14,
+    "province_id": 4,
+    "name": "Kurunegala",
+    "name_si": "කුරුණෑගල",
+    "name_ta": "குருணாகல்",
+    "province": "North Western"
+  },
+  {
+    "id": 15,
+    "province_id": 9,
+    "name": "Mannar",
+    "name_si": "මන්නාරම",
+    "name_ta": "மன்னார்",
+    "province": "Southern"
+  },
+  {
+    "id": 16,
+    "province_id": 2,
+    "name": "Matale",
+    "name_si": "මාතලේ",
+    "name_ta": "மாத்தளை",
+    "province": "Central"
+  },
+  {
+    "id": 17,
+    "province_id": 3,
+    "name": "Matara",
+    "name_si": "මාතර",
+    "name_ta": "மாத்தறை",
+    "province": "Sabaragamuwa"
+  },
+  {
+    "id": 18,
+    "province_id": 7,
+    "name": "Monaragala",
+    "name_si": "මොණරාගල",
+    "name_ta": "மொணராகலை",
+    "province": "North Central"
+  },
+  {
+    "id": 19,
+    "province_id": 9,
+    "name": "Mullaitivu",
+    "name_si": "මුලතිව්",
+    "name_ta": "முல்லைத்தீவு",
+    "province": "Southern"
+  },
+  {
+    "id": 20,
+    "province_id": 2,
+    "name": "Nuwara Eliya",
+    "name_si": "නුවර එළිය",
+    "name_ta": "நுவரேலியா",
+    "province": "Central"
+  },
+  {
+    "id": 21,
+    "province_id": 8,
+    "name": "Polonnaruwa",
+    "name_si": "පොළොන්නරුව",
+    "name_ta": "பொலன்னறுவை",
+    "province": "Uva"
+  },
+  {
+    "id": 22,
+    "province_id": 4,
+    "name": "Puttalam",
+    "name_si": "පුත්තලම",
+    "name_ta": "புத்தளம்",
+    "province": "North Western"
+  },
+  {
+    "id": 23,
+    "province_id": 5,
+    "name": "Ratnapura",
+    "name_si": "රත්නපුර",
+    "name_ta": "இரத்தினபுரி",
+    "province": "Northern"
+  },
+  {
+    "id": 24,
+    "province_id": 6,
+    "name": "Trincomalee",
+    "name_si": "ත්‍රිකුණාමලය",
+    "name_ta": "திருகோணமலை",
+    "province": "Eastern"
+  },
+  {
+    "id": 25,
+    "province_id": 9,
+    "name": "Vavuniya",
+    "name_si": "වව්නියාව",
+    "name_ta": "வவுனியா",
+    "province": "Southern"
+  }
+]

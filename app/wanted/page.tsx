@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { useInView } from 'react-intersection-observer'
 import debounce from 'lodash/debounce'
+import LocationFilter from '@/app/components/LocationFilter'
 
 interface WantedRequest {
   id: string
@@ -41,11 +42,6 @@ interface FilterState {
   transmissions: string[]
   urgencyLevels: string[]
 }
-
-const LOCATIONS = [
-  'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Galle', 
-  'Matara', 'Negombo', 'Kurunegala', 'Anuradhapura', 'Jaffna'
-]
 
 const MAKES = [
   'Toyota', 'Honda', 'Nissan', 'Mazda', 'Suzuki', 
@@ -86,7 +82,8 @@ export default function WantedRequestsPage() {
   const [expandedFilters, setExpandedFilters] = useState({
     location: false,
     make: false,
-    model: false
+    model: false,
+    mobile: false
   })
   const [savedRequests, setSavedRequests] = useState<Set<string>>(new Set())
   const [displayCount, setDisplayCount] = useState(6)
@@ -298,12 +295,10 @@ export default function WantedRequestsPage() {
     }))
   }
 
-  const handleLocationToggle = (location: string) => {
+  const handleLocationChange = (locations: string[]) => {
     setFilters(prev => ({
       ...prev,
-      locations: prev.locations.includes(location)
-        ? prev.locations.filter(l => l !== location)
-        : [...prev.locations, location]
+      locations
     }))
   }
 
@@ -333,6 +328,214 @@ export default function WantedRequestsPage() {
     }
     return []
   }
+
+  const renderFilterContent = () => (
+    <>
+      {/* Location Filter */}
+      <LocationFilter
+        selectedLocation={filters.locations.length > 0 ? filters.locations[0] : null}
+        onLocationChange={(location) => handleLocationChange(location ? [location] : [])}
+        expanded={expandedFilters.location}
+        onToggleExpand={() => toggleFilterExpand('location')}
+      />
+
+      {/* Make Filter */}
+      <div className="mb-6">
+        <div 
+          onClick={() => toggleFilterExpand('make')}
+          className="flex justify-between items-center cursor-pointer py-2 hover:bg-gray-50 -mx-2 px-2 rounded"
+        >
+          <span className="font-semibold text-gray-700">Make</span>
+          <span className={`text-gray-400 text-sm transition-transform ${expandedFilters.make ? 'rotate-180' : ''}`}>
+            ▼
+          </span>
+        </div>
+        <div className={`mt-3 space-y-2 overflow-hidden transition-all ${expandedFilters.make ? 'max-h-64' : 'max-h-0'}`}>
+          <input 
+            type="text" 
+            placeholder="Search makes..."
+            className="w-full px-3 py-2 border rounded-md text-sm mb-2"
+          />
+          <div className="max-h-48 overflow-y-auto border rounded-md p-2 bg-gray-50">
+            {MAKES.map(make => (
+              <label 
+                key={make}
+                className={`block py-1 px-2 rounded cursor-pointer hover:bg-blue-50 text-xs ${
+                  filters.makes.includes(make) ? 'bg-yellow-50 font-semibold text-yellow-700' : ''
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={filters.makes.includes(make)}
+                  onChange={() => handleMakeToggle(make)}
+                  className="sr-only"
+                />
+                {make}
+              </label>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Model Filter (conditional) */}
+      {filters.makes.length === 1 && (
+        <div className="mb-4">
+          <div 
+            onClick={() => toggleFilterExpand('model')}
+            className="flex justify-between items-center cursor-pointer py-1.5 hover:bg-gray-50 -mx-2 px-2 rounded"
+          >
+            <span className="font-semibold text-gray-700 text-sm">Model</span>
+            <span className={`text-gray-400 text-xs transition-transform ${expandedFilters.model ? 'rotate-180' : ''}`}>
+              ▼
+            </span>
+          </div>
+          <div className={`mt-2 space-y-1.5 overflow-hidden transition-all ${expandedFilters.model ? 'max-h-48' : 'max-h-0'}`}>
+            <input 
+              type="text" 
+              placeholder="Search models..."
+              className="w-full px-2 py-1.5 border rounded-md text-xs mb-2"
+            />
+            <div className="max-h-40 overflow-y-auto border rounded-md p-2 bg-gray-50">
+              {getAvailableModels().map(model => (
+                <label 
+                  key={model}
+                  className={`block py-1 px-2 rounded cursor-pointer hover:bg-blue-50 text-xs ${
+                    filters.models.includes(model) ? 'bg-yellow-50 font-semibold text-yellow-700' : ''
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={filters.models.includes(model)}
+                    onChange={() => handleModelToggle(model)}
+                    className="sr-only"
+                  />
+                  {model}
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Budget Range */}
+      <div className="mb-4">
+        <label className="font-semibold text-gray-700 block mb-2 text-sm">Budget Range</label>
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            type="number"
+            placeholder="Min (LKR)"
+            value={filters.minBudget}
+            onChange={(e) => setFilters(prev => ({ ...prev, minBudget: e.target.value }))}
+            className="px-2 py-1.5 border rounded-md text-xs"
+          />
+          <input
+            type="number"
+            placeholder="Max (LKR)"
+            value={filters.maxBudget}
+            onChange={(e) => setFilters(prev => ({ ...prev, maxBudget: e.target.value }))}
+            className="px-2 py-1.5 border rounded-md text-xs"
+          />
+        </div>
+      </div>
+
+      {/* Year Range */}
+      <div className="mb-4">
+        <label className="font-semibold text-gray-700 block mb-2 text-sm">Year Range</label>
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            type="number"
+            placeholder="From year"
+            value={filters.yearFrom}
+            onChange={(e) => setFilters(prev => ({ ...prev, yearFrom: e.target.value }))}
+            className="px-2 py-1.5 border rounded-md text-xs"
+          />
+          <input
+            type="number"
+            placeholder="To year"
+            value={filters.yearTo}
+            onChange={(e) => setFilters(prev => ({ ...prev, yearTo: e.target.value }))}
+            className="px-2 py-1.5 border rounded-md text-xs"
+          />
+        </div>
+      </div>
+
+      {/* Fuel Type */}
+      <div className="mb-4">
+        <label className="font-semibold text-gray-700 block mb-2 text-sm">Fuel Type</label>
+        <div className="space-y-1.5">
+          {['Petrol', 'Diesel', 'Hybrid', 'Electric'].map(fuel => (
+            <label key={fuel} className="flex items-center">
+              <input
+                type="checkbox"
+                checked={filters.fuelTypes.includes(fuel)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setFilters(prev => ({ ...prev, fuelTypes: [...prev.fuelTypes, fuel] }))
+                  } else {
+                    setFilters(prev => ({ ...prev, fuelTypes: prev.fuelTypes.filter(f => f !== fuel) }))
+                  }
+                }}
+                className="mr-2"
+              />
+              <span className="text-xs">{fuel}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Transmission */}
+      <div className="mb-4">
+        <label className="font-semibold text-gray-700 block mb-2 text-sm">Transmission</label>
+        <div className="space-y-1.5">
+          {['Automatic', 'Manual'].map(trans => (
+            <label key={trans} className="flex items-center">
+              <input
+                type="checkbox"
+                checked={filters.transmissions.includes(trans)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setFilters(prev => ({ ...prev, transmissions: [...prev.transmissions, trans] }))
+                  } else {
+                    setFilters(prev => ({ ...prev, transmissions: prev.transmissions.filter(t => t !== trans) }))
+                  }
+                }}
+                className="mr-2"
+              />
+              <span className="text-xs">{trans}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Urgency */}
+      <div>
+        <label className="font-semibold text-gray-700 block mb-2 text-sm">Urgency</label>
+        <div className="space-y-1.5">
+          {[
+            { value: 'high', label: 'High Priority' },
+            { value: 'medium', label: 'Medium Priority' },
+            { value: 'low', label: 'Low Priority' }
+          ].map(urgency => (
+            <label key={urgency.value} className="flex items-center">
+              <input
+                type="checkbox"
+                checked={filters.urgencyLevels.includes(urgency.value)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setFilters(prev => ({ ...prev, urgencyLevels: [...prev.urgencyLevels, urgency.value] }))
+                  } else {
+                    setFilters(prev => ({ ...prev, urgencyLevels: prev.urgencyLevels.filter(u => u !== urgency.value) }))
+                  }
+                }}
+                className="mr-2"
+              />
+              <span className="text-xs">{urgency.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+    </>
+  )
 
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString)
@@ -364,60 +567,69 @@ export default function WantedRequestsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Search Header */}
-      <div className="bg-white shadow-sm mb-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+      <div className="bg-white shadow-sm mb-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-gray-900">
                 {filters.locations.length > 0 
                   ? `Wanted Requests in ${filters.locations.join(', ')}`
                   : 'Wanted Requests'
                 }
               </h1>
-              <p className="text-gray-600 mt-2">
+              <p className="text-gray-600 mt-1 text-sm">
                 Browse active requests from buyers looking for specific vehicles. Contact them directly if you have what they're looking for.
               </p>
             </div>
             <Link 
               href="/wanted/post" 
-              className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-semibold"
+              className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold text-sm"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 5v14M5 12h14"/>
-              </svg>
+              <i className="fas fa-plus"></i>
               Publish a Wanted Request
             </Link>
           </div>
 
           {/* Quick Search */}
-          <div className="max-w-2xl mb-6">
-            <div className="flex">
-              <input
-                type="text"
-                placeholder="Search wanted requests..."
-                className="flex-1 px-4 py-3 border-2 border-r-0 border-gray-300 rounded-l-lg focus:outline-none focus:border-blue-500"
-                onChange={(e) => debouncedSearch(e.target.value)}
-              />
-              <button className="bg-blue-600 text-white px-6 py-3 rounded-r-lg hover:bg-blue-700 transition font-semibold flex items-center gap-2">
-                <span>🔍</span>
-                Search
+          <div className="max-w-2xl mb-4">
+            <div className="flex gap-2">
+              {/* Mobile Filter Button */}
+              <button
+                onClick={() => setExpandedFilters(prev => ({ ...prev, mobile: true }))}
+                className="lg:hidden px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center gap-2 text-sm"
+              >
+                <i className="fas fa-filter"></i>
+                Filters
               </button>
+              
+              {/* Search Input */}
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder="Search wanted requests..."
+                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                  onChange={(e) => debouncedSearch(e.target.value)}
+                />
+                <button className="absolute right-1 top-1 p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <i className="fas fa-search text-sm"></i>
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Results Info & Sort */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="text-gray-600">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div className="text-gray-600 text-sm">
               {filteredRequests.length} wanted requests found
               {searchTerm && ` for "${searchTerm}"`}
             </div>
-            <div className="flex items-center gap-3">
-              <label htmlFor="sort" className="text-gray-700">Sort by:</label>
+            <div className="flex items-center gap-2">
+              <label htmlFor="sort" className="text-gray-700 text-sm">Sort by:</label>
               <select
                 id="sort"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                className="px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm"
               >
                 <option value="recent">Most Recent</option>
                 <option value="budget-high">Budget: High to Low</option>
@@ -433,264 +645,32 @@ export default function WantedRequestsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Filters Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow p-6 sticky top-20">
-              <div className="flex justify-between items-center mb-6 pb-4 border-b">
-                <h3 className="text-lg font-bold text-gray-900">Filters</h3>
+          <div className="hidden lg:block lg:col-span-1">
+            <div className="bg-white rounded-lg shadow p-3 sticky top-20">
+              <div className="flex justify-between items-center mb-4 pb-3 border-b">
+                <h3 className="text-base font-bold text-gray-900">Filters</h3>
                 <button 
                   onClick={clearFilters}
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  className="text-blue-600 hover:text-blue-700 text-xs font-medium"
                 >
                   Clear all
                 </button>
               </div>
 
-              {/* Location Filter */}
-              <div className="mb-6">
-                <div 
-                  onClick={() => toggleFilterExpand('location')}
-                  className="flex justify-between items-center cursor-pointer py-2 hover:bg-gray-50 -mx-2 px-2 rounded"
-                >
-                  <span className="font-semibold text-gray-700">Location</span>
-                  <span className={`text-gray-400 text-sm transition-transform ${expandedFilters.location ? 'rotate-180' : ''}`}>
-                    ▼
-                  </span>
-                </div>
-                <div className={`mt-3 space-y-2 overflow-hidden transition-all ${expandedFilters.location ? 'max-h-64' : 'max-h-0'}`}>
-                  <input 
-                    type="text" 
-                    placeholder="Search districts and cities..."
-                    className="w-full px-3 py-2 border rounded-md text-sm mb-2"
-                  />
-                  <div className="max-h-48 overflow-y-auto border rounded-md p-2 bg-gray-50">
-                    {LOCATIONS.map(location => (
-                      <label 
-                        key={location}
-                        className={`block py-1.5 px-2 rounded cursor-pointer hover:bg-blue-50 ${
-                          filters.locations.includes(location) ? 'bg-yellow-50 font-semibold text-yellow-700' : ''
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={filters.locations.includes(location)}
-                          onChange={() => handleLocationToggle(location)}
-                          className="sr-only"
-                        />
-                        {location}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Make Filter */}
-              <div className="mb-6">
-                <div 
-                  onClick={() => toggleFilterExpand('make')}
-                  className="flex justify-between items-center cursor-pointer py-2 hover:bg-gray-50 -mx-2 px-2 rounded"
-                >
-                  <span className="font-semibold text-gray-700">Make</span>
-                  <span className={`text-gray-400 text-sm transition-transform ${expandedFilters.make ? 'rotate-180' : ''}`}>
-                    ▼
-                  </span>
-                </div>
-                <div className={`mt-3 space-y-2 overflow-hidden transition-all ${expandedFilters.make ? 'max-h-64' : 'max-h-0'}`}>
-                  <input 
-                    type="text" 
-                    placeholder="Search makes..."
-                    className="w-full px-3 py-2 border rounded-md text-sm mb-2"
-                  />
-                  <div className="max-h-48 overflow-y-auto border rounded-md p-2 bg-gray-50">
-                    {MAKES.map(make => (
-                      <label 
-                        key={make}
-                        className={`block py-1.5 px-2 rounded cursor-pointer hover:bg-blue-50 ${
-                          filters.makes.includes(make) ? 'bg-yellow-50 font-semibold text-yellow-700' : ''
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={filters.makes.includes(make)}
-                          onChange={() => handleMakeToggle(make)}
-                          className="sr-only"
-                        />
-                        {make}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Model Filter (conditional) */}
-              {filters.makes.length === 1 && (
-                <div className="mb-6">
-                  <div 
-                    onClick={() => toggleFilterExpand('model')}
-                    className="flex justify-between items-center cursor-pointer py-2 hover:bg-gray-50 -mx-2 px-2 rounded"
-                  >
-                    <span className="font-semibold text-gray-700">Model</span>
-                    <span className={`text-gray-400 text-sm transition-transform ${expandedFilters.model ? 'rotate-180' : ''}`}>
-                      ▼
-                    </span>
-                  </div>
-                  <div className={`mt-3 space-y-2 overflow-hidden transition-all ${expandedFilters.model ? 'max-h-64' : 'max-h-0'}`}>
-                    <input 
-                      type="text" 
-                      placeholder="Search models..."
-                      className="w-full px-3 py-2 border rounded-md text-sm mb-2"
-                    />
-                    <div className="max-h-48 overflow-y-auto border rounded-md p-2 bg-gray-50">
-                      {getAvailableModels().map(model => (
-                        <label 
-                          key={model}
-                          className={`block py-1.5 px-2 rounded cursor-pointer hover:bg-blue-50 ${
-                            filters.models.includes(model) ? 'bg-yellow-50 font-semibold text-yellow-700' : ''
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={filters.models.includes(model)}
-                            onChange={() => handleModelToggle(model)}
-                            className="sr-only"
-                          />
-                          {model}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Budget Range */}
-              <div className="mb-6">
-                <label className="font-semibold text-gray-700 block mb-3">Budget Range</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="number"
-                    placeholder="Min (LKR)"
-                    value={filters.minBudget}
-                    onChange={(e) => setFilters(prev => ({ ...prev, minBudget: e.target.value }))}
-                    className="px-3 py-2 border rounded-md text-sm"
-                  />
-                  <input
-                    type="number"
-                    placeholder="Max (LKR)"
-                    value={filters.maxBudget}
-                    onChange={(e) => setFilters(prev => ({ ...prev, maxBudget: e.target.value }))}
-                    className="px-3 py-2 border rounded-md text-sm"
-                  />
-                </div>
-              </div>
-
-              {/* Year Range */}
-              <div className="mb-6">
-                <label className="font-semibold text-gray-700 block mb-3">Year Range</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="number"
-                    placeholder="From year"
-                    value={filters.yearFrom}
-                    onChange={(e) => setFilters(prev => ({ ...prev, yearFrom: e.target.value }))}
-                    className="px-3 py-2 border rounded-md text-sm"
-                  />
-                  <input
-                    type="number"
-                    placeholder="To year"
-                    value={filters.yearTo}
-                    onChange={(e) => setFilters(prev => ({ ...prev, yearTo: e.target.value }))}
-                    className="px-3 py-2 border rounded-md text-sm"
-                  />
-                </div>
-              </div>
-
-              {/* Fuel Type */}
-              <div className="mb-6">
-                <label className="font-semibold text-gray-700 block mb-3">Fuel Type</label>
-                <div className="space-y-2">
-                  {['Petrol', 'Diesel', 'Hybrid', 'Electric'].map(fuel => (
-                    <label key={fuel} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={filters.fuelTypes.includes(fuel)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setFilters(prev => ({ ...prev, fuelTypes: [...prev.fuelTypes, fuel] }))
-                          } else {
-                            setFilters(prev => ({ ...prev, fuelTypes: prev.fuelTypes.filter(f => f !== fuel) }))
-                          }
-                        }}
-                        className="mr-2"
-                      />
-                      <span className="text-sm">{fuel}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Transmission */}
-              <div className="mb-6">
-                <label className="font-semibold text-gray-700 block mb-3">Transmission</label>
-                <div className="space-y-2">
-                  {['Automatic', 'Manual'].map(trans => (
-                    <label key={trans} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={filters.transmissions.includes(trans)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setFilters(prev => ({ ...prev, transmissions: [...prev.transmissions, trans] }))
-                          } else {
-                            setFilters(prev => ({ ...prev, transmissions: prev.transmissions.filter(t => t !== trans) }))
-                          }
-                        }}
-                        className="mr-2"
-                      />
-                      <span className="text-sm">{trans}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Urgency */}
-              <div>
-                <label className="font-semibold text-gray-700 block mb-3">Urgency</label>
-                <div className="space-y-2">
-                  {[
-                    { value: 'high', label: 'High Priority' },
-                    { value: 'medium', label: 'Medium Priority' },
-                    { value: 'low', label: 'Low Priority' }
-                  ].map(urgency => (
-                    <label key={urgency.value} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={filters.urgencyLevels.includes(urgency.value)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setFilters(prev => ({ ...prev, urgencyLevels: [...prev.urgencyLevels, urgency.value] }))
-                          } else {
-                            setFilters(prev => ({ ...prev, urgencyLevels: prev.urgencyLevels.filter(u => u !== urgency.value) }))
-                          }
-                        }}
-                        className="mr-2"
-                      />
-                      <span className="text-sm">{urgency.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
+              {renderFilterContent()}
             </div>
           </div>
 
           {/* Results Grid */}
           <div className="lg:col-span-3">
             {loading ? (
-              <div className="text-center py-12">
+              <div className="text-center py-8">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                <p className="mt-2 text-gray-600">Loading wanted requests...</p>
+                <p className="mt-2 text-gray-600 text-sm">Loading wanted requests...</p>
               </div>
             ) : filteredRequests.length > 0 ? (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {filteredRequests.map((request) => (
                     <div key={request.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
                       <div className="relative bg-gradient-to-r from-gray-50 to-gray-100 p-5 rounded-t-lg border-b">
@@ -772,7 +752,7 @@ export default function WantedRequestsPage() {
                                 : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
                             }`}
                           >
-                            {savedRequests.has(request.id) ? '⭐' : '💾'}
+                            <i className={`fas ${savedRequests.has(request.id) ? 'fa-star' : 'fa-bookmark'}`}></i>
                           </button>
                         </div>
                       </div>
@@ -781,20 +761,20 @@ export default function WantedRequestsPage() {
                 </div>
 
                 {/* Load More / Infinite Scroll */}
-                <div ref={loadMoreRef} className="text-center mt-8">
+                <div ref={loadMoreRef} className="text-center mt-6">
                   {hasMore && (
-                    <div className="text-gray-600">
+                    <div className="text-gray-600 text-sm">
                       {loading ? 'Loading more wanted requests...' : 'Scroll for more'}
                     </div>
                   )}
                   {!hasMore && filteredRequests.length > 6 && (
-                    <div className="text-gray-500">No more wanted requests to load</div>
+                    <div className="text-gray-500 text-sm">No more wanted requests to load</div>
                   )}
                 </div>
               </>
             ) : (
-              <div className="text-center py-12 bg-white rounded-lg shadow">
-                <p className="text-gray-500 text-lg mb-4">
+              <div className="text-center py-8 bg-white rounded-lg shadow">
+                <p className="text-gray-500 mb-3">
                   {searchTerm || Object.values(filters).some(f => 
                     (Array.isArray(f) && f.length > 0) || (typeof f === 'string' && f)
                   ) 
@@ -807,7 +787,7 @@ export default function WantedRequestsPage() {
                 )) && (
                   <button 
                     onClick={clearFilters}
-                    className="text-blue-600 hover:text-blue-700 font-medium"
+                    className="text-blue-600 hover:text-blue-700 font-medium text-sm"
                   >
                     Clear filters and try again
                   </button>
@@ -815,7 +795,7 @@ export default function WantedRequestsPage() {
                 {!searchTerm && !Object.values(filters).some(f => 
                   (Array.isArray(f) && f.length > 0) || (typeof f === 'string' && f)
                 ) && (
-                  <Link href="/wanted/post" className="inline-block mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                  <Link href="/wanted/post" className="inline-block mt-3 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
                     Post the first wanted request
                   </Link>
                 )}
@@ -824,6 +804,40 @@ export default function WantedRequestsPage() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Filter Panel */}
+      {expandedFilters.mobile && (
+        <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50">
+          <div className="absolute right-0 top-0 h-full w-full max-w-sm bg-white shadow-xl overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Filters</h3>
+              <button
+                onClick={() => setExpandedFilters(prev => ({ ...prev, mobile: false }))}
+                className="p-2 text-gray-500 hover:text-gray-700"
+              >
+                <i className="fas fa-times text-xl"></i>
+              </button>
+            </div>
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-sm text-gray-600">
+                  {Object.values(filters).filter(f => 
+                    (Array.isArray(f) && f.length > 0) || 
+                    (typeof f === 'string' && f)
+                  ).length} filters applied
+                </span>
+                <button 
+                  onClick={clearFilters}
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                >
+                  Clear all
+                </button>
+              </div>
+              {renderFilterContent()}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

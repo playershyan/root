@@ -8,15 +8,11 @@ import {
   AlertCircle, Upload, X, Sparkles, ChevronRight, 
   FileText, User, Image as ImageIcon, Star
 } from 'lucide-react'
-
-// Sri Lankan data
-const SRI_LANKAN_DISTRICTS = [
-  'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya',
-  'Galle', 'Matara', 'Hambantota', 'Jaffna', 'Kilinochchi', 'Mannar',
-  'Mullaitivu', 'Vavuniya', 'Puttalam', 'Kurunegala', 'Anuradhapura',
-  'Polonnaruwa', 'Badulla', 'Monaragala', 'Ratnapura', 'Kegalle',
-  'Batticaloa', 'Ampara', 'Trincomalee'
-]
+import { 
+  DISTRICTS, 
+  getCitiesByDistrictId,
+  getDistrictByName 
+} from '@/lib/constants/locations'
 
 const VEHICLE_MAKES = [
   'Toyota', 'Honda', 'Nissan', 'Mazda', 'Suzuki', 'Mitsubishi',
@@ -156,6 +152,8 @@ export default function EnhancedPostVehiclePage() {
   
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<FormData>(initialFormData)
+  const [selectedDistrict, setSelectedDistrict] = useState<string>('')
+  const [availableCities, setAvailableCities] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -190,6 +188,20 @@ export default function EnhancedPostVehiclePage() {
       setFormData(prev => ({ ...prev, whatsapp: prev.phone }))
     }
   }, [formData.phone, formData.whatsappSameAsPhone])
+
+  useEffect(() => {
+    if (selectedDistrict) {
+      const district = getDistrictByName(selectedDistrict)
+      if (district) {
+        const cities = getCitiesByDistrictId(district.id)
+        setAvailableCities(cities.map(c => c.name))
+      }
+    } else {
+      setAvailableCities([])
+      // Reset city selection when district is cleared
+      setFormData(prev => ({ ...prev, city: '' }))
+    }
+  }, [selectedDistrict])
   
   const validateStep = (step: number): boolean => {
     const newErrors: Record<string, string> = {}
@@ -431,10 +443,10 @@ export default function EnhancedPostVehiclePage() {
                 </h2>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                   {[
-                    { value: 'car', label: 'Cars', icon: '🚗' },
-                    { value: 'van', label: 'Vans', icon: '🚐' },
-                    { value: 'motorcycle', label: 'Motorcycles', icon: '🏍️' },
-                    { value: 'three-wheeler', label: 'Three Wheelers', icon: '🛺' }
+                    { value: 'car', label: 'Cars', icon: 'fas fa-car' },
+                    { value: 'van', label: 'Vans', icon: 'fas fa-shuttle-van' },
+                    { value: 'motorcycle', label: 'Motorcycles', icon: 'fas fa-motorcycle' },
+                    { value: 'three-wheeler', label: 'Three Wheelers', icon: 'fas fa-taxi' }
                   ].map((type) => (
                     <button
                       key={type.value}
@@ -446,7 +458,7 @@ export default function EnhancedPostVehiclePage() {
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <div className="text-2xl mb-2">{type.icon}</div>
+                      <div className="text-2xl mb-2"><i className={type.icon}></i></div>
                       <div className="font-medium">{type.label}</div>
                     </button>
                   ))}
@@ -617,34 +629,60 @@ export default function EnhancedPostVehiclePage() {
                   Location
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* District Select */}
                   <div>
                     <label className="block text-sm font-medium mb-2">District *</label>
                     <select
-                      value={formData.district}
-                      onChange={(e) => setFormData(prev => ({ ...prev, district: e.target.value }))}
+                      value={selectedDistrict}
+                      onChange={(e) => {
+                        setSelectedDistrict(e.target.value)
+                        setFormData(prev => ({ 
+                          ...prev, 
+                          district: e.target.value,
+                          city: '' // Reset city selection when district changes
+                        }))
+                      }}
                       className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
                         errors.district ? 'border-red-500' : ''
                       }`}
                     >
                       <option value="">Select District</option>
-                      {SRI_LANKAN_DISTRICTS.map(district => (
-                        <option key={district} value={district}>{district}</option>
+                      {DISTRICTS.map(district => (
+                        <option key={district.id} value={district.name}>
+                          {district.name}
+                        </option>
                       ))}
                     </select>
                     {errors.district && <p className="text-red-500 text-sm mt-1">{errors.district}</p>}
                   </div>
                   
+                  {/* City Select - Only show if district is selected */}
                   <div>
                     <label className="block text-sm font-medium mb-2">City/Town *</label>
-                    <input
-                      type="text"
-                      value={formData.city}
-                      onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                      placeholder="e.g., Dehiwala"
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
-                        errors.city ? 'border-red-500' : ''
-                      }`}
-                    />
+                    {selectedDistrict ? (
+                      <select
+                        value={formData.city}
+                        onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                          errors.city ? 'border-red-500' : ''
+                        }`}
+                      >
+                        <option value="">Select City</option>
+                        {availableCities.map(city => (
+                          <option key={city} value={city}>
+                            {city}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        value={formData.city}
+                        disabled
+                        placeholder="Please select a district first"
+                        className="w-full px-4 py-2 border rounded-lg bg-gray-100 cursor-not-allowed"
+                      />
+                    )}
                     {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
                   </div>
                 </div>
@@ -973,10 +1011,10 @@ export default function EnhancedPostVehiclePage() {
                   <label className="block text-sm font-medium mb-2">AI Writing Style</label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {[
-                      { value: 'professional', label: 'Professional', icon: '💼' },
-                      { value: 'personal', label: 'Personal', icon: '🤝' },
-                      { value: 'detailed', label: 'Detailed', icon: '📋' },
-                      { value: 'urgent', label: 'Urgent Sale', icon: '⚡' }
+                      { value: 'professional', label: 'Professional', icon: 'fas fa-briefcase' },
+                      { value: 'personal', label: 'Personal', icon: 'fas fa-handshake' },
+                      { value: 'detailed', label: 'Detailed', icon: 'fas fa-clipboard-list' },
+                      { value: 'urgent', label: 'Urgent Sale', icon: 'fas fa-bolt' }
                     ].map(style => (
                       <button
                         key={style.value}
@@ -988,7 +1026,7 @@ export default function EnhancedPostVehiclePage() {
                             : 'border-gray-200'
                         }`}
                       >
-                        <div className="text-xl mb-1">{style.icon}</div>
+                        <div className="text-xl mb-1"><i className={style.icon}></i></div>
                         <div>{style.label}</div>
                       </button>
                     ))}

@@ -48,6 +48,19 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [mobileMenuOpen])
+
   const handleLogout = () => {
     // Implement logout logic
     console.log('Logging out...')
@@ -58,10 +71,21 @@ export default function Header() {
     <header className="bg-white shadow-sm border-b sticky top-0 z-50">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center">
-            <span className="text-2xl font-bold text-blue-600">AutoTrader.lk</span>
-          </Link>
+          {/* Left side - Mobile menu and Logo */}
+          <div className="flex items-center gap-4">
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 text-gray-600 hover:text-gray-900"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+            
+            {/* Logo */}
+            <Link href="/" className="flex items-center">
+              <span className="text-xl sm:text-2xl font-bold text-blue-600">AutoTrader.lk</span>
+            </Link>
+          </div>
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
@@ -114,8 +138,8 @@ export default function Header() {
                   )}
                 </Link>
 
-                {/* User Menu */}
-                <div className="relative" ref={userMenuRef}>
+                {/* User Menu - Desktop Only */}
+                <div className="hidden md:block relative" ref={userMenuRef}>
                   <button
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
                     className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50 transition-colors"
@@ -256,79 +280,212 @@ export default function Header() {
             {/* Sell Vehicle Button */}
             <Link 
               href="/post" 
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium"
+              className="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 font-medium text-sm sm:text-base"
             >
-              Sell Vehicle
+              <span className="hidden sm:inline">Sell Vehicle</span>
+              <span className="sm:hidden">Sell</span>
             </Link>
-
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-gray-600 hover:text-gray-900"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
           </div>
         </div>
         
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden py-3 border-t">
-            <div className="flex flex-col space-y-2">
-              <Link href="/" className="text-gray-700 hover:text-blue-600 py-2">
+      </nav>
+
+      {/* Full Screen Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 bg-white z-50 md:hidden overflow-y-auto">
+          <div className="px-4 py-4">
+            {/* Mobile Menu Header */}
+            <div className="flex items-center justify-between mb-6">
+              <Link href="/" className="text-2xl font-bold text-blue-600" onClick={() => setMobileMenuOpen(false)}>
+                AutoTrader.lk
+              </Link>
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-2 text-gray-600 hover:text-gray-900"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* User Profile Section */}
+            {user && (
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center">
+                    <span className="text-white text-lg font-medium">
+                      {user.name.split(' ').map(n => n[0]).join('')}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900">{user.name}</p>
+                    <p className="text-sm text-gray-600">{user.email}</p>
+                  </div>
+                </div>
+                {user.membershipType === 'gold' && (
+                  <div className="flex items-center gap-1 bg-amber-50 rounded-md px-3 py-1.5 inline-flex">
+                    <Crown className="w-4 h-4 text-amber-600" />
+                    <span className="text-sm text-amber-700 font-medium">Gold Member</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Navigation Links */}
+            <div className="space-y-1">
+              <Link 
+                href="/" 
+                className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
                 Home
               </Link>
-              <Link href="/listings" className="text-gray-700 hover:text-blue-600 py-2">
+              <Link 
+                href="/listings" 
+                className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
                 Browse Vehicles
               </Link>
-              <Link href="/wanted" className="text-gray-700 hover:text-blue-600 py-2">
+              <Link 
+                href="/wanted" 
+                className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
                 Wanted Requests
               </Link>
-              <Link href="/wanted/post" className="text-gray-700 hover:text-blue-600 py-2">
+              <Link 
+                href="/wanted/post" 
+                className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
                 Post Wanted Request
               </Link>
               
               {user ? (
                 <>
-                  <hr className="my-2" />
-                  <Link href="/profile" className="text-gray-700 hover:text-blue-600 py-2">
+                  <div className="border-t my-4" />
+                  
+                  <Link 
+                    href="/profile" 
+                    className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg flex items-center gap-3"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <User className="w-5 h-5" />
                     My Profile
                   </Link>
-                  <Link href="/profile?tab=listings" className="text-gray-700 hover:text-blue-600 py-2">
+                  
+                  <Link 
+                    href="/profile?tab=listings" 
+                    className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg flex items-center gap-3"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Car className="w-5 h-5" />
                     My Listings
                   </Link>
-                  <Link href="/profile?tab=favorites" className="text-gray-700 hover:text-blue-600 py-2">
-                    Favorites ({user.favorites || 0})
-                  </Link>
-                  <Link href="/profile?tab=messages" className="text-gray-700 hover:text-blue-600 py-2">
-                    Messages {user.unreadMessages && user.unreadMessages > 0 && (
-                      <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
+                  
+                  <Link 
+                    href="/profile?tab=messages" 
+                    className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg flex items-center gap-3"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <MessageSquare className="w-5 h-5" />
+                    <span className="flex-1">Messages</span>
+                    {user.unreadMessages && user.unreadMessages > 0 && (
+                      <span className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
                         {user.unreadMessages}
                       </span>
                     )}
                   </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="text-left text-gray-700 hover:text-blue-600 py-2"
+                  
+                  <Link 
+                    href="/profile?tab=favorites" 
+                    className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg flex items-center gap-3"
+                    onClick={() => setMobileMenuOpen(false)}
                   >
+                    <Heart className="w-5 h-5" />
+                    <span className="flex-1">Favorites</span>
+                    {user.favorites && user.favorites > 0 && (
+                      <span className="bg-gray-100 text-gray-700 text-xs rounded-full px-2 py-0.5">
+                        {user.favorites}
+                      </span>
+                    )}
+                  </Link>
+                  
+                  <Link 
+                    href="/profile?tab=wanted" 
+                    className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg flex items-center gap-3"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <FileText className="w-5 h-5" />
+                    Wanted Requests
+                  </Link>
+                  
+                  <div className="border-t my-4" />
+                  
+                  <Link 
+                    href="/profile?tab=membership" 
+                    className="block py-3 px-4 text-amber-700 hover:bg-amber-50 rounded-lg flex items-center gap-3"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Crown className="w-5 h-5" />
+                    Membership
+                  </Link>
+                  
+                  <Link 
+                    href="/profile?tab=security" 
+                    className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg flex items-center gap-3"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Shield className="w-5 h-5" />
+                    Security Settings
+                  </Link>
+                  
+                  <Link 
+                    href="/help" 
+                    className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg flex items-center gap-3"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <HelpCircle className="w-5 h-5" />
+                    Help & Support
+                  </Link>
+                  
+                  <div className="border-t my-4" />
+                  
+                  <button
+                    onClick={() => {
+                      handleLogout()
+                      setMobileMenuOpen(false)
+                    }}
+                    className="block w-full py-3 px-4 text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-3 font-medium"
+                  >
+                    <LogOut className="w-5 h-5" />
                     Sign Out
                   </button>
                 </>
               ) : (
                 <>
-                  <hr className="my-2" />
-                  <Link href="/login" className="text-gray-700 hover:text-blue-600 py-2">
+                  <div className="border-t my-4" />
+                  
+                  <Link 
+                    href="/login" 
+                    className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium text-center"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
                     Sign In
                   </Link>
-                  <Link href="/register" className="text-gray-700 hover:text-blue-600 py-2">
+                  <Link 
+                    href="/register" 
+                    className="block py-3 px-4 bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-medium text-center"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
                     Sign Up
                   </Link>
                 </>
               )}
             </div>
           </div>
-        )}
-      </nav>
+        </div>
+      )}
 
       {/* Search Bar */}
       {searchOpen && (
