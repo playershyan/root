@@ -33,4 +33,47 @@
   .card {
     @apply bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow;
   }
+  
+  /* AI Guide Content Styling */
+  .ai-guide-content {
+    line-height: 1.7;
+  }
+  
+  .ai-guide-content h3 {
+    @apply text-lg font-bold text-gray-800 mt-6 mb-3 pb-2 border-b border-gray-200;
+  }
+  
+  .ai-guide-content h3:first-child {
+    @apply mt-0;
+  }
+  
+  .ai-guide-content p {
+    @apply mb-4 text-gray-700 leading-relaxed;
+  }
+  
+  .ai-guide-content ul {
+    @apply mb-5 space-y-2;
+  }
+  
+  .ai-guide-content li {
+    @apply pl-4 relative text-gray-700 leading-relaxed;
+    padding-left: 1.5rem;
+  }
+  
+  .ai-guide-content li::before {
+    content: "•";
+    @apply absolute left-0 top-0 text-blue-600 font-bold text-lg;
+  }
+  
+  .ai-guide-content li strong {
+    @apply text-gray-800 font-semibold;
+  }
+  
+  /* Disclaimer styling */
+  .ai-guide-content p[style*="font-size: 0.75rem"] {
+    @apply bg-gray-50 border border-gray-200 rounded-md p-3 mb-4;
+    font-style: italic !important;
+    color: #666 !important;
+    font-size: 0.75rem !important;
+  }
 }

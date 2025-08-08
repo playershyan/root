@@ -8,46 +8,59 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Search context is required' }, { status: 400 })
     }
 
-    const prompt = `Create a car buying guide for ${searchContext} vehicles in Sri Lanka. Structure it EXACTLY as follows:
+    const prompt = `Create a buyer-friendly car guide for ${searchContext} vehicles in Sri Lanka. Make it encouraging and helpful, not scary. Structure it EXACTLY as follows:
 
 [COMPACT_START]
-Write a brief 2-sentence overview in a <p> tag, then create 3-4 key inspection points in a proper <ul> with <li> tags. Each inspection point should be complete and specific. Format exactly like this example:
-<p>Brief overview here.</p>
-<ul>
-<li>Specific thing to check with details</li>
-<li>Another specific check with details</li>
+Write a positive 2-sentence overview about why this vehicle is a great choice, then list 4 simple things to check when buying:
+<p style="color: #2563eb; font-weight: 500;">Why this vehicle is popular and what makes it a smart choice for Sri Lankan buyers.</p>
+<ul style="margin-top: 0.5rem;">
+<li style="margin-bottom: 0.3rem;"><strong>Engine:</strong> Key area to inspect and what good condition looks like</li>
+<li style="margin-bottom: 0.3rem;"><strong>Transmission:</strong> Important system to check and signs of good maintenance</li>
+<li style="margin-bottom: 0.3rem;"><strong>Air Conditioning:</strong> Critical component to verify and what to look for</li>
+<li style="margin-bottom: 0.3rem;"><strong>Documents:</strong> Essential paperwork to check and why they matter</li>
 </ul>
-Keep under 100 words total.
+Keep it simple, positive, and under 100 words total.
 [COMPACT_END]
 
 [DETAILED_START]
-Create a guide with these EXACT sections. Use proper HTML formatting with <ul> and <li> tags for all bullet points. Each bullet point must provide specific, actionable information that could save the buyer money or prevent problems:
+Create well-formatted sections that are easy to read and encouraging:
 
-<h3>Why Choose This Vehicle in Sri Lanka</h3>
-<ul>
-<li>Write exactly 3 bullet points in proper <li> tags</li>
+<div style="margin-bottom: 2rem;">
+<h3 style="color: #059669; font-size: 1.1rem; margin-bottom: 0.8rem; border-bottom: 2px solid #d1fae5; padding-bottom: 0.3rem;">Why This Vehicle Shines</h3>
+<div style="background: #f0fdf4; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+<ul style="margin: 0; padding-left: 1.2rem;">
+<li style="margin-bottom: 0.5rem;">Key benefit that makes ownership enjoyable</li>
+<li style="margin-bottom: 0.5rem;">What Sri Lankan owners love about this vehicle</li>
+<li style="margin-bottom: 0.5rem;">Why it holds its value well in our market</li>
 </ul>
-Each must explain a specific advantage relevant to Sri Lankan conditions (climate, roads, parts availability, resale value, fuel costs, etc.). Include specific details like "fuel consumption of X km/L" or "parts readily available at Y locations" when applicable.
+</div>
+</div>
 
-<h3>Critical Things to Inspect</h3>
-<ul>
-<li>Write exactly 5 bullet points in proper <li> tags</li>
+<div style="margin-bottom: 2rem;">
+<h3 style="color: #0369a1; font-size: 1.1rem; margin-bottom: 0.8rem; border-bottom: 2px solid #dbeafe; padding-bottom: 0.3rem;">Smart Inspection Guide</h3>
+<div style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem;">
+<p style="margin-bottom: 1rem; font-weight: 500;">Check these areas to make a confident purchase:</p>
+<ul style="margin: 0; padding-left: 1.2rem;">
+<li style="margin-bottom: 0.8rem;"><strong>Engine & Performance:</strong> What good running condition sounds and feels like</li>
+<li style="margin-bottom: 0.8rem;"><strong>Body & Interior:</strong> Signs of proper care and maintenance</li>
+<li style="margin-bottom: 0.8rem;"><strong>Electrical Systems:</strong> Simple checks to ensure everything works</li>
+<li style="margin-bottom: 0.8rem;"><strong>Documentation:</strong> Papers that give you peace of mind</li>
 </ul>
-Focus on the most expensive potential problems specific to this vehicle model. Each point must include: what to check, what warning signs look like, and why it matters financially. Example: "Check air conditioning compressor - listen for grinding noises or weak cooling, as replacement costs LKR 80,000+"
+</div>
+</div>
 
-<h3>Known Issues to Watch For</h3>
-<ul>
-<li>Write exactly 4 bullet points in proper <li> tags</li>
+<div style="margin-bottom: 2rem;">
+<h3 style="color: #7c2d12; font-size: 1.1rem; margin-bottom: 0.8rem; border-bottom: 2px solid #fed7aa; padding-bottom: 0.3rem;">Value & Negotiation</h3>
+<div style="background: #fffbeb; padding: 1rem; border-radius: 0.5rem;">
+<ul style="margin: 0; padding-left: 1.2rem;">
+<li style="margin-bottom: 0.5rem;">Sweet spot for age and mileage combinations</li>
+<li style="margin-bottom: 0.5rem;">Fair negotiation points based on condition</li>
+<li style="margin-bottom: 0.5rem;">Features that add or preserve value</li>
 </ul>
-List the most common expensive problems this specific vehicle model faces in Sri Lankan conditions. Include approximate repair costs when relevant and explain how to spot early warning signs.
+</div>
+</div>
 
-<h3>Price & Value Insights</h3>
-<ul>
-<li>Write exactly 3 bullet points in proper <li> tags</li>
-</ul>
-Cover: typical price range for different years/conditions, what affects resale value most, and one key factor that makes this vehicle a good or poor investment in Sri Lanka.
-
-Total word count should be 250-300 words. Be specific with numbers, costs, and actionable details. Use proper HTML structure with <ul> and <li> tags for all sections.
+Use friendly language, avoid scary numbers, focus on positive outcomes and smart buying decisions.
 [DETAILED_END]
 
 Use the exact [COMPACT_START], [COMPACT_END], [DETAILED_START], [DETAILED_END] markers to separate the sections.`
@@ -81,18 +94,55 @@ Use the exact [COMPACT_START], [COMPACT_END], [DETAILED_START], [DETAILED_END] m
     }
 
     // Parse compact and detailed sections
-    const compactMatch = aiContent.match(/\[COMPACT_START\](.*?)\[COMPACT_END\]/s)
-    const detailedMatch = aiContent.match(/\[DETAILED_START\](.*?)\[DETAILED_END\]/s)
+    const compactMatch = aiContent.match(/\[COMPACT_START\]([\s\S]*?)\[COMPACT_END\]/)
+    const detailedMatch = aiContent.match(/\[DETAILED_START\]([\s\S]*?)\[DETAILED_END\]/)
 
-    const compactContent = compactMatch ? compactMatch[1].trim() : ''
-    const detailedContent = detailedMatch ? detailedMatch[1].trim() : ''
+    let compactContent = compactMatch ? compactMatch[1].trim() : ''
+    let detailedContent = detailedMatch ? detailedMatch[1].trim() : ''
 
-    // Fallback if parsing fails
+    // Fallback parsing if markers are missing
     if (!compactContent && !detailedContent) {
-      return NextResponse.json({ 
-        compact: aiContent.substring(0, 200) + '...', 
-        detailed: aiContent 
-      })
+      // Try to extract first paragraph and list as compact
+      const paragraphMatch = aiContent.match(/<p[^>]*>(.*?)<\/p>/)
+      const listMatch = aiContent.match(/<ul[^>]*>([\s\S]*?)<\/ul>/)
+      
+      if (paragraphMatch && listMatch) {
+        compactContent = `${paragraphMatch[0]}${listMatch[0]}`
+        detailedContent = aiContent
+      } else {
+        // Ultimate fallback
+        compactContent = aiContent.substring(0, 300) + '...'
+        detailedContent = aiContent
+      }
+    }
+
+    // Clean up formatting and remove duplications
+    if (compactContent) {
+      // Fix bold formatting in compact content
+      compactContent = compactContent.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      
+      // Remove disclaimer from compact if it appears
+      compactContent = compactContent.replace(/<p[^>]*font-size:\s*0\.75rem[^>]*>.*?Disclaimer:.*?<\/p>/gi, '')
+    }
+    
+    if (detailedContent) {
+      // Fix bold formatting in detailed content  
+      detailedContent = detailedContent.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      
+      // Ensure detailed content doesn't duplicate compact content
+      if (compactContent && detailedContent.includes(compactContent.replace(/<[^>]*>/g, ''))) {
+        // Remove the compact portion from detailed to prevent duplication
+        const compactText = compactContent.replace(/<[^>]*>/g, '').trim()
+        detailedContent = detailedContent.replace(compactText, '').trim()
+        // Clean up any remaining duplicate disclaimers
+        detailedContent = detailedContent.replace(/(<p[^>]*font-size:\s*0\.75rem[^>]*>.*?Disclaimer:.*?<\/p>\s*){2,}/gi, 
+          '<p style="font-size: 0.75rem; font-style: italic; color: #666; margin-bottom: 1.5rem;">Disclaimer: This is AI-generated content and may contain inaccuracies. Always verify information independently. Details may not apply to all grades, generations, or model variants. By using this information, you agree to our terms and conditions and acknowledge that all purchasing decisions are your responsibility.</p>')
+      }
+      
+      // If detailed becomes too short after removal, use the full content
+      if (detailedContent.length < 200) {
+        detailedContent = aiContent.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      }
     }
 
     return NextResponse.json({ 

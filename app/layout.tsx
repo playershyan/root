@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import Header from './components/header'
+import ErrorBoundary from './components/ErrorBoundary'
+import { NotificationProvider } from './components/NotificationSystem'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -21,15 +23,19 @@ export default function RootLayout({
         <script src="https://kit.fontawesome.com/5a82e6e998.js" crossOrigin="anonymous"></script>
       </head>
       <body className={inter.className}>
-        <Header />
-        <main className="min-h-screen">
-          {children}
-        </main>
-        <footer className="bg-gray-900 text-white py-8 mt-16">
-          <div className="max-w-7xl mx-auto px-4 text-center">
-            <p>&copy; 2025 AutoTrader.lk - Your trusted vehicle marketplace</p>
-          </div>
-        </footer>
+        <ErrorBoundary>
+          <NotificationProvider>
+            <Header />
+            <main className="min-h-screen">
+              {children}
+            </main>
+            <footer className="bg-gray-900 text-white py-8 mt-16">
+              <div className="max-w-7xl mx-auto px-4 text-center">
+                <p>&copy; 2025 AutoTrader.lk - Your trusted vehicle marketplace</p>
+              </div>
+            </footer>
+          </NotificationProvider>
+        </ErrorBoundary>
       </body>
     </html>
   )

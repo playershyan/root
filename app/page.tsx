@@ -1,5 +1,11 @@
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import dynamic from 'next/dynamic'
+
+const SentryTestButton = dynamic(() => import('./components/SentryTestButton'), {
+  ssr: false,
+  loading: () => <p>Loading...</p>
+})
 
 export const revalidate = 60 // Refresh every minute
 
@@ -159,6 +165,7 @@ export default async function HomePage() {
           </Link>
         </div>
       </section>
+      <SentryTestButton />
     </div>
   )
 }

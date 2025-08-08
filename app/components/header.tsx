@@ -71,8 +71,8 @@ export default function Header() {
     <header className="bg-white shadow-sm border-b sticky top-0 z-50">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Left side - Mobile menu and Logo */}
-          <div className="flex items-center gap-4">
+          {/* Left side - Mobile menu, Logo, and Mobile Action Buttons */}
+          <div className="flex items-center gap-2 sm:gap-4 flex-1">
             {/* Mobile menu button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -85,6 +85,25 @@ export default function Header() {
             <Link href="/" className="flex items-center">
               <span className="text-xl sm:text-2xl font-bold text-blue-600">AutoTrader.lk</span>
             </Link>
+            
+            {/* Mobile Action Buttons */}
+            <div className="flex items-center gap-2 ml-auto sm:hidden">
+              <Link 
+                href="/wanted/post" 
+                className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 px-2 py-2 rounded-lg hover:bg-blue-50 text-xs"
+              >
+                <Search className="w-4 h-4" />
+                <span>Wanted</span>
+              </Link>
+              
+              <Link 
+                href="/post" 
+                className="bg-blue-600 text-white px-2 py-2 rounded-lg hover:bg-blue-700 font-medium text-xs flex items-center gap-1"
+              >
+                <Car className="w-4 h-4" />
+                <span>Sell</span>
+              </Link>
+            </div>
           </div>
           
           {/* Desktop Navigation */}
@@ -269,21 +288,19 @@ export default function Header() {
               </>
             )}
             
-            {/* Post Wanted Button */}
+            {/* Desktop Action Buttons */}
             <Link 
               href="/wanted/post" 
-              className="hidden sm:inline-block text-blue-600 hover:text-blue-700 font-medium"
+              className="hidden sm:flex text-blue-600 hover:text-blue-700 font-medium items-center gap-1 px-3 py-2 rounded-lg hover:bg-blue-50 text-sm"
             >
-              Post Wanted
+              <span>Post Wanted</span>
             </Link>
             
-            {/* Sell Vehicle Button */}
             <Link 
               href="/post" 
-              className="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 font-medium text-sm sm:text-base"
+              className="hidden sm:flex bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium text-base items-center gap-1"
             >
-              <span className="hidden sm:inline">Sell Vehicle</span>
-              <span className="sm:hidden">Sell</span>
+              <span>Sell Vehicle</span>
             </Link>
           </div>
         </div>

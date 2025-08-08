@@ -331,6 +331,25 @@ export default function WantedRequestsPage() {
 
   const renderFilterContent = () => (
     <>
+      {/* Sort By */}
+      <div className="mb-6 border-b pb-4">
+        <label htmlFor="sort-filter" className="block font-semibold text-gray-700 text-sm mb-2">
+          Sort by
+        </label>
+        <select
+          id="sort-filter"
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:border-blue-500"
+        >
+          <option value="recent">Most Recent</option>
+          <option value="budget-high">Budget: High to Low</option>
+          <option value="budget-low">Budget: Low to High</option>
+          <option value="urgency">Most Urgent</option>
+          <option value="location">Location</option>
+        </select>
+      </div>
+
       {/* Location Filter */}
       <LocationFilter
         selectedLocation={filters.locations.length > 0 ? filters.locations[0] : null}
@@ -617,27 +636,10 @@ export default function WantedRequestsPage() {
             </div>
           </div>
 
-          {/* Results Info & Sort */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <div className="text-gray-600 text-sm">
-              {filteredRequests.length} wanted requests found
-              {searchTerm && ` for "${searchTerm}"`}
-            </div>
-            <div className="flex items-center gap-2">
-              <label htmlFor="sort" className="text-gray-700 text-sm">Sort by:</label>
-              <select
-                id="sort"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm"
-              >
-                <option value="recent">Most Recent</option>
-                <option value="budget-high">Budget: High to Low</option>
-                <option value="budget-low">Budget: Low to High</option>
-                <option value="urgency">Most Urgent</option>
-                <option value="location">Location</option>
-              </select>
-            </div>
+          {/* Results Info */}
+          <div className="text-gray-600 text-sm">
+            {filteredRequests.length} wanted requests found
+            {searchTerm && ` for "${searchTerm}"`}
           </div>
         </div>
       </div>
