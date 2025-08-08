@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import LocationFilter from '@/app/components/LocationFilter'
 
 // Types
 type Listing = {
@@ -24,36 +25,27 @@ type Listing = {
   created_at: string
 }
 
-// Sri Lankan locations
-const SRI_LANKAN_LOCATIONS = [
-  'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 
-  'Galle', 'Matara', 'Negombo', 'Kurunegala',
-  'Anuradhapura', 'Jaffna'
-]
 
 // Popular car makes
-const CAR_MAKES = [
-  'Toyota', 'Honda', 'Nissan', 'Mazda',
-  'Suzuki', 'Mitsubishi', 'Hyundai', 'BMW',
-  'Mercedes-Benz', 'Audi', 'Others'
+const MAKES = [
+  'Toyota', 'Honda', 'Nissan', 'Mazda', 'Suzuki', 
+  'Mitsubishi', 'Hyundai', 'Kia', 'BMW', 'Mercedes-Benz'
 ]
 
 // Model mapping
-const MODELS_BY_MAKE: Record<string, string[]> = {
-  'Toyota': ['Prius', 'Aqua', 'Corolla', 'Yaris', 'Vitz', 'Allion', 'Premio', 'Camry', 'CHR', 'Hilux'],
-  'Honda': ['Civic', 'Fit', 'Vezel', 'Grace', 'City', 'CRV', 'HRV', 'Accord'],
-  'Nissan': ['Leaf', 'March', 'Sunny', 'X-Trail', 'Tiida', 'Bluebird'],
-  'Suzuki': ['Alto', 'Swift', 'WagonR', 'Celerio', 'Every'],
-  'Mazda': ['Axela', 'Demio', 'CX-3', 'CX-5', 'Familia'],
-  'Mitsubishi': ['Lancer', 'Montero', 'Outlander', 'Mirage'],
-  'Hyundai': ['Elantra', 'Tucson', 'i20', 'Sonata'],
-  'BMW': ['3 Series', '5 Series', 'X1', 'X3', 'X5'],
-  'Mercedes-Benz': ['C Class', 'E Class', 'A Class', 'GLA'],
-  'Audi': ['A3', 'A4', 'A6', 'Q3', 'Q5']
+const MAKE_MODEL_MAP: Record<string, string[]> = {
+  toyota: ['Prius', 'Camry', 'Corolla', 'Vitz', 'Aqua', 'CHR', 'Highlander', 'Land Cruiser', 'Hiace', 'Hilux'],
+  honda: ['Civic', 'Accord', 'Fit', 'Vezel', 'CR-V', 'Insight', 'City', 'Jazz', 'Pilot', 'Ridgeline'],
+  nissan: ['March', 'Tiida', 'Sylphy', 'Teana', 'X-Trail', 'Murano', 'Navara', 'Juke', 'Qashqai', 'Leaf'],
+  mazda: ['Demio', 'Axela', 'Atenza', 'CX-3', 'CX-5', 'CX-9', 'BT-50', 'Premacy', 'Biante', 'Roadster'],
+  suzuki: ['Alto', 'Swift', 'Wagon R', 'Baleno', 'Vitara', 'Jimny', 'Ertiga', 'S-Cross', 'Ignis', 'Ciaz'],
+  mitsubishi: ['Lancer', 'Outlander', 'Pajero', 'Montero', 'ASX', 'Mirage', 'Triton', 'Galant', 'Colt', 'Eclipse'],
+  hyundai: ['Elantra', 'Sonata', 'Tucson', 'Santa Fe', 'i10', 'i20', 'i30', 'Accent', 'Genesis', 'Kona'],
+  kia: ['Cerato', 'Optima', 'Sportage', 'Sorento', 'Picanto', 'Rio', 'Soul', 'Stinger', 'Carnival', 'Seltos'],
+  bmw: ['3 Series', '5 Series', '7 Series', 'X1', 'X3', 'X5', 'X7', 'Z4', 'i3', 'i8'],
+  'mercedes-benz': ['C-Class', 'E-Class', 'S-Class', 'A-Class', 'GLA', 'GLC', 'GLE', 'GLS', 'CLA', 'CLS']
 }
 
-// All available models (flatten all models from all makes)
-const ALL_MODELS = Object.values(MODELS_BY_MAKE).flat().sort()
 
 // Animated placeholder texts
 const PLACEHOLDER_TEXTS = [
@@ -72,7 +64,7 @@ export default function AdvancedListingsPage() {
   const [placeholderIndex, setPlaceholderIndex] = useState(0)
   
   // Filters state
-  const [selectedLocations, setSelectedLocations] = useState<string[]>([])
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null)
   const [selectedMakes, setSelectedMakes] = useState<string[]>([])
   const [selectedModels, setSelectedModels] = useState<string[]>([])
   const [minYear, setMinYear] = useState('')
@@ -81,29 +73,27 @@ export default function AdvancedListingsPage() {
   const [maxPrice, setMaxPrice] = useState('')
   const [fuelTypes, setFuelTypes] = useState<string[]>([])
   const [transmissionTypes, setTransmissionTypes] = useState<string[]>([])
+  const [urgentOnly, setUrgentOnly] = useState(false)
   const [sortBy, setSortBy] = useState('recent')
   
   // UI state
   const [expandedFilters, setExpandedFilters] = useState({
     location: true,
     make: true,
-    model: true,  // Change from false to true
-    year: false,
-    price: false,
-    fuel: false,
-    transmission: false,
-    mobile: false  // Add mobile filter toggle
+    model: true,
+    mobile: false
   })
   
   const [savedListings, setSavedListings] = useState<string[]>([])
   const [showAIGuide, setShowAIGuide] = useState(false)
   const [aiGuideContent, setAIGuideContent] = useState('')
+  const [aiGuideDetailed, setAIGuideDetailed] = useState('')
   const [loadingAIGuide, setLoadingAIGuide] = useState(false)
+  const [aiGuideExpanded, setAIGuideExpanded] = useState(false)
 
-  // Add these search states for filters
-  const [locationSearch, setLocationSearch] = useState('')
-  const [makeSearch, setMakeSearch] = useState('')
-  const [modelSearch, setModelSearch] = useState('')
+  // Search input states
+  const [searchInput, setSearchInput] = useState('')
+  const [pendingSearch, setPendingSearch] = useState('')
 
   // Carousel state
   const [activeImageIndex, setActiveImageIndex] = useState<Record<string, number>>({})
@@ -133,8 +123,8 @@ export default function AdvancedListingsPage() {
   // Apply filters when any filter changes
   useEffect(() => {
     applyFilters()
-  }, [listings, searchTerm, selectedLocations, selectedMakes, selectedModels, 
-      minYear, maxYear, minPrice, maxPrice, fuelTypes, transmissionTypes, sortBy])
+  }, [listings, searchTerm, selectedLocation, selectedMakes, selectedModels, 
+      minYear, maxYear, minPrice, maxPrice, fuelTypes, transmissionTypes, sortBy, urgentOnly])
 
   // Initialize image loading states
   useEffect(() => {
@@ -184,6 +174,14 @@ export default function AdvancedListingsPage() {
   const applyFilters = () => {
     let filtered = [...listings]
 
+    // Urgent filter
+    if (urgentOnly) {
+      filtered = filtered.filter(listing => 
+        listing.title.toLowerCase().includes('urgent') || 
+        listing.description?.toLowerCase().includes('urgent')
+      )
+    }
+
     // Search term filter
     if (searchTerm) {
       filtered = filtered.filter(listing => 
@@ -195,9 +193,9 @@ export default function AdvancedListingsPage() {
     }
 
     // Location filter
-    if (selectedLocations.length > 0) {
+    if (selectedLocation) {
       filtered = filtered.filter(listing => 
-        selectedLocations.some(loc => listing.location.toLowerCase().includes(loc.toLowerCase()))
+        listing.location.toLowerCase().includes(selectedLocation.toLowerCase())
       )
     }
 
@@ -270,41 +268,153 @@ export default function AdvancedListingsPage() {
     setLoadingAIGuide(true)
     setShowAIGuide(true)
     
-    // Simulate AI generation (replace with actual API call)
-    setTimeout(() => {
-      const mockGuide = `
-        <h3>AI Buying Guide for ${selectedMakes.join(', ') || searchTerm}</h3>
-        <p><strong>Overview:</strong> These vehicles are known for reliability and fuel efficiency in Sri Lankan conditions.</p>
-        <p><strong>Key Strengths:</strong></p>
-        <ul>
-          <li>Excellent fuel economy - ideal for daily commuting</li>
-          <li>Low maintenance costs with readily available parts</li>
-          <li>Good resale value in the local market</li>
-        </ul>
-        <p><strong>What to Inspect:</strong></p>
-        <ul>
-          <li>Service history and maintenance records</li>
-          <li>Hybrid battery condition (if applicable)</li>
-          <li>Suspension and tires for local road conditions</li>
-        </ul>
-        <p><strong>Common Issues:</strong> Check for proper AC functionality and electrical systems.</p>
-        <p><em>Note: Always get an independent inspection before purchase.</em></p>
+    try {
+      // Create search context from selected filters and search term
+      const searchContext = [
+        searchTerm,
+        ...selectedMakes,
+        ...selectedModels,
+        selectedLocation && `in ${selectedLocation}`
+      ].filter(Boolean).join(' ') || 'vehicles'
+
+      const response = await fetch('/api/generate-ai-guide', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          searchContext: searchContext
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      
+      if (data.error) {
+        throw new Error(data.error)
+      }
+
+      // Store both compact and detailed content from the API response
+      const compactContent = data.compact || ''
+      const detailedContent = data.detailed || data.content || ''
+      
+      // If compact is empty but detailed exists, create a shorter version
+      let finalCompact = compactContent
+      if (!compactContent && detailedContent) {
+        // Extract first paragraph and first few list items as compact version
+        const tempDiv = document.createElement('div')
+        tempDiv.innerHTML = detailedContent
+        const paragraphs = tempDiv.querySelectorAll('p')
+        const lists = tempDiv.querySelectorAll('ul, ol')
+        
+        let compactHTML = ''
+        
+        // Add disclaimer if it exists
+        if (paragraphs[0]?.style.fontSize === '0.75rem') {
+          compactHTML += paragraphs[0].outerHTML
+          compactHTML += paragraphs[1]?.outerHTML || ''
+        } else {
+          compactHTML += paragraphs[0]?.outerHTML || ''
+        }
+        
+        // Add first list with max 4 items
+        if (lists[0]) {
+          const listItems = lists[0].querySelectorAll('li')
+          if (listItems.length > 0) {
+            compactHTML += '<ul>'
+            for (let i = 0; i < Math.min(4, listItems.length); i++) {
+              compactHTML += listItems[i].outerHTML
+            }
+            compactHTML += '</ul>'
+          }
+        }
+        
+        finalCompact = compactHTML
+      }
+      
+      setAIGuideContent(finalCompact)
+      setAIGuideDetailed(detailedContent)
+      
+      // Reset expansion state for new content
+      setAIGuideExpanded(false)
+    } catch (error) {
+      console.error('Error generating AI guide:', error)
+      
+      // Fallback content in case of API failure
+      const fallbackCompact = `
+        <p style="font-size: 0.75rem; font-style: italic; color: #666; margin-bottom: 1rem;">AI guide temporarily unavailable. Please try again later.</p>
+        <h3>General Buying Tips for ${selectedMakes.join(', ') || searchTerm || 'Vehicles'}</h3>
+        <p><strong>Essential Checks:</strong> Always inspect service history, test drive thoroughly, and verify legal documentation before purchase.</p>
       `
-      setAIGuideContent(mockGuide)
+      const fallbackDetailed = `
+        ${fallbackCompact}
+        <p><strong>Smart Strategy:</strong> Research market prices, get independent inspection, and negotiate based on vehicle condition.</p>
+        <p><strong>Documentation:</strong> Verify ownership papers, revenue license, and insurance validity.</p>
+        <p><strong>Test Drive:</strong> Check engine performance, brakes, steering, and all electrical systems.</p>
+      `
+      setAIGuideContent(fallbackCompact)
+      setAIGuideDetailed(fallbackDetailed)
+      setAIGuideExpanded(false)
+    } finally {
       setLoadingAIGuide(false)
-    }, 1500)
+    }
   }
 
-  const toggleFilter = (filterName: keyof typeof expandedFilters) => {
+  const toggleFilterExpand = (filterType: keyof typeof expandedFilters) => {
     setExpandedFilters(prev => ({
       ...prev,
-      [filterName]: !prev[filterName]
+      [filterType]: !prev[filterType]
     }))
   }
 
+  const handleLocationChange = (location: string | null) => {
+    setSelectedLocation(location)
+  }
+
+  const handleMakeToggle = (make: string) => {
+    setSelectedMakes(prev => 
+      prev.includes(make)
+        ? prev.filter(m => m !== make)
+        : [...prev, make]
+    )
+  }
+
+  const handleModelToggle = (model: string) => {
+    setSelectedModels(prev =>
+      prev.includes(model)
+        ? prev.filter(m => m !== model)
+        : [...prev, model]
+    )
+  }
+
+  const getAvailableModels = () => {
+    // Get all unique models from all makes
+    const allModels = new Set<string>()
+    Object.values(MAKE_MODEL_MAP).forEach(models => {
+      models.forEach(model => allModels.add(model))
+    })
+    return Array.from(allModels).sort()
+  }
+
+  // Handle manual search trigger (Enter or button click)
+  const handleSearch = useCallback(() => {
+    setSearchTerm(searchInput.trim())
+  }, [searchInput])
+
+  // Handle search on Enter key press
+  const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch()
+    }
+  }, [handleSearch])
+
   const clearAllFilters = () => {
     setSearchTerm('')
-    setSelectedLocations([])
+    setSearchInput('')
+    setSelectedLocation(null)
     setSelectedMakes([])
     setSelectedModels([])
     setMinYear('')
@@ -314,15 +424,6 @@ export default function AdvancedListingsPage() {
     setFuelTypes([])
     setTransmissionTypes([])
     setSortBy('recent')
-    // Clear filter searches
-    setLocationSearch('')
-    setMakeSearch('')
-    setModelSearch('')
-    
-    // Clear localStorage cache
-    localStorage.removeItem('vehiclePostDraft')
-    localStorage.removeItem('listingsCache')
-    localStorage.removeItem('userPreferences')
   }
 
   const toggleSavedListing = (listingId: string) => {
@@ -344,284 +445,224 @@ export default function AdvancedListingsPage() {
   }
 
   const getPageTitle = () => {
-    if (selectedLocations.length > 0) {
-      return `Cars for sale in ${selectedLocations.join(', ')}`
+    if (selectedLocation) {
+      return `Cars for sale in ${selectedLocation}`
     }
     return 'Cars for sale in all of Sri Lanka'
   }
 
-  // Render filter content - reusable for both mobile and desktop
+  // Render filter content - reusable for both mobile and desktop (matching wanted page structure)
   const renderFilterContent = () => (
     <>
-      {/* Location Filter */}
-      <div className="mb-4 border-b pb-4">
-        <button
-          onClick={() => toggleFilter('location')}
-          className="flex justify-between items-center w-full py-2 text-left font-medium"
+      {/* Sort By */}
+      <div className="mb-6 border-b pb-4">
+        <label htmlFor="sort-filter" className="block font-semibold text-gray-700 text-sm mb-2">
+          Sort by
+        </label>
+        <select
+          id="sort-filter"
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:border-blue-500"
         >
-          Location
-          <span>{expandedFilters.location ? '▲' : '▼'}</span>
-        </button>
-        {expandedFilters.location && (
-          <div className="mt-2">
-            <input
-              type="text"
-              placeholder="Search locations..."
-              value={locationSearch}
-              onChange={(e) => setLocationSearch(e.target.value)}
-              className="w-full px-3 py-2 mb-2 border border-gray-300 rounded text-sm"
-            />
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {SRI_LANKAN_LOCATIONS
-                .filter(location => 
-                  location.toLowerCase().includes(locationSearch.toLowerCase())
-                )
-                .map(location => (
-                  <label key={location} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedLocations.includes(location)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedLocations([...selectedLocations, location])
-                        } else {
-                          setSelectedLocations(selectedLocations.filter(l => l !== location))
-                        }
-                      }}
-                      className="mr-2 rounded"
-                    />
-                    <span className="text-sm">{location}</span>
-                  </label>
-                ))}
-            </div>
-          </div>
-        )}
+          <option value="recent">Most Recent</option>
+          <option value="price-low">Price: Low to High</option>
+          <option value="price-high">Price: High to Low</option>
+          <option value="year-new">Year: Newest First</option>
+          <option value="year-old">Year: Oldest First</option>
+          <option value="mileage-low">Mileage: Lowest First</option>
+        </select>
       </div>
 
+      {/* Urgent Filter */}
+      <div className="mb-6 border-b pb-4">
+        <label className="flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            checked={urgentOnly}
+            onChange={(e) => setUrgentOnly(e.target.checked)}
+            className="w-4 h-4 text-orange-500 bg-gray-100 border-gray-300 rounded focus:ring-orange-400 focus:ring-2"
+          />
+          <span className="ml-2 text-sm font-medium text-orange-600">
+            <i className="fas fa-star mr-1"></i>
+            Urgent listings only
+          </span>
+        </label>
+      </div>
+
+      {/* Location Filter */}
+      <LocationFilter
+        selectedLocation={selectedLocation}
+        onLocationChange={handleLocationChange}
+        expanded={expandedFilters.location}
+        onToggleExpand={() => toggleFilterExpand('location')}
+        variant="listings"
+      />
+
       {/* Make Filter */}
-      <div className="mb-4 border-b pb-4">
-        <button
-          onClick={() => toggleFilter('make')}
-          className="flex justify-between items-center w-full py-2 text-left font-medium"
+      <div className="mb-6">
+        <div 
+          onClick={() => toggleFilterExpand('make')}
+          className="flex justify-between items-center cursor-pointer py-2 hover:bg-gray-50 -mx-2 px-2 rounded"
         >
-          Make
-          <span>{expandedFilters.make ? '▲' : '▼'}</span>
-        </button>
-        {expandedFilters.make && (
-          <div className="mt-2">
-            <input
-              type="text"
-              placeholder="Search makes..."
-              value={makeSearch}
-              onChange={(e) => setMakeSearch(e.target.value)}
-              className="w-full px-3 py-2 mb-2 border border-gray-300 rounded text-sm"
-            />
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {CAR_MAKES
-                .filter(make => 
-                  make.toLowerCase().includes(makeSearch.toLowerCase())
-                )
-                .map(make => (
-                  <label key={make} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedMakes.includes(make)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedMakes([...selectedMakes, make])
-                        } else {
-                          const newSelectedMakes = selectedMakes.filter(m => m !== make)
-                          setSelectedMakes(newSelectedMakes)
-                          if (newSelectedMakes.length === 0) {
-                            setSelectedModels([])
-                          } else {
-                            const availableModels = newSelectedMakes.flatMap(m => MODELS_BY_MAKE[m] || [])
-                            setSelectedModels(selectedModels.filter(model => availableModels.includes(model)))
-                          }
-                        }
-                      }}
-                      className="mr-2 rounded"
-                    />
-                    <span className="text-sm">{make}</span>
-                  </label>
-                ))}
-            </div>
+          <span className="font-semibold text-gray-700">Make</span>
+          <span className={`text-gray-400 text-sm transition-transform ${expandedFilters.make ? 'rotate-180' : ''}`}>
+            ▼
+          </span>
+        </div>
+        <div className={`mt-3 space-y-2 overflow-hidden transition-all ${expandedFilters.make ? 'max-h-64' : 'max-h-0'}`}>
+          <input 
+            type="text" 
+            placeholder="Search makes..."
+            className="w-full px-3 py-2 border rounded-md text-sm mb-2"
+          />
+          <div className="max-h-48 overflow-y-auto border rounded-md p-2 bg-gray-50">
+            {MAKES.map(make => (
+              <label 
+                key={make}
+                className={`block py-1 px-2 rounded cursor-pointer hover:bg-blue-50 text-xs ${
+                  selectedMakes.includes(make) ? 'bg-yellow-50 font-semibold text-yellow-700' : ''
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedMakes.includes(make)}
+                  onChange={() => handleMakeToggle(make)}
+                  className="sr-only"
+                />
+                {make}
+              </label>
+            ))}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Model Filter */}
-      <div className="mb-4 border-b pb-4">
-        <button
-          onClick={() => toggleFilter('model')}
-          className="flex justify-between items-center w-full py-2 text-left font-medium"
-        >
-          Model
-          <span>{expandedFilters.model ? '▲' : '▼'}</span>
-        </button>
-        {expandedFilters.model && (
-          <div className="mt-2">
-            <input
-              type="text"
+      <div className="mb-4">
+          <div 
+            onClick={() => toggleFilterExpand('model')}
+            className="flex justify-between items-center cursor-pointer py-1.5 hover:bg-gray-50 -mx-2 px-2 rounded"
+          >
+            <span className="font-semibold text-gray-700 text-sm">Model</span>
+            <span className={`text-gray-400 text-xs transition-transform ${expandedFilters.model ? 'rotate-180' : ''}`}>
+              ▼
+            </span>
+          </div>
+          <div className={`mt-2 space-y-1.5 overflow-hidden transition-all ${expandedFilters.model ? 'max-h-48' : 'max-h-0'}`}>
+            <input 
+              type="text" 
               placeholder="Search models..."
-              value={modelSearch}
-              onChange={(e) => setModelSearch(e.target.value)}
-              className="w-full px-3 py-2 mb-2 border border-gray-300 rounded text-sm"
+              className="w-full px-2 py-1.5 border rounded-md text-xs mb-2"
             />
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {(selectedMakes.length > 0 
-                ? selectedMakes.flatMap(make => MODELS_BY_MAKE[make] || [])
-                : ALL_MODELS
-              )
-                .filter(model => 
-                  model.toLowerCase().includes(modelSearch.toLowerCase())
-                )
-                .map(model => (
-                  <label key={model} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedModels.includes(model)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedModels([...selectedModels, model])
-                        } else {
-                          setSelectedModels(selectedModels.filter(m => m !== model))
-                        }
-                      }}
-                      className="mr-2 rounded"
-                    />
-                    <span className="text-sm">{model}</span>
-                  </label>
-                ))}
+            <div className="max-h-40 overflow-y-auto border rounded-md p-2 bg-gray-50">
+              {getAvailableModels().map(model => (
+                <label 
+                  key={model}
+                  className={`block py-1 px-2 rounded cursor-pointer hover:bg-blue-50 text-xs ${
+                    selectedModels.includes(model) ? 'bg-yellow-50 font-semibold text-yellow-700' : ''
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedModels.includes(model)}
+                    onChange={() => handleModelToggle(model)}
+                    className="sr-only"
+                  />
+                  {model}
+                </label>
+              ))}
             </div>
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* Year Range Filter */}
-      <div className="mb-4 border-b pb-4">
-        <button
-          onClick={() => toggleFilter('year')}
-          className="flex justify-between items-center w-full py-2 text-left font-medium"
-        >
-          Year
-          <span>{expandedFilters.year ? '▲' : '▼'}</span>
-        </button>
-        {expandedFilters.year && (
-          <div className="mt-2 space-y-2">
-            <input
-              type="number"
-              placeholder="Min Year"
-              value={minYear}
-              onChange={(e) => setMinYear(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
-              min="1990"
-              max="2025"
-            />
-            <input
-              type="number"
-              placeholder="Max Year"
-              value={maxYear}
-              onChange={(e) => setMaxYear(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
-              min="1990"
-              max="2025"
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Price Range Filter */}
-      <div className="mb-4 border-b pb-4">
-        <button
-          onClick={() => toggleFilter('price')}
-          className="flex justify-between items-center w-full py-2 text-left font-medium"
-        >
-          Price (LKR)
-          <span>{expandedFilters.price ? '▲' : '▼'}</span>
-        </button>
-        {expandedFilters.price && (
-          <div className="mt-2 space-y-2">
-            <input
-              type="number"
-              placeholder="Min Price"
-              value={minPrice}
-              onChange={(e) => setMinPrice(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
-            />
-            <input
-              type="number"
-              placeholder="Max Price"
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Fuel Type Filter */}
-      <div className="mb-4 border-b pb-4">
-        <button
-          onClick={() => toggleFilter('fuel')}
-          className="flex justify-between items-center w-full py-2 text-left font-medium"
-        >
-          Fuel Type
-          <span>{expandedFilters.fuel ? '▲' : '▼'}</span>
-        </button>
-        {expandedFilters.fuel && (
-          <div className="mt-2 space-y-2">
-            {['Petrol', 'Diesel', 'Hybrid', 'Electric'].map(fuel => (
-              <label key={fuel} className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={fuelTypes.includes(fuel)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setFuelTypes([...fuelTypes, fuel])
-                    } else {
-                      setFuelTypes(fuelTypes.filter(f => f !== fuel))
-                    }
-                  }}
-                  className="mr-2 rounded"
-                />
-                <span className="text-sm">{fuel}</span>
-              </label>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Transmission Filter */}
+      {/* Price Range */}
       <div className="mb-4">
-        <button
-          onClick={() => toggleFilter('transmission')}
-          className="flex justify-between items-center w-full py-2 text-left font-medium"
-        >
-          Transmission
-          <span>{expandedFilters.transmission ? '▲' : '▼'}</span>
-        </button>
-        {expandedFilters.transmission && (
-          <div className="mt-2 space-y-2">
-            {['Automatic', 'Manual'].map(trans => (
-              <label key={trans} className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={transmissionTypes.includes(trans)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setTransmissionTypes([...transmissionTypes, trans])
-                    } else {
-                      setTransmissionTypes(transmissionTypes.filter(t => t !== trans))
-                    }
-                  }}
-                  className="mr-2 rounded"
-                />
-                <span className="text-sm">{trans}</span>
-              </label>
-            ))}
-          </div>
-        )}
+        <label className="font-semibold text-gray-700 block mb-2 text-sm">Price Range (LKR)</label>
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            type="number"
+            placeholder="Min (LKR)"
+            value={minPrice}
+            onChange={(e) => setMinPrice(e.target.value)}
+            className="px-2 py-1.5 border rounded-md text-xs"
+          />
+          <input
+            type="number"
+            placeholder="Max (LKR)"
+            value={maxPrice}
+            onChange={(e) => setMaxPrice(e.target.value)}
+            className="px-2 py-1.5 border rounded-md text-xs"
+          />
+        </div>
+      </div>
+
+      {/* Year Range */}
+      <div className="mb-4">
+        <label className="font-semibold text-gray-700 block mb-2 text-sm">Year Range</label>
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            type="number"
+            placeholder="From year"
+            value={minYear}
+            onChange={(e) => setMinYear(e.target.value)}
+            className="px-2 py-1.5 border rounded-md text-xs"
+          />
+          <input
+            type="number"
+            placeholder="To year"
+            value={maxYear}
+            onChange={(e) => setMaxYear(e.target.value)}
+            className="px-2 py-1.5 border rounded-md text-xs"
+          />
+        </div>
+      </div>
+
+      {/* Fuel Type */}
+      <div className="mb-4">
+        <label className="font-semibold text-gray-700 block mb-2 text-sm">Fuel Type</label>
+        <div className="space-y-1.5">
+          {['Petrol', 'Diesel', 'Hybrid', 'Electric'].map(fuel => (
+            <label key={fuel} className="flex items-center">
+              <input
+                type="checkbox"
+                checked={fuelTypes.includes(fuel)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setFuelTypes([...fuelTypes, fuel])
+                  } else {
+                    setFuelTypes(fuelTypes.filter(f => f !== fuel))
+                  }
+                }}
+                className="mr-2"
+              />
+              <span className="text-xs">{fuel}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Transmission */}
+      <div>
+        <label className="font-semibold text-gray-700 block mb-2 text-sm">Transmission</label>
+        <div className="space-y-1.5">
+          {['Automatic', 'Manual'].map(trans => (
+            <label key={trans} className="flex items-center">
+              <input
+                type="checkbox"
+                checked={transmissionTypes.includes(trans)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setTransmissionTypes([...transmissionTypes, trans])
+                  } else {
+                    setTransmissionTypes(transmissionTypes.filter(t => t !== trans))
+                  }
+                }}
+                className="mr-2"
+              />
+              <span className="text-xs">{trans}</span>
+            </label>
+          ))}
+        </div>
       </div>
     </>
   )
@@ -632,389 +673,102 @@ export default function AdvancedListingsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Search Header */}
-      <div className="bg-white shadow-sm border-b sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold mb-4">{getPageTitle()}</h1>
-          
-          {/* Search Bar with Mobile Filter Button */}
-          <div className="mb-4">
+      <div className="bg-white shadow-sm mb-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 mb-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {getPageTitle()}
+              </h1>
+              <p className="text-gray-600 mt-1 text-sm">
+                Browse vehicles for sale across Sri Lanka. Find your perfect car with advanced filters and AI-powered insights.
+              </p>
+            </div>
+            <Link 
+              href="/post" 
+              className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold text-sm"
+            >
+              <i className="fas fa-plus"></i>
+              List Your Vehicle
+            </Link>
+          </div>
+
+          {/* Quick Search */}
+          <div className="max-w-2xl mb-4">
             <div className="flex gap-2">
-              {/* Mobile Filter Button - Left of Search */}
+              {/* Mobile Filter Button */}
               <button
-                onClick={() => setExpandedFilters(prev => ({ ...prev, mobile: !prev.mobile }))}
-                className="lg:hidden px-3 py-3 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center justify-center"
+                onClick={() => setExpandedFilters(prev => ({ ...prev, mobile: true }))}
+                className="lg:hidden px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center gap-2 text-sm"
               >
                 <i className="fas fa-filter"></i>
+                Filters
               </button>
               
               {/* Search Input */}
               <div className="relative flex-1">
                 <input
-                  ref={searchInputRef}
                   type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={searchInput}
                   placeholder={placeholderText}
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                  onKeyPress={(e) => e.key === 'Enter' && applyFilters()}
+                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
                 />
-                <button
-                  onClick={applyFilters}
-                  className="absolute right-3 top-3 p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                  aria-label="Search"
+                <button 
+                  onClick={handleSearch}
+                  className="absolute right-1 top-1 p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                 >
-                  <i className="fas fa-search"></i>
+                  <i className="fas fa-search text-sm"></i>
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Results count and sort */}
-          <div className="flex justify-between items-center">
-            <p className="text-gray-600">
-              Found <span className="font-semibold">{filteredListings.length}</span> vehicles
-            </p>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="recent">Most Recently Listed</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="year-new">Year: Newest First</option>
-              <option value="year-old">Year: Oldest First</option>
-              <option value="mileage-low">Mileage: Lowest First</option>
-            </select>
+          {/* Results Info */}
+          <div className="text-gray-600 text-sm">
+            {filteredListings.length} vehicles found
+            {searchTerm && ` for "${searchTerm}"`}
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Mobile Filter Panel - Full Screen Overlay */}
-        {(expandedFilters as any).mobile && (
-          <div className="fixed inset-0 bg-white z-50 lg:hidden overflow-y-auto">
-            <div className="p-4">
-              {/* Mobile Filter Header */}
-              <div className="flex items-center justify-between mb-4 pb-4 border-b">
-                <h2 className="text-xl font-semibold">Filters</h2>
-                <button
-                  onClick={() => setExpandedFilters(prev => ({ ...prev, mobile: false }))}
-                  className="p-2 text-gray-600 hover:text-gray-900"
-                >
-                  <i className="fas fa-times text-2xl"></i>
-                </button>
-              </div>
-              
-              {/* Filter Content - Copy of desktop filters */}
-              <div className="space-y-4">
-                {renderFilterContent()}
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="flex gap-6">
-          {/* Filters Sidebar - Desktop */}
-          <div className="hidden lg:block w-72 flex-shrink-0">
-            <div className="bg-white rounded-lg shadow-sm p-4 sticky top-32">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Filters</h2>
-                <button
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Filters Sidebar */}
+          <div className="hidden lg:block lg:col-span-1">
+            <div className="bg-white rounded-lg shadow p-3 sticky top-20">
+              <div className="flex justify-between items-center mb-4 pb-3 border-b">
+                <h3 className="text-base font-bold text-gray-900">Filters</h3>
+                <button 
                   onClick={clearAllFilters}
-                  className="text-sm text-blue-600 hover:text-blue-700"
+                  className="text-blue-600 hover:text-blue-700 text-xs font-medium"
                 >
-                  Clear All
+                  Clear all
                 </button>
               </div>
+
               {renderFilterContent()}
-
-              {/* Location Filter */}
-              <div className="mb-4 border-b pb-4">
-                <button
-                  onClick={() => toggleFilter('location')}
-                  className="flex justify-between items-center w-full py-2 text-left font-medium"
-                >
-                  Location
-                  <span>{expandedFilters.location ? '▲' : '▼'}</span>
-                </button>
-                {expandedFilters.location && (
-                  <div className="mt-2">
-                    {/* Search input for locations */}
-                    <input
-                      type="text"
-                      placeholder="Search locations..."
-                      value={locationSearch}
-                      onChange={(e) => setLocationSearch(e.target.value)}
-                      className="w-full px-3 py-2 mb-2 border border-gray-300 rounded text-sm"
-                    />
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {SRI_LANKAN_LOCATIONS
-                        .filter(location => 
-                          location.toLowerCase().includes(locationSearch.toLowerCase())
-                        )
-                        .map(location => (
-                          <label key={location} className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={selectedLocations.includes(location)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedLocations([...selectedLocations, location])
-                                } else {
-                                  setSelectedLocations(selectedLocations.filter(l => l !== location))
-                                }
-                              }}
-                              className="mr-2 rounded"
-                            />
-                            <span className="text-sm">{location}</span>
-                          </label>
-                        ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Make Filter */}
-              <div className="mb-4 border-b pb-4">
-                <button
-                  onClick={() => toggleFilter('make')}
-                  className="flex justify-between items-center w-full py-2 text-left font-medium"
-                >
-                  Make
-                  <span>{expandedFilters.make ? '▲' : '▼'}</span>
-                </button>
-                {expandedFilters.make && (
-                  <div className="mt-2">
-                    {/* Search input for makes */}
-                    <input
-                      type="text"
-                      placeholder="Search makes..."
-                      value={makeSearch}
-                      onChange={(e) => setMakeSearch(e.target.value)}
-                      className="w-full px-3 py-2 mb-2 border border-gray-300 rounded text-sm"
-                    />
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {CAR_MAKES
-                        .filter(make => 
-                          make.toLowerCase().includes(makeSearch.toLowerCase())
-                        )
-                        .map(make => (
-                          <label key={make} className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={selectedMakes.includes(make)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedMakes([...selectedMakes, make])
-                                } else {
-                                  const newSelectedMakes = selectedMakes.filter(m => m !== make)
-                                  setSelectedMakes(newSelectedMakes)
-                                  // Clear models that are no longer available
-                                  if (newSelectedMakes.length === 0) {
-                                    setSelectedModels([])
-                                  } else {
-                                    const availableModels = newSelectedMakes.flatMap(m => MODELS_BY_MAKE[m] || [])
-                                    setSelectedModels(selectedModels.filter(model => availableModels.includes(model)))
-                                  }
-                                }
-                              }}
-                              className="mr-2 rounded"
-                            />
-                            <span className="text-sm">{make}</span>
-                          </label>
-                        ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Model Filter */}
-              <div className="mb-4 border-b pb-4">
-                <button
-                  onClick={() => toggleFilter('model')}
-                  className="flex justify-between items-center w-full py-2 text-left font-medium"
-                >
-                  Model
-                  <span>{expandedFilters.model ? '▲' : '▼'}</span>
-                </button>
-                {expandedFilters.model && (
-                  <div className="mt-2">
-                    {/* Search input for models */}
-                    <input
-                      type="text"
-                      placeholder="Search models..."
-                      value={modelSearch}
-                      onChange={(e) => setModelSearch(e.target.value)}
-                      className="w-full px-3 py-2 mb-2 border border-gray-300 rounded text-sm"
-                    />
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {(selectedMakes.length > 0 
-                        ? selectedMakes.flatMap(make => MODELS_BY_MAKE[make] || [])
-                        : ALL_MODELS
-                      )
-                        .filter(model => 
-                          model.toLowerCase().includes(modelSearch.toLowerCase())
-                        )
-                        .map(model => (
-                          <label key={model} className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={selectedModels.includes(model)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedModels([...selectedModels, model])
-                                } else {
-                                  setSelectedModels(selectedModels.filter(m => m !== model))
-                                }
-                              }}
-                              className="mr-2 rounded"
-                            />
-                            <span className="text-sm">{model}</span>
-                          </label>
-                        ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            
-              {/* Year Range Filter */}
-              <div className="mb-4 border-b pb-4">
-                <button
-                  onClick={() => toggleFilter('year')}
-                  className="flex justify-between items-center w-full py-2 text-left font-medium"
-                >
-                  Year
-                  <span>{expandedFilters.year ? '▲' : '▼'}</span>
-                </button>
-                {expandedFilters.year && (
-                  <div className="mt-2 space-y-2">
-                    <input
-                      type="number"
-                      placeholder="Min Year"
-                      value={minYear}
-                      onChange={(e) => setMinYear(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
-                      min="1990"
-                      max="2025"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Max Year"
-                      value={maxYear}
-                      onChange={(e) => setMaxYear(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
-                      min="1990"
-                      max="2025"
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Price Range Filter */}
-              <div className="mb-4 border-b pb-4">
-                <button
-                  onClick={() => toggleFilter('price')}
-                  className="flex justify-between items-center w-full py-2 text-left font-medium"
-                >
-                  Price (LKR)
-                  <span>{expandedFilters.price ? '▲' : '▼'}</span>
-                </button>
-                {expandedFilters.price && (
-                  <div className="mt-2 space-y-2">
-                    <input
-                      type="number"
-                      placeholder="Min Price"
-                      value={minPrice}
-                      onChange={(e) => setMinPrice(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Max Price"
-                      value={maxPrice}
-                      onChange={(e) => setMaxPrice(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Fuel Type Filter */}
-              <div className="mb-4 border-b pb-4">
-                <button
-                  onClick={() => toggleFilter('fuel')}
-                  className="flex justify-between items-center w-full py-2 text-left font-medium"
-                >
-                  Fuel Type
-                  <span>{expandedFilters.fuel ? '▲' : '▼'}</span>
-                </button>
-                {expandedFilters.fuel && (
-                  <div className="mt-2 space-y-2">
-                    {['Petrol', 'Diesel', 'Hybrid', 'Electric'].map(fuel => (
-                      <label key={fuel} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={fuelTypes.includes(fuel)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setFuelTypes([...fuelTypes, fuel])
-                            } else {
-                              setFuelTypes(fuelTypes.filter(f => f !== fuel))
-                            }
-                          }}
-                          className="mr-2 rounded"
-                        />
-                        <span className="text-sm">{fuel}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Transmission Filter */}
-              <div className="mb-4">
-                <button
-                  onClick={() => toggleFilter('transmission')}
-                  className="flex justify-between items-center w-full py-2 text-left font-medium"
-                >
-                  Transmission
-                  <span>{expandedFilters.transmission ? '▲' : '▼'}</span>
-                </button>
-                {expandedFilters.transmission && (
-                  <div className="mt-2 space-y-2">
-                    {['Automatic', 'Manual'].map(trans => (
-                      <label key={trans} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={transmissionTypes.includes(trans)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setTransmissionTypes([...transmissionTypes, trans])
-                            } else {
-                              setTransmissionTypes(transmissionTypes.filter(t => t !== trans))
-                            }
-                          }}
-                          className="mr-2 rounded"
-                        />
-                        <span className="text-sm">{trans}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
             </div>
           </div>
 
-          {/* Main Content Area */}
-          <div className="flex-1">
+          {/* Results Grid */}
+          <div className="lg:col-span-3">
             {/* AI Buying Guide */}
             {showAIGuide && (
               <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
-                <div className="flex items-center mb-4">
-                  <span className="text-2xl mr-2">✨</span>
+                <div className="flex items-center mb-3">
+                  <i className="fas fa-magic text-xl mr-2 text-blue-600"></i>
                   <h2 className="text-xl font-semibold text-blue-900">AI Buying Guide</h2>
                 </div>
+                
+                {/* Disclaimer */}
+                <p className="text-xs italic text-gray-500 mb-4 leading-relaxed">
+                  Disclaimer: This is AI-generated content and may contain inaccuracies. Always verify information independently. 
+                  Details may not apply to all grades, generations, or model variants. By using this information, you agree to our 
+                  terms and conditions and acknowledge that all purchasing decisions are your responsibility.
+                </p>
+                
                 {loadingAIGuide ? (
                   <div className="animate-pulse">
                     <div className="h-4 bg-blue-200 rounded w-3/4 mb-2"></div>
@@ -1022,27 +776,72 @@ export default function AdvancedListingsPage() {
                     <div className="h-4 bg-blue-200 rounded w-2/3"></div>
                   </div>
                 ) : (
-                  <div 
-                    className="text-gray-700 prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{ __html: aiGuideContent }}
-                  />
+                  <div>
+                    {/* Brief Overview - Always Shown */}
+                    <div 
+                      className="text-gray-700 prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: aiGuideContent }}
+                    />
+                    
+                    {/* See More/See Less Button - Only show if we have detailed content */}
+                    {aiGuideDetailed && aiGuideDetailed !== aiGuideContent && (
+                      <>
+                        <div className="mt-4">
+                          <button
+                            onClick={() => setAIGuideExpanded(!aiGuideExpanded)}
+                            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium text-sm bg-white px-3 py-2 rounded-lg border border-blue-200 hover:border-blue-300 transition-colors"
+                          >
+                            {aiGuideExpanded ? (
+                              <>
+                                <i className="fas fa-chevron-up"></i>
+                                See Less
+                              </>
+                            ) : (
+                              <>
+                                <i className="fas fa-chevron-down"></i>
+                                See More
+                              </>
+                            )}
+                          </button>
+                        </div>
+                        
+                        {/* Detailed Content - Shown when expanded */}
+                        {aiGuideExpanded && (
+                          <>
+                            <div 
+                              className="mt-4 text-gray-700 prose prose-sm max-w-none border-t border-blue-200 pt-4"
+                              dangerouslySetInnerHTML={{ 
+                                __html: aiGuideDetailed.replace(aiGuideContent, '').trim() || aiGuideDetailed 
+                              }}
+                            />
+                            
+                            {/* See Less Button at Bottom */}
+                            <div className="mt-4 pt-4 border-t border-blue-100">
+                              <button
+                                onClick={() => setAIGuideExpanded(false)}
+                                className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium text-sm bg-white px-3 py-2 rounded-lg border border-blue-200 hover:border-blue-300 transition-colors"
+                              >
+                                <i className="fas fa-chevron-up"></i>
+                                See Less
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
             )}
 
             {/* Listings Grid */}
             {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="bg-white rounded-lg shadow-sm p-4 animate-pulse">
-                    <div className="h-48 bg-gray-200 rounded mb-4"></div>
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                    <div className="h-6 bg-gray-200 rounded w-1/2"></div>
-                  </div>
-                ))}
+              <div className="text-center py-8">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <p className="mt-2 text-gray-600 text-sm">Loading vehicles...</p>
               </div>
             ) : filteredListings.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {filteredListings.map((listing) => {
                   const images = listing.image_urls || []
                   const currentImageIndex = activeImageIndex[listing.id] || 0
@@ -1122,9 +921,7 @@ export default function AdvancedListingsPage() {
                           }}
                           className="absolute top-2 right-2 bg-white/90 p-2 rounded-full hover:bg-white transition-colors"
                         >
-                          <span className={`text-xl ${isSaved ? 'text-red-500' : 'text-gray-600'}`}>
-                            {isSaved ? '❤️' : '🤍'}
-                          </span>
+                          <i className={`fas fa-heart text-lg ${isSaved ? 'text-red-500' : 'text-gray-400'}`}></i>
                         </button>
                       </div>
                       
@@ -1140,15 +937,15 @@ export default function AdvancedListingsPage() {
                         {/* Key Specs */}
                         <div className="space-y-2 text-sm text-gray-600">
                           <div className="flex items-center gap-2">
-                            <span>📍</span>
+                            <i className="fas fa-map-marker-alt text-blue-500"></i>
                             <span>{listing.location}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span>⛽</span>
+                            <i className="fas fa-gas-pump text-green-500"></i>
                             <span>{listing.fuel_type || 'N/A'}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span>🛣️</span>
+                            <i className="fas fa-road text-gray-500"></i>
                             <span>{listing.mileage?.toLocaleString() || 'N/A'} km</span>
                           </div>
                         </div>
@@ -1176,6 +973,37 @@ export default function AdvancedListingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Filter Panel */}
+      {expandedFilters.mobile && (
+        <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50">
+          <div className="absolute right-0 top-0 h-full w-full max-w-sm bg-white shadow-xl overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Filters</h3>
+              <button
+                onClick={() => setExpandedFilters(prev => ({ ...prev, mobile: false }))}
+                className="p-2 text-gray-500 hover:text-gray-700"
+              >
+                <i className="fas fa-times text-xl"></i>
+              </button>
+            </div>
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-sm text-gray-600">
+                  {[selectedLocation, ...selectedMakes, ...selectedModels, minPrice && 'Min Price', maxPrice && 'Max Price', minYear && 'Min Year', maxYear && 'Max Year', ...fuelTypes, ...transmissionTypes].filter(Boolean).length} filters applied
+                </span>
+                <button 
+                  onClick={clearAllFilters}
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                >
+                  Clear all
+                </button>
+              </div>
+              {renderFilterContent()}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
