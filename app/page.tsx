@@ -39,10 +39,10 @@ export default async function HomePage() {
             Buy and sell vehicles with confidence. AI-powered descriptions make listing easy.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/listings" className="btn-primary bg-white text-blue-600 hover:bg-gray-100">
+            <Link href="/listings" className="btn-secondary">
               Browse All Vehicles
             </Link>
-            <Link href="/post" className="btn-primary bg-blue-900 hover:bg-blue-950">
+            <Link href="/post" className="btn-primary">
               Sell Your Vehicle
             </Link>
           </div>
@@ -160,7 +160,7 @@ export default async function HomePage() {
           <p className="text-xl mb-8 text-blue-100">
             Post a wanted request and let sellers come to you
           </p>
-          <Link href="/wanted/post" className="btn-primary bg-white text-blue-900 hover:bg-gray-100">
+          <Link href="/wanted/post" className="btn-primary">
             Post Wanted Request
           </Link>
         </div>

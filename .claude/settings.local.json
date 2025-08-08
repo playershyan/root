@@ -5,7 +5,9 @@
       "Bash(npm install:*)",
       "Bash(npm audit:*)",
       "Bash(sed:*)",
-      "Bash(npx next:*)"
+      "Bash(npx next:*)",
+      "Bash(pkill:*)",
+      "Bash(true)"
     ],
     "deny": []
   }

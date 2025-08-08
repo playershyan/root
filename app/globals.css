@@ -22,12 +22,95 @@
 }
 
 @layer components {
+  /* Button System - Clean, Modern Design with Blue/Gray Palette */
+  
+  /* Primary Button - Main CTAs like "Sell Vehicle", "Post Ad" */
   .btn-primary {
-    @apply bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors;
+    @apply bg-blue-600 text-white px-6 py-3 rounded-md font-medium hover:bg-blue-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
   }
   
+  /* Secondary Button - Important but less prominent like "Make Offer" */
   .btn-secondary {
-    @apply bg-gray-200 text-gray-900 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors;
+    @apply bg-white text-blue-600 border-2 border-blue-600 px-6 py-3 rounded-md font-medium hover:bg-blue-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+  }
+  
+  /* Tertiary Button - Supporting actions like "Call", "Save" */
+  .btn-tertiary {
+    @apply bg-gray-50 text-gray-700 border border-gray-300 px-6 py-3 rounded-md font-medium hover:bg-gray-100 hover:text-gray-900 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+  }
+  
+  /* Quaternary Button - Minimal emphasis like "Cancel", "View More" */
+  .btn-quaternary {
+    @apply bg-transparent text-gray-600 px-6 py-3 rounded-md font-medium hover:bg-gray-50 hover:text-gray-900 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+  }
+  
+  /* Button Size Variants */
+  .btn-sm {
+    @apply px-4 py-2 text-sm;
+  }
+  
+  .btn-lg {
+    @apply px-8 py-4 text-lg;
+  }
+  
+  /* Full Width Button */
+  .btn-full {
+    @apply w-full;
+  }
+  
+  /* Button with Icon */
+  .btn-icon {
+    @apply inline-flex items-center justify-center gap-2;
+  }
+  
+  /* Disabled State for All Buttons */
+  .btn-primary:disabled, .btn-secondary:disabled, .btn-tertiary:disabled, .btn-quaternary:disabled {
+    @apply opacity-50 cursor-not-allowed hover:shadow-none;
+  }
+  
+  /* Special Button Variants */
+  .btn-danger {
+    @apply bg-white text-red-600 border border-red-200 px-6 py-3 rounded-md font-medium hover:bg-red-50 hover:border-red-300 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2;
+  }
+  
+  .btn-success {
+    @apply bg-white text-green-600 border border-green-200 px-6 py-3 rounded-md font-medium hover:bg-green-50 hover:border-green-300 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2;
+  }
+  
+  /* WhatsApp Button - Brand Specific */
+  .btn-whatsapp {
+    @apply bg-white text-green-600 border border-green-500 px-6 py-3 rounded-md font-medium hover:bg-green-50 hover:border-green-600 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2;
+  }
+  
+  /* Contact Button Variants */
+  .btn-call {
+    background-color: rgb(239 246 255); /* blue-50 */
+    color: rgb(29 78 216); /* blue-700 */
+    border: 1px solid rgb(191 219 254); /* blue-200 */
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition: all 150ms;
+  }
+  
+  .btn-call:hover {
+    background-color: rgb(219 234 254); /* blue-100 */
+    border-color: rgb(147 197 253); /* blue-300 */
+  }
+  
+  .btn-message {
+    background-color: rgb(250 245 255); /* purple-50 */
+    color: rgb(126 34 206); /* purple-700 */
+    border: 1px solid rgb(233 213 255); /* purple-200 */
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition: all 150ms;
+  }
+  
+  .btn-message:hover {
+    background-color: rgb(243 232 255); /* purple-100 */
+    border-color: rgb(216 180 254); /* purple-300 */
   }
   
   .card {

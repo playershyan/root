@@ -291,14 +291,14 @@ export default function Header() {
             {/* Desktop Action Buttons */}
             <Link 
               href="/wanted/post" 
-              className="hidden sm:flex text-blue-600 hover:text-blue-700 font-medium items-center gap-1 px-3 py-2 rounded-lg hover:bg-blue-50 text-sm"
+              className="hidden sm:flex text-blue-600 hover:text-blue-700 font-medium items-center gap-1"
             >
               <span>Post Wanted</span>
             </Link>
             
             <Link 
               href="/post" 
-              className="hidden sm:flex bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium text-base items-center gap-1"
+              className="hidden sm:flex btn-primary btn-icon"
             >
               <span>Sell Vehicle</span>
             </Link>

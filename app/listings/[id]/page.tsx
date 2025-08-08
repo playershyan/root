@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import ListingDetailClient from './ListingDetailClient'
+import ListingDetailClient from './listingdetailclient'
 
 export const revalidate = 60
 
@@ -41,6 +41,15 @@ export default async function ListingDetailPage({
     notFound()
   }
 
+// TEMPORARY TEST - Remove this later
+/*if (listing.title.toLowerCase().includes('toyota')) {
+  listing.seller_type = 'private'
+  listing.seller_name = 'John Smith'
+} else {
+  listing.seller_type = 'dealer'
+  listing.seller_name = 'Premium Motors'
+}*/
+
   // Increment view count
   await supabase
     .from('listings')
@@ -61,6 +70,7 @@ export default async function ListingDetailPage({
   const images = listing.image_urls || (listing.image_url ? [listing.image_url] : [])
 
   // Mock dealer data (in production, this would come from a dealers table)
+  // The dealer object is only used if listing.seller_type is 'dealer' or undefined (backward compatibility)
   const dealer = {
     name: "Premium Auto Dealers",
     rating: 4.5,
@@ -68,9 +78,18 @@ export default async function ListingDetailPage({
     location: listing.location,
     phone: listing.phone,
     whatsapp: listing.whatsapp || listing.phone,
-    avatar: null,
-    responseTime: "Usually responds within 2 hours"
+    avatar: null
   }
+
+  // For demonstration: if listing doesn't have seller_type, assume it's a dealer (backward compatibility)
+  // In production, you would set listing.seller_type and listing.seller_name based on your database
+  // Example logic:
+  // if (!listing.seller_type) {
+  //   listing.seller_type = 'dealer' // or 'private' based on your business logic
+  // }
+  // if (!listing.seller_name) {
+  //   listing.seller_name = listing.seller_type === 'dealer' ? dealer.name : 'John Doe'
+  // }
 
   // Prepare features list (mock data - in production, this would be in the database)
   const features = {
@@ -123,27 +142,6 @@ export default async function ListingDetailPage({
     'Number of Owners': '1st Owner', // Mock data
   }
 
-  // Vehicle history (mock data)
-  const vehicleHistory = [
-    {
-      date: '2024-06-15',
-      type: 'Service',
-      description: 'Regular service at authorized dealer',
-      mileage: 45000
-    },
-    {
-      date: '2024-01-10',
-      type: 'Service',
-      description: 'Oil change and filter replacement',
-      mileage: 40000
-    },
-    {
-      date: '2023-07-20',
-      type: 'Insurance',
-      description: 'Full insurance renewal',
-      mileage: 35000
-    }
-  ]
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -174,7 +172,6 @@ export default async function ListingDetailPage({
           dealer={dealer}
           features={features}
           specifications={specifications}
-          vehicleHistory={vehicleHistory}
           similarListings={similarListings || []}
         />
       </div>
