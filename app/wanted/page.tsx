@@ -38,9 +38,6 @@ interface FilterState {
   maxBudget: string
   yearFrom: string
   yearTo: string
-  fuelTypes: string[]
-  transmissions: string[]
-  urgencyLevels: string[]
 }
 
 const MAKES = [
@@ -48,17 +45,36 @@ const MAKES = [
   'Mitsubishi', 'Hyundai', 'Kia', 'BMW', 'Mercedes-Benz'
 ]
 
-const MAKE_MODEL_MAP: Record<string, string[]> = {
-  toyota: ['Prius', 'Camry', 'Corolla', 'Vitz', 'Aqua', 'CHR', 'Highlander', 'Land Cruiser', 'Hiace', 'Hilux'],
-  honda: ['Civic', 'Accord', 'Fit', 'Vezel', 'CR-V', 'Insight', 'City', 'Jazz', 'Pilot', 'Ridgeline'],
-  nissan: ['March', 'Tiida', 'Sylphy', 'Teana', 'X-Trail', 'Murano', 'Navara', 'Juke', 'Qashqai', 'Leaf'],
-  mazda: ['Demio', 'Axela', 'Atenza', 'CX-3', 'CX-5', 'CX-9', 'BT-50', 'Premacy', 'Biante', 'Roadster'],
-  suzuki: ['Alto', 'Swift', 'Wagon R', 'Baleno', 'Vitara', 'Jimny', 'Ertiga', 'S-Cross', 'Ignis', 'Ciaz'],
-  mitsubishi: ['Lancer', 'Outlander', 'Pajero', 'Montero', 'ASX', 'Mirage', 'Triton', 'Galant', 'Colt', 'Eclipse'],
-  hyundai: ['Elantra', 'Sonata', 'Tucson', 'Santa Fe', 'i10', 'i20', 'i30', 'Accent', 'Genesis', 'Kona'],
-  kia: ['Cerato', 'Optima', 'Sportage', 'Sorento', 'Picanto', 'Rio', 'Soul', 'Stinger', 'Carnival', 'Seltos'],
-  bmw: ['3 Series', '5 Series', '7 Series', 'X1', 'X3', 'X5', 'X7', 'Z4', 'i3', 'i8'],
-  'mercedes-benz': ['C-Class', 'E-Class', 'S-Class', 'A-Class', 'GLA', 'GLC', 'GLE', 'GLS', 'CLA', 'CLS']
+const MODELS = [
+  'Prius', 'Camry', 'Corolla', 'Vitz', 'Aqua', 'CHR', 'Highlander', 'Land Cruiser', 'Hiace', 'Hilux',
+  'Civic', 'Accord', 'Fit', 'Vezel', 'CR-V', 'Insight', 'City', 'Jazz', 'Pilot', 'Ridgeline',
+  'March', 'Tiida', 'Sylphy', 'Teana', 'X-Trail', 'Murano', 'Navara', 'Juke', 'Qashqai', 'Leaf',
+  'Demio', 'Axela', 'Atenza', 'CX-3', 'CX-5', 'CX-9', 'BT-50', 'Premacy', 'Biante', 'Roadster',
+  'Alto', 'Swift', 'Wagon R', 'Baleno', 'Vitara', 'Jimny', 'Ertiga', 'S-Cross', 'Ignis', 'Ciaz',
+  'Lancer', 'Outlander', 'Pajero', 'Montero', 'ASX', 'Mirage', 'Triton', 'Galant', 'Colt', 'Eclipse',
+  'Elantra', 'Sonata', 'Tucson', 'Santa Fe', 'i10', 'i20', 'i30', 'Accent', 'Genesis', 'Kona',
+  'Cerato', 'Optima', 'Sportage', 'Sorento', 'Picanto', 'Rio', 'Soul', 'Stinger', 'Carnival', 'Seltos',
+  '3 Series', '5 Series', '7 Series', 'X1', 'X3', 'X5', 'X7', 'Z4', 'i3', 'i8',
+  'C-Class', 'E-Class', 'S-Class', 'A-Class', 'GLA', 'GLC', 'GLE', 'GLS', 'CLA', 'CLS'
+].sort()
+
+// Format budget to nearest 0.5M increment with K/M suffix
+const formatBudget = (value: number | null | undefined): string => {
+  if (!value) return '0'
+  
+  // For values under 1M, round to nearest 50K
+  if (value < 1000000) {
+    const rounded = Math.round(value / 50000) * 50000
+    const thousands = rounded / 1000
+    return `${thousands}K`
+  }
+  
+  // For values 1M and above, round to nearest 0.5M
+  const rounded = Math.round(value / 500000) * 500000
+  const millions = rounded / 1000000
+  
+  // Display with one decimal place if not a whole number
+  return millions % 1 === 0 ? `${millions}M` : `${millions.toFixed(1)}M`
 }
 
 export default function WantedRequestsPage() {
@@ -67,6 +83,7 @@ export default function WantedRequestsPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [sortBy, setSortBy] = useState('recent')
+  const [highPriorityOnly, setHighPriorityOnly] = useState(false)
   const [filters, setFilters] = useState<FilterState>({
     locations: [],
     makes: [],
@@ -74,15 +91,12 @@ export default function WantedRequestsPage() {
     minBudget: '',
     maxBudget: '',
     yearFrom: '',
-    yearTo: '',
-    fuelTypes: [],
-    transmissions: [],
-    urgencyLevels: []
+    yearTo: ''
   })
   const [expandedFilters, setExpandedFilters] = useState({
-    location: false,
-    make: false,
-    model: false,
+    location: true,
+    make: true,
+    model: true,
     mobile: false
   })
   const [savedRequests, setSavedRequests] = useState<Set<string>>(new Set())
@@ -103,7 +117,7 @@ export default function WantedRequestsPage() {
   // Apply filters whenever they change
   useEffect(() => {
     applyFilters()
-  }, [requests, searchTerm, filters, sortBy])
+  }, [requests, searchTerm, filters, sortBy, highPriorityOnly])
 
   // Load more when scrolling
   useEffect(() => {
@@ -226,25 +240,9 @@ export default function WantedRequestsPage() {
       )
     }
 
-    // Fuel type filter
-    if (filters.fuelTypes.length > 0) {
-      filtered = filtered.filter(req => 
-        req.fuel_type && filters.fuelTypes.includes(req.fuel_type)
-      )
-    }
-
-    // Transmission filter
-    if (filters.transmissions.length > 0) {
-      filtered = filtered.filter(req => 
-        req.transmission && filters.transmissions.includes(req.transmission)
-      )
-    }
-
-    // Urgency filter
-    if (filters.urgencyLevels.length > 0) {
-      filtered = filtered.filter(req => 
-        req.urgency && filters.urgencyLevels.includes(req.urgency)
-      )
+    // High priority filter
+    if (highPriorityOnly) {
+      filtered = filtered.filter(req => req.urgency === 'high')
     }
 
     // Sorting
@@ -280,12 +278,10 @@ export default function WantedRequestsPage() {
       minBudget: '',
       maxBudget: '',
       yearFrom: '',
-      yearTo: '',
-      fuelTypes: [],
-      transmissions: [],
-      urgencyLevels: []
+      yearTo: ''
     })
     setSearchTerm('')
+    setHighPriorityOnly(false)
   }
 
   const toggleFilterExpand = (filterType: keyof typeof expandedFilters) => {
@@ -307,8 +303,7 @@ export default function WantedRequestsPage() {
       ...prev,
       makes: prev.makes.includes(make)
         ? prev.makes.filter(m => m !== make)
-        : [...prev.makes, make],
-      models: [] // Clear models when make changes
+        : [...prev.makes, make]
     }))
   }
 
@@ -321,13 +316,6 @@ export default function WantedRequestsPage() {
     }))
   }
 
-  const getAvailableModels = () => {
-    if (filters.makes.length === 1) {
-      const makeKey = filters.makes[0].toLowerCase().replace('-', '')
-      return MAKE_MODEL_MAP[makeKey] || []
-    }
-    return []
-  }
 
   const renderFilterContent = () => (
     <>
@@ -348,6 +336,36 @@ export default function WantedRequestsPage() {
           <option value="urgency">Most Urgent</option>
           <option value="location">Location</option>
         </select>
+      </div>
+
+      {/* High Priority Filter */}
+      <div className="mb-6 border-b pb-4">
+        <label className={`flex items-center gap-2 cursor-pointer p-3 rounded-lg transition-colors ${
+          highPriorityOnly ? 'bg-red-50 border-2 border-red-200' : 'hover:bg-red-25'
+        }`}>
+          <input
+            type="checkbox"
+            checked={highPriorityOnly}
+            onChange={(e) => setHighPriorityOnly(e.target.checked)}
+            className="sr-only"
+          />
+          <div className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-colors ${
+            highPriorityOnly ? 'bg-red-600 border-red-600' : 'border-red-300 hover:border-red-400'
+          }`}>
+            {highPriorityOnly && (
+              <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`font-semibold text-sm ${
+              highPriorityOnly ? 'text-red-700' : 'text-red-600'
+            }`}>
+              High Priority Requests Only
+            </span>
+          </div>
+        </label>
       </div>
 
       {/* Location Filter */}
@@ -396,9 +414,8 @@ export default function WantedRequestsPage() {
         </div>
       </div>
 
-      {/* Model Filter (conditional) */}
-      {filters.makes.length === 1 && (
-        <div className="mb-4">
+      {/* Model Filter */}
+      <div className="mb-4">
           <div 
             onClick={() => toggleFilterExpand('model')}
             className="flex justify-between items-center cursor-pointer py-1.5 hover:bg-gray-50 -mx-2 px-2 rounded"
@@ -415,7 +432,7 @@ export default function WantedRequestsPage() {
               className="w-full px-2 py-1.5 border rounded-md text-xs mb-2"
             />
             <div className="max-h-40 overflow-y-auto border rounded-md p-2 bg-gray-50">
-              {getAvailableModels().map(model => (
+              {MODELS.map(model => (
                 <label 
                   key={model}
                   className={`block py-1 px-2 rounded cursor-pointer hover:bg-blue-50 text-xs ${
@@ -434,7 +451,6 @@ export default function WantedRequestsPage() {
             </div>
           </div>
         </div>
-      )}
 
       {/* Budget Range */}
       <div className="mb-4">
@@ -478,81 +494,6 @@ export default function WantedRequestsPage() {
         </div>
       </div>
 
-      {/* Fuel Type */}
-      <div className="mb-4">
-        <label className="font-semibold text-gray-700 block mb-2 text-sm">Fuel Type</label>
-        <div className="space-y-1.5">
-          {['Petrol', 'Diesel', 'Hybrid', 'Electric'].map(fuel => (
-            <label key={fuel} className="flex items-center">
-              <input
-                type="checkbox"
-                checked={filters.fuelTypes.includes(fuel)}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setFilters(prev => ({ ...prev, fuelTypes: [...prev.fuelTypes, fuel] }))
-                  } else {
-                    setFilters(prev => ({ ...prev, fuelTypes: prev.fuelTypes.filter(f => f !== fuel) }))
-                  }
-                }}
-                className="mr-2"
-              />
-              <span className="text-xs">{fuel}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Transmission */}
-      <div className="mb-4">
-        <label className="font-semibold text-gray-700 block mb-2 text-sm">Transmission</label>
-        <div className="space-y-1.5">
-          {['Automatic', 'Manual'].map(trans => (
-            <label key={trans} className="flex items-center">
-              <input
-                type="checkbox"
-                checked={filters.transmissions.includes(trans)}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setFilters(prev => ({ ...prev, transmissions: [...prev.transmissions, trans] }))
-                  } else {
-                    setFilters(prev => ({ ...prev, transmissions: prev.transmissions.filter(t => t !== trans) }))
-                  }
-                }}
-                className="mr-2"
-              />
-              <span className="text-xs">{trans}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Urgency */}
-      <div>
-        <label className="font-semibold text-gray-700 block mb-2 text-sm">Urgency</label>
-        <div className="space-y-1.5">
-          {[
-            { value: 'high', label: 'High Priority' },
-            { value: 'medium', label: 'Medium Priority' },
-            { value: 'low', label: 'Low Priority' }
-          ].map(urgency => (
-            <label key={urgency.value} className="flex items-center">
-              <input
-                type="checkbox"
-                checked={filters.urgencyLevels.includes(urgency.value)}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setFilters(prev => ({ ...prev, urgencyLevels: [...prev.urgencyLevels, urgency.value] }))
-                  } else {
-                    setFilters(prev => ({ ...prev, urgencyLevels: prev.urgencyLevels.filter(u => u !== urgency.value) }))
-                  }
-                }}
-                className="mr-2"
-              />
-              <span className="text-xs">{urgency.label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
     </>
   )
 
@@ -596,13 +537,10 @@ export default function WantedRequestsPage() {
                   : 'Wanted Requests'
                 }
               </h1>
-              <p className="text-gray-600 mt-1 text-sm">
-                Browse active requests from buyers looking for specific vehicles. Contact them directly if you have what they're looking for.
-              </p>
             </div>
             <Link 
               href="/wanted/post" 
-              className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold text-sm"
+              className="inline-flex lg:hidden items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold text-sm"
             >
               <i className="fas fa-plus"></i>
               Publish a Wanted Request
@@ -625,7 +563,7 @@ export default function WantedRequestsPage() {
               <div className="relative flex-1">
                 <input
                   type="text"
-                  placeholder="Search wanted requests..."
+                  placeholder="Search by make, model, or location"
                   className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                   onChange={(e) => debouncedSearch(e.target.value)}
                 />
@@ -648,7 +586,7 @@ export default function WantedRequestsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Filters Sidebar */}
           <div className="hidden lg:block lg:col-span-1">
-            <div className="bg-white rounded-lg shadow p-3 sticky top-20">
+            <div className="bg-white rounded-lg shadow p-3 sticky top-4">
               <div className="flex justify-between items-center mb-4 pb-3 border-b">
                 <h3 className="text-base font-bold text-gray-900">Filters</h3>
                 <button 
@@ -680,7 +618,9 @@ export default function WantedRequestsPage() {
                           {request.urgency === 'high' ? 'High Priority' : 
                            request.urgency === 'medium' ? 'Medium Priority' : 'Low Priority'}
                         </span>
-                        <h3 className="text-xl font-semibold text-gray-900 pr-24 mb-2">{request.title}</h3>
+                        <h3 className="text-xl font-semibold text-gray-900 pr-24 mb-2">
+                          {request.title.replace(/^looking for:\s*/i, '')}
+                        </h3>
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
                             {request.user_avatar}
@@ -696,7 +636,7 @@ export default function WantedRequestsPage() {
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
                           <div className="text-xs font-semibold text-blue-700 mb-1">Budget Range</div>
                           <div className="text-lg font-bold text-blue-900">
-                            Rs. {request.min_budget?.toLocaleString() || '0'} - {request.max_budget?.toLocaleString() || 'Any'}
+                            Rs. {formatBudget(request.min_budget)} - {formatBudget(request.max_budget)}
                           </div>
                         </div>
 

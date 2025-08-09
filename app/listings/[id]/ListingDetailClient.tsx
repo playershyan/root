@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Heart, Share2, Phone, MessageCircle, MessageSquare, MapPin, Calendar, Eye, Check, ChevronLeft, ChevronRight, Star, Calculator } from 'lucide-react'
 import ContactProfile from '../../components/ContactProfile'
+import PriceDisplay from '../../components/PriceDisplay'
 
 type Listing = {
   id: string
@@ -31,6 +32,16 @@ type Listing = {
   updated_at: string
   seller_type?: 'dealer' | 'private'
   seller_name?: string
+  pricing_type?: 'cash' | 'finance'
+  finance_type?: string
+  finance_provider?: string
+  original_amount?: number
+  outstanding_balance?: number
+  asking_price?: number
+  monthly_payment?: number
+  remaining_term?: string
+  early_settlement?: string
+  negotiable?: boolean
 }
 
 type Dealer = {
@@ -281,21 +292,31 @@ export default function ListingDetailClient({
               <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
                 <i className="fas fa-map-marker-alt mr-1"></i> {listing.location}
               </span>
+              {listing.pricing_type === 'finance' && (
+                <span className="px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-sm font-medium">
+                  <i className="fas fa-handshake mr-1"></i> Finance Takeover
+                </span>
+              )}
             </div>
 
             {/* Price Section */}
             <div className="mb-6">
-              <p className="text-4xl font-bold text-blue-600">
-                Rs. {listing.price.toLocaleString()}
-              </p>
-              {monthlyPayment && (
-                <p className="text-sm text-gray-600 mt-2">
-                  From Rs. {monthlyPayment.toLocaleString()}/month
-                  <Link href="#finance-calculator" className="text-blue-600 hover:underline ml-1">
-                    Calculate financing →
-                  </Link>
-                </p>
-              )}
+              <PriceDisplay
+                pricingType={listing.pricing_type}
+                price={listing.price}
+                negotiable={listing.negotiable}
+                financeType={listing.finance_type}
+                financeProvider={listing.finance_provider}
+                originalAmount={listing.original_amount}
+                outstandingBalance={listing.outstanding_balance}
+                askingPrice={listing.asking_price}
+                monthlyPayment={listing.monthly_payment}
+                remainingTerm={listing.remaining_term}
+                earlySettlement={listing.early_settlement}
+                showFinanceCalculator={true}
+                calculatedMonthlyPayment={monthlyPayment}
+                variant="detail"
+              />
             </div>
 
             {/* Make Offer Button */}
@@ -402,9 +423,20 @@ export default function ListingDetailClient({
               Finance Calculator
             </h2>
             
+            {listing.pricing_type === 'finance' && (
+              <div className="mb-4 p-3 bg-amber-50 border border-amber-100 rounded-lg">
+                <p className="text-sm text-amber-800">
+                  <i className="fas fa-info-circle mr-1"></i>
+                  This vehicle has an existing finance. You can either take over the current loan or calculate your own financing after settling the outstanding balance.
+                </p>
+              </div>
+            )}
+            
             <div className="space-y-4">
               <div>
-                <label className="text-sm text-gray-600 mb-1 block">Vehicle Price</label>
+                <label className="text-sm text-gray-600 mb-1 block">
+                  {listing.pricing_type === 'finance' ? 'Settlement Amount / Vehicle Price' : 'Vehicle Price'}
+                </label>
                 <input
                   type="number"
                   value={loanAmount}

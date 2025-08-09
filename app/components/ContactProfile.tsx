@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Phone, MessageSquare, MessageCircle, MapPin, Star, User } from 'lucide-react'
 
 // Types
@@ -41,7 +42,12 @@ function DealerProfile({ dealer, listing, formatPhoneNumber }: {
           {dealer.name.split(' ').map(n => n[0]).join('')}
         </div>
         <div className="flex-1">
-          <p className="font-semibold">{dealer.name}</p>
+          <Link 
+            href={`/dealers/${encodeURIComponent(dealer.name.toLowerCase().replace(/\s+/g, '-'))}`}
+            className="font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+          >
+            {dealer.name}
+          </Link>
           <div className="flex items-center gap-1 text-sm">
             <div className="flex text-yellow-400">
               {[...Array(5)].map((_, i) => (

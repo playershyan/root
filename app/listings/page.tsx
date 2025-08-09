@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import LocationFilter from '@/app/components/LocationFilter'
+import PriceDisplay from '@/app/components/PriceDisplay'
 
 // Types
 type Listing = {
@@ -23,6 +24,10 @@ type Listing = {
   image_urls: string[] | null
   is_featured: boolean
   created_at: string
+  pricing_type?: 'cash' | 'finance'
+  monthly_payment?: number
+  asking_price?: number
+  negotiable?: boolean
 }
 
 
@@ -680,17 +685,7 @@ export default function AdvancedListingsPage() {
               <h1 className="text-2xl font-bold text-gray-900">
                 {getPageTitle()}
               </h1>
-              <p className="text-gray-600 mt-1 text-sm">
-                Browse vehicles for sale across Sri Lanka. Find your perfect car with advanced filters and AI-powered insights.
-              </p>
             </div>
-            <Link 
-              href="/post" 
-              className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold text-sm"
-            >
-              <i className="fas fa-plus"></i>
-              List Your Vehicle
-            </Link>
           </div>
 
           {/* Quick Search */}
@@ -851,6 +846,12 @@ export default function AdvancedListingsPage() {
                     <div key={listing.id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
                       {/* Image Carousel */}
                       <div className="relative h-48 bg-gray-200 rounded-t-lg overflow-hidden group">
+                        {/* Finance Badge */}
+                        {listing.pricing_type === 'finance' && (
+                          <div className="absolute top-2 left-2 z-10 bg-amber-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+                            <i className="fas fa-handshake mr-1"></i> Finance Takeover
+                          </div>
+                        )}
                         {images.length > 0 ? (
                           <>
                             {!imageLoading[listing.id] && !imageError[listing.id] && (
@@ -930,9 +931,14 @@ export default function AdvancedListingsPage() {
                         <h3 className="font-semibold text-lg mb-2 hover:text-blue-600 transition-colors">
                           {listing.title}
                         </h3>
-                        <p className="text-2xl font-bold text-blue-600 mb-3">
-                          Rs. {listing.price.toLocaleString()}
-                        </p>
+                        <PriceDisplay
+                          pricingType={listing.pricing_type}
+                          price={listing.price}
+                          negotiable={listing.negotiable}
+                          askingPrice={listing.asking_price}
+                          monthlyPayment={listing.monthly_payment}
+                          variant="card"
+                        />
                         
                         {/* Key Specs */}
                         <div className="space-y-2 text-sm text-gray-600">

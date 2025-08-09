@@ -697,7 +697,7 @@ export default function EnhancedPostVehiclePage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Listing Title <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Listing Title *</label>
                 <input
                   type="text"
                   name="title"
@@ -713,7 +713,7 @@ export default function EnhancedPostVehiclePage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Make <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Make *</label>
                   <select
                     name="make"
                     value={formData.make}
@@ -731,7 +731,7 @@ export default function EnhancedPostVehiclePage() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Model <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Model *</label>
                   <select
                     name="model"
                     value={formData.model}
@@ -750,7 +750,7 @@ export default function EnhancedPostVehiclePage() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Year <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Year *</label>
                   <select
                     name="year"
                     value={formData.year}
@@ -768,7 +768,7 @@ export default function EnhancedPostVehiclePage() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Mileage (km) <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Mileage (km) *</label>
                   <input
                     type="number"
                     name="mileage"
@@ -783,7 +783,7 @@ export default function EnhancedPostVehiclePage() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Condition <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Condition *</label>
                   <select
                     name="condition"
                     value={formData.condition}
@@ -801,7 +801,7 @@ export default function EnhancedPostVehiclePage() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Trim/Grade <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Trim/Grade *</label>
                   <input
                     type="text"
                     name="trim"
@@ -883,7 +883,7 @@ export default function EnhancedPostVehiclePage() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">District <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">District *</label>
                     <select
                       name="district"
                       value={selectedDistrict}
@@ -910,7 +910,7 @@ export default function EnhancedPostVehiclePage() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">City/Town <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">City/Town *</label>
                     {selectedDistrict ? (
                       <select
                         name="city"
@@ -995,7 +995,7 @@ export default function EnhancedPostVehiclePage() {
                 
                 {formData.pricingType === 'cash' ? (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Price (LKR) <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Price (LKR) *</label>
                     <input
                       type="number"
                       name="price"
@@ -1033,7 +1033,7 @@ export default function EnhancedPostVehiclePage() {
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Finance Type <span className="text-red-500">*</span></label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Finance Type *</label>
                           <select
                             name="financeType"
                             value={formData.financeType}
@@ -1074,7 +1074,7 @@ export default function EnhancedPostVehiclePage() {
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Monthly Payment <span className="text-red-500">*</span></label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Monthly Payment *</label>
                           <input
                             type="number"
                             name="monthlyPayment"
@@ -1092,7 +1092,7 @@ export default function EnhancedPostVehiclePage() {
                         </div>
                         
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Remaining Term <span className="text-red-500">*</span></label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Remaining Term *</label>
                           <input
                             type="text"
                             name="remainingTerm"
@@ -1121,7 +1121,7 @@ export default function EnhancedPostVehiclePage() {
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Outstanding Balance <span className="text-red-500">*</span></label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Outstanding Balance *</label>
                           <input
                             type="number"
                             name="outstandingBalance"
@@ -1139,7 +1139,7 @@ export default function EnhancedPostVehiclePage() {
                         </div>
                         
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Asking Price <span className="text-red-500">*</span></label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Asking Price *</label>
                           <input
                             type="number"
                             name="askingPrice"
@@ -1460,7 +1460,7 @@ export default function EnhancedPostVehiclePage() {
               <div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
                     <input
                       type="tel"
                       name="phone"

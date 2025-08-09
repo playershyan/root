@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { 
   Heart, User, Search, Menu, X, Bell, 
   Car, MessageSquare, Settings, LogOut,
-  Crown, Shield, FileText, HelpCircle
+  Crown, Shield, FileText, HelpCircle, Plus
 } from 'lucide-react'
 
 interface User {
@@ -23,7 +23,6 @@ export default function Header() {
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
-  const [searchOpen, setSearchOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
   
   // Mock user data - replace with actual auth logic
@@ -70,7 +69,7 @@ export default function Header() {
   return (
     <header className="bg-white shadow-sm border-b sticky top-0 z-50">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-16 relative">
           {/* Left side - Mobile menu, Logo, and Mobile Action Buttons */}
           <div className="flex items-center gap-2 sm:gap-4 flex-1">
             {/* Mobile menu button */}
@@ -89,7 +88,7 @@ export default function Header() {
             {/* Mobile Action Buttons */}
             <div className="flex items-center gap-2 ml-auto sm:hidden">
               <Link 
-                href="/wanted/post" 
+                href="/wanted" 
                 className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 px-2 py-2 rounded-lg hover:bg-blue-50 text-xs"
               >
                 <Search className="w-4 h-4" />
@@ -106,8 +105,8 @@ export default function Header() {
             </div>
           </div>
           
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          {/* Center Navigation - Desktop Only */}
+          <div className="hidden md:flex items-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
             <Link href="/" className="text-gray-700 hover:text-blue-600 font-medium">
               Home
             </Link>
@@ -121,42 +120,8 @@ export default function Header() {
           
           {/* Right side actions */}
           <div className="flex items-center space-x-4">
-            {/* Search Button */}
-            <button
-              onClick={() => setSearchOpen(!searchOpen)}
-              className="hidden md:block p-2 text-gray-600 hover:text-blue-600 transition-colors"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-
             {user ? (
               <>
-                {/* Favorites */}
-                <Link
-                  href="/profile?tab=favorites"
-                  className="hidden md:block p-2 text-gray-600 hover:text-blue-600 transition-colors relative"
-                >
-                  <Heart className="w-5 h-5" />
-                  {user.favorites && user.favorites > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
-                      {user.favorites}
-                    </span>
-                  )}
-                </Link>
-
-                {/* Messages/Notifications */}
-                <Link
-                  href="/profile?tab=messages"
-                  className="hidden md:block p-2 text-gray-600 hover:text-blue-600 transition-colors relative"
-                >
-                  <Bell className="w-5 h-5" />
-                  {user.unreadMessages && user.unreadMessages > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
-                      {user.unreadMessages}
-                    </span>
-                  )}
-                </Link>
-
                 {/* User Menu - Desktop Only */}
                 <div className="hidden md:block relative" ref={userMenuRef}>
                   <button
@@ -371,6 +336,13 @@ export default function Header() {
                 Wanted Requests
               </Link>
               <Link 
+                href="/post" 
+                className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Sell My Vehicle
+              </Link>
+              <Link 
                 href="/wanted/post" 
                 className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
                 onClick={() => setMobileMenuOpen(false)}
@@ -504,24 +476,6 @@ export default function Header() {
         </div>
       )}
 
-      {/* Search Bar */}
-      {searchOpen && (
-        <div className="border-t bg-gray-50 p-4">
-          <div className="max-w-3xl mx-auto">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search for vehicles, brands, models..."
-                className="w-full px-4 py-3 pr-12 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                autoFocus
-              />
-              <button className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                <Search className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </header>
   )
 }

@@ -35,7 +35,6 @@ const MAKE_MODEL_MAP: Record<string, string[]> = {
 }
 
 interface FormData {
-  title: string
   description: string
   min_budget: string
   max_budget: string
@@ -48,9 +47,6 @@ interface FormData {
   fuel_type: string
   transmission: string
   max_mileage: string
-  urgency: string
-  user_name: string
-  email: string
 }
 
 interface FormErrors {
@@ -61,13 +57,37 @@ export default function PostWantedPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState(1) // Multi-step form
-  const [showPreview, setShowPreview] = useState(false)
+  const [showPreview, setShowPreview] = useState(true)
   const [errors, setErrors] = useState<FormErrors>({})
   const [availableModels, setAvailableModels] = useState<string[]>([])
   const [selectedDistrict, setSelectedDistrict] = useState<string>('')
   const [availableCities, setAvailableCities] = useState<string[]>([])
+  
+  const currentYear = new Date().getFullYear()
+  const minYear = 1990
+  
+  // Format budget to nearest 0.5M increment with K/M suffix
+  const formatBudget = (value: string | number | null | undefined): string => {
+    if (!value) return '0'
+    
+    const numValue = typeof value === 'string' ? parseFloat(value) : value
+    if (!numValue) return '0'
+    
+    // For values under 1M, round to nearest 50K
+    if (numValue < 1000000) {
+      const rounded = Math.round(numValue / 50000) * 50000
+      const thousands = rounded / 1000
+      return `${thousands}K`
+    }
+    
+    // For values 1M and above, round to nearest 0.5M
+    const rounded = Math.round(numValue / 500000) * 500000
+    const millions = rounded / 1000000
+    
+    // Display with one decimal place if not a whole number
+    return millions % 1 === 0 ? `${millions}M` : `${millions.toFixed(1)}M`
+  }
   const [formData, setFormData] = useState<FormData>({
-    title: '',
     description: '',
     min_budget: '',
     max_budget: '',
@@ -79,10 +99,7 @@ export default function PostWantedPage() {
     phone: '',
     fuel_type: '',
     transmission: '',
-    max_mileage: '',
-    urgency: 'medium',
-    user_name: '',
-    email: ''
+    max_mileage: ''
   })
 
   // Update available models when make changes
@@ -99,25 +116,21 @@ export default function PostWantedPage() {
     }
   }, [formData.make])
 
-  // Auto-generate title based on selections
-  useEffect(() => {
-    if (formData.make || formData.model) {
-      const yearRange = formData.min_year && formData.max_year 
-        ? ` ${formData.min_year}-${formData.max_year}` 
-        : formData.min_year 
-        ? ` ${formData.min_year} onwards`
-        : formData.max_year
-        ? ` up to ${formData.max_year}`
-        : ''
-      
-      const makeModel = [formData.make, formData.model].filter(Boolean).join(' ')
-      const title = makeModel ? `Looking for: ${makeModel}${yearRange}` : ''
-      
-      if (title && !formData.title.includes('Looking for:')) {
-        setFormData(prev => ({ ...prev, title }))
-      }
-    }
-  }, [formData.make, formData.model, formData.min_year, formData.max_year])
+  // Generate title from make and model
+  const generateTitle = () => {
+    if (!formData.make) return ''
+    
+    const makeModel = [formData.make, formData.model].filter(Boolean).join(' ')
+    const yearRange = formData.min_year && formData.max_year 
+      ? ` ${formData.min_year}-${formData.max_year}` 
+      : formData.min_year 
+      ? ` ${formData.min_year} onwards`
+      : formData.max_year
+      ? ` up to ${formData.max_year}`
+      : ''
+    
+    return `${makeModel}${yearRange}`
+  }
 
   useEffect(() => {
     if (selectedDistrict) {
@@ -138,35 +151,55 @@ export default function PostWantedPage() {
 
     switch (stepNumber) {
       case 1:
-        if (!formData.title.trim()) {
-          newErrors.title = 'Please describe what you\'re looking for'
+        if (!formData.make) {
+          newErrors.make = 'Please select a vehicle make'
+        }
+        if (!formData.model) {
+          newErrors.model = 'Please select a vehicle model'
+        }
+        if (!formData.min_budget) {
+          newErrors.min_budget = 'Please enter minimum budget'
+        }
+        if (!formData.max_budget) {
+          newErrors.max_budget = 'Please enter maximum budget'
         }
         if (formData.min_budget && formData.max_budget && 
             parseFloat(formData.min_budget) > parseFloat(formData.max_budget)) {
           newErrors.max_budget = 'Maximum budget must be greater than minimum'
         }
+        if (!formData.min_year) {
+          newErrors.min_year = 'Please enter minimum year'
+        } else {
+          const year = parseInt(formData.min_year)
+          if (year < minYear) {
+            newErrors.min_year = `Year cannot be earlier than ${minYear}`
+          } else if (year > currentYear) {
+            newErrors.min_year = `Year cannot be later than ${currentYear}`
+          }
+        }
+        
+        if (!formData.max_year) {
+          newErrors.max_year = 'Please enter maximum year'
+        } else {
+          const year = parseInt(formData.max_year)
+          if (year < minYear) {
+            newErrors.max_year = `Year cannot be earlier than ${minYear}`
+          } else if (year > currentYear) {
+            newErrors.max_year = `Year cannot be later than ${currentYear}`
+          }
+        }
+        
         if (formData.min_year && formData.max_year && 
+            !newErrors.min_year && !newErrors.max_year &&
             parseInt(formData.min_year) > parseInt(formData.max_year)) {
           newErrors.max_year = 'Maximum year must be greater than minimum'
         }
         break
       case 2:
-        if (!selectedDistrict) {
-          newErrors.district = 'District is required'
-        }
-        if (!formData.location) {
-          newErrors.location = 'City is required'
-        }
         if (!formData.phone) {
           newErrors.phone = 'Phone number is required'
         } else if (!/^0\d{9}$/.test(formData.phone)) {
           newErrors.phone = 'Please enter a valid Sri Lankan phone number (e.g., 0771234567)'
-        }
-        if (!formData.user_name.trim()) {
-          newErrors.user_name = 'Your name is required'
-        }
-        if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-          newErrors.email = 'Please enter a valid email address'
         }
         break
     }
@@ -178,6 +211,20 @@ export default function PostWantedPage() {
   const handleNext = () => {
     if (validateStep(step)) {
       setStep(step + 1)
+    } else {
+      // Scroll to the first error field
+      setTimeout(() => {
+        const firstErrorField = document.querySelector('.border-red-500')
+        if (firstErrorField) {
+          firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          // Focus the field if it's an input
+          if (firstErrorField instanceof HTMLInputElement || 
+              firstErrorField instanceof HTMLSelectElement || 
+              firstErrorField instanceof HTMLTextAreaElement) {
+            firstErrorField.focus()
+          }
+        }
+      }, 100)
     }
   }
 
@@ -188,19 +235,38 @@ export default function PostWantedPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!validateStep(2)) return
+    if (!validateStep(2)) {
+      // Scroll to the first error field
+      setTimeout(() => {
+        const firstErrorField = document.querySelector('.border-red-500')
+        if (firstErrorField) {
+          firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          // Focus the field if it's an input
+          if (firstErrorField instanceof HTMLInputElement || 
+              firstErrorField instanceof HTMLSelectElement || 
+              firstErrorField instanceof HTMLTextAreaElement) {
+            firstErrorField.focus()
+          }
+        }
+      }, 100)
+      return
+    }
 
     setLoading(true)
 
+
+
     // Combine city and district for location
-    const locationString = formData.location && selectedDistrict 
+    const locationString = formData.location && selectedDistrict ``
       ? `${formData.location}, ${selectedDistrict}` 
       : formData.location || selectedDistrict
 
+    const title = generateTitle()
+    
     try {
       const { error } = await supabase.from('wanted_requests').insert([
         {
-          title: formData.title.trim(),
+          title: title,
           description: formData.description.trim() || null,
           min_budget: formData.min_budget ? parseFloat(formData.min_budget) : null,
           max_budget: formData.max_budget ? parseFloat(formData.max_budget) : null,
@@ -213,8 +279,6 @@ export default function PostWantedPage() {
           fuel_type: formData.fuel_type || null,
           transmission: formData.transmission || null,
           max_mileage: formData.max_mileage ? parseInt(formData.max_mileage) : null,
-          urgency: formData.urgency,
-          user_name: formData.user_name.trim(),
           is_active: true
         },
       ])
@@ -232,20 +296,11 @@ export default function PostWantedPage() {
     }
   }
 
-  const getUrgencyLabel = (urgency: string) => {
-    switch (urgency) {
-      case 'high': return 'Urgent - Need within a week'
-      case 'medium': return 'Moderate - Within a month'
-      case 'low': return 'Flexible - No rush'
-      default: return 'Select urgency'
-    }
-  }
-
   const formatPreviewBudget = () => {
     if (!formData.min_budget && !formData.max_budget) return 'Not specified'
-    if (!formData.min_budget) return `Up to Rs. ${parseInt(formData.max_budget).toLocaleString()}`
-    if (!formData.max_budget) return `Rs. ${parseInt(formData.min_budget).toLocaleString()}+`
-    return `Rs. ${parseInt(formData.min_budget).toLocaleString()} - Rs. ${parseInt(formData.max_budget).toLocaleString()}`
+    if (!formData.min_budget) return `Up to Rs. ${formatBudget(formData.max_budget)}`
+    if (!formData.max_budget) return `Rs. ${formatBudget(formData.min_budget)}+`
+    return `Rs. ${formatBudget(formData.min_budget)} - ${formatBudget(formData.max_budget)}`
   }
 
   return (
@@ -305,39 +360,77 @@ export default function PostWantedPage() {
             <div className="space-y-6">
               <h2 className="text-xl font-semibold mb-6">What vehicle are you looking for?</h2>
               
-              {/* Title */}
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Describe what you're looking for <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g., Looking for Toyota Prius 2018-2020"
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
-                    errors.title ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  value={formData.title}
-                  onChange={(e) => {
-                    setFormData({ ...formData, title: e.target.value })
-                    if (errors.title) setErrors({ ...errors, title: '' })
-                  }}
-                />
-                {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
+              {/* Make and Model */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Vehicle Make <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                      errors.make ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    value={formData.make}
+                    onChange={(e) => {
+                      setFormData({ ...formData, make: e.target.value })
+                      if (errors.make) setErrors({ ...errors, make: '' })
+                    }}
+                    required
+                  >
+                    <option value="">Select Make</option>
+                    {VEHICLE_MAKES.map(make => (
+                      <option key={make} value={make}>{make}</option>
+                    ))}
+                  </select>
+                  {errors.make && <p className="text-red-500 text-sm mt-1">{errors.make}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Vehicle Model <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                      errors.model ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    value={formData.model}
+                    onChange={(e) => {
+                      setFormData({ ...formData, model: e.target.value })
+                      if (errors.model) setErrors({ ...errors, model: '' })
+                    }}
+                    disabled={!formData.make || availableModels.length === 0}
+                    required
+                  >
+                    <option value="">Select Model</option>
+                    {availableModels.map(model => (
+                      <option key={model} value={model}>{model}</option>
+                    ))}
+                  </select>
+                  {errors.model && <p className="text-red-500 text-sm mt-1">{errors.model}</p>}
+                </div>
               </div>
 
               {/* Budget Range */}
               <div>
-                <label className="block text-sm font-medium mb-2">Budget Range (LKR)</label>
+                <label className="block text-sm font-medium mb-2">
+                  Budget Range (LKR) <span className="text-red-500">*</span>
+                </label>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <input
                       type="number"
                       placeholder="Minimum"
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                        errors.min_budget ? 'border-red-500' : 'border-gray-300'
+                      }`}
                       value={formData.min_budget}
-                      onChange={(e) => setFormData({ ...formData, min_budget: e.target.value })}
+                      onChange={(e) => {
+                        setFormData({ ...formData, min_budget: e.target.value })
+                        if (errors.min_budget) setErrors({ ...errors, min_budget: '' })
+                      }}
+                      required
                     />
+                    {errors.min_budget && <p className="text-red-500 text-sm mt-1">{errors.min_budget}</p>}
                   </div>
                   <div>
                     <input
@@ -351,74 +444,81 @@ export default function PostWantedPage() {
                         setFormData({ ...formData, max_budget: e.target.value })
                         if (errors.max_budget) setErrors({ ...errors, max_budget: '' })
                       }}
+                      required
                     />
                     {errors.max_budget && <p className="text-red-500 text-sm mt-1">{errors.max_budget}</p>}
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 mt-1">Leave empty if flexible on budget</p>
               </div>
 
-              {/* Make and Model */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Preferred Make</label>
-                  <select
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    value={formData.make}
-                    onChange={(e) => setFormData({ ...formData, make: e.target.value })}
-                  >
-                    <option value="">Any Make</option>
-                    {VEHICLE_MAKES.map(make => (
-                      <option key={make} value={make}>{make}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Preferred Model</label>
-                  <select
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    value={formData.model}
-                    onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                    disabled={!formData.make || availableModels.length === 0}
-                  >
-                    <option value="">Any Model</option>
-                    {availableModels.map(model => (
-                      <option key={model} value={model}>{model}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
 
               {/* Year Range */}
               <div>
-                <label className="block text-sm font-medium mb-2">Year Range</label>
+                <label className="block text-sm font-medium mb-2">
+                  Year Range <span className="text-red-500">*</span>
+                </label>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <input
                       type="number"
-                      min="1990"
-                      max="2025"
-                      placeholder="From year"
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      min={minYear}
+                      max={currentYear}
+                      placeholder={`From year (${minYear}-${currentYear})`}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                        errors.min_year ? 'border-red-500' : 'border-gray-300'
+                      }`}
                       value={formData.min_year}
-                      onChange={(e) => setFormData({ ...formData, min_year: e.target.value })}
+                      onChange={(e) => {
+                        const value = e.target.value
+                        setFormData({ ...formData, min_year: value })
+                        
+                        // Real-time validation
+                        if (value) {
+                          const year = parseInt(value)
+                          if (year < minYear || year > currentYear) {
+                            setErrors({ ...errors, min_year: year < minYear 
+                              ? `Year cannot be earlier than ${minYear}` 
+                              : `Year cannot be later than ${currentYear}` })
+                          } else {
+                            setErrors({ ...errors, min_year: '' })
+                          }
+                        } else {
+                          setErrors({ ...errors, min_year: '' })
+                        }
+                      }}
+                      required
                     />
+                    {errors.min_year && <p className="text-red-500 text-sm mt-1">{errors.min_year}</p>}
                   </div>
                   <div>
                     <input
                       type="number"
-                      min="1990"
-                      max="2025"
-                      placeholder="To year"
+                      min={minYear}
+                      max={currentYear}
+                      placeholder={`To year (${minYear}-${currentYear})`}
                       className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
                         errors.max_year ? 'border-red-500' : 'border-gray-300'
                       }`}
                       value={formData.max_year}
                       onChange={(e) => {
-                        setFormData({ ...formData, max_year: e.target.value })
-                        if (errors.max_year) setErrors({ ...errors, max_year: '' })
+                        const value = e.target.value
+                        setFormData({ ...formData, max_year: value })
+                        
+                        // Real-time validation
+                        if (value) {
+                          const year = parseInt(value)
+                          if (year < minYear || year > currentYear) {
+                            setErrors({ ...errors, max_year: year < minYear 
+                              ? `Year cannot be earlier than ${minYear}` 
+                              : `Year cannot be later than ${currentYear}` })
+                          } else {
+                            setErrors({ ...errors, max_year: '' })
+                          }
+                        } else {
+                          setErrors({ ...errors, max_year: '' })
+                        }
                       }}
+                      required
                     />
                     {errors.max_year && <p className="text-red-500 text-sm mt-1">{errors.max_year}</p>}
                   </div>
@@ -469,45 +569,23 @@ export default function PostWantedPage() {
                 <p className="text-sm text-gray-600 mt-1">Leave empty if mileage doesn't matter</p>
               </div>
 
-              {/* Urgency */}
-              <div>
-                <label className="block text-sm font-medium mb-2">How urgent is your request?</label>
-                <div className="space-y-2">
-                  {[
-                    { value: 'high', label: 'High', description: 'Need within a week' },
-                    { value: 'medium', label: 'Medium', description: 'Within a month' },
-                    { value: 'low', label: 'Low', description: 'No rush, just exploring options' }
-                  ].map(option => (
-                    <label key={option.value} className="flex items-start p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                      <input
-                        type="radio"
-                        name="urgency"
-                        value={option.value}
-                        checked={formData.urgency === option.value}
-                        onChange={(e) => setFormData({ ...formData, urgency: e.target.value })}
-                        className="mt-1 mr-3"
-                      />
-                      <div>
-                        <div className="font-medium">{option.label}</div>
-                        <div className="text-sm text-gray-600">{option.description}</div>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
               {/* Additional Requirements */}
               <div>
                 <label className="block text-sm font-medium mb-2">Additional Requirements</label>
                 <textarea
-                  rows={4}
+                  rows={3}
                   placeholder="Describe any specific features, condition requirements, or preferences..."
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) => {
+                    if (e.target.value.length <= 150) {
+                      setFormData({ ...formData, description: e.target.value })
+                    }
+                  }}
+                  maxLength={150}
                 />
                 <p className="text-sm text-gray-600 mt-1">
-                  {formData.description.length}/500 characters
+                  {formData.description.length}/150 characters
                 </p>
               </div>
 
@@ -528,33 +606,12 @@ export default function PostWantedPage() {
             <div className="space-y-6">
               <h2 className="text-xl font-semibold mb-6">Your Contact Information</h2>
               
-              {/* Name */}
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Your Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Enter your full name"
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
-                    errors.user_name ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  value={formData.user_name}
-                  onChange={(e) => {
-                    setFormData({ ...formData, user_name: e.target.value })
-                    if (errors.user_name) setErrors({ ...errors, user_name: '' })
-                  }}
-                />
-                {errors.user_name && <p className="text-red-500 text-sm mt-1">{errors.user_name}</p>}
-              </div>
-
               {/* Location Section */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* District Select */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    District <span className="text-red-500">*</span>
+                    Preferred District <span className="text-gray-500">(optional)</span>
                   </label>
                   <select
                     value={selectedDistrict}
@@ -562,9 +619,7 @@ export default function PostWantedPage() {
                       setSelectedDistrict(e.target.value)
                       setFormData(prev => ({ ...prev, location: '' })) // Reset city when district changes
                     }}
-                    className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.district ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">Select District</option>
                     {DISTRICTS.map(district => (
@@ -578,15 +633,13 @@ export default function PostWantedPage() {
                 {/* City Select - Only show if district is selected */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    City/Area <span className="text-red-500">*</span>
+                    Preferred City/Area <span className="text-gray-500">(optional)</span>
                   </label>
                   {selectedDistrict ? (
                     <select
                       value={formData.location}
                       onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                      className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        errors.location ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="">Select City</option>
                       {availableCities.map(city => (
@@ -603,9 +656,6 @@ export default function PostWantedPage() {
                       placeholder="Please select a district first"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
                     />
-                  )}
-                  {errors.location && (
-                    <p className="mt-1 text-sm text-red-600">{errors.location}</p>
                   )}
                 </div>
               </div>
@@ -632,27 +682,6 @@ export default function PostWantedPage() {
                 <p className="text-sm text-gray-600 mt-1">Sellers will contact you on this number</p>
               </div>
 
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Email Address <span className="text-gray-500">(optional)</span>
-                </label>
-                <input
-                  type="email"
-                  placeholder="your.email@example.com"
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
-                    errors.email ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  value={formData.email}
-                  onChange={(e) => {
-                    setFormData({ ...formData, email: e.target.value })
-                    if (errors.email) setErrors({ ...errors, email: '' })
-                  }}
-                />
-                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-                <p className="text-sm text-gray-600 mt-1">We'll send you notifications about matching vehicles</p>
-              </div>
-
               {/* Preview Section */}
               <div className="mt-8 p-4 bg-gray-50 rounded-lg">
                 <div className="flex justify-between items-center mb-4">
@@ -668,7 +697,7 @@ export default function PostWantedPage() {
                 
                 {showPreview && (
                   <div className="bg-white p-4 rounded-lg border">
-                    <h4 className="font-semibold text-lg mb-2">{formData.title}</h4>
+                    <h4 className="font-semibold text-lg mb-2">{generateTitle() || 'Please select a vehicle make'}</h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-600">Budget:</span>
@@ -689,10 +718,6 @@ export default function PostWantedPage() {
                       <div className="flex justify-between">
                         <span className="text-gray-600">Location:</span>
                         <span className="font-medium">{formData.location || 'Not specified'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Urgency:</span>
-                        <span className="font-medium">{getUrgencyLabel(formData.urgency)}</span>
                       </div>
                     </div>
                     {formData.description && (
@@ -741,29 +766,7 @@ export default function PostWantedPage() {
           )}
         </form>
 
-        {/* Tips Section */}
-        <div className="mt-8 bg-gray-50 rounded-lg p-6">
-          <h3 className="font-semibold mb-3">Tips for a Successful Request</h3>
-          <ul className="space-y-2 text-sm text-gray-700">
-            <li className="flex items-start gap-2">
-              <span className="text-green-500">✓</span>
-              <span>Be specific about your requirements to attract relevant sellers</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-green-500">✓</span>
-              <span>Set a realistic budget range based on market prices</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-green-500">✓</span>
-              <span>Include preferred features but stay flexible for better options</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-green-500">✓</span>
-              <span>Respond promptly to sellers who contact you</span>
-            </li>
-          </ul>
-        </div>
-      </div>
+       </div>
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import ListingDetailClient from './listingdetailclient'
+import ListingDetailClient from './ListingDetailClient'
 
 export const revalidate = 60
 
@@ -40,6 +40,15 @@ export default async function ListingDetailPage({
   if (!listing) {
     notFound()
   }
+
+  // Log finance fields for debugging
+  console.log('Listing finance data:', {
+    id: listing.id,
+    pricing_type: listing.pricing_type,
+    finance_type: listing.finance_type,
+    outstanding_balance: listing.outstanding_balance,
+    monthly_payment: listing.monthly_payment
+  })
 
 // TEMPORARY TEST - Remove this later
 /*if (listing.title.toLowerCase().includes('toyota')) {
