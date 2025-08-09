@@ -102,6 +102,7 @@ export default function WantedRequestsPage() {
   const [savedRequests, setSavedRequests] = useState<Set<string>>(new Set())
   const [displayCount, setDisplayCount] = useState(6)
   const [hasMore, setHasMore] = useState(true)
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   
   const { ref: loadMoreRef, inView } = useInView({
     threshold: 0,
@@ -125,6 +126,17 @@ export default function WantedRequestsPage() {
       loadMore()
     }
   }, [inView, hasMore, loading])
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openMenuId && !(event.target as Element).closest('.relative')) {
+        setOpenMenuId(null)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [openMenuId])
 
   const fetchRequests = async () => {
     try {
@@ -169,6 +181,31 @@ export default function WantedRequestsPage() {
     }
     setSavedRequests(newSaved)
     localStorage.setItem('savedWantedRequests', JSON.stringify(Array.from(newSaved)))
+    setOpenMenuId(null)
+  }
+
+  const handleShare = (request: WantedRequest) => {
+    if (navigator.share) {
+      navigator.share({
+        title: request.title,
+        text: `${request.title} - Budget: Rs. ${formatBudget(request.min_budget)} - ${formatBudget(request.max_budget)}`,
+        url: window.location.href
+      })
+    } else {
+      navigator.clipboard.writeText(window.location.href)
+      alert('Link copied to clipboard!')
+    }
+    setOpenMenuId(null)
+  }
+
+  const handleReport = (requestId: string) => {
+    // TODO: Implement report functionality
+    alert('Report functionality coming soon!')
+    setOpenMenuId(null)
+  }
+
+  const toggleMenu = (requestId: string) => {
+    setOpenMenuId(openMenuId === requestId ? null : requestId)
   }
 
   const applyFilters = useCallback(() => {
@@ -686,16 +723,39 @@ export default function WantedRequestsPage() {
                           >
                             Contact Buyer
                           </a>
-                          <button
-                            onClick={() => toggleSave(request.id)}
-                            className={`px-4 py-2.5 rounded-md border transition ${
-                              savedRequests.has(request.id)
-                                ? 'bg-yellow-400 border-yellow-500 text-gray-900'
-                                : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
-                            }`}
-                          >
-                            <i className={`fas ${savedRequests.has(request.id) ? 'fa-star' : 'fa-bookmark'}`}></i>
-                          </button>
+                          <div className="relative">
+                            <button
+                              onClick={() => toggleMenu(request.id)}
+                              className="px-4 py-2.5 rounded-md border bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200 transition"
+                            >
+                              <i className="fas fa-ellipsis-h"></i>
+                            </button>
+                            {openMenuId === request.id && (
+                              <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 min-w-[120px]">
+                                <button
+                                  onClick={() => toggleSave(request.id)}
+                                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
+                                >
+                                  <i className={`fas ${savedRequests.has(request.id) ? 'fa-heart text-red-500' : 'fa-heart'}`}></i>
+                                  {savedRequests.has(request.id) ? 'Unsave' : 'Save'}
+                                </button>
+                                <button
+                                  onClick={() => handleShare(request)}
+                                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
+                                >
+                                  <i className="fas fa-share"></i>
+                                  Share
+                                </button>
+                                <button
+                                  onClick={() => handleReport(request.id)}
+                                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 text-red-600"
+                                >
+                                  <i className="fas fa-flag"></i>
+                                  Report
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
