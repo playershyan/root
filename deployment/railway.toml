@@ -1,0 +1,30 @@
+# Railway.app Deployment Configuration
+
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "npm start"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+[env]
+NODE_ENV = "production"
+RAILWAY_STATIC_URL = "https://${{RAILWAY_STATIC_URL}}"
+
+[services.web]
+source = "."
+domains = ["autotrader.lk", "www.autotrader.lk"]
+
+# Environment variables (set these in Railway dashboard)
+# SUPABASE_URL
+# SUPABASE_ANON_KEY
+# SUPABASE_SERVICE_ROLE_KEY
+# CRON_SECRET
+# STRIPE_SECRET_KEY
+# STRIPE_WEBHOOK_SECRET
+# PAYHERE_MERCHANT_SECRET
+# JWT_SECRET
+# EMAIL_PASSWORD

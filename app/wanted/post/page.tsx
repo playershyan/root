@@ -285,9 +285,7 @@ export default function PostWantedPage() {
 
       if (error) throw error
 
-      // Show success message
-      alert('✅ Wanted request posted successfully! We\'ll notify sellers with matching vehicles.')
-      router.push('/wanted')
+      router.push('/wanted-request/paid-features')
     } catch (error) {
       alert('Error posting request. Please try again.')
       console.error(error)

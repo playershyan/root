@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import Header from './components/header'
+import Footer from './components/Footer'
 import ErrorBoundary from './components/ErrorBoundary'
 import { NotificationProvider } from './components/NotificationSystem'
 
@@ -29,11 +30,7 @@ export default function RootLayout({
             <main className="min-h-screen">
               {children}
             </main>
-            <footer className="bg-gray-900 text-white py-8 mt-16">
-              <div className="max-w-7xl mx-auto px-4 text-center">
-                <p>&copy; 2025 AutoTrader.lk - Your trusted vehicle marketplace</p>
-              </div>
-            </footer>
+            <Footer />
           </NotificationProvider>
         </ErrorBoundary>
       </body>

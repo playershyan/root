@@ -5,6 +5,12 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import LocationFilter from '@/app/components/LocationFilter'
 import PriceDisplay from '@/app/components/PriceDisplay'
+import FeaturedAdCard from '@/app/components/listings/FeaturedAdCard'
+import RegularAdCard from '@/app/components/listings/RegularAdCard'
+import PromotionBadges from '@/app/components/listings/PromotionBadges'
+import { getVehicleCategories, getMakesByCategory, getModelsByMake, getCategoryInfo } from '@/lib/constants/vehicleData'
+import { RotationService } from '@/lib/services/rotationService'
+import { PromotionService, PromotedListing } from '@/lib/services/promotionService'
 
 // Types
 type Listing = {
@@ -28,28 +34,10 @@ type Listing = {
   monthly_payment?: number
   asking_price?: number
   negotiable?: boolean
+  vehicle_type?: string
 }
 
 
-// Popular car makes
-const MAKES = [
-  'Toyota', 'Honda', 'Nissan', 'Mazda', 'Suzuki', 
-  'Mitsubishi', 'Hyundai', 'Kia', 'BMW', 'Mercedes-Benz'
-]
-
-// Model mapping
-const MAKE_MODEL_MAP: Record<string, string[]> = {
-  toyota: ['Prius', 'Camry', 'Corolla', 'Vitz', 'Aqua', 'CHR', 'Highlander', 'Land Cruiser', 'Hiace', 'Hilux'],
-  honda: ['Civic', 'Accord', 'Fit', 'Vezel', 'CR-V', 'Insight', 'City', 'Jazz', 'Pilot', 'Ridgeline'],
-  nissan: ['March', 'Tiida', 'Sylphy', 'Teana', 'X-Trail', 'Murano', 'Navara', 'Juke', 'Qashqai', 'Leaf'],
-  mazda: ['Demio', 'Axela', 'Atenza', 'CX-3', 'CX-5', 'CX-9', 'BT-50', 'Premacy', 'Biante', 'Roadster'],
-  suzuki: ['Alto', 'Swift', 'Wagon R', 'Baleno', 'Vitara', 'Jimny', 'Ertiga', 'S-Cross', 'Ignis', 'Ciaz'],
-  mitsubishi: ['Lancer', 'Outlander', 'Pajero', 'Montero', 'ASX', 'Mirage', 'Triton', 'Galant', 'Colt', 'Eclipse'],
-  hyundai: ['Elantra', 'Sonata', 'Tucson', 'Santa Fe', 'i10', 'i20', 'i30', 'Accent', 'Genesis', 'Kona'],
-  kia: ['Cerato', 'Optima', 'Sportage', 'Sorento', 'Picanto', 'Rio', 'Soul', 'Stinger', 'Carnival', 'Seltos'],
-  bmw: ['3 Series', '5 Series', '7 Series', 'X1', 'X3', 'X5', 'X7', 'Z4', 'i3', 'i8'],
-  'mercedes-benz': ['C-Class', 'E-Class', 'S-Class', 'A-Class', 'GLA', 'GLC', 'GLE', 'GLS', 'CLA', 'CLS']
-}
 
 
 // Animated placeholder texts
@@ -64,11 +52,18 @@ export default function AdvancedListingsPage() {
   const [listings, setListings] = useState<Listing[]>([])
   const [filteredListings, setFilteredListings] = useState<Listing[]>([])
   const [loading, setLoading] = useState(true)
+  
+  // Promoted listings
+  const [featuredAds, setFeaturedAds] = useState<PromotedListing[]>([])
+  const [topSpotAds, setTopSpotAds] = useState<PromotedListing[]>([])
+  const [boostedAds, setBoostedAds] = useState<PromotedListing[]>([])
+  const [urgentAds, setUrgentAds] = useState<PromotedListing[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [placeholderText, setPlaceholderText] = useState(PLACEHOLDER_TEXTS[0])
   const [placeholderIndex, setPlaceholderIndex] = useState(0)
   
   // Filters state
+  const [selectedVehicleCategory, setSelectedVehicleCategory] = useState<string>('')
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null)
   const [selectedMakes, setSelectedMakes] = useState<string[]>([])
   const [selectedModels, setSelectedModels] = useState<string[]>([])
@@ -83,6 +78,7 @@ export default function AdvancedListingsPage() {
   
   // UI state
   const [expandedFilters, setExpandedFilters] = useState({
+    category: true,
     location: true,
     make: true,
     model: true,
@@ -125,11 +121,28 @@ export default function AdvancedListingsPage() {
     fetchListings()
   }, [])
 
+  // Load promoted ads when category changes
+  useEffect(() => {
+    if (selectedVehicleCategory) {
+      loadPromotedAds()
+    }
+  }, [selectedVehicleCategory])
+
   // Apply filters when any filter changes
   useEffect(() => {
     applyFilters()
-  }, [listings, searchTerm, selectedLocation, selectedMakes, selectedModels, 
+  }, [listings, searchTerm, selectedVehicleCategory, selectedLocation, selectedMakes, selectedModels, 
       minYear, maxYear, minPrice, maxPrice, fuelTypes, transmissionTypes, sortBy, urgentOnly])
+  
+  // Clear make/model filters when vehicle category changes and auto-collapse category filter
+  useEffect(() => {
+    setSelectedMakes([])
+    setSelectedModels([])
+    // Auto-collapse category filter when a category is selected
+    if (selectedVehicleCategory) {
+      setExpandedFilters(prev => ({ ...prev, category: false }))
+    }
+  }, [selectedVehicleCategory])
 
   // Initialize image loading states
   useEffect(() => {
@@ -151,6 +164,36 @@ export default function AdvancedListingsPage() {
     }
   }, [searchTerm, selectedMakes])
 
+  const loadPromotedAds = async () => {
+    try {
+      // Get rotated promoted ads for the selected category
+      const [featured, topSpot, boosted, urgent] = await Promise.all([
+        RotationService.getRotatedFeaturedAds(selectedVehicleCategory, 2),
+        RotationService.getRotatedTopSpotAds(selectedVehicleCategory, 3),
+        PromotionService.getPromotedListings('boost', selectedVehicleCategory, 10),
+        PromotionService.getPromotedListings('urgent', selectedVehicleCategory, 10)
+      ])
+
+      setFeaturedAds(featured)
+      setTopSpotAds(topSpot)
+      setBoostedAds(boosted)
+      setUrgentAds(urgent)
+
+      // Track impressions for featured and top spot ads
+      const impressionPromises = []
+      featured.forEach(ad => {
+        impressionPromises.push(RotationService.trackImpression(ad.id, 'featured'))
+      })
+      topSpot.forEach(ad => {
+        impressionPromises.push(RotationService.trackImpression(ad.id, 'top_spot'))
+      })
+      await Promise.all(impressionPromises)
+
+    } catch (error) {
+      console.error('Error loading promoted ads:', error)
+    }
+  }
+
   const fetchListings = async () => {
     setLoading(true)
     try {
@@ -162,7 +205,7 @@ export default function AdvancedListingsPage() {
 
       if (error) throw error
       
-      // Process image URLs
+      // Process image URLs and filter out promoted listings to avoid duplicates
       const processedListings = data?.map(listing => ({
         ...listing,
         image_urls: listing.image_urls || (listing.image_url ? [listing.image_url] : [])
@@ -178,6 +221,13 @@ export default function AdvancedListingsPage() {
 
   const applyFilters = () => {
     let filtered = [...listings]
+
+    // Vehicle category filter
+    if (selectedVehicleCategory) {
+      filtered = filtered.filter(listing => 
+        listing.vehicle_type === selectedVehicleCategory
+      )
+    }
 
     // Urgent filter
     if (urgentOnly) {
@@ -396,12 +446,33 @@ export default function AdvancedListingsPage() {
   }
 
   const getAvailableModels = () => {
-    // Get all unique models from all makes
+    if (!selectedVehicleCategory) return []
+    
+    // If specific makes are selected, get models from those makes only
+    if (selectedMakes.length > 0) {
+      const models = new Set<string>()
+      selectedMakes.forEach(makeName => {
+        const makes = getMakesByCategory(selectedVehicleCategory)
+        const make = makes.find(m => m.name === makeName)
+        if (make) {
+          make.models.forEach(model => models.add(model))
+        }
+      })
+      return Array.from(models).sort()
+    }
+    
+    // Otherwise get all models from the selected category
+    const makes = getMakesByCategory(selectedVehicleCategory)
     const allModels = new Set<string>()
-    Object.values(MAKE_MODEL_MAP).forEach(models => {
-      models.forEach(model => allModels.add(model))
+    makes.forEach(make => {
+      make.models.forEach(model => allModels.add(model))
     })
     return Array.from(allModels).sort()
+  }
+  
+  const getAvailableMakes = () => {
+    if (!selectedVehicleCategory) return []
+    return getMakesByCategory(selectedVehicleCategory).map(make => make.name)
   }
 
   // Handle manual search trigger (Enter or button click)
@@ -419,6 +490,7 @@ export default function AdvancedListingsPage() {
   const clearAllFilters = () => {
     setSearchTerm('')
     setSearchInput('')
+    // Keep selectedVehicleCategory - don't clear it
     setSelectedLocation(null)
     setSelectedMakes([])
     setSelectedModels([])
@@ -450,225 +522,311 @@ export default function AdvancedListingsPage() {
   }
 
   const getPageTitle = () => {
+    const categoryInfo = selectedVehicleCategory ? getCategoryInfo(selectedVehicleCategory) : null
+    const categoryLabel = categoryInfo ? categoryInfo.label : 'Vehicles'
+    
     if (selectedLocation) {
-      return `Cars for sale in ${selectedLocation}`
+      return `${categoryLabel} for sale in ${selectedLocation}`
     }
-    return 'Cars for sale in all of Sri Lanka'
+    return `${categoryLabel} for sale in all of Sri Lanka`
   }
 
-  // Render filter content - reusable for both mobile and desktop (matching wanted page structure)
+  // Render filter content - reusable for both mobile and desktop (progressive loading)
   const renderFilterContent = () => (
     <>
-      {/* Sort By */}
-      <div className="mb-6 border-b pb-4">
-        <label htmlFor="sort-filter" className="block font-semibold text-gray-700 text-sm mb-2">
-          Sort by
-        </label>
-        <select
-          id="sort-filter"
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-          className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:border-blue-500"
-        >
-          <option value="recent">Most Recent</option>
-          <option value="price-low">Price: Low to High</option>
-          <option value="price-high">Price: High to Low</option>
-          <option value="year-new">Year: Newest First</option>
-          <option value="year-old">Year: Oldest First</option>
-          <option value="mileage-low">Mileage: Lowest First</option>
-        </select>
-      </div>
 
-      {/* Urgent Filter */}
-      <div className="mb-6 border-b pb-4">
-        <label className="flex items-center cursor-pointer">
-          <input
-            type="checkbox"
-            checked={urgentOnly}
-            onChange={(e) => setUrgentOnly(e.target.checked)}
-            className="w-4 h-4 text-orange-500 bg-gray-100 border-gray-300 rounded focus:ring-orange-400 focus:ring-2"
-          />
-          <span className="ml-2 text-sm font-medium text-orange-600">
-            <i className="fas fa-star mr-1"></i>
-            Urgent listings only
-          </span>
-        </label>
-      </div>
-
-      {/* Location Filter */}
-      <LocationFilter
-        selectedLocation={selectedLocation}
-        onLocationChange={handleLocationChange}
-        expanded={expandedFilters.location}
-        onToggleExpand={() => toggleFilterExpand('location')}
-        variant="listings"
-      />
-
-      {/* Make Filter */}
+      {/* Vehicle Category Filter - Always visible */}
       <div className="mb-6">
         <div 
-          onClick={() => toggleFilterExpand('make')}
+          onClick={() => toggleFilterExpand('category')}
           className="flex justify-between items-center cursor-pointer py-2 hover:bg-gray-50 -mx-2 px-2 rounded"
         >
-          <span className="font-semibold text-gray-700">Make</span>
-          <span className={`text-gray-400 text-sm transition-transform ${expandedFilters.make ? 'rotate-180' : ''}`}>
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-gray-700">
+              {selectedVehicleCategory ? 'Vehicle Category' : 'Choose Vehicle Category'}
+            </span>
+            {selectedVehicleCategory && (
+              <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded text-xs font-medium text-yellow-700 border border-yellow-300">
+                <i className={getCategoryInfo(selectedVehicleCategory)?.icon}></i>
+                <span>{getCategoryInfo(selectedVehicleCategory)?.label}</span>
+              </div>
+            )}
+          </div>
+          <span className={`text-gray-400 text-sm transition-transform ${expandedFilters.category ? 'rotate-180' : ''}`}>
             ▼
           </span>
         </div>
-        <div className={`mt-3 space-y-2 overflow-hidden transition-all ${expandedFilters.make ? 'max-h-64' : 'max-h-0'}`}>
-          <input 
-            type="text" 
-            placeholder="Search makes..."
-            className="w-full px-3 py-2 border rounded-md text-sm mb-2"
-          />
-          <div className="max-h-48 overflow-y-auto border rounded-md p-2 bg-gray-50">
-            {MAKES.map(make => (
+        <div className={`mt-3 overflow-hidden transition-all duration-300 ${expandedFilters.category ? 'max-h-[800px]' : 'max-h-0'}`}>
+          <div 
+            className="max-h-80 overflow-y-auto space-y-2 pr-1 custom-scrollbar"
+            style={{
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#9CA3AF #F3F4F6'
+            }}
+          >
+            {selectedVehicleCategory && (
+              <button
+                onClick={() => setSelectedVehicleCategory('')}
+                className="w-full text-left py-2 px-3 rounded text-sm border border-gray-200 hover:bg-red-50 hover:border-red-300 text-red-600"
+              >
+                <i className="fas fa-times mr-2"></i>
+                Clear Category Selection
+              </button>
+            )}
+            {getVehicleCategories().map(category => (
               <label 
-                key={make}
-                className={`block py-1 px-2 rounded cursor-pointer hover:bg-blue-50 text-xs ${
-                  selectedMakes.includes(make) ? 'bg-yellow-50 font-semibold text-yellow-700' : ''
+                key={category.value}
+                className={`block py-2 px-3 rounded cursor-pointer hover:bg-blue-50 text-sm border ${
+                  selectedVehicleCategory === category.value ? 'bg-yellow-50 font-semibold text-yellow-700 border-yellow-300' : 'border-gray-200'
                 }`}
               >
                 <input
-                  type="checkbox"
-                  checked={selectedMakes.includes(make)}
-                  onChange={() => handleMakeToggle(make)}
+                  type="radio"
+                  name="vehicleCategory"
+                  checked={selectedVehicleCategory === category.value}
+                  onChange={() => setSelectedVehicleCategory(category.value)}
                   className="sr-only"
                 />
-                {make}
+                <div className="flex items-center gap-2">
+                  <i className={category.icon}></i>
+                  <div>
+                    <div>{category.label}</div>
+                    <div className="text-xs text-gray-500">{category.description}</div>
+                  </div>
+                </div>
               </label>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Model Filter */}
-      <div className="mb-4">
-          <div 
-            onClick={() => toggleFilterExpand('model')}
-            className="flex justify-between items-center cursor-pointer py-1.5 hover:bg-gray-50 -mx-2 px-2 rounded"
-          >
-            <span className="font-semibold text-gray-700 text-sm">Model</span>
-            <span className={`text-gray-400 text-xs transition-transform ${expandedFilters.model ? 'rotate-180' : ''}`}>
-              ▼
-            </span>
+      {/* Show message when no category is selected */}
+      {!selectedVehicleCategory && (
+        <div className="text-center py-8 text-gray-500">
+          <i className="fas fa-arrow-up text-2xl mb-2"></i>
+          <p className="text-sm">Please select a vehicle category above to see relevant filters</p>
+        </div>
+      )}
+
+      {/* Category-specific filters - Only show when category is selected */}
+      {selectedVehicleCategory && (
+        <>
+          {/* Sort By */}
+          <div className="mb-6 border-b pb-4">
+            <label htmlFor="sort-filter" className="block font-semibold text-gray-700 text-sm mb-2">
+              Sort by
+            </label>
+            <select
+              id="sort-filter"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:border-blue-500"
+            >
+              <option value="recent">Most Recent</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="year-new">Year: Newest First</option>
+              <option value="year-old">Year: Oldest First</option>
+              <option value="mileage-low">Mileage: Lowest First</option>
+            </select>
           </div>
-          <div className={`mt-2 space-y-1.5 overflow-hidden transition-all ${expandedFilters.model ? 'max-h-48' : 'max-h-0'}`}>
-            <input 
-              type="text" 
-              placeholder="Search models..."
-              className="w-full px-2 py-1.5 border rounded-md text-xs mb-2"
-            />
-            <div className="max-h-40 overflow-y-auto border rounded-md p-2 bg-gray-50">
-              {getAvailableModels().map(model => (
-                <label 
-                  key={model}
-                  className={`block py-1 px-2 rounded cursor-pointer hover:bg-blue-50 text-xs ${
-                    selectedModels.includes(model) ? 'bg-yellow-50 font-semibold text-yellow-700' : ''
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedModels.includes(model)}
-                    onChange={() => handleModelToggle(model)}
-                    className="sr-only"
-                  />
-                  {model}
-                </label>
-              ))}
+
+          {/* Urgent Filter */}
+          <div className="mb-6 border-b pb-4">
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={urgentOnly}
+                onChange={(e) => setUrgentOnly(e.target.checked)}
+                className="w-4 h-4 text-orange-500 bg-gray-100 border-gray-300 rounded focus:ring-orange-400 focus:ring-2"
+              />
+              <span className="ml-2 text-sm font-medium text-orange-600">
+                <i className="fas fa-star mr-1"></i>
+                Urgent listings only
+              </span>
+            </label>
+          </div>
+
+          {/* Location Filter */}
+          <LocationFilter
+            selectedLocation={selectedLocation}
+            onLocationChange={handleLocationChange}
+            expanded={expandedFilters.location}
+            onToggleExpand={() => toggleFilterExpand('location')}
+            variant="listings"
+          />
+
+          {/* Make Filter */}
+          <div className="mb-6">
+            <div 
+              onClick={() => toggleFilterExpand('make')}
+              className="flex justify-between items-center cursor-pointer py-2 hover:bg-gray-50 -mx-2 px-2 rounded"
+            >
+              <span className="font-semibold text-gray-700">Make</span>
+              <span className={`text-gray-400 text-sm transition-transform ${expandedFilters.make ? 'rotate-180' : ''}`}>
+                ▼
+              </span>
+            </div>
+            <div className={`mt-3 space-y-2 overflow-hidden transition-all ${expandedFilters.make ? 'max-h-64' : 'max-h-0'}`}>
+              <input 
+                type="text" 
+                placeholder="Search makes..."
+                className="w-full px-3 py-2 border rounded-md text-sm mb-2"
+              />
+              <div className="max-h-48 overflow-y-auto border rounded-md p-2 bg-gray-50">
+                {getAvailableMakes().map(make => (
+                  <label 
+                    key={make}
+                    className={`block py-1 px-2 rounded cursor-pointer hover:bg-blue-50 text-xs ${
+                      selectedMakes.includes(make) ? 'bg-yellow-50 font-semibold text-yellow-700' : ''
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedMakes.includes(make)}
+                      onChange={() => handleMakeToggle(make)}
+                      className="sr-only"
+                    />
+                    {make}
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
-      {/* Price Range */}
-      <div className="mb-4">
-        <label className="font-semibold text-gray-700 block mb-2 text-sm">Price Range (LKR)</label>
-        <div className="grid grid-cols-2 gap-2">
-          <input
-            type="number"
-            placeholder="Min (LKR)"
-            value={minPrice}
-            onChange={(e) => setMinPrice(e.target.value)}
-            className="px-2 py-1.5 border rounded-md text-xs"
-          />
-          <input
-            type="number"
-            placeholder="Max (LKR)"
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(e.target.value)}
-            className="px-2 py-1.5 border rounded-md text-xs"
-          />
-        </div>
-      </div>
+          {/* Model Filter */}
+          <div className="mb-4">
+              <div 
+                onClick={() => toggleFilterExpand('model')}
+                className="flex justify-between items-center cursor-pointer py-1.5 hover:bg-gray-50 -mx-2 px-2 rounded"
+              >
+                <span className="font-semibold text-gray-700 text-sm">Model</span>
+                <span className={`text-gray-400 text-xs transition-transform ${expandedFilters.model ? 'rotate-180' : ''}`}>
+                  ▼
+                </span>
+              </div>
+              <div className={`mt-2 space-y-1.5 overflow-hidden transition-all ${expandedFilters.model ? 'max-h-48' : 'max-h-0'}`}>
+                <input 
+                  type="text" 
+                  placeholder="Search models..."
+                  className="w-full px-2 py-1.5 border rounded-md text-xs mb-2"
+                />
+                <div className="max-h-40 overflow-y-auto border rounded-md p-2 bg-gray-50">
+                  {getAvailableModels().map(model => (
+                    <label 
+                      key={model}
+                      className={`block py-1 px-2 rounded cursor-pointer hover:bg-blue-50 text-xs ${
+                        selectedModels.includes(model) ? 'bg-yellow-50 font-semibold text-yellow-700' : ''
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedModels.includes(model)}
+                        onChange={() => handleModelToggle(model)}
+                        className="sr-only"
+                      />
+                      {model}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
 
-      {/* Year Range */}
-      <div className="mb-4">
-        <label className="font-semibold text-gray-700 block mb-2 text-sm">Year Range</label>
-        <div className="grid grid-cols-2 gap-2">
-          <input
-            type="number"
-            placeholder="From year"
-            value={minYear}
-            onChange={(e) => setMinYear(e.target.value)}
-            className="px-2 py-1.5 border rounded-md text-xs"
-          />
-          <input
-            type="number"
-            placeholder="To year"
-            value={maxYear}
-            onChange={(e) => setMaxYear(e.target.value)}
-            className="px-2 py-1.5 border rounded-md text-xs"
-          />
-        </div>
-      </div>
-
-      {/* Fuel Type */}
-      <div className="mb-4">
-        <label className="font-semibold text-gray-700 block mb-2 text-sm">Fuel Type</label>
-        <div className="space-y-1.5">
-          {['Petrol', 'Diesel', 'Hybrid', 'Electric'].map(fuel => (
-            <label key={fuel} className="flex items-center">
+          {/* Price Range */}
+          <div className="mb-4">
+            <label className="font-semibold text-gray-700 block mb-2 text-sm">Price Range (LKR)</label>
+            <div className="grid grid-cols-2 gap-2">
               <input
-                type="checkbox"
-                checked={fuelTypes.includes(fuel)}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setFuelTypes([...fuelTypes, fuel])
-                  } else {
-                    setFuelTypes(fuelTypes.filter(f => f !== fuel))
-                  }
-                }}
-                className="mr-2"
+                type="number"
+                placeholder="Min (LKR)"
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                className="px-2 py-1.5 border rounded-md text-xs"
               />
-              <span className="text-xs">{fuel}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Transmission */}
-      <div>
-        <label className="font-semibold text-gray-700 block mb-2 text-sm">Transmission</label>
-        <div className="space-y-1.5">
-          {['Automatic', 'Manual'].map(trans => (
-            <label key={trans} className="flex items-center">
               <input
-                type="checkbox"
-                checked={transmissionTypes.includes(trans)}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setTransmissionTypes([...transmissionTypes, trans])
-                  } else {
-                    setTransmissionTypes(transmissionTypes.filter(t => t !== trans))
-                  }
-                }}
-                className="mr-2"
+                type="number"
+                placeholder="Max (LKR)"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                className="px-2 py-1.5 border rounded-md text-xs"
               />
-              <span className="text-xs">{trans}</span>
-            </label>
-          ))}
-        </div>
-      </div>
+            </div>
+          </div>
+
+          {/* Year Range */}
+          <div className="mb-4">
+            <label className="font-semibold text-gray-700 block mb-2 text-sm">Year Range</label>
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="number"
+                placeholder="From year"
+                value={minYear}
+                onChange={(e) => setMinYear(e.target.value)}
+                className="px-2 py-1.5 border rounded-md text-xs"
+              />
+              <input
+                type="number"
+                placeholder="To year"
+                value={maxYear}
+                onChange={(e) => setMaxYear(e.target.value)}
+                className="px-2 py-1.5 border rounded-md text-xs"
+              />
+            </div>
+          </div>
+
+          {/* Fuel Type - Only show for vehicles that have fuel type */}
+          {!['bicycle'].includes(selectedVehicleCategory) && (
+            <div className="mb-4">
+              <label className="font-semibold text-gray-700 block mb-2 text-sm">Fuel Type</label>
+              <div className="space-y-1.5">
+                {['Petrol', 'Diesel', 'Hybrid', 'Electric', 'CNG', 'LPG'].map(fuel => (
+                  <label key={fuel} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={fuelTypes.includes(fuel)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setFuelTypes([...fuelTypes, fuel])
+                        } else {
+                          setFuelTypes(fuelTypes.filter(f => f !== fuel))
+                        }
+                      }}
+                      className="mr-2"
+                    />
+                    <span className="text-xs">{fuel}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Transmission - Only show for vehicles that have transmission */}
+          {!['bicycle'].includes(selectedVehicleCategory) && (
+            <div>
+              <label className="font-semibold text-gray-700 block mb-2 text-sm">Transmission</label>
+              <div className="space-y-1.5">
+                {['Automatic', 'Manual', 'CVT', 'Tiptronic'].map(trans => (
+                  <label key={trans} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={transmissionTypes.includes(trans)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setTransmissionTypes([...transmissionTypes, trans])
+                        } else {
+                          setTransmissionTypes(transmissionTypes.filter(t => t !== trans))
+                        }
+                      }}
+                      className="mr-2"
+                    />
+                    <span className="text-xs">{trans}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </>
   )
 
@@ -694,10 +852,18 @@ export default function AdvancedListingsPage() {
               {/* Mobile Filter Button */}
               <button
                 onClick={() => setExpandedFilters(prev => ({ ...prev, mobile: true }))}
-                className="lg:hidden px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center gap-2 text-sm"
+                className="lg:hidden px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center gap-2 text-sm relative"
               >
                 <i className="fas fa-filter"></i>
-                Filters
+                <span>Filters</span>
+                {(() => {
+                  const filterCount = [selectedLocation, ...selectedMakes, ...selectedModels, minPrice && 'Min Price', maxPrice && 'Max Price', minYear && 'Min Year', maxYear && 'Max Year', ...fuelTypes, ...transmissionTypes].filter(Boolean).length;
+                  return filterCount > 0 ? (
+                    <span className="bg-blue-600 text-white text-xs font-semibold px-2 py-1 rounded-full min-w-[20px] flex items-center justify-center">
+                      {filterCount}
+                    </span>
+                  ) : null;
+                })()}
               </button>
               
               {/* Search Input */}
@@ -829,6 +995,51 @@ export default function AdvancedListingsPage() {
               </div>
             )}
 
+            {/* Featured Ads Section */}
+            {selectedVehicleCategory && featuredAds.length > 0 && (
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <h2 className="text-xl font-bold text-gray-900">Featured</h2>
+                  <PromotionBadges.Featured />
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {featuredAds.map((ad) => (
+                    <FeaturedAdCard
+                      key={ad.id}
+                      listing={ad}
+                      promotionType="featured"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Top Spot Ads Section */}
+            {selectedVehicleCategory && topSpotAds.length > 0 && (
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <h2 className="text-xl font-bold text-gray-900">Top Spot</h2>
+                  <PromotionBadges.TopSpot />
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {topSpotAds.map((ad) => (
+                    <FeaturedAdCard
+                      key={ad.id}
+                      listing={ad}
+                      promotionType="top_spot"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* All Listings Section */}
+            <div className="mb-4">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">
+                {selectedVehicleCategory ? 'All Listings' : 'Recent Listings'}
+              </h2>
+            </div>
+
             {/* Listings Grid */}
             {loading ? (
               <div className="text-center py-8">
@@ -837,131 +1048,31 @@ export default function AdvancedListingsPage() {
               </div>
             ) : filteredListings.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {filteredListings.map((listing) => {
+                {/* Mix promoted ads (urgent/boosted) with regular ads */}
+                {[
+                  ...urgentAds.map(ad => ({ ...ad, isPromoted: true, promotionType: 'urgent' })),
+                  ...boostedAds.map(ad => ({ ...ad, isPromoted: true, promotionType: 'boost' })),
+                  ...filteredListings.map(ad => ({ ...ad, isPromoted: false }))
+                ].map((listing) => {
                   const images = listing.image_urls || []
                   const currentImageIndex = activeImageIndex[listing.id] || 0
                   const isSaved = savedListings.includes(listing.id)
                   
+                  // Use RegularAdCard for promoted and regular listings
                   return (
-                    <div key={listing.id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                      {/* Image Carousel */}
-                      <div className="relative h-48 bg-gray-200 rounded-t-lg overflow-hidden group">
-                        {/* Finance Badge */}
-                        {listing.pricing_type === 'finance' && (
-                          <div className="absolute top-2 left-2 z-10 bg-amber-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
-                            <i className="fas fa-handshake mr-1"></i> Finance Takeover
-                          </div>
-                        )}
-                        {images.length > 0 ? (
-                          <>
-                            {!imageLoading[listing.id] && !imageError[listing.id] && (
-                              <img
-                              src={images[currentImageIndex]}
-                              alt={listing.title}
-                              className="w-full h-full object-cover"
-                              onLoad={() => setImageLoading(prev => ({ ...prev, [listing.id]: false }))}
-                              onError={() => setImageError(prev => ({ ...prev, [listing.id]: true }))}
-                            />
-                            )}
-                            {imageLoading[listing.id] && (
-                              <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                              </div>
-                            )}
-                            {imageError[listing.id] && (
-                              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-500">
-                                <span>Image failed to load</span>
-                              </div>
-                            )}
-                            {images.length > 1 && (
-                              <>
-                                <button
-                                  onClick={(e) => {
-                                    e.preventDefault()
-                                    navigateImage(listing.id, 'prev', images.length)
-                                  }}
-                                  aria-label={`Previous image (${currentImageIndex + 1} of ${images.length})`}
-                                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                  ◀
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.preventDefault()
-                                    navigateImage(listing.id, 'next', images.length)
-                                  }}
-                                  aria-label={`Next image (${currentImageIndex + 1} of ${images.length})`}
-                                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                  ▶
-                                </button>
-                                <div className="absolute bottom-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
-                                  {currentImageIndex + 1}/{images.length}
-                                </div>
-                              </>
-                            )}
-                          </>
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            No image
-                          </div>
-                        )}
-                        
-                        {/* Featured Badge */}
-                        {listing.is_featured && (
-                          <div className="absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 rounded text-xs font-semibold">
-                            Featured
-                          </div>
-                        )}
-                        
-                        {/* Save Button */}
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault()
-                            toggleSavedListing(listing.id)
-                          }}
-                          className="absolute top-2 right-2 bg-white/90 p-2 rounded-full hover:bg-white transition-colors"
-                        >
-                          <i className={`fas fa-heart text-lg ${isSaved ? 'text-red-500' : 'text-gray-400'}`}></i>
-                        </button>
-                      </div>
-                      
-                      {/* Listing Details */}
-                      <Link href={`/listings/${listing.id}`} className="block p-4">
-                        <h3 className="font-semibold text-lg mb-2 hover:text-blue-600 transition-colors">
-                          {listing.title}
-                        </h3>
-                        <PriceDisplay
-                          pricingType={listing.pricing_type}
-                          price={listing.price}
-                          negotiable={listing.negotiable}
-                          askingPrice={listing.asking_price}
-                          monthlyPayment={listing.monthly_payment}
-                          variant="card"
-                        />
-                        
-                        {/* Key Specs */}
-                        <div className="space-y-2 text-sm text-gray-600">
-                          <div className="flex items-center gap-2">
-                            <i className="fas fa-map-marker-alt text-blue-500"></i>
-                            <span>{listing.location}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <i className="fas fa-gas-pump text-green-500"></i>
-                            <span>{listing.fuel_type || 'N/A'}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <i className="fas fa-road text-gray-500"></i>
-                            <span>{listing.mileage?.toLocaleString() || 'N/A'} km</span>
-                          </div>
-                        </div>
-                        
-                        {/* Contact Button */}
-                        <button className="w-full mt-4 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                          Contact Dealer
-                        </button>
-                      </Link>
-                    </div>
+                    <RegularAdCard
+                      key={listing.id}
+                      listing={listing}
+                      showPromotionBadge={true}
+                      activeImageIndex={currentImageIndex}
+                      onImageNavigate={(direction) => navigateImage(listing.id, direction, images.length)}
+                      isSaved={isSaved}
+                      onToggleSaved={() => toggleSavedListing(listing.id)}
+                      imageLoading={imageLoading[listing.id]}
+                      imageError={imageError[listing.id]}
+                      onImageLoad={() => setImageLoading(prev => ({ ...prev, [listing.id]: false }))}
+                      onImageError={() => setImageError(prev => ({ ...prev, [listing.id]: true }))}
+                    />
                   )
                 })}
               </div>
@@ -984,27 +1095,41 @@ export default function AdvancedListingsPage() {
       {expandedFilters.mobile && (
         <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50">
           <div className="absolute right-0 top-0 h-full w-full max-w-sm bg-white shadow-xl overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Filters</h3>
-              <button
-                onClick={() => setExpandedFilters(prev => ({ ...prev, mobile: false }))}
-                className="p-2 text-gray-500 hover:text-gray-700"
-              >
-                <i className="fas fa-times text-xl"></i>
-              </button>
-            </div>
-            <div className="p-4">
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-sm text-gray-600">
-                  {[selectedLocation, ...selectedMakes, ...selectedModels, minPrice && 'Min Price', maxPrice && 'Max Price', minYear && 'Min Year', maxYear && 'Max Year', ...fuelTypes, ...transmissionTypes].filter(Boolean).length} filters applied
-                </span>
-                <button 
-                  onClick={clearAllFilters}
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+            <div className="sticky top-0 bg-white border-b px-4 py-3">
+              <div className="flex justify-between items-center mb-3">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-semibold">Filters</h3>
+                  {(() => {
+                    const filterCount = [selectedLocation, ...selectedMakes, ...selectedModels, minPrice && 'Min Price', maxPrice && 'Max Price', minYear && 'Min Year', maxYear && 'Max Year', ...fuelTypes, ...transmissionTypes].filter(Boolean).length;
+                    return filterCount > 0 ? (
+                      <span className="bg-blue-100 text-blue-800 text-sm font-semibold px-3 py-1 rounded-full border border-blue-200">
+                        {filterCount} applied
+                      </span>
+                    ) : (
+                      <span className="text-gray-400 text-sm font-medium">
+                        None applied
+                      </span>
+                    );
+                  })()}
+                </div>
+                <button
+                  onClick={() => setExpandedFilters(prev => ({ ...prev, mobile: false }))}
+                  className="p-2 text-gray-500 hover:text-gray-700"
                 >
-                  Clear all
+                  <i className="fas fa-times text-xl"></i>
                 </button>
               </div>
+              <div className="flex justify-end">
+                <button 
+                  onClick={clearAllFilters}
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium px-3 py-1 rounded hover:bg-blue-50"
+                >
+                  <i className="fas fa-trash-alt mr-1"></i>
+                  Clear all filters
+                </button>
+              </div>
+            </div>
+            <div className="p-4">
               {renderFilterContent()}
             </div>
           </div>

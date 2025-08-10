@@ -1,0 +1,56 @@
+# Render.com Deployment Configuration
+
+services:
+  - type: web
+    name: autotrader-app
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    domains:
+      - autotrader.lk
+      - www.autotrader.lk
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        sync: false  # Set manually in Render dashboard
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: CRON_SECRET
+        generateValue: true  # Auto-generate secure value
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: PAYHERE_MERCHANT_SECRET
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: EMAIL_PASSWORD
+        sync: false
+      - key: NEXT_PUBLIC_APP_URL
+        value: https://autotrader.lk
+    scaling:
+      minInstances: 1
+      maxInstances: 3
+      targetMemoryPercent: 80
+      targetCPUPercent: 80
+
+  # Cron jobs (if supported by Render)
+  - type: cron
+    name: expire-promotions
+    schedule: "0 * * * *"  # Every hour
+    command: "curl -H 'Authorization: Bearer $CRON_SECRET' https://autotrader.lk/api/cron/promotions?action=expire"
+
+  - type: cron
+    name: daily-boost-reset
+    schedule: "0 0 * * *"  # Daily at midnight
+    command: "curl -H 'Authorization: Bearer $CRON_SECRET' https://autotrader.lk/api/cron/promotions?action=boost"
+
+  - type: cron
+    name: rotation-reset
+    schedule: "0 0 * * *"  # Daily at midnight
+    command: "curl -H 'Authorization: Bearer $CRON_SECRET' https://autotrader.lk/api/cron/promotions?action=rotation"

@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: autotrader_postgres
+    environment:
+      POSTGRES_DB: autotrader_db
+      POSTGRES_USER: autotrader_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-autotrader_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../database-migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - autotrader_network
+
+  # Redis for caching and session management
+  redis:
+    image: redis:7-alpine
+    container_name: autotrader_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - autotrader_network
+
+  # Next.js Application
+  app:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile
+    container_name: autotrader_app
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://autotrader_user:${DB_PASSWORD:-autotrader_password}@postgres:5432/autotrader_db
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - autotrader_network
+    volumes:
+      - ../uploads:/app/uploads
+
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: autotrader_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - app
+    networks:
+      - autotrader_network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  autotrader_network:
+    driver: bridge

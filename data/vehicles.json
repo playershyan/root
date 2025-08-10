@@ -1,0 +1,811 @@
+{
+  "categories": {
+    "car": {
+      "label": "Cars",
+      "description": "Cars, SUVs, pickups, sedans, hatchbacks",
+      "icon": "fas fa-car",
+      "makes": [
+        {
+          "id": "toyota",
+          "name": "Toyota",
+          "models": [
+            "Prius", "Camry", "Corolla", "Yaris", "Vitz", "Aqua", 
+            "Allion", "Premio", "CHR", "Highlander", "Land Cruiser", 
+            "Land Cruiser Prado", "RAV4", "Fortuner", "Alphard", 
+            "Vellfire", "Harrier", "Rush", "Raize"
+          ]
+        },
+        {
+          "id": "honda",
+          "name": "Honda",
+          "models": [
+            "Civic", "Accord", "Fit", "Vezel", "Grace", "City", 
+            "Jazz", "CR-V", "HR-V", "BR-V", "Freed", "Odyssey",
+            "Insight", "Pilot", "Ridgeline", "Shuttle", "Stream"
+          ]
+        },
+        {
+          "id": "nissan",
+          "name": "Nissan",
+          "models": [
+            "Leaf", "March", "Sunny", "Tiida", "Sylphy", "Teana",
+            "X-Trail", "Murano", "Juke", "Qashqai", "Note", 
+            "Serena", "Elgrand", "Patrol", "Bluebird", "Skyline",
+            "Pulsar", "Kicks", "Almera"
+          ]
+        },
+        {
+          "id": "mazda",
+          "name": "Mazda",
+          "models": [
+            "Demio", "Axela", "Atenza", "CX-3", "CX-5", "CX-9",
+            "CX-30", "Premacy", "Biante", "Roadster", "MX-5",
+            "Familia", "MPV", "Mazda3", "Mazda6"
+          ]
+        },
+        {
+          "id": "suzuki",
+          "name": "Suzuki",
+          "models": [
+            "Alto", "Swift", "Wagon R", "Baleno", "Vitara", 
+            "Jimny", "Ertiga", "S-Cross", "Ignis", "Ciaz",
+            "Celerio", "Hustler", "Every", "Lapin", "Spacia"
+          ]
+        },
+        {
+          "id": "mitsubishi",
+          "name": "Mitsubishi",
+          "models": [
+            "Lancer", "Outlander", "Pajero", "Montero", "ASX",
+            "Mirage", "Galant", "Colt", "Eclipse", "Delica",
+            "RVR", "Eclipse Cross", "Xpander"
+          ]
+        },
+        {
+          "id": "hyundai",
+          "name": "Hyundai",
+          "models": [
+            "Elantra", "Sonata", "Tucson", "Santa Fe", "i10",
+            "i20", "i30", "Accent", "Genesis", "Kona",
+            "Creta", "Venue", "Palisade", "Ioniq", "Nexo"
+          ]
+        },
+        {
+          "id": "kia",
+          "name": "Kia",
+          "models": [
+            "Cerato", "Optima", "Sportage", "Sorento", "Picanto",
+            "Rio", "Soul", "Stinger", "Carnival", "Seltos",
+            "Telluride", "Niro", "K5", "Forte"
+          ]
+        },
+        {
+          "id": "bmw",
+          "name": "BMW",
+          "models": [
+            "1 Series", "2 Series", "3 Series", "4 Series", 
+            "5 Series", "6 Series", "7 Series", "8 Series",
+            "X1", "X2", "X3", "X4", "X5", "X6", "X7",
+            "Z4", "i3", "i4", "i8", "iX", "M3", "M5"
+          ]
+        },
+        {
+          "id": "mercedes-benz",
+          "name": "Mercedes-Benz",
+          "models": [
+            "A-Class", "B-Class", "C-Class", "E-Class", "S-Class",
+            "CLA", "CLS", "GLA", "GLB", "GLC", "GLE", "GLS",
+            "G-Class", "AMG GT", "EQC", "EQS", "Maybach"
+          ]
+        },
+        {
+          "id": "audi",
+          "name": "Audi",
+          "models": [
+            "A1", "A3", "A4", "A5", "A6", "A7", "A8",
+            "Q2", "Q3", "Q5", "Q7", "Q8", "TT", "R8",
+            "e-tron", "RS3", "RS5", "RS7", "S3", "S4"
+          ]
+        },
+        {
+          "id": "volkswagen",
+          "name": "Volkswagen",
+          "models": [
+            "Golf", "Polo", "Passat", "Tiguan", "Touareg",
+            "Jetta", "Arteon", "T-Cross", "T-Roc", "Atlas",
+            "ID.3", "ID.4", "Beetle", "CC", "Scirocco"
+          ]
+        },
+        {
+          "id": "ford",
+          "name": "Ford",
+          "models": [
+            "Focus", "Fiesta", "Fusion", "Mustang", "Taurus",
+            "Escape", "Explorer", "Expedition", "Edge", "Flex",
+            "EcoSport", "Bronco", "Maverick", "F-150"
+          ]
+        },
+        {
+          "id": "chevrolet",
+          "name": "Chevrolet",
+          "models": [
+            "Spark", "Sonic", "Cruze", "Malibu", "Impala",
+            "Camaro", "Corvette", "Trax", "Equinox", "Traverse",
+            "Tahoe", "Suburban", "Blazer", "Colorado", "Silverado"
+          ]
+        },
+        {
+          "id": "lexus",
+          "name": "Lexus",
+          "models": [
+            "IS", "ES", "GS", "LS", "RC", "LC",
+            "UX", "NX", "RX", "GX", "LX", "CT"
+          ]
+        },
+        {
+          "id": "subaru",
+          "name": "Subaru",
+          "models": [
+            "Impreza", "Legacy", "Outback", "Forester", "XV",
+            "WRX", "STI", "BRZ", "Levorg", "Ascent"
+          ]
+        },
+        {
+          "id": "daihatsu",
+          "name": "Daihatsu",
+          "models": [
+            "Mira", "Move", "Tanto", "Copen", "Cast",
+            "Boon", "Thor", "Rocky", "Terios", "Sirion"
+          ]
+        },
+        {
+          "id": "isuzu",
+          "name": "Isuzu",
+          "models": [
+            "D-Max", "MU-X", "Trooper", "Rodeo", "VehiCROSS"
+          ]
+        },
+        {
+          "id": "peugeot",
+          "name": "Peugeot",
+          "models": [
+            "208", "308", "408", "508", "2008", "3008",
+            "5008", "Partner", "Rifter", "Traveller"
+          ]
+        },
+        {
+          "id": "land-rover",
+          "name": "Land Rover",
+          "models": [
+            "Defender", "Discovery", "Discovery Sport", 
+            "Range Rover", "Range Rover Sport", "Range Rover Velar",
+            "Range Rover Evoque", "Freelander"
+          ]
+        }
+      ]
+    },
+    "van": {
+      "label": "Vans",
+      "description": "Passenger & cargo vans",
+      "icon": "fas fa-shuttle-van",
+      "makes": [
+        {
+          "id": "suzuki",
+          "name": "Suzuki",
+          "models": ["Every", "Carry", "APV", "Spacia", "Wagon R"]
+        },
+        {
+          "id": "nissan",
+          "name": "Nissan",
+          "models": ["Caravan", "NV200", "NV350", "Serena", "Elgrand", "Vanette"]
+        },
+        {
+          "id": "mitsubishi",
+          "name": "Mitsubishi",
+          "models": ["Delica", "Express", "Rosa", "L300"]
+        },
+        {
+          "id": "daihatsu",
+          "name": "Daihatsu",
+          "models": ["Hijet", "Atrai", "Gran Max", "Move"]
+        },
+        {
+          "id": "mazda",
+          "name": "Mazda",
+          "models": ["Bongo", "Scrum", "Biante", "Premacy"]
+        },
+        {
+          "id": "micro",
+          "name": "Micro",
+          "models": ["Panda", "Rexton"]
+        },
+        {
+          "id": "subaru",
+          "name": "Subaru",
+          "models": ["Sambar", "Dias"]
+        },
+        {
+          "id": "honda",
+          "name": "Honda",
+          "models": ["Odyssey", "Freed", "StepWGN", "Shuttle", "Acty"]
+        },
+        {
+          "id": "mercedes-benz",
+          "name": "Mercedes-Benz",
+          "models": ["Sprinter", "Vito", "V-Class", "Metris"]
+        },
+        {
+          "id": "volkswagen",
+          "name": "Volkswagen",
+          "models": ["Transporter", "Caddy", "Crafter", "Multivan"]
+        },
+        {
+          "id": "dfsk",
+          "name": "DFSK",
+          "models": ["K07S", "Mini Bus"]
+        },
+        {
+          "id": "isuzu",
+          "name": "Isuzu",
+          "models": ["Elf", "Journey"]
+        },
+        {
+          "id": "tata",
+          "name": "TATA",
+          "models": ["Winger", "Magic"]
+        },
+        {
+          "id": "toyota",
+          "name": "Toyota",
+          "models": ["Hiace", "Alphard", "Vellfire", "Noah", "Voxy", "Sienna", "ProAce"]
+        }
+      ]
+    },
+    "bus": {
+      "label": "Buses",
+      "description": "Passenger buses, coaches",
+      "icon": "fas fa-bus",
+      "makes": [
+        {
+          "id": "toyota",
+          "name": "Toyota",
+          "models": ["Coaster", "Rosa", "Hiace Commuter"]
+        },
+        {
+          "id": "ashok-leyland",
+          "name": "Ashok Leyland",
+          "models": ["Viking", "Lynx", "Cheetah", "Stallion", "Falcon"]
+        },
+        {
+          "id": "tata",
+          "name": "TATA",
+          "models": ["Starbus", "LP 909", "LP 1510", "Ultra", "Marcopolo"]
+        },
+        {
+          "id": "hino",
+          "name": "Hino",
+          "models": ["RK", "AK", "FC", "Liesse"]
+        },
+        {
+          "id": "mitsubishi",
+          "name": "Mitsubishi",
+          "models": ["Rosa", "Fuso", "Canter"]
+        },
+        {
+          "id": "eicher",
+          "name": "Eicher",
+          "models": ["Skyline", "Starline"]
+        },
+        {
+          "id": "nissan",
+          "name": "Nissan",
+          "models": ["Civilian", "UD"]
+        }
+      ]
+    },
+    "lorry": {
+      "label": "Lorries & Trucks",
+      "description": "Commercial trucks, utility trucks",
+      "icon": "fas fa-truck",
+      "makes": [
+        {
+          "id": "mahindra",
+          "name": "Mahindra",
+          "models": ["Bolero Pickup", "Jeeto", "Supro", "Furio", "Blazo"]
+        },
+        {
+          "id": "tata",
+          "name": "TATA",
+          "models": ["Ace", "Super Ace", "Ultra", "Prima", "Signa", "407", "709", "1210"]
+        },
+        {
+          "id": "isuzu",
+          "name": "Isuzu",
+          "models": ["Forward", "Giga", "Elf", "NPR", "NQR", "FRR", "D-Max"]
+        },
+        {
+          "id": "mitsubishi",
+          "name": "Mitsubishi",
+          "models": ["Canter", "Fighter", "Super Great", "Fuso", "L200"]
+        },
+        {
+          "id": "toyota",
+          "name": "Toyota",
+          "models": ["Dyna", "Hilux", "Land Cruiser 70", "Coaster"]
+        },
+        {
+          "id": "ashok-leyland",
+          "name": "Ashok Leyland",
+          "models": ["Dost", "Partner", "Guru", "Captain", "Boss", "Ecomet"]
+        },
+        {
+          "id": "nissan",
+          "name": "Nissan",
+          "models": ["UD", "Atlas", "Cabstar", "Navara", "Condor"]
+        },
+        {
+          "id": "suzuki",
+          "name": "Suzuki",
+          "models": ["Carry", "Super Carry", "Every"]
+        },
+        {
+          "id": "daihatsu",
+          "name": "Daihatsu",
+          "models": ["Hijet", "Delta", "Gran Max"]
+        },
+        {
+          "id": "foton",
+          "name": "Foton",
+          "models": ["Aumark", "Auman", "View", "Tunland"]
+        },
+        {
+          "id": "mazda",
+          "name": "Mazda",
+          "models": ["Titan", "Bongo", "B-Series"]
+        },
+        {
+          "id": "dfsk",
+          "name": "DFSK",
+          "models": ["K01H", "K07S", "C37"]
+        },
+        {
+          "id": "jac",
+          "name": "JAC",
+          "models": ["X200", "N120", "N75"]
+        },
+        {
+          "id": "hino",
+          "name": "Hino",
+          "models": ["Dutro", "Ranger", "Profia", "300 Series", "500 Series"]
+        },
+        {
+          "id": "subaru",
+          "name": "Subaru",
+          "models": ["Sambar", "Dias"]
+        },
+        {
+          "id": "honda",
+          "name": "Honda",
+          "models": ["Acty", "Vamos"]
+        },
+        {
+          "id": "jmc",
+          "name": "JMC",
+          "models": ["Carrying", "Admiral"]
+        },
+        {
+          "id": "eicher",
+          "name": "Eicher",
+          "models": ["Pro 1049", "Pro 2049", "Pro 3009"]
+        },
+        {
+          "id": "faw",
+          "name": "FAW",
+          "models": ["Tiger", "CA1040"]
+        },
+        {
+          "id": "hyundai",
+          "name": "Hyundai",
+          "models": ["Porter", "HD65", "HD72"]
+        },
+        {
+          "id": "renault",
+          "name": "Renault",
+          "models": ["Master", "Trafic"]
+        }
+      ]
+    },
+    "motorcycle": {
+      "label": "Motorcycles",
+      "description": "Motorbikes & scooters",
+      "icon": "fas fa-motorcycle",
+      "makes": [
+        {
+          "id": "bajaj",
+          "name": "Bajaj",
+          "models": ["Pulsar", "Discover", "Platina", "Dominar", "Avenger", "CT", "XCD", "Boxer"]
+        },
+        {
+          "id": "tvs",
+          "name": "TVS",
+          "models": ["Apache", "Jupiter", "Ntorq", "Sport", "Star City", "Radeon", "Phoenix", "XL100"]
+        },
+        {
+          "id": "honda",
+          "name": "Honda",
+          "models": ["CBR", "CB", "CRF", "Dio", "Activa", "Hornet", "Shine", "Unicorn", "CD", "Livo"]
+        },
+        {
+          "id": "yamaha",
+          "name": "Yamaha",
+          "models": ["FZ", "R15", "MT", "Ray", "Fascino", "YZF", "XSR", "Tenere", "Fazer", "Crux"]
+        },
+        {
+          "id": "hero",
+          "name": "Hero",
+          "models": ["Splendor", "HF Deluxe", "Passion", "Glamour", "Xtreme", "Maestro", "Pleasure"]
+        },
+        {
+          "id": "suzuki",
+          "name": "Suzuki",
+          "models": ["Gixxer", "Access", "Burgman", "Hayabusa", "GSX", "V-Strom", "Let's", "GD110"]
+        },
+        {
+          "id": "demak",
+          "name": "Demak",
+          "models": ["EVO Z", "EVO R", "Matrix", "Evo", "DTM"]
+        },
+        {
+          "id": "ranomoto",
+          "name": "Ranomoto",
+          "models": ["RC", "Street", "Sport"]
+        },
+        {
+          "id": "mahindra",
+          "name": "Mahindra",
+          "models": ["Centuro", "Pantero", "Mojo", "Gusto"]
+        },
+        {
+          "id": "ktm",
+          "name": "KTM",
+          "models": ["Duke", "RC", "Adventure", "SMC"]
+        },
+        {
+          "id": "yadea",
+          "name": "Yadea",
+          "models": ["G5", "C1S", "F3", "S3"]
+        },
+        {
+          "id": "aprilia",
+          "name": "Aprilia",
+          "models": ["RS", "Tuono", "SR", "Storm"]
+        },
+        {
+          "id": "loncin",
+          "name": "Loncin",
+          "models": ["GP", "LX", "Voge"]
+        },
+        {
+          "id": "kawasaki",
+          "name": "Kawasaki",
+          "models": ["Ninja", "Z", "Versys", "Vulcan", "W", "ER"]
+        },
+        {
+          "id": "royal-enfield",
+          "name": "Royal Enfield",
+          "models": ["Classic", "Bullet", "Himalayan", "Interceptor", "Continental GT", "Meteor"]
+        },
+        {
+          "id": "ather",
+          "name": "Ather",
+          "models": ["450X", "450 Plus", "350"]
+        },
+        {
+          "id": "triumph",
+          "name": "Triumph",
+          "models": ["Street Triple", "Tiger", "Bonneville", "Speed Twin"]
+        },
+        {
+          "id": "vespa",
+          "name": "Vespa",
+          "models": ["Primavera", "Sprint", "GTS", "LX"]
+        },
+        {
+          "id": "ducati",
+          "name": "Ducati",
+          "models": ["Monster", "Panigale", "Multistrada", "Scrambler"]
+        },
+        {
+          "id": "ampere",
+          "name": "Ampere",
+          "models": ["Magnus", "Zeal", "V48"]
+        },
+        {
+          "id": "hero-electric",
+          "name": "Hero Electric",
+          "models": ["Photon", "Flash", "Dash", "Optima"]
+        },
+        {
+          "id": "ola-electric",
+          "name": "Ola Electric",
+          "models": ["S1", "S1 Pro"]
+        },
+        {
+          "id": "piaggio",
+          "name": "Piaggio",
+          "models": ["Zip", "Liberty", "Beverly"]
+        },
+        {
+          "id": "kymco",
+          "name": "KYMCO",
+          "models": ["Agility", "Like", "People", "X-Town"]
+        },
+        {
+          "id": "okinawa",
+          "name": "Okinawa",
+          "models": ["Praise", "Ridge", "i-Praise", "Lite"]
+        }
+      ]
+    },
+    "three-wheeler": {
+      "label": "Three Wheelers",
+      "description": "Tuk-tuks & auto rickshaws",
+      "icon": "fas fa-taxi",
+      "makes": [
+        {
+          "id": "bajaj",
+          "name": "Bajaj",
+          "models": ["RE", "Compact", "City", "Maxima", "Auto", "CNG"]
+        },
+        {
+          "id": "piaggio",
+          "name": "Piaggio",
+          "models": ["Ape", "Ape City", "Ape Xtra", "Ape Auto", "Ape Cargo"]
+        },
+        {
+          "id": "tvs",
+          "name": "TVS",
+          "models": ["King", "King Deluxe", "King Duramax"]
+        },
+        {
+          "id": "mahindra",
+          "name": "Mahindra",
+          "models": ["Alfa", "Treo", "e-Alfa Mini", "Champion"]
+        }
+      ]
+    },
+    "bicycle": {
+      "label": "Bicycles",
+      "description": "Bicycles & e-bikes",
+      "icon": "fas fa-bicycle",
+      "makes": [
+        {
+          "id": "lumala",
+          "name": "Lumala",
+          "models": ["City", "Mountain", "BMX", "Kids"]
+        },
+        {
+          "id": "tomahawk",
+          "name": "Tomahawk",
+          "models": ["Mountain", "Road", "Hybrid", "BMX"]
+        },
+        {
+          "id": "dsi",
+          "name": "DSI",
+          "models": ["City", "Sport", "Kids", "Mountain"]
+        },
+        {
+          "id": "kenton",
+          "name": "Kenton",
+          "models": ["City", "Mountain", "Road", "Kids"]
+        },
+        {
+          "id": "giant",
+          "name": "Giant",
+          "models": ["Escape", "Contend", "Defy", "TCR", "Trance", "Reign"]
+        },
+        {
+          "id": "trek",
+          "name": "Trek",
+          "models": ["Marlin", "X-Caliber", "Fuel EX", "Domane", "Madone", "Checkpoint"]
+        },
+        {
+          "id": "specialized",
+          "name": "Specialized",
+          "models": ["Rockhopper", "Stumpjumper", "Allez", "Tarmac", "Roubaix", "Diverge"]
+        },
+        {
+          "id": "scott",
+          "name": "Scott",
+          "models": ["Scale", "Spark", "Genius", "Speedster", "Addict", "Foil"]
+        },
+        {
+          "id": "merida",
+          "name": "Merida",
+          "models": ["Big Nine", "Big Seven", "Crossway", "Speeder", "Scultura", "Reacto"]
+        }
+      ]
+    },
+    "plant-machinery": {
+      "label": "Plant & Machinery",
+      "description": "JCBs, excavators, bulldozers",
+      "icon": "fas fa-hard-hat",
+      "makes": [
+        {
+          "id": "komatsu",
+          "name": "Komatsu",
+          "models": ["PC200", "PC210", "PC300", "D65", "D85", "WA320", "WA380", "WA470"]
+        },
+        {
+          "id": "caterpillar",
+          "name": "Caterpillar",
+          "models": ["320", "330", "336", "D6", "D7", "D8", "950", "966", "980"]
+        },
+        {
+          "id": "kubota",
+          "name": "Kubota",
+          "models": ["KX080", "U35", "U55", "SVL75"]
+        },
+        {
+          "id": "mitsubishi",
+          "name": "Mitsubishi",
+          "models": ["MS070", "MS110", "MS180"]
+        },
+        {
+          "id": "jcb",
+          "name": "JCB",
+          "models": ["3CX", "4CX", "JS", "Loadall", "Fastrac", "JS130"]
+        },
+        {
+          "id": "yanmar",
+          "name": "Yanmar",
+          "models": ["B50", "SV100", "ViO35", "ViO55"]
+        },
+        {
+          "id": "hitachi",
+          "name": "Hitachi",
+          "models": ["EX200", "EX210", "ZX200", "ZX350", "ZX470"]
+        },
+        {
+          "id": "toyota",
+          "name": "Toyota",
+          "models": ["Huski", "SDK", "Skid Steer"]
+        },
+        {
+          "id": "kobelco",
+          "name": "Kobelco",
+          "models": ["SK200", "SK330", "SK480"]
+        },
+        {
+          "id": "nissan",
+          "name": "Nissan",
+          "models": ["Hanix", "H15B", "H36C"]
+        },
+        {
+          "id": "sakai",
+          "name": "Sakai",
+          "models": ["SW652", "SW850", "Roller"]
+        },
+        {
+          "id": "furukawa",
+          "name": "Furukawa",
+          "models": ["FX055", "FX080"]
+        },
+        {
+          "id": "tata",
+          "name": "TATA",
+          "models": ["Hitachi EX200", "JCB 3DX"]
+        },
+        {
+          "id": "isuzu",
+          "name": "Isuzu",
+          "models": ["Forward Crane", "Tipper"]
+        },
+        {
+          "id": "sumitomo",
+          "name": "Sumitomo",
+          "models": ["SH200", "SH300"]
+        },
+        {
+          "id": "ashok-leyland",
+          "name": "Ashok Leyland",
+          "models": ["2518", "3118", "Crane"]
+        },
+        {
+          "id": "john-deere",
+          "name": "John Deere",
+          "models": ["210G", "310G", "410G"]
+        },
+        {
+          "id": "kato",
+          "name": "Kato",
+          "models": ["HD250", "HD450", "Crane"]
+        }
+      ]
+    },
+    "tractor": {
+      "label": "Tractors",
+      "description": "Agricultural & industrial tractors",
+      "icon": "fas fa-tractor",
+      "makes": [
+        {
+          "id": "kubota",
+          "name": "Kubota",
+          "models": ["L", "M", "MX", "B", "BX", "Grand L", "L2501", "M7060"]
+        },
+        {
+          "id": "massey-ferguson",
+          "name": "Massey Ferguson",
+          "models": ["241", "245", "385", "390", "5700", "6700", "7700", "8700", "1035"]
+        },
+        {
+          "id": "yanmar",
+          "name": "Yanmar",
+          "models": ["YM1500", "YM1600", "YM2000", "AF180", "AF220"]
+        },
+        {
+          "id": "mahindra",
+          "name": "Mahindra",
+          "models": ["265", "275", "475", "575", "JIVO", "NOVO", "YUVO", "585"]
+        },
+        {
+          "id": "new-holland",
+          "name": "New Holland",
+          "models": ["3600", "5500", "6500", "7500", "T4", "T5", "T6", "T7"]
+        },
+        {
+          "id": "john-deere",
+          "name": "John Deere",
+          "models": ["5050D", "5075E", "5310", "6120B", "6135B", "7R", "8R", "9R"]
+        },
+        {
+          "id": "ford",
+          "name": "Ford",
+          "models": ["3600", "4600", "5000", "6600", "7000"]
+        },
+        {
+          "id": "powertrac",
+          "name": "Powertrac",
+          "models": ["434", "439", "445", "Euro 50"]
+        }
+      ]
+    },
+    "boat": {
+      "label": "Boats & Water Transport",
+      "description": "Boats, yachts, jet skis",
+      "icon": "fas fa-ship",
+      "makes": [
+        {
+          "id": "yamaha",
+          "name": "Yamaha",
+          "models": ["WaveRunner", "FX", "VX", "GP", "EX", "SuperJet", "AR", "SX"]
+        },
+        {
+          "id": "sea-doo",
+          "name": "Sea-Doo",
+          "models": ["Spark", "GTI", "GTR", "GTX", "RXP", "RXT", "Fish Pro", "Wake"]
+        },
+        {
+          "id": "kawasaki",
+          "name": "Kawasaki",
+          "models": ["Jet Ski STX", "Jet Ski SX-R", "Ultra 310"]
+        },
+        {
+          "id": "bayliner",
+          "name": "Bayliner",
+          "models": ["Element", "VR4", "VR5", "VR6", "Trophy"]
+        },
+        {
+          "id": "sea-ray",
+          "name": "Sea Ray",
+          "models": ["SPX", "SDX", "SLX", "Sundancer"]
+        },
+        {
+          "id": "mastercraft",
+          "name": "MasterCraft",
+          "models": ["ProStar", "X-Star", "NXT", "XT"]
+        }
+      ]
+    }
+  }
+}
