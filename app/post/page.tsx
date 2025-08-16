@@ -410,7 +410,7 @@ export default function EnhancedPostVehiclePage() {
       if (error) throw error
       
       localStorage.removeItem('vehiclePostDraft')
-      router.push('/post/paid-features')
+      router.push('/post/paid-features?new=true')
     } catch (error) {
       alert('Error posting vehicle. Please try again.')
       console.error(error)

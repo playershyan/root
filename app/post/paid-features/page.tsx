@@ -1,10 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
 export default function AdPaidFeatures() {
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([])
+  const searchParams = useSearchParams()
+  const [isNewPost, setIsNewPost] = useState(false)
+  
+  useEffect(() => {
+    // Check if coming from new post flow
+    const fromNewPost = searchParams.get('new') === 'true'
+    setIsNewPost(fromNewPost)
+  }, [searchParams])
 
   const features = [
     {
@@ -112,6 +121,12 @@ export default function AdPaidFeatures() {
             Get more views, more inquiries, and sell faster with our proven promotion features. 
             Choose the right combination to maximize your ad's performance.
           </p>
+          {isNewPost && (
+            <p className="text-sm text-blue-600 mt-4 font-medium">
+              <i className="fas fa-info-circle mr-1"></i>
+              You can always apply these features later from My Profile → My Listings
+            </p>
+          )}
         </div>
 
         {/* Features Grid */}

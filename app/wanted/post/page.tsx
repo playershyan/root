@@ -285,7 +285,7 @@ export default function PostWantedPage() {
 
       if (error) throw error
 
-      router.push('/wanted-request/paid-features')
+      router.push('/wanted/post/boost?new=true')
     } catch (error) {
       alert('Error posting request. Please try again.')
       console.error(error)

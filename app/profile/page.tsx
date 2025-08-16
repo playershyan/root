@@ -18,11 +18,7 @@ interface UserProfile {
   id: string
   firstName: string
   lastName: string
-  email: string
   phone: string
-  location: string
-  language: string
-  bio: string
   membershipType: 'basic' | 'gold' | 'platinum'
   accountType: 'individual' | 'business'
   avatar?: string
@@ -106,17 +102,18 @@ export default function ProfilePage() {
   const [showActionMenu, setShowActionMenu] = useState<string | null>(null)
   const [selectedItems, setSelectedItems] = useState<string[]>([])
   const [profileLoading, setProfileLoading] = useState(true)
+  const [emailVerified, setEmailVerified] = useState(true)
+  const [newEmail, setNewEmail] = useState('')
+  const [confirmEmail, setConfirmEmail] = useState('')
+  const [emailUpdateLoading, setEmailUpdateLoading] = useState(false)
+  const [emailUpdateSuccess, setEmailUpdateSuccess] = useState(false)
   
   // Form states
   const [profile, setProfile] = useState<UserProfile>({
     id: '',
     firstName: '',
     lastName: '',
-    email: '',
     phone: '',
-    location: '',
-    language: 'English',
-    bio: '',
     membershipType: 'basic',
     accountType: 'individual'
   })
@@ -161,14 +158,13 @@ export default function ProfilePage() {
             id: user.id,
             firstName: profileData.name?.split(' ')[0] || '',
             lastName: profileData.name?.split(' ').slice(1).join(' ') || '',
-            email: profileData.email || user.email || '',
             phone: profileData.phone || user.phone || '',
-            location: profileData.location || '',
-            language: profileData.language || 'English',
-            bio: profileData.bio || '',
             membershipType: profileData.membership_type || 'basic',
             accountType: profileData.account_type || 'individual'
           })
+          
+          // Check email verification status
+          setEmailVerified(profileData.email_verified !== false)
 
           // Check if user has business profile
           if (profileData.business_profile) {
@@ -289,6 +285,55 @@ export default function ProfilePage() {
     setSelectedItems([])
   }
 
+  const handleEmailUpdate = async () => {
+    if (!newEmail || !confirmEmail) {
+      alert('Please fill in both email fields')
+      return
+    }
+
+    if (newEmail !== confirmEmail) {
+      alert('Email addresses do not match')
+      return
+    }
+
+    if (newEmail === user?.email) {
+      alert('This is already your current email')
+      return
+    }
+
+    setEmailUpdateLoading(true)
+    try {
+      // Update email in Supabase Auth
+      const { error } = await supabase.auth.updateUser({ 
+        email: newEmail 
+      })
+
+      if (error) throw error
+
+      // Update profile to mark email as unverified
+      await supabase
+        .from('profiles')
+        .update({ 
+          email: newEmail,
+          email_verified: false 
+        })
+        .eq('id', user!.id)
+
+      setEmailVerified(false)
+      setEmailUpdateSuccess(true)
+      setNewEmail('')
+      setConfirmEmail('')
+      
+      // Send verification email (Supabase handles this automatically)
+      alert('Email updated! Please check your inbox for a verification link.')
+    } catch (error) {
+      console.error('Error updating email:', error)
+      alert('Failed to update email. Please try again.')
+    } finally {
+      setEmailUpdateLoading(false)
+    }
+  }
+
   const handleCreateBusinessProfile = async () => {
     if (!businessProfile.businessName.trim()) {
       alert('Please enter a business name')
@@ -396,7 +441,7 @@ export default function ProfilePage() {
                   </span>
                 </div>
                 <h3 className="font-semibold text-gray-900">{profile.firstName} {profile.lastName}</h3>
-                <p className="text-sm text-gray-600">{profile.email}</p>
+                <p className="text-sm text-gray-600">{profile.phone}</p>
               </div>
 
               {/* Navigation */}
@@ -462,17 +507,6 @@ export default function ProfilePage() {
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Email
-                          </label>
-                          <input
-                            type="email"
-                            value={profile.email}
-                            onChange={(e) => setProfile({...profile, email: e.target.value})}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
                             Phone Number
                           </label>
                           <input
@@ -482,47 +516,19 @@ export default function ProfilePage() {
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           />
                         </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Location
-                          </label>
-                          <select
-                            value={profile.location}
-                            onChange={(e) => setProfile({...profile, location: e.target.value})}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      </div>
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+                        <p className="text-sm text-blue-800">
+                          To change your email address or password,{' '}
+                          <button
+                            type="button"
+                            onClick={() => setActiveTab('security')}
+                            className="text-blue-600 hover:text-blue-700 font-medium underline"
                           >
-                            <option>Colombo</option>
-                            <option>Kandy</option>
-                            <option>Galle</option>
-                            <option>Negombo</option>
-                            <option>Other</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Preferred Language
-                          </label>
-                          <select
-                            value={profile.language}
-                            onChange={(e) => setProfile({...profile, language: e.target.value})}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          >
-                            <option>English</option>
-                            <option>Sinhala</option>
-                            <option>Tamil</option>
-                          </select>
-                        </div>
-                        <div className="md:col-span-2">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Bio
-                          </label>
-                          <textarea
-                            rows={4}
-                            value={profile.bio}
-                            onChange={(e) => setProfile({...profile, bio: e.target.value})}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          />
-                        </div>
+                            click here
+                          </button>
+                          {' '}to go to Security Settings.
+                        </p>
                       </div>
                       <div className="flex gap-3">
                         <button
@@ -1269,6 +1275,79 @@ export default function ProfilePage() {
                   </div>
                   <div className="p-6 space-y-8">
                     <div>
+                      <h3 className="text-lg font-semibold mb-4">Change Email Address</h3>
+                      <div className="space-y-4 max-w-md">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Current Email
+                          </label>
+                          <div>
+                            <input
+                              type="email"
+                              value={user?.email || ''}
+                              disabled
+                              className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-600"
+                            />
+                            {!emailVerified && (
+                              <div className="mt-2 flex items-center gap-2">
+                                <AlertTriangle className="w-4 h-4 text-amber-500" />
+                                <span className="text-sm text-amber-600 font-medium">
+                                  Unverified - Check your email to verify
+                                </span>
+                              </div>
+                            )}
+                            {emailVerified && user?.email && (
+                              <div className="mt-2 flex items-center gap-2">
+                                <CheckCircle className="w-4 h-4 text-green-500" />
+                                <span className="text-sm text-green-600 font-medium">
+                                  Verified
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            New Email Address
+                          </label>
+                          <input
+                            type="email"
+                            value={newEmail}
+                            onChange={(e) => setNewEmail(e.target.value)}
+                            placeholder="Enter new email address"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Confirm New Email
+                          </label>
+                          <input
+                            type="email"
+                            value={confirmEmail}
+                            onChange={(e) => setConfirmEmail(e.target.value)}
+                            placeholder="Confirm new email address"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        </div>
+                        {emailUpdateSuccess && (
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                            <p className="text-sm text-green-700">
+                              Email updated successfully! Please check your inbox at <strong>{user?.email}</strong> for a verification link.
+                            </p>
+                          </div>
+                        )}
+                        <button 
+                          onClick={handleEmailUpdate}
+                          disabled={emailUpdateLoading}
+                          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        >
+                          {emailUpdateLoading ? 'Updating...' : 'Update Email'}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
                       <h3 className="text-lg font-semibold mb-4">Change Password</h3>
                       <div className="space-y-4 max-w-md">
                         <div>
@@ -1277,6 +1356,7 @@ export default function ProfilePage() {
                           </label>
                           <input
                             type="password"
+                            placeholder="Enter current password"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           />
                         </div>
@@ -1286,6 +1366,7 @@ export default function ProfilePage() {
                           </label>
                           <input
                             type="password"
+                            placeholder="Enter new password (min. 6 characters)"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           />
                         </div>
@@ -1295,6 +1376,7 @@ export default function ProfilePage() {
                           </label>
                           <input
                             type="password"
+                            placeholder="Confirm new password"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           />
                         </div>

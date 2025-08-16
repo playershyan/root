@@ -11,6 +11,14 @@ const AboutSection = dynamic(() => import('./components/AboutSection'), {
   ssr: false
 })
 
+const GoogleOneTap = dynamic(() => import('./components/GoogleOneTap'), {
+  ssr: false
+})
+
+const EmailVerificationAlert = dynamic(() => import('./components/EmailVerificationAlert'), {
+  ssr: false
+})
+
 export const revalidate = 60 // Refresh every minute
 
 export default async function HomePage() {
@@ -26,6 +34,8 @@ export default async function HomePage() {
 
   return (
     <div>
+      <GoogleOneTap />
+      <EmailVerificationAlert />
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { 
@@ -97,6 +97,13 @@ export default function BoostAdPage() {
   
   const [selectedOptions, setSelectedOptions] = useState<string[]>([])
   const [showPayment, setShowPayment] = useState(false)
+  const [isNewPost, setIsNewPost] = useState(false)
+  
+  useEffect(() => {
+    // Check if coming from new post flow
+    const fromNewPost = searchParams.get('new') === 'true'
+    setIsNewPost(fromNewPost)
+  }, [searchParams])
 
   const toggleOption = (optionId: string) => {
     setSelectedOptions(prev => 
@@ -167,6 +174,12 @@ export default function BoostAdPage() {
               <span className="text-gray-600">Boosted views: <strong>1,560+</strong></span>
             </div>
           </div>
+          {isNewPost && (
+            <p className="text-sm text-blue-600 mt-4 font-medium">
+              <AlertCircle className="w-4 h-4 inline mr-1" />
+              You can always apply these features later from My Profile → My Listings
+            </p>
+          )}
         </div>
 
         {!showPayment ? (

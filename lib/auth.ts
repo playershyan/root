@@ -148,3 +148,52 @@ export async function getUser() {
   const { data: { user } } = await supabase.auth.getUser()
   return user
 }
+
+export async function signInWithGoogle(): Promise<{ success: boolean; error?: AuthError }> {
+  try {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        }
+      }
+    })
+
+    if (error) {
+      return { success: false, error: { message: error.message, code: error.code } }
+    }
+
+    return { success: true }
+  } catch (error) {
+    return { 
+      success: false, 
+      error: { message: 'Failed to sign in with Google. Please try again.' }
+    }
+  }
+}
+
+export async function checkAndAutoSignIn(): Promise<{ shouldAutoLogin: boolean; user?: any }> {
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    if (session) {
+      return { shouldAutoLogin: false, user: session.user }
+    }
+    
+    const hasVisitedBefore = localStorage.getItem('hasVisited')
+    const autoLoginDisabled = localStorage.getItem('disableAutoLogin')
+    
+    if (!hasVisitedBefore && autoLoginDisabled !== 'true') {
+      localStorage.setItem('hasVisited', 'true')
+      return { shouldAutoLogin: true }
+    }
+    
+    return { shouldAutoLogin: false }
+  } catch (error) {
+    console.error('Error checking auto sign-in:', error)
+    return { shouldAutoLogin: false }
+  }
+}
