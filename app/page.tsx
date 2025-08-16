@@ -7,6 +7,10 @@ const SentryTestButton = dynamic(() => import('./components/SentryTestButton'), 
   loading: () => <p>Loading...</p>
 })
 
+const AboutSection = dynamic(() => import('./components/AboutSection'), {
+  ssr: false
+})
+
 export const revalidate = 60 // Refresh every minute
 
 export default async function HomePage() {
@@ -19,13 +23,6 @@ export default async function HomePage() {
     .limit(3)
     .order('created_at', { ascending: false })
 
-  // Get recent listings
-  const { data: recentListings } = await supabase
-    .from('listings')
-    .select('*')
-    .eq('is_sold', false)
-    .limit(6)
-    .order('created_at', { ascending: false })
 
   return (
     <div>
@@ -72,7 +69,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
+      
       {/* Featured Listings */}
       {featuredListings && featuredListings.length > 0 && (
         <section className="py-16">
@@ -111,61 +108,27 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* Recent Listings */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold">Recent Listings</h2>
-            <Link href="/listings" className="text-blue-600 hover:text-blue-700 font-semibold">
-              View All →
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {recentListings?.map((listing) => (
-              <Link key={listing.id} href={`/listings/${listing.id}`} className="card overflow-hidden group">
-                <div className="aspect-w-16 aspect-h-12 bg-gray-200">
-                  {listing.image_url ? (
-                    <img
-                      src={listing.image_url}
-                      alt={listing.title}
-                      className="w-full h-40 object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-40 bg-gray-300 flex items-center justify-center">
-                      <span className="text-gray-500">No image</span>
-                    </div>
-                  )}
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold mb-1">{listing.title}</h3>
-                  <p className="text-xl font-bold text-blue-600">
-                    Rs. {listing.price.toLocaleString()}
-                  </p>
-                  <p className="text-gray-600 text-sm mt-1">
-                    {listing.location} • {listing.year}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
-      <section className="py-16 bg-blue-900 text-white">
+      <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold mb-4">
-            Can't Find What You're Looking For?
+            Can't Find Your Perfect Vehicle?
           </h2>
-          <p className="text-xl mb-8 text-blue-100">
-            Post a wanted request and let sellers come to you
+          <p className="text-xl mb-8 text-white/90">
+            Post a wanted request and let sellers come to you with their best offers
           </p>
-          <Link href="/wanted/post" className="btn-primary">
+          <Link href="/wanted/post" className="inline-block bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors shadow-lg">
             Post Wanted Request
           </Link>
         </div>
       </section>
-      <SentryTestButton />
+
+      {/* About Section */}
+      <AboutSection />
+      
+      <div className="hidden md:block">
+        <SentryTestButton />
+      </div>
     </div>
   )
 }

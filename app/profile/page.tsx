@@ -8,8 +8,10 @@ import {
   Bell, Trash2, Shield, Crown, Check, ChevronDown,
   Upload, Edit, Share2, RefreshCw, Clock, MoreVertical,
   Camera, MapPin, Phone, Mail, Calendar, Eye, X,
-  AlertTriangle, CheckCircle
+  AlertTriangle, CheckCircle, Building2, Globe, Star
 } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
+import { supabase } from '@/lib/supabase'
 
 // Types
 interface UserProfile {
@@ -22,7 +24,21 @@ interface UserProfile {
   language: string
   bio: string
   membershipType: 'basic' | 'gold' | 'platinum'
+  accountType: 'individual' | 'business'
   avatar?: string
+}
+
+interface BusinessProfile {
+  id: string
+  businessName: string
+  businessType: string
+  description: string
+  logoUrl?: string
+  website?: string
+  address?: string
+  phone?: string
+  operatingHours?: string
+  isVerified: boolean
 }
 
 interface Listing {
@@ -70,6 +86,7 @@ interface DeletedItem {
 // Tab configurations
 const tabs = [
   { id: 'profile', label: 'My Profile', icon: User },
+  { id: 'business', label: 'Business Profile', icon: Building2 },
   { id: 'membership', label: 'AutoTrader Membership', icon: Crown, special: true },
   { id: 'listings', label: 'My Listings', icon: Car },
   { id: 'favorites', label: 'Favorites', icon: Heart },
@@ -82,24 +99,113 @@ const tabs = [
 
 export default function ProfilePage() {
   const router = useRouter()
+  const { user, loading } = useAuth()
   const [activeTab, setActiveTab] = useState('profile')
   const [activeFavoritesTab, setActiveFavoritesTab] = useState('ads')
   const [activeBinTab, setActiveBinTab] = useState('listings')
   const [showActionMenu, setShowActionMenu] = useState<string | null>(null)
   const [selectedItems, setSelectedItems] = useState<string[]>([])
+  const [profileLoading, setProfileLoading] = useState(true)
   
   // Form states
   const [profile, setProfile] = useState<UserProfile>({
-    id: '1',
-    firstName: 'John',
-    lastName: 'Silva',
-    email: 'john.silva@email.com',
-    phone: '+94 77 123 4567',
-    location: 'Colombo',
+    id: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    location: '',
     language: 'English',
-    bio: 'Car enthusiast with 10+ years of experience in the automotive industry. Always looking for unique vehicles and great deals!',
-    membershipType: 'gold'
+    bio: '',
+    membershipType: 'basic',
+    accountType: 'individual'
   })
+
+  const [businessProfile, setBusinessProfile] = useState<BusinessProfile>({
+    id: '',
+    businessName: '',
+    businessType: 'Auto Dealer',
+    description: '',
+    logoUrl: '',
+    website: '',
+    address: '',
+    phone: '',
+    operatingHours: '',
+    isVerified: false
+  })
+
+  const [hasBusinessProfile, setHasBusinessProfile] = useState(false)
+  const [businessLoading, setBusinessLoading] = useState(false)
+
+  // Load user profile data
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user) {
+        router.push('/login')
+        return
+      }
+
+      try {
+        // Fetch user profile from database
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select(`
+            *,
+            business_profile:business_profiles(*)
+          `)
+          .eq('id', user.id)
+          .single()
+
+        if (profileData) {
+          setProfile({
+            id: user.id,
+            firstName: profileData.name?.split(' ')[0] || '',
+            lastName: profileData.name?.split(' ').slice(1).join(' ') || '',
+            email: profileData.email || user.email || '',
+            phone: profileData.phone || user.phone || '',
+            location: profileData.location || '',
+            language: profileData.language || 'English',
+            bio: profileData.bio || '',
+            membershipType: profileData.membership_type || 'basic',
+            accountType: profileData.account_type || 'individual'
+          })
+
+          // Check if user has business profile
+          if (profileData.business_profile) {
+            setHasBusinessProfile(true)
+            setBusinessProfile({
+              id: profileData.business_profile.id,
+              businessName: profileData.business_profile.business_name || '',
+              businessType: profileData.business_profile.business_type || 'Auto Dealer',
+              description: profileData.business_profile.description || '',
+              logoUrl: profileData.business_profile.logo_url || '',
+              website: profileData.business_profile.website || '',
+              address: profileData.business_profile.address || '',
+              phone: profileData.business_profile.phone || '',
+              operatingHours: profileData.business_profile.operating_hours || '',
+              isVerified: profileData.business_profile.is_verified || false
+            })
+          }
+        } else {
+          // Create profile if it doesn't exist
+          await supabase.from('profiles').insert({
+            id: user.id,
+            email: user.email,
+            phone: user.phone,
+            name: user.user_metadata?.name
+          })
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error)
+      } finally {
+        setProfileLoading(false)
+      }
+    }
+
+    if (!loading) {
+      loadProfile()
+    }
+  }, [user, loading, router])
 
   const [listings] = useState<Listing[]>([
     {
@@ -181,6 +287,77 @@ export default function ProfilePage() {
     
     console.log(`${action} items:`, selectedItems)
     setSelectedItems([])
+  }
+
+  const handleCreateBusinessProfile = async () => {
+    if (!businessProfile.businessName.trim()) {
+      alert('Please enter a business name')
+      return
+    }
+
+    setBusinessLoading(true)
+    try {
+      const { error } = await supabase
+        .from('business_profiles')
+        .insert({
+          id: user!.id,
+          business_name: businessProfile.businessName,
+          business_type: businessProfile.businessType,
+          description: businessProfile.description,
+          website: businessProfile.website,
+          address: businessProfile.address,
+          phone: businessProfile.phone,
+          operating_hours: businessProfile.operatingHours
+        })
+
+      if (error) throw error
+
+      // Update account type to business
+      await supabase
+        .from('profiles')
+        .update({ account_type: 'business' })
+        .eq('id', user!.id)
+
+      setHasBusinessProfile(true)
+      setProfile({ ...profile, accountType: 'business' })
+      alert('Business profile created successfully!')
+    } catch (error) {
+      console.error('Error creating business profile:', error)
+      alert('Failed to create business profile')
+    } finally {
+      setBusinessLoading(false)
+    }
+  }
+
+  const handleUpdateBusinessProfile = async () => {
+    if (!businessProfile.businessName.trim()) {
+      alert('Please enter a business name')
+      return
+    }
+
+    setBusinessLoading(true)
+    try {
+      const { error } = await supabase
+        .from('business_profiles')
+        .update({
+          business_name: businessProfile.businessName,
+          business_type: businessProfile.businessType,
+          description: businessProfile.description,
+          website: businessProfile.website,
+          address: businessProfile.address,
+          phone: businessProfile.phone,
+          operating_hours: businessProfile.operatingHours
+        })
+        .eq('id', user!.id)
+
+      if (error) throw error
+      alert('Business profile updated successfully!')
+    } catch (error) {
+      console.error('Error updating business profile:', error)
+      alert('Failed to update business profile')
+    } finally {
+      setBusinessLoading(false)
+    }
   }
 
   // Stats calculation
@@ -790,6 +967,296 @@ export default function ProfilePage() {
                       <p className="font-medium">Bin is empty</p>
                       <p className="text-sm mt-1">Deleted items will appear here</p>
                     </div>
+                  </div>
+                </>
+              )}
+
+              {/* Business Profile Tab */}
+              {activeTab === 'business' && (
+                <>
+                  <div className="p-6 border-b flex justify-between items-center">
+                    <div>
+                      <h1 className="text-2xl font-semibold">Business Profile</h1>
+                      <p className="text-gray-600 mt-1">Manage your dealership or business information</p>
+                    </div>
+                    {hasBusinessProfile && (
+                      <div className="flex items-center gap-2">
+                        {businessProfile.isVerified && (
+                          <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
+                            <CheckCircle className="w-3 h-3" />
+                            Verified
+                          </div>
+                        )}
+                        <a
+                          href={`/dealer/${user?.id}`}
+                          target="_blank"
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2 text-sm"
+                        >
+                          <Eye className="w-4 h-4" />
+                          View Public Profile
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-6">
+                    {!hasBusinessProfile ? (
+                      <div className="text-center py-12">
+                        <Building2 className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                        <h3 className="text-xl font-semibold text-gray-900 mb-2">Create Your Business Profile</h3>
+                        <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                          Set up your dealership profile to showcase your business, build trust with customers, 
+                          and access advanced selling tools.
+                        </p>
+                        
+                        <div className="max-w-2xl mx-auto">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                            <div className="bg-blue-50 p-6 rounded-lg">
+                              <Star className="w-8 h-8 text-blue-600 mb-3" />
+                              <h4 className="font-semibold text-blue-900 mb-2">Build Trust</h4>
+                              <p className="text-sm text-blue-700">Verified business profile with contact information and operating hours</p>
+                            </div>
+                            <div className="bg-green-50 p-6 rounded-lg">
+                              <Globe className="w-8 h-8 text-green-600 mb-3" />
+                              <h4 className="font-semibold text-green-900 mb-2">Professional Presence</h4>
+                              <p className="text-sm text-green-700">Dedicated dealer page with your branding and vehicle inventory</p>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-gray-50 rounded-lg p-8">
+                            <h4 className="text-lg font-semibold mb-6">Business Information</h4>
+                            <form className="space-y-6">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Business Name <span className="text-red-500">*</span>
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={businessProfile.businessName}
+                                    onChange={(e) => setBusinessProfile({...businessProfile, businessName: e.target.value})}
+                                    placeholder="e.g., City Motors, Premium Auto Sales"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    required
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Business Type
+                                  </label>
+                                  <select
+                                    value={businessProfile.businessType}
+                                    onChange={(e) => setBusinessProfile({...businessProfile, businessType: e.target.value})}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  >
+                                    <option value="Auto Dealer">Auto Dealer</option>
+                                    <option value="Car Showroom">Car Showroom</option>
+                                    <option value="Vehicle Importer">Vehicle Importer</option>
+                                    <option value="Auto Parts">Auto Parts</option>
+                                    <option value="Service Center">Service Center</option>
+                                    <option value="Other">Other</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Website
+                                  </label>
+                                  <input
+                                    type="url"
+                                    value={businessProfile.website}
+                                    onChange={(e) => setBusinessProfile({...businessProfile, website: e.target.value})}
+                                    placeholder="https://yourbusiness.com"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Business Phone
+                                  </label>
+                                  <input
+                                    type="tel"
+                                    value={businessProfile.phone}
+                                    onChange={(e) => setBusinessProfile({...businessProfile, phone: e.target.value})}
+                                    placeholder="+94 11 123 4567"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  />
+                                </div>
+                                <div className="md:col-span-2">
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Address
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={businessProfile.address}
+                                    onChange={(e) => setBusinessProfile({...businessProfile, address: e.target.value})}
+                                    placeholder="123 Main Street, Colombo 03, Sri Lanka"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  />
+                                </div>
+                                <div className="md:col-span-2">
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Business Description
+                                  </label>
+                                  <textarea
+                                    rows={4}
+                                    value={businessProfile.description}
+                                    onChange={(e) => setBusinessProfile({...businessProfile, description: e.target.value})}
+                                    placeholder="Tell customers about your business, specialties, and what makes you unique..."
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  />
+                                </div>
+                                <div className="md:col-span-2">
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Operating Hours
+                                  </label>
+                                  <textarea
+                                    rows={3}
+                                    value={businessProfile.operatingHours}
+                                    onChange={(e) => setBusinessProfile({...businessProfile, operatingHours: e.target.value})}
+                                    placeholder="Monday - Friday: 9:00 AM - 6:00 PM\nSaturday: 9:00 AM - 4:00 PM\nSunday: Closed"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  />
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={handleCreateBusinessProfile}
+                                disabled={businessLoading}
+                                className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                              >
+                                {businessLoading ? 'Creating Business Profile...' : 'Create Business Profile'}
+                              </button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-8">
+                          <div className="flex items-center gap-4 mb-4">
+                            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
+                              <span className="text-2xl font-bold text-white">
+                                {businessProfile.businessName.charAt(0)}
+                              </span>
+                            </div>
+                            <div>
+                              <h3 className="text-xl font-semibold text-blue-900">{businessProfile.businessName}</h3>
+                              <p className="text-blue-700">{businessProfile.businessType}</p>
+                              {businessProfile.isVerified && (
+                                <div className="flex items-center gap-1 mt-1">
+                                  <CheckCircle className="w-4 h-4 text-blue-600" />
+                                  <span className="text-sm text-blue-600 font-medium">Verified Business</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <form className="space-y-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Business Name <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={businessProfile.businessName}
+                                onChange={(e) => setBusinessProfile({...businessProfile, businessName: e.target.value})}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Business Type
+                              </label>
+                              <select
+                                value={businessProfile.businessType}
+                                onChange={(e) => setBusinessProfile({...businessProfile, businessType: e.target.value})}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              >
+                                <option value="Auto Dealer">Auto Dealer</option>
+                                <option value="Car Showroom">Car Showroom</option>
+                                <option value="Vehicle Importer">Vehicle Importer</option>
+                                <option value="Auto Parts">Auto Parts</option>
+                                <option value="Service Center">Service Center</option>
+                                <option value="Other">Other</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Website
+                              </label>
+                              <input
+                                type="url"
+                                value={businessProfile.website}
+                                onChange={(e) => setBusinessProfile({...businessProfile, website: e.target.value})}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Business Phone
+                              </label>
+                              <input
+                                type="tel"
+                                value={businessProfile.phone}
+                                onChange={(e) => setBusinessProfile({...businessProfile, phone: e.target.value})}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Address
+                              </label>
+                              <input
+                                type="text"
+                                value={businessProfile.address}
+                                onChange={(e) => setBusinessProfile({...businessProfile, address: e.target.value})}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Business Description
+                              </label>
+                              <textarea
+                                rows={4}
+                                value={businessProfile.description}
+                                onChange={(e) => setBusinessProfile({...businessProfile, description: e.target.value})}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Operating Hours
+                              </label>
+                              <textarea
+                                rows={3}
+                                value={businessProfile.operatingHours}
+                                onChange={(e) => setBusinessProfile({...businessProfile, operatingHours: e.target.value})}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex gap-3">
+                            <button
+                              type="button"
+                              onClick={handleUpdateBusinessProfile}
+                              disabled={businessLoading}
+                              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
+                            >
+                              {businessLoading ? 'Updating...' : 'Update Business Profile'}
+                            </button>
+                            <button
+                              type="button"
+                              className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 font-medium"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    )}
                   </div>
                 </>
               )}

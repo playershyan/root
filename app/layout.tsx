@@ -5,6 +5,7 @@ import Header from './components/header'
 import Footer from './components/Footer'
 import ErrorBoundary from './components/ErrorBoundary'
 import { NotificationProvider } from './components/NotificationSystem'
+import { AuthProvider } from './contexts/AuthContext'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -25,13 +26,15 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <ErrorBoundary>
-          <NotificationProvider>
-            <Header />
-            <main className="min-h-screen">
-              {children}
-            </main>
-            <Footer />
-          </NotificationProvider>
+          <AuthProvider>
+            <NotificationProvider>
+              <Header />
+              <main className="min-h-screen">
+                {children}
+              </main>
+              <Footer />
+            </NotificationProvider>
+          </AuthProvider>
         </ErrorBoundary>
       </body>
     </html>

@@ -8,6 +8,8 @@ import {
   Car, MessageSquare, Settings, LogOut,
   Crown, Shield, FileText, HelpCircle, Plus
 } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
+import AuthModal from './AuthModal'
 
 interface User {
   id: string
@@ -23,17 +25,19 @@ export default function Header() {
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [authModalOpen, setAuthModalOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
   
-  // Mock user data - replace with actual auth logic
-  const [user] = useState<User | null>({
-    id: '1',
-    name: 'John Silva',
-    email: 'john.silva@email.com',
-    membershipType: 'gold',
-    unreadMessages: 3,
-    favorites: 5
-  })
+  // Get user from auth context
+  const { user: authUser, signOut } = useAuth()
+  const user = authUser ? {
+    id: authUser.id,
+    name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
+    email: authUser.email || '',
+    membershipType: 'basic' as const,
+    unreadMessages: 0,
+    favorites: 0
+  } : null
 
   // Close user menu when clicking outside
   useEffect(() => {
@@ -60,9 +64,8 @@ export default function Header() {
     }
   }, [mobileMenuOpen])
 
-  const handleLogout = () => {
-    // Implement logout logic
-    console.log('Logging out...')
+  const handleLogout = async () => {
+    await signOut()
     router.push('/')
   }
 
@@ -238,18 +241,14 @@ export default function Header() {
               </>
             ) : (
               <>
-                <Link
-                  href="/login"
-                  className="hidden sm:inline-block text-gray-700 hover:text-blue-600 font-medium"
+                {/* Profile Icon to open Auth Modal - Hidden on mobile */}
+                <button
+                  onClick={() => setAuthModalOpen(true)}
+                  className="hidden md:block p-2 text-gray-600 hover:text-blue-600 transition-colors"
+                  title="Sign In / Sign Up"
                 >
-                  Sign In
-                </Link>
-                <Link
-                  href="/register"
-                  className="hidden sm:inline-block bg-gray-200 text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-300 font-medium"
-                >
-                  Sign Up
-                </Link>
+                  <User className="w-5 h-5" />
+                </button>
               </>
             )}
             
@@ -272,6 +271,12 @@ export default function Header() {
         
       </nav>
 
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={authModalOpen} 
+        onClose={() => setAuthModalOpen(false)} 
+      />
+
       {/* Full Screen Mobile Menu */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 bg-white z-50 md:hidden overflow-y-auto">
@@ -288,6 +293,22 @@ export default function Header() {
                 <X className="w-6 h-6" />
               </button>
             </div>
+
+            {/* Sign In/Sign Up Button - Top of menu for unauthenticated users */}
+            {!user && (
+              <div className="mb-6">
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    setAuthModalOpen(true)
+                  }}
+                  className="w-full py-4 px-4 bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 shadow-lg"
+                >
+                  <User className="w-6 h-6" />
+                  Sign In / Sign Up
+                </button>
+              </div>
+            )}
 
             {/* User Profile Section */}
             {user && (
@@ -452,24 +473,7 @@ export default function Header() {
                   </button>
                 </>
               ) : (
-                <>
-                  <div className="border-t my-4" />
-                  
-                  <Link 
-                    href="/login" 
-                    className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium text-center"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Sign In
-                  </Link>
-                  <Link 
-                    href="/register" 
-                    className="block py-3 px-4 bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-medium text-center"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Sign Up
-                  </Link>
-                </>
+                <></>
               )}
             </div>
           </div>
