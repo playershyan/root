@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
-import jwt from 'jsonwebtoken'
+import { OAuth2Client } from 'google-auth-library'
+
+const client = new OAuth2Client(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID)
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,51 +13,56 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No credential provided' }, { status: 400 })
     }
 
-    // Decode the JWT token from Google (without verification for now)
-    // In production, you should verify the token with Google's public keys
-    const decoded = jwt.decode(credential) as any
+    // Verify the token with Google
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+    })
     
-    if (!decoded) {
-      return NextResponse.json({ error: 'Invalid credential' }, { status: 400 })
+    const payload = ticket.getPayload()
+    if (!payload) {
+      return NextResponse.json({ error: 'Invalid token payload' }, { status: 400 })
     }
 
     const supabase = createRouteHandlerClient({ cookies })
     
-    // Try to sign in with Google OAuth
+    // Try to sign in with the Google ID token
     const { data, error } = await supabase.auth.signInWithIdToken({
       provider: 'google',
       token: credential,
     })
 
     if (error) {
-      // If user doesn't exist, try to sign up
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: decoded.email,
-        password: Math.random().toString(36).slice(-8), // Random password since we're using OAuth
-        options: {
-          data: {
-            name: decoded.name,
-            avatar_url: decoded.picture,
-            email_verified: decoded.email_verified,
-          }
-        }
-      })
-
-      if (signUpError) {
-        return NextResponse.json({ error: signUpError.message }, { status: 400 })
+      console.error('Supabase auth error:', error)
+      
+      // If provider not enabled error
+      if (error.message?.includes('provider is not enabled')) {
+        return NextResponse.json({ 
+          error: 'Google provider not enabled in Supabase. Please enable it in your Supabase dashboard under Authentication > Providers.',
+          details: 'Go to: https://supabase.com/dashboard/project/ahmynvxoxzhocuhxlcvo/auth/providers'
+        }, { status: 400 })
       }
+      
+      return NextResponse.json({ error: error.message }, { status: 400 })
+    }
 
-      // Create profile for new user
-      if (signUpData.user) {
+    // Check if profile exists, if not create one
+    if (data.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .single()
+
+      if (!profile) {
         await supabase.from('profiles').insert({
-          id: signUpData.user.id,
-          email: decoded.email,
-          name: decoded.name,
+          id: data.user.id,
+          email: payload.email,
+          name: payload.name,
+          avatar_url: payload.picture,
           created_at: new Date().toISOString()
         })
       }
-
-      return NextResponse.json({ success: true, user: signUpData.user })
     }
 
     return NextResponse.json({ success: true, user: data.user })

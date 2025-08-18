@@ -15,7 +15,7 @@ interface AuthModalProps {
 export default function AuthModal({ isOpen, onClose, initialAuthType = 'login' }: AuthModalProps) {
   const router = useRouter()
   const { refreshUser } = useAuth()
-  const [mode, setMode] = useState<'phone' | 'email'>('phone')
+  const [mode, setMode] = useState<'phone' | 'email' | 'email-otp'>('phone')
   const [authType, setAuthType] = useState<'login' | 'register'>(initialAuthType)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -133,7 +133,37 @@ export default function AuthModal({ isOpen, onClose, initialAuthType = 'login' }
         setResendTimer(60)
         setSuccess('OTP sent successfully!')
       } else {
-        setError(result.error?.message || 'Failed to send OTP')
+        // Check if it's an unsupported provider error
+        if (result.error?.message?.toLowerCase().includes('unsupported') || 
+            result.error?.message?.toLowerCase().includes('provider')) {
+          setError('⚠️ SMS not supported for your region/carrier.\n\nPlease use:\n✅ Email/Password sign-in\n✅ Google sign-in\n✅ Email OTP (click below)\n\nOr try a different phone number.')
+        } else {
+          setError(result.error?.message || 'Failed to send OTP')
+        }
+      }
+    } else if (mode === 'email-otp') {
+      // Email OTP flow
+      if (authType === 'register' && !name.trim()) {
+        setError('Please enter your username')
+        setLoading(false)
+        return
+      }
+
+      if (!email.trim()) {
+        setError('Please enter your email')
+        setLoading(false)
+        return
+      }
+
+      const { signInWithEmailOTP } = await import('@/lib/auth')
+      const result = await signInWithEmailOTP(email)
+
+      if (result.success) {
+        setShowOtp(true)
+        setResendTimer(60)
+        setSuccess('OTP sent to your email!')
+      } else {
+        setError(result.error?.message || 'Failed to send email OTP')
       }
     } else {
       // Email/password flow
@@ -213,8 +243,14 @@ export default function AuthModal({ isOpen, onClose, initialAuthType = 'login' }
       return
     }
     
-    const formattedPhone = formatPhoneNumber(phone)
-    const result = await verifyOTP(formattedPhone, code)
+    let result
+    if (mode === 'email-otp') {
+      const { verifyEmailOTP } = await import('@/lib/auth')
+      result = await verifyEmailOTP(email, code)
+    } else {
+      const formattedPhone = formatPhoneNumber(phone)
+      result = await verifyOTP(formattedPhone, code)
+    }
     
     if (result.success) {
       // If registering, update profile with name
@@ -403,8 +439,10 @@ export default function AuthModal({ isOpen, onClose, initialAuthType = 'login' }
             </h3>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm text-center">
-                {error}
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
+                <div className="whitespace-pre-wrap text-left">
+                  {error}
+                </div>
               </div>
             )}
 
@@ -521,6 +559,38 @@ export default function AuthModal({ isOpen, onClose, initialAuthType = 'login' }
                   </div>
                 )}
 
+                {mode === 'email-otp' && authType === 'register' && (
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Username <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Enter your username"
+                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+                )}
+
+                {mode === 'email-otp' && (
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email Address <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter your email"
+                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+                )}
+
                 {/* Terms agreement for sign-up */}
                 {authType === 'register' && (
                   <div className="mb-4">
@@ -550,13 +620,41 @@ export default function AuthModal({ isOpen, onClose, initialAuthType = 'login' }
                   disabled={loading}
                   className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors mb-4"
                 >
-                  {loading ? (mode === 'email' ? (authType === 'register' ? 'Creating Account...' : 'Signing In...') : 'Sending OTP...') : (mode === 'email' ? (authType === 'register' ? 'Create Account' : 'Sign In') : (authType === 'register' ? 'Create Account' : 'Send OTP'))}
+                  {loading ? 
+                    (mode === 'email' ? 
+                      (authType === 'register' ? 'Creating Account...' : 'Signing In...') : 
+                      'Sending OTP...'
+                    ) : 
+                    (mode === 'email' ? 
+                      (authType === 'register' ? 'Create Account' : 'Sign In') : 
+                      (mode === 'email-otp' ? 
+                        (authType === 'register' ? 'Send Email OTP' : 'Send Email OTP') :
+                        (authType === 'register' ? 'Send SMS OTP' : 'Send SMS OTP')
+                      )
+                    )
+                  }
                 </button>
+
+                {/* Switch between phone and email OTP */}
+                {(mode === 'phone' || mode === 'email-otp') && !showOtp && (
+                  <div className="text-center mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setMode(mode === 'phone' ? 'email-otp' : 'phone')}
+                      className="text-sm text-blue-600 hover:text-blue-700 underline"
+                    >
+                      {mode === 'phone' ? 'Use Email OTP instead' : 'Use Phone OTP instead'}
+                    </button>
+                  </div>
+                )}
               </form>
             ) : (
               <div>
                 <p className="text-center text-gray-600 mb-4">
-                  We've sent a code to +94 {phone}
+                  {mode === 'email-otp' ? 
+                    `We've sent a code to ${email}` : 
+                    `We've sent a code to +94 ${phone}`
+                  }
                 </p>
 
                 {'OTPCredential' in window && (
@@ -623,12 +721,41 @@ export default function AuthModal({ isOpen, onClose, initialAuthType = 'login' }
                     type="button"
                     onClick={async () => {
                       setLoading(true)
-                      const { signInWithGoogle } = await import('@/lib/auth')
-                      const result = await signInWithGoogle()
-                      if (!result.success) {
-                        setError(result.error?.message || 'Failed to sign in with Google')
+                      setError('')
+                      
+                      try {
+                        if (window.google && window.google.accounts) {
+                          // Use Google One Tap directly
+                          window.google.accounts.id.prompt((notification: any) => {
+                            if (notification.isNotDisplayed()) {
+                              // Fallback to OAuth redirect
+                              const { signInWithGoogle } = require('@/lib/auth')
+                              signInWithGoogle().then((result: any) => {
+                                if (!result.success) {
+                                  setError(result.error?.message || 'Failed to sign in with Google')
+                                }
+                                setLoading(false)
+                              })
+                            }
+                          })
+                        } else {
+                          // Fallback to traditional OAuth
+                          const { signInWithGoogle } = await import('@/lib/auth')
+                          const result = await signInWithGoogle()
+                          
+                          if (!result.success) {
+                            if (result.error?.code === 'provider_not_enabled') {
+                              setError('⚠️ Google sign-in is not yet configured. Please follow these steps:\n\n1. Go to Supabase Dashboard\n2. Navigate to Authentication → Providers\n3. Enable Google and add your credentials\n\nOr use phone/email sign-in instead.')
+                            } else {
+                              setError(result.error?.message || 'Failed to sign in with Google')
+                            }
+                          }
+                          setLoading(false)
+                        }
+                      } catch (err) {
+                        setError('Failed to initialize Google sign-in')
+                        setLoading(false)
                       }
-                      setLoading(false)
                     }}
                     disabled={loading}
                     className="w-full flex items-center justify-center gap-3 p-3 border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"

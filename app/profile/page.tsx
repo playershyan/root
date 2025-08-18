@@ -8,10 +8,11 @@ import {
   Bell, Trash2, Shield, Crown, Check, ChevronDown,
   Upload, Edit, Share2, RefreshCw, Clock, MoreVertical,
   Camera, MapPin, Phone, Mail, Calendar, Eye, X,
-  AlertTriangle, CheckCircle, Building2, Globe, Star
+  AlertTriangle, CheckCircle, Building2, Globe, Star, Zap
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
+import PhoneVerificationModal from '../components/PhoneVerificationModal'
 
 // Types
 interface UserProfile {
@@ -19,6 +20,9 @@ interface UserProfile {
   firstName: string
   lastName: string
   phone: string
+  phoneVerified?: boolean
+  phoneVerifiedAt?: string
+  tempPhone?: string
   membershipType: 'basic' | 'gold' | 'platinum'
   accountType: 'individual' | 'business'
   avatar?: string
@@ -43,9 +47,13 @@ interface Listing {
   details: string
   price: number
   views: number
-  status: 'active' | 'pending' | 'sold'
+  status: 'active' | 'pending' | 'sold' | 'deleted'
   postedDate: string
   image?: string
+  isReportedTakedown?: boolean
+  takedownReason?: string
+  reportCount?: number
+  rejectionReason?: string
 }
 
 interface Favorite {
@@ -108,12 +116,18 @@ export default function ProfilePage() {
   const [emailUpdateLoading, setEmailUpdateLoading] = useState(false)
   const [emailUpdateSuccess, setEmailUpdateSuccess] = useState(false)
   
+  // Phone verification states
+  const [showPhoneVerification, setShowPhoneVerification] = useState(false)
+  const [phoneToVerify, setPhoneToVerify] = useState('')
+  const [originalPhone, setOriginalPhone] = useState('')
+  
   // Form states
   const [profile, setProfile] = useState<UserProfile>({
     id: '',
     firstName: '',
     lastName: '',
     phone: '',
+    phoneVerified: false,
     membershipType: 'basic',
     accountType: 'individual'
   })
@@ -134,10 +148,94 @@ export default function ProfilePage() {
   const [hasBusinessProfile, setHasBusinessProfile] = useState(false)
   const [businessLoading, setBusinessLoading] = useState(false)
 
+  // Listings data
+  const [listings, setListings] = useState<Listing[]>([])
+  const [listingsLoading, setListingsLoading] = useState(true)
+
+  const [notifications, setNotifications] = useState({
+    emailNewMatches: true,
+    emailPriceDrops: true,
+    emailMessages: false,
+    emailListingUpdates: true,
+    smsUrgent: true,
+    smsSecurity: false,
+    marketingNewsletter: true,
+    marketingPromotions: false
+  })
+
+  // Handle URL tab parameter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const tab = urlParams.get('tab')
+    if (tab && tabs.some(t => t.id === tab)) {
+      setActiveTab(tab)
+    }
+  }, [])
+
+  // Function to handle tab navigation with URL update
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId)
+    const url = new URL(window.location.href)
+    if (tabId === 'profile') {
+      url.searchParams.delete('tab')
+    } else {
+      url.searchParams.set('tab', tabId)
+    }
+    window.history.pushState({}, '', url)
+  }
+
+  // Load user listings from Supabase
+  useEffect(() => {
+    const loadListings = async () => {
+      if (!user) return
+      
+      try {
+        const { data, error } = await supabase
+          .from('listings')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('posted_date', { ascending: false })
+        
+        if (error) throw error
+        
+        if (data) {
+          // Transform the data to match our Listing interface
+          const transformedListings: Listing[] = data.map(item => ({
+            id: item.id,
+            title: item.title || `${item.make} ${item.model} ${item.year}`,
+            details: `${item.fuel_type || 'Petrol'} • ${item.transmission || 'Manual'} • ${item.mileage ? `${item.mileage.toLocaleString()} km` : 'N/A'}`,
+            price: item.price,
+            views: item.views || 0,
+            status: item.status as 'active' | 'pending' | 'sold' | 'deleted',
+            isReportedTakedown: item.is_reported_takedown || false,
+            takedownReason: item.takedown_reason,
+            reportCount: item.report_count || 0,
+            rejectionReason: item.rejection_reason,
+            postedDate: new Date(item.posted_date).toLocaleDateString(),
+            image: item.primary_image_url
+          }))
+          setListings(transformedListings)
+        }
+      } catch (error) {
+        console.error('Error loading listings:', error)
+      } finally {
+        setListingsLoading(false)
+      }
+    }
+    
+    if (!loading && user) {
+      loadListings()
+    }
+  }, [user, loading])
+
   // Load user profile data
   useEffect(() => {
     const loadProfile = async () => {
+      console.log('Profile page - User state:', user)
+      console.log('Profile page - Loading state:', loading)
+      
       if (!user) {
+        console.log('No user found, redirecting to login...')
         router.push('/login')
         return
       }
@@ -159,9 +257,13 @@ export default function ProfilePage() {
             firstName: profileData.name?.split(' ')[0] || '',
             lastName: profileData.name?.split(' ').slice(1).join(' ') || '',
             phone: profileData.phone || user.phone || '',
+            phoneVerified: profileData.phone_verified || false,
+            phoneVerifiedAt: profileData.phone_verified_at,
+            tempPhone: profileData.temp_phone,
             membershipType: profileData.membership_type || 'basic',
             accountType: profileData.account_type || 'individual'
           })
+          setOriginalPhone(profileData.phone || user.phone || '')
           
           // Check email verification status
           setEmailVerified(profileData.email_verified !== false)
@@ -203,51 +305,111 @@ export default function ProfilePage() {
     }
   }, [user, loading, router])
 
-  const [listings] = useState<Listing[]>([
-    {
-      id: 'prius-2020',
-      title: 'Toyota Prius 2020',
-      details: 'Hybrid • Automatic • 25,000 km',
-      price: 4500000,
-      views: 47,
-      status: 'active',
-      postedDate: '5 days ago'
-    },
-    {
-      id: 'civic-2019',
-      title: 'Honda Civic 2019',
-      details: 'Petrol • Manual • 35,000 km',
-      price: 3800000,
-      views: 89,
-      status: 'sold',
-      postedDate: '2 weeks ago'
-    },
-    {
-      id: 'swift-2021',
-      title: 'Suzuki Swift 2021',
-      details: 'Petrol • Automatic • 15,000 km',
-      price: 2900000,
-      views: 23,
-      status: 'pending',
-      postedDate: '1 day ago'
-    }
-  ])
+  // Show loading state while authentication is being checked
+  if (loading || profileLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading profile...</p>
+        </div>
+      </div>
+    )
+  }
 
-  const [notifications, setNotifications] = useState({
-    emailNewMatches: true,
-    emailPriceDrops: true,
-    emailMessages: false,
-    emailListingUpdates: true,
-    smsUrgent: true,
-    smsSecurity: false,
-    marketingNewsletter: true,
-    marketingPromotions: false
-  })
+  // Redirect if not authenticated
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">Please sign in to view your profile</p>
+          <button 
+            onClick={() => router.push('/')}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          >
+            Go to Home
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   // Action handlers
-  const handleMarkAsSold = (listingId: string) => {
-    console.log('Marking as sold:', listingId)
-    // Implementation here
+  const handleMarkAsSold = async (listingId: string) => {
+    try {
+      // Update local state immediately for better UX
+      setListings(prevListings => 
+        prevListings.map(listing => 
+          listing.id === listingId 
+            ? { ...listing, status: 'sold' as const }
+            : listing
+        )
+      )
+      
+      // Update in database
+      const { error } = await supabase
+        .from('listings')
+        .update({ 
+          status: 'sold',
+          sold_date: new Date().toISOString()
+        })
+        .eq('id', listingId)
+        .eq('user_id', user?.id) // Ensure user owns the listing
+      
+      if (error) throw error
+      
+      alert('Listing marked as sold successfully!')
+    } catch (error) {
+      console.error('Error marking as sold:', error)
+      // Revert local state on error
+      setListings(prevListings => 
+        prevListings.map(listing => 
+          listing.id === listingId 
+            ? { ...listing, status: 'active' as const }
+            : listing
+        )
+      )
+      alert('Failed to mark listing as sold')
+    }
+  }
+  
+  const handleRelist = async (listingId: string) => {
+    try {
+      // Update local state - set to pending (under review)
+      setListings(prevListings => 
+        prevListings.map(listing => 
+          listing.id === listingId 
+            ? { ...listing, status: 'pending' as const }
+            : listing
+        )
+      )
+      
+      // Update in database
+      const { error } = await supabase
+        .from('listings')
+        .update({ 
+          status: 'pending',
+          sold_date: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', listingId)
+        .eq('user_id', user?.id) // Ensure user owns the listing
+      
+      if (error) throw error
+      
+      alert('Listing submitted for review. It will be active once approved.')
+    } catch (error) {
+      console.error('Error relisting:', error)
+      // Revert local state on error
+      setListings(prevListings => 
+        prevListings.map(listing => 
+          listing.id === listingId 
+            ? { ...listing, status: 'sold' as const }
+            : listing
+        )
+      )
+      alert('Failed to relist the item')
+    }
   }
 
   const handleShare = (listingId: string) => {
@@ -405,6 +567,88 @@ export default function ProfilePage() {
     }
   }
 
+  // Phone verification functions
+  const handlePhoneChange = (newPhone: string) => {
+    console.log('Phone changed:', { newPhone, originalPhone, changed: newPhone !== originalPhone })
+    setProfile({...profile, phone: newPhone})
+    
+    // If phone number changed from original, trigger verification
+    if (newPhone !== originalPhone && newPhone.length > 0) {
+      console.log('Triggering phone verification for:', newPhone)
+      setPhoneToVerify(newPhone)
+      handleSendPhoneOtp(newPhone)
+    }
+  }
+
+  const handleSendPhoneOtp = async (phoneNumber: string) => {
+    console.log('Sending OTP to:', phoneNumber)
+    try {
+      const response = await fetch('/api/auth/send-phone-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phoneNumber
+        }),
+      })
+
+      console.log('OTP response status:', response.status)
+      const data = await response.json()
+      console.log('OTP response data:', data)
+
+      if (data.success) {
+        console.log('Setting phone verification modal to true')
+        setShowPhoneVerification(true)
+      } else {
+        console.error('OTP failed:', data.error)
+        alert(data.error || 'Failed to send OTP')
+      }
+    } catch (error) {
+      console.error('Error sending OTP:', error)
+      alert('Network error. Please try again.')
+    }
+  }
+
+  const handleVerificationSuccess = async () => {
+    // Reload profile data to get updated verification status
+    if (!user) return
+
+    try {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+
+      if (profileData) {
+        setProfile(prev => ({
+          ...prev,
+          phone: profileData.phone,
+          phoneVerified: profileData.phone_verified,
+          phoneVerifiedAt: profileData.phone_verified_at,
+          tempPhone: profileData.temp_phone
+        }))
+        setOriginalPhone(profileData.phone)
+      }
+    } catch (error) {
+      console.error('Error reloading profile:', error)
+    }
+  }
+
+  const handlePhoneNumberEdit = () => {
+    setShowPhoneVerification(false)
+    // Focus back on phone input
+    document.getElementById('phone-input')?.focus()
+  }
+
+  const handleVerifyPhoneClick = () => {
+    if (profile.phone) {
+      setPhoneToVerify(profile.phone)
+      handleSendPhoneOtp(profile.phone)
+    }
+  }
+
   // Stats calculation
   const stats = {
     activeListings: listings.filter(l => l.status === 'active').length,
@@ -449,7 +693,7 @@ export default function ProfilePage() {
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
+                    onClick={() => handleTabChange(tab.id)}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                       activeTab === tab.id
                         ? 'bg-gray-50 text-blue-600'
@@ -509,12 +753,44 @@ export default function ProfilePage() {
                           <label className="block text-sm font-medium text-gray-700 mb-2">
                             Phone Number
                           </label>
-                          <input
-                            type="tel"
-                            value={profile.phone}
-                            onChange={(e) => setProfile({...profile, phone: e.target.value})}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          />
+                          <div className="relative">
+                            <input
+                              id="phone-input"
+                              type="tel"
+                              value={profile.phone}
+                              onChange={(e) => handlePhoneChange(e.target.value)}
+                              className="w-full px-4 py-2 pr-20 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="+94 11 123 4567"
+                            />
+                            {profile.phone && (
+                              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                                {profile.phoneVerified ? (
+                                  <div className="flex items-center gap-1 text-green-600">
+                                    <CheckCircle size={16} />
+                                    <span className="text-xs font-medium">Verified</span>
+                                  </div>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={handleVerifyPhoneClick}
+                                    className="flex items-center gap-1 text-orange-600 hover:text-orange-700 transition-colors"
+                                  >
+                                    <AlertTriangle size={16} />
+                                    <span className="text-xs font-medium">Unverified</span>
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          {!profile.phoneVerified && profile.phone && (
+                            <button
+                              type="button"
+                              onClick={handleVerifyPhoneClick}
+                              className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+                            >
+                              Unverified. Click here to verify
+                            </button>
+                          )}
                         </div>
                       </div>
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
@@ -522,7 +798,7 @@ export default function ProfilePage() {
                           To change your email address or password,{' '}
                           <button
                             type="button"
-                            onClick={() => setActiveTab('security')}
+                            onClick={() => handleTabChange('security')}
                             className="text-blue-600 hover:text-blue-700 font-medium underline"
                           >
                             click here
@@ -615,20 +891,38 @@ export default function ProfilePage() {
                     </div>
 
                     {/* Listings Table */}
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-gray-50 border-b">
-                          <tr>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Vehicle</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Price</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Views</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Posted</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y">
-                          {listings.map((listing) => (
+                    {listingsLoading ? (
+                      <div className="text-center py-12">
+                        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <p className="text-gray-600">Loading your listings...</p>
+                      </div>
+                    ) : listings.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Car className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                        <p className="font-medium text-gray-900 mb-1">No listings yet</p>
+                        <p className="text-sm text-gray-600 mb-4">Start selling by posting your first vehicle</p>
+                        <Link
+                          href="/post"
+                          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium inline-block"
+                        >
+                          Post Your First Ad
+                        </Link>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead className="bg-gray-50 border-b">
+                            <tr>
+                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Vehicle</th>
+                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Price</th>
+                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Views</th>
+                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
+                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Posted</th>
+                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y">
+                            {listings.map((listing) => (
                             <tr key={listing.id} className="hover:bg-gray-50">
                               <td className="px-4 py-4">
                                 <div className="flex items-center gap-3">
@@ -649,16 +943,31 @@ export default function ProfilePage() {
                               <td className="px-4 py-4">Rs. {listing.price.toLocaleString()}</td>
                               <td className="px-4 py-4">{listing.views}</td>
                               <td className="px-4 py-4">
-                                <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                                  listing.status === 'active' 
-                                    ? 'bg-green-100 text-green-800'
-                                    : listing.status === 'pending'
-                                    ? 'bg-yellow-100 text-yellow-800'
-                                    : 'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {listing.status === 'active' ? 'Active' : 
-                                   listing.status === 'pending' ? 'Under Review' : 'Sold'}
-                                </span>
+                                <div className="space-y-1">
+                                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                                    listing.status === 'active' 
+                                      ? 'bg-green-100 text-green-800'
+                                      : listing.status === 'pending'
+                                      ? 'bg-yellow-100 text-yellow-800'
+                                      : listing.status === 'deleted' && listing.isReportedTakedown
+                                      ? 'bg-red-100 text-red-800'
+                                      : listing.status === 'deleted'
+                                      ? 'bg-gray-100 text-gray-800'
+                                      : 'bg-gray-100 text-gray-800'
+                                  }`}>
+                                    {listing.status === 'active' ? 'Active' : 
+                                     listing.status === 'pending' ? 'Under Review' :
+                                     listing.status === 'deleted' && listing.isReportedTakedown ? 'Reported & Removed' :
+                                     listing.status === 'deleted' && listing.rejectionReason ? 'Rejected' :
+                                     listing.status === 'deleted' ? 'Deleted' : 'Sold'}
+                                  </span>
+                                  {listing.isReportedTakedown && (
+                                    <p className="text-xs text-red-600 font-medium">⚠️ Removed due to reports</p>
+                                  )}
+                                  {listing.rejectionReason && (
+                                    <p className="text-xs text-red-600">Reason: {listing.rejectionReason}</p>
+                                  )}
+                                </div>
                               </td>
                               <td className="px-4 py-4 text-sm text-gray-600">{listing.postedDate}</td>
                               <td className="px-4 py-4">
@@ -667,18 +976,66 @@ export default function ProfilePage() {
                                     <>
                                       <button
                                         onClick={() => handleMarkAsSold(listing.id)}
-                                        className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 flex items-center gap-1"
+                                        className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 flex items-center gap-2 font-medium shadow-sm transition-all whitespace-nowrap h-9"
                                       >
-                                        <Check className="w-3 h-3" />
-                                        Mark as Sold
+                                        <CheckCircle className="w-4 h-4" />
+                                        Sold
                                       </button>
-                                      <button className="bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-200">
+                                      <Link 
+                                        href={`/post/paid-features?listing=${listing.id}`}
+                                        className="bg-amber-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-amber-600 inline-flex items-center gap-2 font-medium shadow-sm transition-all h-9"
+                                      >
+                                        <Zap className="w-4 h-4 animate-pulse" />
                                         Boost
+                                      </Link>
+                                    </>
+                                  )}
+
+                                  {(listing.status === 'deleted' && (listing.isReportedTakedown || listing.rejectionReason)) && (
+                                    <div className="bg-red-50 border border-red-200 rounded-lg p-2 space-y-2">
+                                      <p className="text-xs text-red-700 font-medium mb-2">
+                                        {listing.isReportedTakedown ? 'Your listing was reported and removed' : 'Your listing was rejected'}
+                                      </p>
+                                      <div className="flex gap-2">
+                                        <Link 
+                                          href={`/post?edit=${listing.id}`}
+                                          className="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 inline-flex items-center gap-1 font-medium transition-all"
+                                        >
+                                          <Edit className="w-3 h-3" />
+                                          Edit
+                                        </Link>
+                                        <button
+                                          onClick={() => handleRelist(listing.id)}
+                                          className="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 flex items-center gap-1 font-medium transition-all"
+                                        >
+                                          <RefreshCw className="w-3 h-3" />
+                                          Relist
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {listing.status === 'sold' && (
+                                    <>
+                                      <button
+                                        onClick={() => handleRelist(listing.id)}
+                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 flex items-center gap-2 font-medium shadow-sm transition-all whitespace-nowrap h-9"
+                                      >
+                                        <RefreshCw className="w-4 h-4" />
+                                        Relist
                                       </button>
+                                      <Link 
+                                        href={`/post?edit=${listing.id}`}
+                                        className="bg-gray-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-700 inline-flex items-center gap-2 font-medium shadow-sm transition-all h-9"
+                                      >
+                                        <Edit className="w-4 h-4" />
+                                        Edit
+                                      </Link>
                                     </>
                                   )}
                                   
-                                  <div className="relative">
+                                  {listing.status !== 'sold' && (
+                                    <div className="relative">
                                     <button
                                       onClick={() => setShowActionMenu(showActionMenu === listing.id ? null : listing.id)}
                                       className="p-1 hover:bg-gray-100 rounded"
@@ -721,13 +1078,15 @@ export default function ProfilePage() {
                                       </div>
                                     )}
                                   </div>
+                                  )}
                                 </div>
                               </td>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
                 </>
               )}
@@ -1452,6 +1811,16 @@ export default function ProfilePage() {
           onClick={() => setShowActionMenu(null)}
         />
       )}
+
+      {/* Phone Verification Modal */}
+      {console.log('Modal render state:', { showPhoneVerification, phoneToVerify })}
+      <PhoneVerificationModal
+        isOpen={showPhoneVerification}
+        onClose={() => setShowPhoneVerification(false)}
+        phoneNumber={phoneToVerify}
+        onPhoneNumberEdit={handlePhoneNumberEdit}
+        onVerificationSuccess={handleVerificationSuccess}
+      />
     </div>
   )
 }

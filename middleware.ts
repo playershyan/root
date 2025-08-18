@@ -16,8 +16,13 @@ export async function middleware(req: NextRequest) {
 
   const path = req.nextUrl.pathname
 
+  console.log('Middleware - Path:', path)
+  console.log('Middleware - Session exists:', !!session)
+  console.log('Middleware - Session user:', session?.user?.email)
+
   // If user is not logged in and trying to access protected route
   if (!session && protectedRoutes.some(route => path.startsWith(route))) {
+    console.log('Middleware - Redirecting to login, no session found')
     return NextResponse.redirect(new URL('/login', req.url))
   }
 

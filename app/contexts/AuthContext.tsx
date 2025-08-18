@@ -2,8 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabase'
-import { getUser } from '@/lib/auth'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 interface AuthContextType {
   user: User | null
@@ -22,13 +21,16 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [supabase] = useState(() => createClientComponentClient())
 
   useEffect(() => {
     // Check active session
     const checkSession = async () => {
       try {
-        const currentUser = await getUser()
-        setUser(currentUser)
+        const { data: { session } } = await supabase.auth.getSession()
+        console.log('AuthContext - Session found:', !!session)
+        console.log('AuthContext - User:', session?.user?.email)
+        setUser(session?.user ?? null)
       } catch (error) {
         console.error('Error checking session:', error)
       } finally {
@@ -39,25 +41,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkSession()
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, !!session)
+        setUser(session?.user ?? null)
+        setLoading(false)
+        
+        // Refresh page to sync middleware on sign in/out
+        if (event === 'SIGNED_IN') {
+          console.log('User signed in, refreshing page...')
+          window.location.href = '/profile'
+        } else if (event === 'SIGNED_OUT') {
+          console.log('User signed out, redirecting home...')
+          window.location.href = '/'
+        }
+      }
+    )
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [supabase])
 
   const signOut = async () => {
     try {
       await supabase.auth.signOut()
       setUser(null)
+      window.location.href = '/'
     } catch (error) {
       console.error('Error signing out:', error)
     }
   }
 
   const refreshUser = async () => {
-    const currentUser = await getUser()
-    setUser(currentUser)
+    const { data: { session } } = await supabase.auth.getSession()
+    setUser(session?.user ?? null)
   }
 
   return (

@@ -21,6 +21,20 @@
   background: #6b7280;
 }
 
+/* Animation for boost button shimmer effect */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
+}
+
 /* Custom styles for AutoTrader.lk */
 @layer base {
   body {
