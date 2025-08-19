@@ -2,16 +2,21 @@
 
 import Link from 'next/link'
 import { Phone, MessageSquare, MessageCircle, MapPin, Star, User } from 'lucide-react'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 // Types
 type ContactProfileProps = {
   listing: {
+    id?: string // Add listing ID for messaging
     phone: string
     whatsapp?: string | null
     email?: string | null
     location: string
     seller_type?: 'dealer' | 'private' // Add this field to determine profile type
     seller_name?: string // Name of seller (dealer name or private seller name)
+    user_id?: string // Add seller user ID for messaging
   }
   dealer?: {
     name: string
@@ -78,10 +83,7 @@ function DealerProfile({ dealer, listing, formatPhoneNumber }: {
           <Phone className="w-4 h-4" />
           Call
         </a>
-        <button className="btn-message btn-full btn-icon">
-          <MessageSquare className="w-4 h-4" />
-          Message
-        </button>
+        <MessageButton listing={listing} />
         <a
           href={`https://wa.me/${formatPhoneNumber(dealer.whatsapp)}`}
           target="_blank"
@@ -132,10 +134,7 @@ function PrivateSellerProfile({ listing, formatPhoneNumber }: {
           <Phone className="w-4 h-4" />
           Call
         </a>
-        <button className="btn-message btn-full btn-icon">
-          <MessageSquare className="w-4 h-4" />
-          Message
-        </button>
+        <MessageButton listing={listing} />
         <a
           href={`https://wa.me/${formatPhoneNumber(listing.whatsapp || listing.phone)}`}
           target="_blank"
@@ -147,6 +146,70 @@ function PrivateSellerProfile({ listing, formatPhoneNumber }: {
         </a>
       </div>
     </div>
+  )
+}
+
+// Message Button Component
+function MessageButton({ listing }: { listing: ContactProfileProps['listing'] }) {
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
+  const supabase = createClientComponentClient()
+
+  const handleMessage = async () => {
+    if (!listing.id || !listing.user_id) {
+      alert('Unable to send message. Listing information is missing.')
+      return
+    }
+
+    setLoading(true)
+    
+    try {
+      // Check if user is logged in
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        router.push('/login')
+        return
+      }
+
+      // Create or get conversation
+      const response = await fetch('/api/messages/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          listing_id: listing.id,
+          seller_id: listing.user_id
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        if (error.error === 'Cannot message yourself') {
+          alert('You cannot send messages to your own listing.')
+          return
+        }
+        throw new Error('Failed to create conversation')
+      }
+
+      const data = await response.json()
+      router.push(`/profile?tab=messages&conversation=${data.conversation_id}`)
+    } catch (error) {
+      console.error('Error starting conversation:', error)
+      alert('Failed to start conversation. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <button 
+      onClick={handleMessage}
+      disabled={loading}
+      className="btn-message btn-full btn-icon disabled:opacity-50"
+    >
+      <MessageSquare className="w-4 h-4" />
+      {loading ? 'Loading...' : 'Message'}
+    </button>
   )
 }
 

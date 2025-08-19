@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import AuthModal from './AuthModal'
+import { useUnreadMessages } from '@/lib/hooks/useUnreadMessages'
 
 interface User {
   id: string
@@ -27,6 +28,7 @@ export default function Header() {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
+  const unreadMessages = useUnreadMessages()
   
   // Get user from auth context
   const { user: authUser, signOut } = useAuth()
@@ -35,7 +37,7 @@ export default function Header() {
     name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
     email: authUser.email || '',
     membershipType: 'basic' as const,
-    unreadMessages: 0,
+    unreadMessages: unreadMessages,
     favorites: 0
   } : null
 

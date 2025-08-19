@@ -30,6 +30,7 @@ type Listing = {
   views: number
   created_at: string
   updated_at: string
+  user_id?: string // Add user_id for messaging
   seller_type?: 'dealer' | 'private'
   seller_name?: string
   pricing_type?: 'cash' | 'finance'

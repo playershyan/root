@@ -8,7 +8,8 @@ import {
   Bell, Trash2, Shield, Crown, Check, ChevronDown,
   Upload, Edit, Share2, RefreshCw, Clock, MoreVertical,
   Camera, MapPin, Phone, Mail, Calendar, Eye, X,
-  AlertTriangle, CheckCircle, Building2, Globe, Star, Zap
+  AlertTriangle, CheckCircle, Building2, Globe, Star, Zap,
+  ChevronRight, ArrowLeft, Send, HeartOff
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
@@ -56,26 +57,28 @@ interface Listing {
   rejectionReason?: string
 }
 
-interface Favorite {
-  id: string
-  title: string
-  details: string
-  price: number
-  location: string
-  status: string
-  savedDate: string
-}
-
 interface WantedRequest {
   id: string
   title: string
-  budget: string
-  location: string
-  postedBy: string
-  contact: string
   description: string
-  status: 'active' | 'fulfilled'
-  savedDate: string
+  budget: number
+  status: 'active' | 'paused' | 'closed' | 'deleted'
+  postedDate: string
+  responses: number
+  location: string
+  isReportedTakedown?: boolean
+  rejectionReason?: string
+}
+
+interface Favorite {
+  id: string
+  title: string
+  description?: string
+  price: number
+  location: string
+  image?: string
+  postedDate?: string
+  seller?: string
 }
 
 interface DeletedItem {
@@ -87,19 +90,49 @@ interface DeletedItem {
   meta?: string
 }
 
-// Tab configurations
-const tabs = [
-  { id: 'profile', label: 'My Profile', icon: User },
-  { id: 'business', label: 'Business Profile', icon: Building2 },
-  { id: 'membership', label: 'AutoTrader Membership', icon: Crown, special: true },
-  { id: 'listings', label: 'My Listings', icon: Car },
-  { id: 'favorites', label: 'Favorites', icon: Heart },
-  { id: 'messages', label: 'Messages', icon: MessageSquare },
-  { id: 'wanted', label: 'My Wanted Requests', icon: Search },
-  { id: 'notifications', label: 'Notifications', icon: Bell },
-  { id: 'bin', label: 'Bin', icon: Trash2 },
-  { id: 'security', label: 'Security', icon: Shield }
-]
+interface Conversation {
+  id: string
+  listing_id: string
+  listing_title: string
+  listing_price: number
+  listing_image_url: string
+  buyer_id: string
+  seller_id: string
+  last_message_at: string
+  last_message_preview: string
+  unread_count: number
+  is_archived: boolean
+  current_user_role: 'buyer' | 'seller'
+  buyer: {
+    profiles: {
+      name: string
+      avatar_url: string
+    }
+  }
+  seller: {
+    profiles: {
+      name: string
+      avatar_url: string
+    }
+  }
+}
+
+interface Message {
+  id: string
+  conversation_id: string
+  sender_id: string
+  content: string
+  is_read: boolean
+  created_at: string
+  sender: {
+    id: string
+    email: string
+    profiles: {
+      name: string
+      avatar_url: string
+    }
+  }
+}
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -120,6 +153,51 @@ export default function ProfilePage() {
   const [showPhoneVerification, setShowPhoneVerification] = useState(false)
   const [phoneToVerify, setPhoneToVerify] = useState('')
   const [originalPhone, setOriginalPhone] = useState('')
+  
+  // Messaging states
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null)
+  const [messages, setMessages] = useState<Message[]>([])
+  const [newMessage, setNewMessage] = useState('')
+  const [sendingMessage, setSendingMessage] = useState(false)
+  const [loadingMessages, setLoadingMessages] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  
+  // Handle URL parameters for tab and conversation
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const tab = params.get('tab')
+    const conversationId = params.get('conversation')
+    
+    if (tab) {
+      setActiveTab(tab)
+    }
+    
+    if (conversationId && tab === 'messages') {
+      setSelectedConversation(conversationId)
+    }
+  }, [])
+
+  
+  // Business profile toggle
+  const [isBusinessProfile, setIsBusinessProfile] = useState(false)
+  
+  // Tab configurations - dynamic based on business profile state
+  const tabs = [
+    { 
+      id: 'profile', 
+      label: isBusinessProfile ? 'Business Profile' : 'My Profile', 
+      icon: isBusinessProfile ? Building2 : User 
+    },
+    { id: 'listings', label: 'My Listings', icon: Car },
+    { id: 'favorites', label: 'Favorites', icon: Heart },
+    { id: 'wanted', label: 'My Wanted Requests', icon: Search },
+    { id: 'messages', label: 'Messages', icon: MessageSquare },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'membership', label: 'AutoTrader Membership', icon: Crown, special: true },
+    { id: 'security', label: 'Security', icon: Shield },
+    { id: 'bin', label: 'Bin', icon: Trash2 }
+  ]
   
   // Form states
   const [profile, setProfile] = useState<UserProfile>({
@@ -151,6 +229,15 @@ export default function ProfilePage() {
   // Listings data
   const [listings, setListings] = useState<Listing[]>([])
   const [listingsLoading, setListingsLoading] = useState(true)
+  
+  // Wanted requests data
+  const [wantedRequests, setWantedRequests] = useState<WantedRequest[]>([])
+  const [wantedRequestsLoading, setWantedRequestsLoading] = useState(true)
+  
+  // Favorites data
+  const [favoritedAds, setFavoritedAds] = useState<Favorite[]>([])
+  const [favoritedWantedRequests, setFavoritedWantedRequests] = useState<Favorite[]>([])
+  const [favoritesLoading, setFavoritesLoading] = useState(true)
 
   const [notifications, setNotifications] = useState({
     emailNewMatches: true,
@@ -225,6 +312,116 @@ export default function ProfilePage() {
     
     if (!loading && user) {
       loadListings()
+    }
+  }, [user, loading])
+
+  // Load user wanted requests (sample data for now)
+  useEffect(() => {
+    const loadWantedRequests = async () => {
+      if (!user) return
+      
+      try {
+        // For now, we'll use sample data since wanted_requests table doesn't exist yet
+        const sampleWantedRequests: WantedRequest[] = [
+          {
+            id: '1',
+            title: 'Looking for Toyota Prius 2018-2020',
+            description: 'Need a well-maintained Toyota Prius, preferably white or silver color. Low mileage preferred.',
+            budget: 3500000,
+            status: 'active',
+            postedDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+            responses: 12,
+            location: 'Colombo',
+          },
+          {
+            id: '2', 
+            title: 'Honda Vezel or HR-V under 4M',
+            description: 'Looking for Honda Vezel or HR-V in good condition. Any color acceptable. Must be within 4 million budget.',
+            budget: 4000000,
+            status: 'active',
+            postedDate: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+            responses: 8,
+            location: 'Kandy',
+          },
+          {
+            id: '3',
+            title: 'BMW 3 Series F30 - 2015 onwards',
+            description: 'Searching for BMW 3 Series F30 model, 2015 or newer. Prefer automatic transmission.',
+            budget: 8500000,
+            status: 'paused',
+            postedDate: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toLocaleDateString(), 
+            responses: 5,
+            location: 'Galle',
+          }
+        ]
+        
+        setWantedRequests(sampleWantedRequests)
+      } catch (error) {
+        console.error('Error loading wanted requests:', error)
+      } finally {
+        setWantedRequestsLoading(false)
+      }
+    }
+    
+    if (!loading && user) {
+      loadWantedRequests()
+    }
+  }, [user, loading])
+
+  // Load user favorites (sample data for now)
+  useEffect(() => {
+    const loadFavorites = async () => {
+      if (!user) return
+      
+      try {
+        // Sample favorited ads
+        const sampleFavoritedAds: Favorite[] = [
+          {
+            id: '1',
+            title: 'Toyota Prius 2018 - Hybrid',
+            description: 'Well-maintained Prius with low mileage. Single owner, full service history.',
+            price: 3200000,
+            image: '/api/placeholder/400/300',
+            location: 'Colombo',
+            postedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+            seller: 'AutoMax Motors'
+          },
+          {
+            id: '2', 
+            title: 'Honda Vezel 2019 - Hybrid',
+            description: 'Perfect condition Honda Vezel with all original parts and accessories.',
+            price: 4800000,
+            image: '/api/placeholder/400/300',
+            location: 'Kandy',
+            postedDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+            seller: 'Private Seller'
+          }
+        ]
+        
+        // Sample favorited wanted requests
+        const sampleFavoritedWantedRequests: Favorite[] = [
+          {
+            id: '1',
+            title: 'Looking for Suzuki Alto K10 - 2015 onwards',
+            description: 'Searching for well-maintained Alto K10, any color, preferably under 2M budget.',
+            price: 2000000,
+            location: 'Galle',
+            postedDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+            seller: 'Kasun Perera'
+          }
+        ]
+        
+        setFavoritedAds(sampleFavoritedAds)
+        setFavoritedWantedRequests(sampleFavoritedWantedRequests)
+      } catch (error) {
+        console.error('Error loading favorites:', error)
+      } finally {
+        setFavoritesLoading(false)
+      }
+    }
+    
+    if (!loading && user) {
+      loadFavorites()
     }
   }, [user, loading])
 
@@ -445,6 +642,79 @@ export default function ProfilePage() {
     
     console.log(`${action} items:`, selectedItems)
     setSelectedItems([])
+  }
+
+  // Wanted request action handlers
+  const handlePauseWantedRequest = (requestId: string) => {
+    setWantedRequests(prevRequests => 
+      prevRequests.map(request => 
+        request.id === requestId 
+          ? { ...request, status: 'paused' as const }
+          : request
+      )
+    )
+    alert('Wanted request paused successfully!')
+  }
+
+  const handleActivateWantedRequest = (requestId: string) => {
+    setWantedRequests(prevRequests => 
+      prevRequests.map(request => 
+        request.id === requestId 
+          ? { ...request, status: 'active' as const }
+          : request
+      )
+    )
+    alert('Wanted request activated successfully!')
+  }
+
+  const handleCloseWantedRequest = (requestId: string) => {
+    if (confirm('Are you sure you want to close this wanted request? This action cannot be undone.')) {
+      setWantedRequests(prevRequests => 
+        prevRequests.map(request => 
+          request.id === requestId 
+            ? { ...request, status: 'closed' as const }
+            : request
+        )
+      )
+      alert('Wanted request closed successfully!')
+    }
+  }
+
+  const handleShareWantedRequest = (requestId: string) => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'Check out this wanted request',
+        url: `/wanted/${requestId}`
+      })
+    } else {
+      navigator.clipboard.writeText(`${window.location.origin}/wanted/${requestId}`)
+      alert('Link copied to clipboard!')
+    }
+  }
+
+  // Favorites action handlers
+  const handleRemoveFromFavorites = (itemId: string, type: 'ad' | 'wanted') => {
+    if (confirm('Remove this item from your favorites?')) {
+      if (type === 'ad') {
+        setFavoritedAds(prevAds => prevAds.filter(ad => ad.id !== itemId))
+      } else {
+        setFavoritedWantedRequests(prevRequests => prevRequests.filter(request => request.id !== itemId))
+      }
+      alert('Removed from favorites successfully!')
+    }
+  }
+
+  const handleShareFavorite = (itemId: string, type: 'ad' | 'wanted') => {
+    const url = type === 'ad' ? `/listings/${itemId}` : `/wanted/${itemId}`
+    if (navigator.share) {
+      navigator.share({
+        title: `Check out this ${type === 'ad' ? 'vehicle' : 'wanted request'}`,
+        url
+      })
+    } else {
+      navigator.clipboard.writeText(`${window.location.origin}${url}`)
+      alert('Link copied to clipboard!')
+    }
   }
 
   const handleEmailUpdate = async () => {
@@ -722,105 +992,441 @@ export default function ProfilePage() {
               {activeTab === 'profile' && (
                 <>
                   <div className="p-6 border-b">
-                    <h1 className="text-2xl font-semibold">Profile Information</h1>
-                  </div>
-                  <div className="p-6">
-                    <form className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            First Name
-                          </label>
-                          <input
-                            type="text"
-                            value={profile.firstName}
-                            onChange={(e) => setProfile({...profile, firstName: e.target.value})}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Last Name
-                          </label>
-                          <input
-                            type="text"
-                            value={profile.lastName}
-                            onChange={(e) => setProfile({...profile, lastName: e.target.value})}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Phone Number
-                          </label>
-                          <div className="relative">
-                            <input
-                              id="phone-input"
-                              type="tel"
-                              value={profile.phone}
-                              onChange={(e) => handlePhoneChange(e.target.value)}
-                              className="w-full px-4 py-2 pr-20 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              placeholder="+94 11 123 4567"
-                            />
-                            {profile.phone && (
-                              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                                {profile.phoneVerified ? (
-                                  <div className="flex items-center gap-1 text-green-600">
-                                    <CheckCircle size={16} />
-                                    <span className="text-xs font-medium">Verified</span>
-                                  </div>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    onClick={handleVerifyPhoneClick}
-                                    className="flex items-center gap-1 text-orange-600 hover:text-orange-700 transition-colors"
-                                  >
-                                    <AlertTriangle size={16} />
-                                    <span className="text-xs font-medium">Unverified</span>
-                                  </button>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                          {!profile.phoneVerified && profile.phone && (
-                            <button
-                              type="button"
-                              onClick={handleVerifyPhoneClick}
-                              className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
-                            >
-                              Unverified. Click here to verify
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
-                        <p className="text-sm text-blue-800">
-                          To change your email address or password,{' '}
-                          <button
-                            type="button"
-                            onClick={() => handleTabChange('security')}
-                            className="text-blue-600 hover:text-blue-700 font-medium underline"
-                          >
-                            click here
-                          </button>
-                          {' '}to go to Security Settings.
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h1 className="text-2xl font-semibold">
+                          {isBusinessProfile ? 'Business Profile' : 'Profile Information'}
+                        </h1>
+                        <p className="text-gray-600 mt-1">
+                          {isBusinessProfile 
+                            ? 'Manage your dealership or business information'
+                            : 'Manage your personal information and preferences'
+                          }
                         </p>
                       </div>
-                      <div className="flex gap-3">
-                        <button
-                          type="submit"
-                          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium"
-                        >
-                          Save Changes
-                        </button>
-                        <button
-                          type="button"
-                          className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 font-medium"
-                        >
-                          Cancel
-                        </button>
+                      {isBusinessProfile && (
+                        <div className="flex items-center gap-2">
+                          {businessProfile.isVerified && (
+                            <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
+                              <CheckCircle className="w-3 h-3" />
+                              Verified
+                            </div>
+                          )}
+                          <a
+                            href={`/dealer/${user?.id}`}
+                            target="_blank"
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2 text-sm"
+                          >
+                            <Eye className="w-4 h-4" />
+                            View Public Profile
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="p-6">
+                    {/* Profile Type Toggle */}
+                    <div className="mb-8 p-4 bg-gray-50 rounded-lg border-2 border-black">
+                      {/* Mobile Layout - Simple */}
+                      <div className="block sm:hidden space-y-2">
+                        <h3 className="text-sm font-medium text-gray-700">Account Type</h3>
+                        <div className="flex items-center justify-start gap-2">
+                          <span className="text-xs text-gray-500">Personal</span>
+                          <button
+                            type="button"
+                            onClick={() => setIsBusinessProfile(!isBusinessProfile)}
+                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                              isBusinessProfile ? 'bg-blue-600' : 'bg-gray-300'
+                            }`}
+                          >
+                            <span
+                              className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                                isBusinessProfile ? 'translate-x-5' : 'translate-x-1'
+                              }`}
+                            />
+                          </button>
+                          <span className="text-xs text-gray-500">Business</span>
+                        </div>
                       </div>
-                    </form>
+
+                      {/* Desktop Layout - Side by Side */}
+                      <div className="hidden sm:flex items-center justify-between">
+                        <div>
+                          <h3 className="font-medium text-gray-900">Profile Type</h3>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {isBusinessProfile 
+                              ? 'Managing business profile for dealership or company'
+                              : 'Switch to business profile to access dealer features'
+                            }
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className={`text-sm font-medium ${!isBusinessProfile ? 'text-blue-600' : 'text-gray-500'}`}>
+                            Personal
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setIsBusinessProfile(!isBusinessProfile)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                              isBusinessProfile ? 'bg-blue-600' : 'bg-gray-200'
+                            }`}
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                isBusinessProfile ? 'translate-x-6' : 'translate-x-1'
+                              }`}
+                            />
+                          </button>
+                          <span className={`text-sm font-medium ${isBusinessProfile ? 'text-blue-600' : 'text-gray-500'}`}>
+                            Business
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Dynamic Form Content */}
+                    {!isBusinessProfile ? (
+                      /* Personal Profile Form */
+                      <form className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              First Name
+                            </label>
+                            <input
+                              type="text"
+                              value={profile.firstName}
+                              onChange={(e) => setProfile({...profile, firstName: e.target.value})}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Last Name
+                            </label>
+                            <input
+                              type="text"
+                              value={profile.lastName}
+                              onChange={(e) => setProfile({...profile, lastName: e.target.value})}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Phone Number
+                            </label>
+                            <div className="relative">
+                              <input
+                                id="phone-input"
+                                type="tel"
+                                value={profile.phone}
+                                onChange={(e) => handlePhoneChange(e.target.value)}
+                                className="w-full px-4 py-2 pr-20 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="+94 11 123 4567"
+                              />
+                              {profile.phone && (
+                                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                                  {profile.phoneVerified ? (
+                                    <div className="flex items-center gap-1 text-green-600">
+                                      <CheckCircle size={16} />
+                                      <span className="text-xs font-medium">Verified</span>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={handleVerifyPhoneClick}
+                                      className="flex items-center gap-1 text-orange-600 hover:text-orange-700 transition-colors"
+                                    >
+                                      <AlertTriangle size={16} />
+                                      <span className="text-xs font-medium">Unverified</span>
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            {!profile.phoneVerified && profile.phone && (
+                              <button
+                                type="button"
+                                onClick={handleVerifyPhoneClick}
+                                className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+                              >
+                                Unverified. Click here to verify
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+                          <p className="text-sm text-blue-800">
+                            To change your email address or password,{' '}
+                            <button
+                              type="button"
+                              onClick={() => handleTabChange('security')}
+                              className="text-blue-600 hover:text-blue-700 font-medium underline"
+                            >
+                              click here
+                            </button>
+                            {' '}to go to Security Settings.
+                          </p>
+                        </div>
+                        <div className="flex gap-3">
+                          <button
+                            type="submit"
+                            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium"
+                          >
+                            Save Changes
+                          </button>
+                          <button
+                            type="button"
+                            className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 font-medium"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      /* Business Profile Form */
+                      !hasBusinessProfile ? (
+                        <div className="text-center py-12">
+                          <Building2 className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                          <h3 className="text-xl font-semibold text-gray-900 mb-2">Create Your Business Profile</h3>
+                          <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                            Set up your dealership profile to showcase your business, build trust with customers, 
+                            and access advanced selling tools.
+                          </p>
+                          
+                          <div className="max-w-2xl mx-auto">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                              <div className="bg-blue-50 p-6 rounded-lg">
+                                <Star className="w-8 h-8 text-blue-600 mb-3" />
+                                <h4 className="font-semibold text-blue-900 mb-2">Build Trust</h4>
+                                <p className="text-sm text-blue-700">Verified business profile with contact information and operating hours</p>
+                              </div>
+                              <div className="bg-green-50 p-6 rounded-lg">
+                                <Globe className="w-8 h-8 text-green-600 mb-3" />
+                                <h4 className="font-semibold text-green-900 mb-2">Professional Presence</h4>
+                                <p className="text-sm text-green-700">Dedicated dealer page with your branding and vehicle inventory</p>
+                              </div>
+                            </div>
+                            
+                            <div className="bg-gray-50 rounded-lg p-8">
+                              <h4 className="text-lg font-semibold mb-6">Business Information</h4>
+                              <form className="space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Business Name <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                      type="text"
+                                      value={businessProfile.businessName}
+                                      onChange={(e) => setBusinessProfile({...businessProfile, businessName: e.target.value})}
+                                      placeholder="e.g., City Motors, Premium Auto Sales"
+                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      required
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Business Type
+                                    </label>
+                                    <select
+                                      value={businessProfile.businessType}
+                                      onChange={(e) => setBusinessProfile({...businessProfile, businessType: e.target.value})}
+                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    >
+                                      <option value="Auto Dealer">Auto Dealer</option>
+                                      <option value="Car Showroom">Car Showroom</option>
+                                      <option value="Vehicle Importer">Vehicle Importer</option>
+                                      <option value="Auto Parts">Auto Parts</option>
+                                      <option value="Service Center">Service Center</option>
+                                      <option value="Other">Other</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Website
+                                    </label>
+                                    <input
+                                      type="url"
+                                      value={businessProfile.website || ''}
+                                      onChange={(e) => setBusinessProfile({...businessProfile, website: e.target.value})}
+                                      placeholder="https://yourbusiness.com"
+                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Business Phone
+                                    </label>
+                                    <input
+                                      type="tel"
+                                      value={businessProfile.phone || ''}
+                                      onChange={(e) => setBusinessProfile({...businessProfile, phone: e.target.value})}
+                                      placeholder="+94 11 123 4567"
+                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Business Address
+                                  </label>
+                                  <textarea
+                                    value={businessProfile.address || ''}
+                                    onChange={(e) => setBusinessProfile({...businessProfile, address: e.target.value})}
+                                    placeholder="Street address, city, postal code"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    rows={3}
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Business Description
+                                  </label>
+                                  <textarea
+                                    value={businessProfile.description}
+                                    onChange={(e) => setBusinessProfile({...businessProfile, description: e.target.value})}
+                                    placeholder="Tell customers about your business, services, and what makes you special..."
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    rows={4}
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Operating Hours
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={businessProfile.operatingHours || ''}
+                                    onChange={(e) => setBusinessProfile({...businessProfile, operatingHours: e.target.value})}
+                                    placeholder="e.g., Mon-Fri 9AM-6PM, Sat 9AM-4PM"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  />
+                                </div>
+                                <div className="flex gap-3">
+                                  <button
+                                    type="submit"
+                                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium"
+                                  >
+                                    Create Business Profile
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 font-medium"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </form>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Existing Business Profile Form */
+                        <form className="space-y-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Business Name <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={businessProfile.businessName}
+                                onChange={(e) => setBusinessProfile({...businessProfile, businessName: e.target.value})}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Business Type
+                              </label>
+                              <select
+                                value={businessProfile.businessType}
+                                onChange={(e) => setBusinessProfile({...businessProfile, businessType: e.target.value})}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              >
+                                <option value="Auto Dealer">Auto Dealer</option>
+                                <option value="Car Showroom">Car Showroom</option>
+                                <option value="Vehicle Importer">Vehicle Importer</option>
+                                <option value="Auto Parts">Auto Parts</option>
+                                <option value="Service Center">Service Center</option>
+                                <option value="Other">Other</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Website
+                              </label>
+                              <input
+                                type="url"
+                                value={businessProfile.website || ''}
+                                onChange={(e) => setBusinessProfile({...businessProfile, website: e.target.value})}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Business Phone
+                              </label>
+                              <input
+                                type="tel"
+                                value={businessProfile.phone || ''}
+                                onChange={(e) => setBusinessProfile({...businessProfile, phone: e.target.value})}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Business Address
+                            </label>
+                            <textarea
+                              value={businessProfile.address || ''}
+                              onChange={(e) => setBusinessProfile({...businessProfile, address: e.target.value})}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              rows={3}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Business Description
+                            </label>
+                            <textarea
+                              value={businessProfile.description}
+                              onChange={(e) => setBusinessProfile({...businessProfile, description: e.target.value})}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              rows={4}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Operating Hours
+                            </label>
+                            <input
+                              type="text"
+                              value={businessProfile.operatingHours || ''}
+                              onChange={(e) => setBusinessProfile({...businessProfile, operatingHours: e.target.value})}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                          </div>
+                          <div className="flex gap-3">
+                            <button
+                              type="submit"
+                              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium"
+                            >
+                              Save Changes
+                            </button>
+                            <button
+                              type="button"
+                              className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 font-medium"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </form>
+                      )
+                    )}
                   </div>
                 </>
               )}
@@ -870,25 +1476,6 @@ export default function ProfilePage() {
                     <h1 className="text-2xl font-semibold">My Listings</h1>
                   </div>
                   <div className="p-6">
-                    {/* Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                      <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-lg text-center border border-gray-200">
-                        <div className="text-3xl font-bold text-blue-600">{stats.activeListings}</div>
-                        <div className="text-sm text-gray-600 font-medium">Active Listings</div>
-                      </div>
-                      <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-lg text-center border border-gray-200">
-                        <div className="text-3xl font-bold text-blue-600">{stats.totalViews}</div>
-                        <div className="text-sm text-gray-600 font-medium">Total Views</div>
-                      </div>
-                      <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-lg text-center border border-gray-200">
-                        <div className="text-3xl font-bold text-blue-600">{stats.inquiries}</div>
-                        <div className="text-sm text-gray-600 font-medium">Inquiries</div>
-                      </div>
-                      <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-lg text-center border border-gray-200">
-                        <div className="text-3xl font-bold text-blue-600">{stats.soldThisMonth}</div>
-                        <div className="text-sm text-gray-600 font-medium">Sold This Month</div>
-                      </div>
-                    </div>
 
                     {/* Listings Table */}
                     {listingsLoading ? (
@@ -909,7 +1496,9 @@ export default function ProfilePage() {
                         </Link>
                       </div>
                     ) : (
-                      <div className="overflow-x-auto">
+                      <>
+                        {/* Desktop Table View */}
+                        <div className="hidden md:block overflow-x-auto">
                         <table className="w-full">
                           <thead className="bg-gray-50 border-b">
                             <tr>
@@ -1086,6 +1675,181 @@ export default function ProfilePage() {
                           </tbody>
                         </table>
                       </div>
+
+                      {/* Mobile Card View */}
+                      <div className="md:hidden space-y-4">
+                        {listings.map((listing) => (
+                          <div key={listing.id} className="bg-white border rounded-lg shadow-sm">
+                            {/* Card Header with Image and Title */}
+                            <div className="p-4">
+                              <div className="flex gap-3">
+                                <div className="w-20 h-16 bg-gray-200 rounded flex items-center justify-center text-gray-500 flex-shrink-0">
+                                  <Camera className="w-6 h-6" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <Link 
+                                    href={`/listings/${listing.id}`}
+                                    className="font-medium text-blue-600 hover:text-blue-700 block"
+                                  >
+                                    {listing.title}
+                                  </Link>
+                                  <p className="text-sm text-gray-600 mt-1 line-clamp-2">{listing.details}</p>
+                                  <div className="flex items-center justify-between mt-2">
+                                    <span className="text-lg font-bold text-gray-900">Rs. {listing.price.toLocaleString()}</span>
+                                    <div className="relative">
+                                      <button
+                                        onClick={() => setShowActionMenu(showActionMenu === listing.id ? null : listing.id)}
+                                        className="p-2 hover:bg-gray-100 rounded-full"
+                                      >
+                                        <MoreVertical className="w-5 h-5" />
+                                      </button>
+                                      
+                                      {showActionMenu === listing.id && (
+                                        <div className="absolute right-0 top-10 bg-white border rounded-lg shadow-lg py-2 z-10 w-48">
+                                          <button 
+                                            onClick={() => handleShare(listing.id)}
+                                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                                          >
+                                            <Share2 className="w-4 h-4" />
+                                            Share Listing
+                                          </button>
+                                          <Link 
+                                            href={`/post?edit=${listing.id}`}
+                                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 block"
+                                          >
+                                            <Edit className="w-4 h-4" />
+                                            Edit Listing
+                                          </Link>
+                                          <button className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2">
+                                            <RefreshCw className="w-4 h-4" />
+                                            Renew Listing
+                                          </button>
+                                          <button className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2">
+                                            <Clock className="w-4 h-4" />
+                                            Mark as Pending
+                                          </button>
+                                          <hr className="my-2" />
+                                          <button 
+                                            onClick={() => handleDelete(listing.id, 'listing')}
+                                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-red-600"
+                                          >
+                                            <Trash2 className="w-4 h-4" />
+                                            Move to Bin
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Card Info */}
+                            <div className="px-4 pb-4">
+                              <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
+                                <span className="flex items-center gap-1">
+                                  <Eye className="w-4 h-4" />
+                                  {listing.views} views
+                                </span>
+                                <span>{listing.postedDate}</span>
+                              </div>
+
+                              {/* Status */}
+                              <div className="mb-3">
+                                <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                                  listing.status === 'active' 
+                                    ? 'bg-green-100 text-green-800'
+                                    : listing.status === 'pending'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : listing.status === 'deleted' && listing.isReportedTakedown
+                                    ? 'bg-red-100 text-red-800'
+                                    : listing.status === 'deleted'
+                                    ? 'bg-gray-100 text-gray-800'
+                                    : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {listing.status === 'active' ? 'Active' : 
+                                   listing.status === 'pending' ? 'Under Review' :
+                                   listing.status === 'deleted' && listing.isReportedTakedown ? 'Reported & Removed' :
+                                   listing.status === 'deleted' && listing.rejectionReason ? 'Rejected' :
+                                   listing.status === 'deleted' ? 'Deleted' : 'Sold'}
+                                </span>
+                                {listing.isReportedTakedown && (
+                                  <p className="text-xs text-red-600 font-medium mt-1">⚠️ Removed due to reports</p>
+                                )}
+                                {listing.rejectionReason && (
+                                  <p className="text-xs text-red-600 mt-1">Reason: {listing.rejectionReason}</p>
+                                )}
+                              </div>
+
+                              {/* Action Buttons */}
+                              <div className="space-y-2">
+                                {listing.status === 'active' && (
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => handleMarkAsSold(listing.id)}
+                                      className="flex-1 bg-green-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-green-700 flex items-center justify-center gap-2 font-medium transition-all"
+                                    >
+                                      <CheckCircle className="w-4 h-4" />
+                                      Mark as Sold
+                                    </button>
+                                    <Link 
+                                      href={`/post/paid-features?listing=${listing.id}`}
+                                      className="flex-1 bg-amber-500 text-white py-2 px-3 rounded-lg text-sm hover:bg-amber-600 flex items-center justify-center gap-2 font-medium transition-all"
+                                    >
+                                      <Zap className="w-4 h-4" />
+                                      Boost
+                                    </Link>
+                                  </div>
+                                )}
+
+                                {(listing.status === 'deleted' && (listing.isReportedTakedown || listing.rejectionReason)) && (
+                                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                                    <p className="text-xs text-red-700 font-medium mb-2">
+                                      {listing.isReportedTakedown ? 'Your listing was reported and removed' : 'Your listing was rejected'}
+                                    </p>
+                                    <div className="flex gap-2">
+                                      <Link 
+                                        href={`/post?edit=${listing.id}`}
+                                        className="flex-1 bg-red-600 text-white py-2 px-3 rounded text-xs hover:bg-red-700 flex items-center justify-center gap-1 font-medium transition-all"
+                                      >
+                                        <Edit className="w-3 h-3" />
+                                        Edit & Resubmit
+                                      </Link>
+                                      <button
+                                        onClick={() => handleRelist(listing.id)}
+                                        className="flex-1 bg-blue-600 text-white py-2 px-3 rounded text-xs hover:bg-blue-700 flex items-center justify-center gap-1 font-medium transition-all"
+                                      >
+                                        <RefreshCw className="w-3 h-3" />
+                                        Relist
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {listing.status === 'sold' && (
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => handleRelist(listing.id)}
+                                      className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-blue-700 flex items-center justify-center gap-2 font-medium transition-all"
+                                    >
+                                      <RefreshCw className="w-4 h-4" />
+                                      Relist
+                                    </button>
+                                    <Link 
+                                      href={`/post?edit=${listing.id}`}
+                                      className="flex-1 bg-gray-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-gray-700 flex items-center justify-center gap-2 font-medium transition-all"
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                      Edit
+                                    </Link>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      </>
                     )}
                   </div>
                 </>
@@ -1107,7 +1871,7 @@ export default function ProfilePage() {
                             : 'text-gray-600 border-transparent hover:text-gray-900'
                         }`}
                       >
-                        Ads
+                        Ads ({favoritedAds.length})
                       </button>
                       <button
                         onClick={() => setActiveFavoritesTab('wanted')}
@@ -1117,22 +1881,237 @@ export default function ProfilePage() {
                             : 'text-gray-600 border-transparent hover:text-gray-900'
                         }`}
                       >
-                        Wanted Requests
+                        Wanted Requests ({favoritedWantedRequests.length})
                       </button>
                     </div>
 
-                    {activeFavoritesTab === 'ads' ? (
-                      <div className="text-center py-8 text-gray-500">
-                        <Heart className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                        <p>No saved ads yet</p>
-                        <p className="text-sm mt-1">Start browsing to save your favorite vehicles</p>
+                    {favoritesLoading ? (
+                      <div className="text-center py-12">
+                        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <p className="text-gray-600">Loading your favorites...</p>
                       </div>
                     ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <Search className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                        <p>No saved wanted requests</p>
-                        <p className="text-sm mt-1">Save wanted requests that match your inventory</p>
-                      </div>
+                      <>
+                        {/* Favorited Ads */}
+                        {activeFavoritesTab === 'ads' && (
+                          <>
+                            {favoritedAds.length === 0 ? (
+                              <div className="text-center py-12 text-gray-500">
+                                <Heart className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                                <p className="font-medium">No saved ads yet</p>
+                                <p className="text-sm mt-1">Start browsing to save your favorite vehicles</p>
+                                <Link
+                                  href="/listings"
+                                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium inline-block mt-4"
+                                >
+                                  Browse Vehicles
+                                </Link>
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {favoritedAds.map((ad) => (
+                                  <div key={ad.id} className="bg-white border rounded-lg shadow-sm overflow-hidden">
+                                    {/* Image */}
+                                    <div className="h-48 bg-gray-200 flex items-center justify-center">
+                                      <Camera className="w-12 h-12 text-gray-400" />
+                                    </div>
+                                    
+                                    {/* Content */}
+                                    <div className="p-4">
+                                      <div className="flex justify-between items-start mb-2">
+                                        <Link 
+                                          href={`/listings/${ad.id}`}
+                                          className="font-medium text-blue-600 hover:text-blue-700 block flex-1"
+                                        >
+                                          {ad.title}
+                                        </Link>
+                                        <div className="relative ml-2">
+                                          <button
+                                            onClick={() => setShowActionMenu(showActionMenu === ad.id ? null : ad.id)}
+                                            className="p-1 hover:bg-gray-100 rounded"
+                                          >
+                                            <MoreVertical className="w-4 h-4" />
+                                          </button>
+                                          
+                                          {showActionMenu === ad.id && (
+                                            <div className="absolute right-0 top-6 bg-white border rounded-lg shadow-lg py-2 z-10 w-48">
+                                              <Link
+                                                href={`/listings/${ad.id}`}
+                                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 block"
+                                              >
+                                                <Eye className="w-4 h-4" />
+                                                View Listing
+                                              </Link>
+                                              <button 
+                                                onClick={() => handleShareFavorite(ad.id, 'ad')}
+                                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                                              >
+                                                <Share2 className="w-4 h-4" />
+                                                Share
+                                              </button>
+                                              <hr className="my-2" />
+                                              <button 
+                                                onClick={() => handleRemoveFromFavorites(ad.id, 'ad')}
+                                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-red-600"
+                                              >
+                                                <HeartOff className="w-4 h-4" />
+                                                Remove from Favorites
+                                              </button>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                      
+                                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{ad.description}</p>
+                                      
+                                      <div className="space-y-2">
+                                        <div className="flex justify-between items-center">
+                                          <span className="text-lg font-bold text-gray-900">Rs. {ad.price.toLocaleString()}</span>
+                                        </div>
+                                        
+                                        <div className="flex items-center justify-between text-sm text-gray-600">
+                                          <span className="flex items-center gap-1">
+                                            <MapPin className="w-4 h-4" />
+                                            {ad.location}
+                                          </span>
+                                          <span>{ad.postedDate}</span>
+                                        </div>
+                                        
+                                        <div className="text-sm text-gray-600">
+                                          By: {ad.seller}
+                                        </div>
+                                      </div>
+                                      
+                                      {/* Action Buttons */}
+                                      <div className="flex gap-2 mt-4">
+                                        <Link
+                                          href={`/listings/${ad.id}`}
+                                          className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-blue-700 text-center font-medium transition-all"
+                                        >
+                                          View Details
+                                        </Link>
+                                        <button
+                                          onClick={() => handleRemoveFromFavorites(ad.id, 'ad')}
+                                          className="bg-gray-200 text-gray-700 py-2 px-3 rounded-lg text-sm hover:bg-gray-300 transition-all"
+                                        >
+                                          <HeartOff className="w-4 h-4" />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </>
+                        )}
+
+                        {/* Favorited Wanted Requests */}
+                        {activeFavoritesTab === 'wanted' && (
+                          <>
+                            {favoritedWantedRequests.length === 0 ? (
+                              <div className="text-center py-12 text-gray-500">
+                                <Search className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                                <p className="font-medium">No saved wanted requests</p>
+                                <p className="text-sm mt-1">Save wanted requests that match your inventory</p>
+                                <Link
+                                  href="/wanted"
+                                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium inline-block mt-4"
+                                >
+                                  Browse Wanted Requests
+                                </Link>
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {favoritedWantedRequests.map((request) => (
+                                  <div key={request.id} className="bg-white border rounded-lg shadow-sm">
+                                    <div className="p-4">
+                                      <div className="flex justify-between items-start mb-2">
+                                        <Link 
+                                          href={`/wanted/${request.id}`}
+                                          className="font-medium text-blue-600 hover:text-blue-700 block flex-1"
+                                        >
+                                          {request.title}
+                                        </Link>
+                                        <div className="relative ml-2">
+                                          <button
+                                            onClick={() => setShowActionMenu(showActionMenu === request.id ? null : request.id)}
+                                            className="p-1 hover:bg-gray-100 rounded"
+                                          >
+                                            <MoreVertical className="w-4 h-4" />
+                                          </button>
+                                          
+                                          {showActionMenu === request.id && (
+                                            <div className="absolute right-0 top-6 bg-white border rounded-lg shadow-lg py-2 z-10 w-48">
+                                              <Link
+                                                href={`/wanted/${request.id}`}
+                                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 block"
+                                              >
+                                                <Eye className="w-4 h-4" />
+                                                View Request
+                                              </Link>
+                                              <button 
+                                                onClick={() => handleShareFavorite(request.id, 'wanted')}
+                                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                                              >
+                                                <Share2 className="w-4 h-4" />
+                                                Share
+                                              </button>
+                                              <hr className="my-2" />
+                                              <button 
+                                                onClick={() => handleRemoveFromFavorites(request.id, 'wanted')}
+                                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-red-600"
+                                              >
+                                                <HeartOff className="w-4 h-4" />
+                                                Remove from Favorites
+                                              </button>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                      
+                                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{request.description}</p>
+                                      
+                                      <div className="space-y-2">
+                                        <div className="flex justify-between items-center">
+                                          <span className="text-lg font-bold text-gray-900">Budget: Rs. {request.price.toLocaleString()}</span>
+                                        </div>
+                                        
+                                        <div className="flex items-center justify-between text-sm text-gray-600">
+                                          <span className="flex items-center gap-1">
+                                            <MapPin className="w-4 h-4" />
+                                            {request.location}
+                                          </span>
+                                          <span>{request.postedDate}</span>
+                                        </div>
+                                        
+                                        <div className="text-sm text-gray-600">
+                                          By: {request.seller}
+                                        </div>
+                                      </div>
+                                      
+                                      {/* Action Buttons */}
+                                      <div className="flex gap-2 mt-4">
+                                        <Link
+                                          href={`/wanted/${request.id}`}
+                                          className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-blue-700 text-center font-medium transition-all"
+                                        >
+                                          View Request
+                                        </Link>
+                                        <button
+                                          onClick={() => handleRemoveFromFavorites(request.id, 'wanted')}
+                                          className="bg-gray-200 text-gray-700 py-2 px-3 rounded-lg text-sm hover:bg-gray-300 transition-all"
+                                        >
+                                          <HeartOff className="w-4 h-4" />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </>
                     )}
                   </div>
                 </>
@@ -1140,18 +2119,7 @@ export default function ProfilePage() {
 
               {/* Messages Tab */}
               {activeTab === 'messages' && (
-                <>
-                  <div className="p-6 border-b">
-                    <h1 className="text-2xl font-semibold">Messages</h1>
-                  </div>
-                  <div className="p-6">
-                    <div className="text-center py-12 text-gray-500">
-                      <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                      <p className="font-medium">No messages yet</p>
-                      <p className="text-sm mt-1">When you contact sellers or receive inquiries, they'll appear here</p>
-                    </div>
-                  </div>
-                </>
+                <MessagesTab />
               )}
 
               {/* Wanted Requests Tab */}
@@ -1171,12 +2139,275 @@ export default function ProfilePage() {
                       Tell the community what vehicle you're looking for and let sellers come to you.
                       <Link href="#" className="text-blue-600 hover:text-blue-700 ml-1">Learn more</Link>
                     </p>
-                    
-                    <div className="text-center py-12 text-gray-500">
-                      <Search className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                      <p className="font-medium">No wanted requests yet</p>
-                      <p className="text-sm mt-1">Create your first wanted request to find your ideal vehicle</p>
-                    </div>
+
+                    {/* Wanted Requests Table/Cards */}
+                    {wantedRequestsLoading ? (
+                      <div className="text-center py-12">
+                        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <p className="text-gray-600">Loading your wanted requests...</p>
+                      </div>
+                    ) : wantedRequests.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Search className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                        <p className="font-medium text-gray-900 mb-1">No wanted requests yet</p>
+                        <p className="text-sm text-gray-600 mb-4">Create your first wanted request to find your ideal vehicle</p>
+                        <Link
+                          href="/wanted/post"
+                          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium inline-block"
+                        >
+                          Post Your First Request
+                        </Link>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Desktop Table View */}
+                        <div className="hidden md:block overflow-x-auto">
+                          <table className="w-full">
+                            <thead className="bg-gray-50 border-b">
+                              <tr>
+                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Request</th>
+                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Budget</th>
+                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Responses</th>
+                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
+                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Posted</th>
+                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y">
+                              {wantedRequests.map((request) => (
+                              <tr key={request.id} className="hover:bg-gray-50">
+                                <td className="px-4 py-4">
+                                  <div>
+                                    <Link 
+                                      href={`/wanted/${request.id}`}
+                                      className="font-medium text-blue-600 hover:text-blue-700"
+                                    >
+                                      {request.title}
+                                    </Link>
+                                    <div className="text-sm text-gray-600 mt-1 line-clamp-2">{request.description}</div>
+                                    <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                      <MapPin className="w-3 h-3" />
+                                      {request.location}
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-4">Rs. {request.budget.toLocaleString()}</td>
+                                <td className="px-4 py-4">{request.responses}</td>
+                                <td className="px-4 py-4">
+                                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                                    request.status === 'active' 
+                                      ? 'bg-green-100 text-green-800'
+                                      : request.status === 'paused'
+                                      ? 'bg-yellow-100 text-yellow-800'
+                                      : request.status === 'closed'
+                                      ? 'bg-gray-100 text-gray-800'
+                                      : 'bg-red-100 text-red-800'
+                                  }`}>
+                                    {request.status === 'active' ? 'Active' : 
+                                     request.status === 'paused' ? 'Paused' :
+                                     request.status === 'closed' ? 'Closed' : 'Deleted'}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-4 text-sm text-gray-600">{request.postedDate}</td>
+                                <td className="px-4 py-4">
+                                  <div className="flex items-center gap-2">
+                                    {request.status === 'active' && (
+                                      <button
+                                        onClick={() => handlePauseWantedRequest(request.id)}
+                                        className="bg-yellow-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-yellow-700 flex items-center gap-1 font-medium transition-all"
+                                      >
+                                        <Clock className="w-3 h-3" />
+                                        Pause
+                                      </button>
+                                    )}
+
+                                    {request.status === 'paused' && (
+                                      <button
+                                        onClick={() => handleActivateWantedRequest(request.id)}
+                                        className="bg-green-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-green-700 flex items-center gap-1 font-medium transition-all"
+                                      >
+                                        <CheckCircle className="w-3 h-3" />
+                                        Activate
+                                      </button>
+                                    )}
+
+                                    {(request.status === 'active' || request.status === 'paused') && (
+                                      <button
+                                        onClick={() => handleCloseWantedRequest(request.id)}
+                                        className="bg-gray-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-gray-700 flex items-center gap-1 font-medium transition-all"
+                                      >
+                                        <X className="w-3 h-3" />
+                                        Close
+                                      </button>
+                                    )}
+                                    
+                                    <div className="relative">
+                                      <button
+                                        onClick={() => setShowActionMenu(showActionMenu === request.id ? null : request.id)}
+                                        className="p-1 hover:bg-gray-100 rounded"
+                                      >
+                                        <MoreVertical className="w-4 h-4" />
+                                      </button>
+                                      
+                                      {showActionMenu === request.id && (
+                                        <div className="absolute right-0 top-8 bg-white border rounded-lg shadow-lg py-2 z-10 w-48">
+                                          <button 
+                                            onClick={() => handleShareWantedRequest(request.id)}
+                                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                                          >
+                                            <Share2 className="w-4 h-4" />
+                                            Share Request
+                                          </button>
+                                          <Link 
+                                            href={`/wanted/edit/${request.id}`}
+                                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 block"
+                                          >
+                                            <Edit className="w-4 h-4" />
+                                            Edit Request
+                                          </Link>
+                                          <hr className="my-2" />
+                                          <button 
+                                            onClick={() => handleDelete(request.id, 'wanted request')}
+                                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-red-600"
+                                          >
+                                            <Trash2 className="w-4 h-4" />
+                                            Move to Bin
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* Mobile Card View */}
+                        <div className="md:hidden space-y-4">
+                          {wantedRequests.map((request) => (
+                            <div key={request.id} className="bg-white border rounded-lg shadow-sm">
+                              {/* Card Header */}
+                              <div className="p-4">
+                                <div className="flex justify-between items-start mb-3">
+                                  <div className="flex-1 min-w-0">
+                                    <Link 
+                                      href={`/wanted/${request.id}`}
+                                      className="font-medium text-blue-600 hover:text-blue-700 block"
+                                    >
+                                      {request.title}
+                                    </Link>
+                                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">{request.description}</p>
+                                  </div>
+                                  <div className="relative ml-3">
+                                    <button
+                                      onClick={() => setShowActionMenu(showActionMenu === request.id ? null : request.id)}
+                                      className="p-2 hover:bg-gray-100 rounded-full"
+                                    >
+                                      <MoreVertical className="w-5 h-5" />
+                                    </button>
+                                    
+                                    {showActionMenu === request.id && (
+                                      <div className="absolute right-0 top-10 bg-white border rounded-lg shadow-lg py-2 z-10 w-48">
+                                        <button 
+                                          onClick={() => handleShareWantedRequest(request.id)}
+                                          className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                                        >
+                                          <Share2 className="w-4 h-4" />
+                                          Share Request
+                                        </button>
+                                        <Link 
+                                          href={`/wanted/edit/${request.id}`}
+                                          className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 block"
+                                        >
+                                          <Edit className="w-4 h-4" />
+                                          Edit Request
+                                        </Link>
+                                        <hr className="my-2" />
+                                        <button 
+                                          onClick={() => handleDelete(request.id, 'wanted request')}
+                                          className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-red-600"
+                                        >
+                                          <Trash2 className="w-4 h-4" />
+                                          Move to Bin
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Card Info */}
+                                <div className="space-y-3">
+                                  <div className="flex items-center justify-between text-sm">
+                                    <span className="text-lg font-bold text-gray-900">Rs. {request.budget.toLocaleString()}</span>
+                                    <span className="text-gray-600">{request.responses} responses</span>
+                                  </div>
+
+                                  <div className="flex items-center justify-between text-sm text-gray-600">
+                                    <span className="flex items-center gap-1">
+                                      <MapPin className="w-4 h-4" />
+                                      {request.location}
+                                    </span>
+                                    <span>{request.postedDate}</span>
+                                  </div>
+
+                                  {/* Status */}
+                                  <div className="flex items-center justify-between">
+                                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                                      request.status === 'active' 
+                                        ? 'bg-green-100 text-green-800'
+                                        : request.status === 'paused'
+                                        ? 'bg-yellow-100 text-yellow-800'
+                                        : request.status === 'closed'
+                                        ? 'bg-gray-100 text-gray-800'
+                                        : 'bg-red-100 text-red-800'
+                                    }`}>
+                                      {request.status === 'active' ? 'Active' : 
+                                       request.status === 'paused' ? 'Paused' :
+                                       request.status === 'closed' ? 'Closed' : 'Deleted'}
+                                    </span>
+                                  </div>
+
+                                  {/* Action Buttons */}
+                                  <div className="flex gap-2 pt-2">
+                                    {request.status === 'active' && (
+                                      <button
+                                        onClick={() => handlePauseWantedRequest(request.id)}
+                                        className="flex-1 bg-yellow-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-yellow-700 flex items-center justify-center gap-2 font-medium transition-all"
+                                      >
+                                        <Clock className="w-4 h-4" />
+                                        Pause
+                                      </button>
+                                    )}
+
+                                    {request.status === 'paused' && (
+                                      <button
+                                        onClick={() => handleActivateWantedRequest(request.id)}
+                                        className="flex-1 bg-green-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-green-700 flex items-center justify-center gap-2 font-medium transition-all"
+                                      >
+                                        <CheckCircle className="w-4 h-4" />
+                                        Activate
+                                      </button>
+                                    )}
+
+                                    {(request.status === 'active' || request.status === 'paused') && (
+                                      <button
+                                        onClick={() => handleCloseWantedRequest(request.id)}
+                                        className="flex-1 bg-gray-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-gray-700 flex items-center justify-center gap-2 font-medium transition-all"
+                                      >
+                                        <X className="w-4 h-4" />
+                                        Close Request
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </div>
                 </>
               )}
@@ -1336,295 +2567,6 @@ export default function ProfilePage() {
                 </>
               )}
 
-              {/* Business Profile Tab */}
-              {activeTab === 'business' && (
-                <>
-                  <div className="p-6 border-b flex justify-between items-center">
-                    <div>
-                      <h1 className="text-2xl font-semibold">Business Profile</h1>
-                      <p className="text-gray-600 mt-1">Manage your dealership or business information</p>
-                    </div>
-                    {hasBusinessProfile && (
-                      <div className="flex items-center gap-2">
-                        {businessProfile.isVerified && (
-                          <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
-                            <CheckCircle className="w-3 h-3" />
-                            Verified
-                          </div>
-                        )}
-                        <a
-                          href={`/dealer/${user?.id}`}
-                          target="_blank"
-                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2 text-sm"
-                        >
-                          <Eye className="w-4 h-4" />
-                          View Public Profile
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-6">
-                    {!hasBusinessProfile ? (
-                      <div className="text-center py-12">
-                        <Building2 className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">Create Your Business Profile</h3>
-                        <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                          Set up your dealership profile to showcase your business, build trust with customers, 
-                          and access advanced selling tools.
-                        </p>
-                        
-                        <div className="max-w-2xl mx-auto">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                            <div className="bg-blue-50 p-6 rounded-lg">
-                              <Star className="w-8 h-8 text-blue-600 mb-3" />
-                              <h4 className="font-semibold text-blue-900 mb-2">Build Trust</h4>
-                              <p className="text-sm text-blue-700">Verified business profile with contact information and operating hours</p>
-                            </div>
-                            <div className="bg-green-50 p-6 rounded-lg">
-                              <Globe className="w-8 h-8 text-green-600 mb-3" />
-                              <h4 className="font-semibold text-green-900 mb-2">Professional Presence</h4>
-                              <p className="text-sm text-green-700">Dedicated dealer page with your branding and vehicle inventory</p>
-                            </div>
-                          </div>
-                          
-                          <div className="bg-gray-50 rounded-lg p-8">
-                            <h4 className="text-lg font-semibold mb-6">Business Information</h4>
-                            <form className="space-y-6">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Business Name <span className="text-red-500">*</span>
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={businessProfile.businessName}
-                                    onChange={(e) => setBusinessProfile({...businessProfile, businessName: e.target.value})}
-                                    placeholder="e.g., City Motors, Premium Auto Sales"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    required
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Business Type
-                                  </label>
-                                  <select
-                                    value={businessProfile.businessType}
-                                    onChange={(e) => setBusinessProfile({...businessProfile, businessType: e.target.value})}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  >
-                                    <option value="Auto Dealer">Auto Dealer</option>
-                                    <option value="Car Showroom">Car Showroom</option>
-                                    <option value="Vehicle Importer">Vehicle Importer</option>
-                                    <option value="Auto Parts">Auto Parts</option>
-                                    <option value="Service Center">Service Center</option>
-                                    <option value="Other">Other</option>
-                                  </select>
-                                </div>
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Website
-                                  </label>
-                                  <input
-                                    type="url"
-                                    value={businessProfile.website}
-                                    onChange={(e) => setBusinessProfile({...businessProfile, website: e.target.value})}
-                                    placeholder="https://yourbusiness.com"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Business Phone
-                                  </label>
-                                  <input
-                                    type="tel"
-                                    value={businessProfile.phone}
-                                    onChange={(e) => setBusinessProfile({...businessProfile, phone: e.target.value})}
-                                    placeholder="+94 11 123 4567"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  />
-                                </div>
-                                <div className="md:col-span-2">
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Address
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={businessProfile.address}
-                                    onChange={(e) => setBusinessProfile({...businessProfile, address: e.target.value})}
-                                    placeholder="123 Main Street, Colombo 03, Sri Lanka"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  />
-                                </div>
-                                <div className="md:col-span-2">
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Business Description
-                                  </label>
-                                  <textarea
-                                    rows={4}
-                                    value={businessProfile.description}
-                                    onChange={(e) => setBusinessProfile({...businessProfile, description: e.target.value})}
-                                    placeholder="Tell customers about your business, specialties, and what makes you unique..."
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  />
-                                </div>
-                                <div className="md:col-span-2">
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Operating Hours
-                                  </label>
-                                  <textarea
-                                    rows={3}
-                                    value={businessProfile.operatingHours}
-                                    onChange={(e) => setBusinessProfile({...businessProfile, operatingHours: e.target.value})}
-                                    placeholder="Monday - Friday: 9:00 AM - 6:00 PM\nSaturday: 9:00 AM - 4:00 PM\nSunday: Closed"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  />
-                                </div>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={handleCreateBusinessProfile}
-                                disabled={businessLoading}
-                                className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                              >
-                                {businessLoading ? 'Creating Business Profile...' : 'Create Business Profile'}
-                              </button>
-                            </form>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-8">
-                          <div className="flex items-center gap-4 mb-4">
-                            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
-                              <span className="text-2xl font-bold text-white">
-                                {businessProfile.businessName.charAt(0)}
-                              </span>
-                            </div>
-                            <div>
-                              <h3 className="text-xl font-semibold text-blue-900">{businessProfile.businessName}</h3>
-                              <p className="text-blue-700">{businessProfile.businessType}</p>
-                              {businessProfile.isVerified && (
-                                <div className="flex items-center gap-1 mt-1">
-                                  <CheckCircle className="w-4 h-4 text-blue-600" />
-                                  <span className="text-sm text-blue-600 font-medium">Verified Business</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <form className="space-y-6">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Business Name <span className="text-red-500">*</span>
-                              </label>
-                              <input
-                                type="text"
-                                value={businessProfile.businessName}
-                                onChange={(e) => setBusinessProfile({...businessProfile, businessName: e.target.value})}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                required
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Business Type
-                              </label>
-                              <select
-                                value={businessProfile.businessType}
-                                onChange={(e) => setBusinessProfile({...businessProfile, businessType: e.target.value})}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              >
-                                <option value="Auto Dealer">Auto Dealer</option>
-                                <option value="Car Showroom">Car Showroom</option>
-                                <option value="Vehicle Importer">Vehicle Importer</option>
-                                <option value="Auto Parts">Auto Parts</option>
-                                <option value="Service Center">Service Center</option>
-                                <option value="Other">Other</option>
-                              </select>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Website
-                              </label>
-                              <input
-                                type="url"
-                                value={businessProfile.website}
-                                onChange={(e) => setBusinessProfile({...businessProfile, website: e.target.value})}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Business Phone
-                              </label>
-                              <input
-                                type="tel"
-                                value={businessProfile.phone}
-                                onChange={(e) => setBusinessProfile({...businessProfile, phone: e.target.value})}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              />
-                            </div>
-                            <div className="md:col-span-2">
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Address
-                              </label>
-                              <input
-                                type="text"
-                                value={businessProfile.address}
-                                onChange={(e) => setBusinessProfile({...businessProfile, address: e.target.value})}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              />
-                            </div>
-                            <div className="md:col-span-2">
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Business Description
-                              </label>
-                              <textarea
-                                rows={4}
-                                value={businessProfile.description}
-                                onChange={(e) => setBusinessProfile({...businessProfile, description: e.target.value})}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              />
-                            </div>
-                            <div className="md:col-span-2">
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Operating Hours
-                              </label>
-                              <textarea
-                                rows={3}
-                                value={businessProfile.operatingHours}
-                                onChange={(e) => setBusinessProfile({...businessProfile, operatingHours: e.target.value})}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              />
-                            </div>
-                          </div>
-                          <div className="flex gap-3">
-                            <button
-                              type="button"
-                              onClick={handleUpdateBusinessProfile}
-                              disabled={businessLoading}
-                              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
-                            >
-                              {businessLoading ? 'Updating...' : 'Update Business Profile'}
-                            </button>
-                            <button
-                              type="button"
-                              className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 font-medium"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </form>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
 
               {/* Security Tab */}
               {activeTab === 'security' && (
@@ -1823,4 +2765,376 @@ export default function ProfilePage() {
       />
     </div>
   )
+
+  // Messages Tab Component  
+  function MessagesTab() {
+    useEffect(() => {
+      if (activeTab === 'messages') {
+        fetchConversations()
+        
+        // Set up real-time subscription
+        const channel = supabase
+          .channel('conversations')
+          .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'conversations'
+          }, () => {
+            fetchConversations()
+          })
+          .subscribe()
+
+        return () => {
+          supabase.removeChannel(channel)
+        }
+      }
+    }, [activeTab])
+
+    useEffect(() => {
+      if (selectedConversation) {
+        fetchMessages(selectedConversation)
+        
+        // Set up real-time subscription for messages
+        const channel = supabase
+          .channel(`conversation-${selectedConversation}`)
+          .on('postgres_changes', {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'messages',
+            filter: `conversation_id=eq.${selectedConversation}`
+          }, () => {
+            fetchMessages(selectedConversation)
+          })
+          .subscribe()
+
+        return () => {
+          supabase.removeChannel(channel)
+        }
+      }
+    }, [selectedConversation])
+
+    const fetchConversations = async () => {
+      try {
+        const response = await fetch('/api/messages/conversations')
+        if (response.ok) {
+          const data = await response.json()
+          setConversations(data.conversations || [])
+        }
+      } catch (error) {
+        console.error('Error fetching conversations:', error)
+      }
+    }
+
+    const fetchMessages = async (conversationId: string) => {
+      setLoadingMessages(true)
+      try {
+        const response = await fetch(`/api/messages/${conversationId}`)
+        if (response.ok) {
+          const data = await response.json()
+          setMessages(data.messages || [])
+        }
+      } catch (error) {
+        console.error('Error fetching messages:', error)
+      } finally {
+        setLoadingMessages(false)
+      }
+    }
+
+    const sendMessage = async (e: React.FormEvent) => {
+      e.preventDefault()
+      if (!newMessage.trim() || sendingMessage || !selectedConversation) return
+
+      setSendingMessage(true)
+      try {
+        const response = await fetch(`/api/messages/${selectedConversation}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: newMessage })
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setMessages([...messages, data.message])
+          setNewMessage('')
+        }
+      } catch (error) {
+        console.error('Error sending message:', error)
+      } finally {
+        setSendingMessage(false)
+      }
+    }
+
+    const filteredConversations = conversations.filter(conv => {
+      if (searchTerm === '') return true
+      const otherUser = conv.current_user_role === 'buyer' 
+        ? conv.seller.profiles.name 
+        : conv.buyer.profiles.name
+      return conv.listing_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+             (otherUser?.toLowerCase().includes(searchTerm.toLowerCase()))
+    })
+
+    const formatDate = (dateString: string) => {
+      const date = new Date(dateString)
+      const now = new Date()
+      const diff = now.getTime() - date.getTime()
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+      
+      if (days === 0) {
+        const hours = Math.floor(diff / (1000 * 60 * 60))
+        if (hours === 0) {
+          const minutes = Math.floor(diff / (1000 * 60))
+          return `${minutes}m ago`
+        }
+        return `${hours}h ago`
+      } else if (days < 7) {
+        return `${days}d ago`
+      } else {
+        return date.toLocaleDateString()
+      }
+    }
+
+    const formatPrice = (price: number) => {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'LKR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(price).replace('LKR', 'Rs.')
+    }
+
+    if (selectedConversation) {
+      const conversation = conversations.find(c => c.id === selectedConversation)
+      if (!conversation) return null
+
+      const otherUser = conversation.current_user_role === 'buyer' 
+        ? conversation.seller
+        : conversation.buyer
+
+      const currentUserId = user?.id
+
+      return (
+        <>
+          {/* Conversation Header */}
+          <div className="border-b px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <button 
+                  onClick={() => setSelectedConversation(null)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+                
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                    <User className="w-5 h-5 text-gray-500" />
+                  </div>
+                  <div>
+                    <h2 className="font-semibold">{otherUser.profiles.name || 'User'}</h2>
+                    <p className="text-sm text-gray-500">
+                      {conversation.current_user_role === 'buyer' ? 'Seller' : 'Buyer'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Listing Info */}
+              <div className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                {conversation.listing_image_url ? (
+                  <img
+                    src={conversation.listing_image_url}
+                    alt={conversation.listing_title}
+                    className="w-12 h-12 object-cover rounded"
+                  />
+                ) : (
+                  <div className="w-12 h-12 bg-gray-200 rounded"></div>
+                )}
+                <div className="text-right">
+                  <p className="text-sm font-medium truncate max-w-[200px]">
+                    {conversation.listing_title}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {formatPrice(conversation.listing_price)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 h-96">
+            {loadingMessages ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="text-center text-gray-500 py-8">
+                <p>No messages yet. Start the conversation!</p>
+              </div>
+            ) : (
+              messages.map((message, index) => {
+                const isCurrentUser = message.sender_id === currentUserId
+                const showDate = index === 0 || 
+                  new Date(messages[index - 1].created_at).toDateString() !== 
+                  new Date(message.created_at).toDateString()
+
+                return (
+                  <div key={message.id}>
+                    {showDate && (
+                      <div className="text-center text-xs text-gray-500 my-4">
+                        {formatDate(message.created_at).split(' ')[0]}
+                      </div>
+                    )}
+                    <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[70%] ${isCurrentUser ? 'order-2' : ''}`}>
+                        <div 
+                          className={`rounded-lg px-4 py-2 ${
+                            isCurrentUser 
+                              ? 'bg-blue-600 text-white' 
+                              : 'bg-gray-100 text-gray-900'
+                          }`}
+                        >
+                          <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                        </div>
+                        <p className={`text-xs text-gray-500 mt-1 ${
+                          isCurrentUser ? 'text-right' : ''
+                        }`}>
+                          {formatDate(message.created_at).split(' ').slice(1).join(' ')}
+                          {isCurrentUser && message.is_read && ' • Read'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </div>
+
+          {/* Message Input */}
+          <form onSubmit={sendMessage} className="border-t px-6 py-4">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Type a message..."
+                className="flex-1 px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={sendingMessage}
+              />
+              <button
+                type="submit"
+                disabled={!newMessage.trim() || sendingMessage}
+                className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <Send className="w-5 h-5" />
+              </button>
+            </div>
+          </form>
+        </>
+      )
+    }
+
+    // Conversations List View
+    return (
+      <>
+        {/* Header */}
+        <div className="border-b px-6 py-4">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-2xl font-semibold flex items-center gap-2">
+              <MessageSquare className="w-6 h-6" />
+              Messages
+            </h1>
+          </div>
+          
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search conversations..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        {/* Conversations List */}
+        <div className="divide-y">
+          {filteredConversations.length === 0 ? (
+            <div className="px-6 py-12 text-center text-gray-500">
+              <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+              <p className="font-medium">No messages yet</p>
+              <p className="text-sm mt-2">
+                When you contact sellers about their listings, your conversations will appear here.
+              </p>
+            </div>
+          ) : (
+            filteredConversations.map(conversation => {
+              const otherUser = conversation.current_user_role === 'buyer' 
+                ? conversation.seller.profiles
+                : conversation.buyer.profiles
+              
+              return (
+                <button
+                  key={conversation.id}
+                  onClick={() => setSelectedConversation(conversation.id)}
+                  className="block w-full hover:bg-gray-50 transition-colors text-left"
+                >
+                  <div className="px-6 py-4">
+                    <div className="flex items-start gap-4">
+                      {/* Listing Image */}
+                      <div className="flex-shrink-0">
+                        {conversation.listing_image_url ? (
+                          <img
+                            src={conversation.listing_image_url}
+                            alt={conversation.listing_title}
+                            className="w-16 h-16 object-cover rounded-lg"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                            <MessageSquare className="w-6 h-6 text-gray-400" />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Conversation Details */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold text-gray-900 truncate">
+                                {otherUser.name || 'User'}
+                              </h3>
+                              {conversation.unread_count > 0 && (
+                                <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
+                                  {conversation.unread_count}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-600 truncate">
+                              {conversation.listing_title} • {formatPrice(conversation.listing_price)}
+                            </p>
+                            {conversation.last_message_preview && (
+                              <p className="text-sm text-gray-500 truncate mt-1">
+                                {conversation.last_message_preview}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <span>{formatDate(conversation.last_message_at)}</span>
+                            <ChevronRight className="w-4 h-4" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              )
+            })
+          )}
+        </div>
+      </>
+    )
+  }
 }
