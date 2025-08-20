@@ -98,19 +98,21 @@ export default function AdPaidFeatures() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Success Message */}
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-8">
-          <div className="flex items-center">
-            <i className="fas fa-check-circle text-green-600 text-2xl mr-3"></i>
-            <div>
-              <h2 className="text-xl font-bold text-green-800">Your ad is live!</h2>
-              <p className="text-green-700 mt-1">
-                Congratulations! Your ad has been published successfully and is now visible to thousands of potential buyers. 
-                Maximize your selling potential with our powerful promotion features below.
-              </p>
+        {/* Success Message - Only show when coming from new post flow */}
+        {isNewPost && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-8">
+            <div className="flex items-center">
+              <i className="fas fa-check-circle text-green-600 text-2xl mr-3"></i>
+              <div>
+                <h2 className="text-xl font-bold text-green-800">Your ad is live!</h2>
+                <p className="text-green-700 mt-1">
+                  Congratulations! Your ad is under review and will be visible to thousands of potential buyers once approved. 
+                  Maximize your selling potential with our powerful promotion features below.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Page Header */}
         <div className="text-center mb-8">

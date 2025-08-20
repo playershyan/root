@@ -9,11 +9,13 @@ import {
   Upload, Edit, Share2, RefreshCw, Clock, MoreVertical,
   Camera, MapPin, Phone, Mail, Calendar, Eye, X,
   AlertTriangle, CheckCircle, Building2, Globe, Star, Zap,
-  ChevronRight, ArrowLeft, Send, HeartOff
+  ChevronRight, ArrowLeft, Send, HeartOff, Pause, Play
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import PhoneVerificationModal from '../components/PhoneVerificationModal'
+import { sampleListings } from '@/data/sampleListingsData'
+import { sampleConversations } from '@/data/sampleMessagesData'
 
 // Types
 interface UserProfile {
@@ -55,6 +57,8 @@ interface Listing {
   takedownReason?: string
   reportCount?: number
   rejectionReason?: string
+  pauseDate?: string // Track when ad was paused to preserve renewal countdown
+  isPaused?: boolean // Distinguish between paused and under review
 }
 
 interface WantedRequest {
@@ -161,7 +165,6 @@ export default function ProfilePage() {
   const [newMessage, setNewMessage] = useState('')
   const [sendingMessage, setSendingMessage] = useState(false)
   const [loadingMessages, setLoadingMessages] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
   
   // Handle URL parameters for tab and conversation
   useEffect(() => {
@@ -177,6 +180,24 @@ export default function ProfilePage() {
       setSelectedConversation(conversationId)
     }
   }, [])
+
+  // Calculate dropdown position before rendering to prevent flicker
+  const getDropdownPosition = (elementId: string) => {
+    if (typeof window === 'undefined') return { openUp: false }
+    
+    const button = document.querySelector(`[data-dropdown-id="${elementId}"]`)
+    if (!button) return { openUp: false }
+    
+    const buttonRect = button.getBoundingClientRect()
+    const viewportHeight = window.innerHeight
+    const dropdownHeight = 200 // Approximate dropdown height
+    const spaceBelow = viewportHeight - buttonRect.bottom
+    const spaceAbove = buttonRect.top
+    
+    return {
+      openUp: spaceBelow < dropdownHeight && spaceAbove > spaceBelow
+    }
+  }
 
   
   // Business profile toggle
@@ -229,6 +250,7 @@ export default function ProfilePage() {
   // Listings data
   const [listings, setListings] = useState<Listing[]>([])
   const [listingsLoading, setListingsLoading] = useState(true)
+  const [listingStatusFilter, setListingStatusFilter] = useState<'all' | 'active' | 'sold' | 'pending' | 'paused' | 'reported'>('all')
   
   // Wanted requests data
   const [wantedRequests, setWantedRequests] = useState<WantedRequest[]>([])
@@ -271,49 +293,18 @@ export default function ProfilePage() {
     window.history.pushState({}, '', url)
   }
 
-  // Load user listings from Supabase
+  // Load user listings (using sample data)
   useEffect(() => {
     const loadListings = async () => {
-      if (!user) return
-      
-      try {
-        const { data, error } = await supabase
-          .from('listings')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('posted_date', { ascending: false })
-        
-        if (error) throw error
-        
-        if (data) {
-          // Transform the data to match our Listing interface
-          const transformedListings: Listing[] = data.map(item => ({
-            id: item.id,
-            title: item.title || `${item.make} ${item.model} ${item.year}`,
-            details: `${item.fuel_type || 'Petrol'} • ${item.transmission || 'Manual'} • ${item.mileage ? `${item.mileage.toLocaleString()} km` : 'N/A'}`,
-            price: item.price,
-            views: item.views || 0,
-            status: item.status as 'active' | 'pending' | 'sold' | 'deleted',
-            isReportedTakedown: item.is_reported_takedown || false,
-            takedownReason: item.takedown_reason,
-            reportCount: item.report_count || 0,
-            rejectionReason: item.rejection_reason,
-            postedDate: new Date(item.posted_date).toLocaleDateString(),
-            image: item.primary_image_url
-          }))
-          setListings(transformedListings)
-        }
-      } catch (error) {
-        console.error('Error loading listings:', error)
-      } finally {
+      // Simulate loading delay
+      setTimeout(() => {
+        setListings(sampleListings)
         setListingsLoading(false)
-      }
+      }, 500)
     }
     
-    if (!loading && user) {
-      loadListings()
-    }
-  }, [user, loading])
+    loadListings()
+  }, [])
 
   // Load user wanted requests (sample data for now)
   useEffect(() => {
@@ -329,7 +320,7 @@ export default function ProfilePage() {
             description: 'Need a well-maintained Toyota Prius, preferably white or silver color. Low mileage preferred.',
             budget: 3500000,
             status: 'active',
-            postedDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+            postedDate: '2025-07-10', // 41 days ago - can be renewed
             responses: 12,
             location: 'Colombo',
           },
@@ -339,7 +330,7 @@ export default function ProfilePage() {
             description: 'Looking for Honda Vezel or HR-V in good condition. Any color acceptable. Must be within 4 million budget.',
             budget: 4000000,
             status: 'active',
-            postedDate: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+            postedDate: '2025-08-15', // 5 days ago - cannot be renewed (13 days remaining)
             responses: 8,
             location: 'Kandy',
           },
@@ -349,9 +340,33 @@ export default function ProfilePage() {
             description: 'Searching for BMW 3 Series F30 model, 2015 or newer. Prefer automatic transmission.',
             budget: 8500000,
             status: 'paused',
-            postedDate: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toLocaleDateString(), 
+            postedDate: '2025-07-25', // 26 days ago - can be renewed
             responses: 5,
             location: 'Galle',
+          },
+          {
+            id: '4',
+            title: 'Looking for Mercedes-Benz C-Class',
+            description: 'Need C200 or C250, must be in excellent condition with AMG package',
+            budget: 12000000,
+            status: 'deleted',
+            postedDate: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+            responses: 15,
+            location: 'Colombo',
+            isReportedTakedown: true,
+            rejectionReason: 'Multiple reports: Suspected fraudulent payment terms'
+          },
+          {
+            id: '5',
+            title: 'Urgent: Need any SUV under 5M',
+            description: 'Looking for any SUV in good condition, prefer Japanese brands',
+            budget: 5000000,
+            status: 'deleted',
+            postedDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+            responses: 7,
+            location: 'Matara',
+            isReportedTakedown: true,
+            rejectionReason: 'Reported: Suspicious contact information provided'
           }
         ]
         
@@ -534,7 +549,21 @@ export default function ProfilePage() {
   // Action handlers
   const handleMarkAsSold = async (listingId: string) => {
     try {
-      // Update local state immediately for better UX
+      const response = await fetch('/api/listings/mark-sold', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ listingId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to mark listing as sold')
+      }
+
+      // Update local state
       setListings(prevListings => 
         prevListings.map(listing => 
           listing.id === listingId 
@@ -542,36 +571,30 @@ export default function ProfilePage() {
             : listing
         )
       )
-      
-      // Update in database
-      const { error } = await supabase
-        .from('listings')
-        .update({ 
-          status: 'sold',
-          sold_date: new Date().toISOString()
-        })
-        .eq('id', listingId)
-        .eq('user_id', user?.id) // Ensure user owns the listing
-      
-      if (error) throw error
-      
-      alert('Listing marked as sold successfully!')
+
+      alert(data.message)
     } catch (error) {
       console.error('Error marking as sold:', error)
-      // Revert local state on error
-      setListings(prevListings => 
-        prevListings.map(listing => 
-          listing.id === listingId 
-            ? { ...listing, status: 'active' as const }
-            : listing
-        )
-      )
-      alert('Failed to mark listing as sold')
+      alert(error instanceof Error ? error.message : 'Failed to mark listing as sold')
     }
   }
   
   const handleRelist = async (listingId: string) => {
     try {
+      const response = await fetch('/api/listings/relist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ listingId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to relist')
+      }
+
       // Update local state - set to pending (under review)
       setListings(prevListings => 
         prevListings.map(listing => 
@@ -580,32 +603,142 @@ export default function ProfilePage() {
             : listing
         )
       )
-      
-      // Update in database
-      const { error } = await supabase
-        .from('listings')
-        .update({ 
-          status: 'pending',
-          sold_date: null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', listingId)
-        .eq('user_id', user?.id) // Ensure user owns the listing
-      
-      if (error) throw error
-      
-      alert('Listing submitted for review. It will be active once approved.')
+
+      alert(data.message)
     } catch (error) {
       console.error('Error relisting:', error)
-      // Revert local state on error
+      alert(error instanceof Error ? error.message : 'Failed to relist the item')
+    }
+  }
+
+  const calculateDaysSincePosted = (postedDate: string) => {
+    const posted = new Date(postedDate)
+    const now = new Date()
+    const diffTime = Math.abs(now.getTime() - posted.getTime())
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays
+  }
+
+  const canRenewListing = (postedDate: string) => {
+    const daysSincePosted = calculateDaysSincePosted(postedDate)
+    return daysSincePosted >= 18
+  }
+
+  const getDaysUntilRenew = (postedDate: string) => {
+    const daysSincePosted = calculateDaysSincePosted(postedDate)
+    const daysUntilRenew = 18 - daysSincePosted
+    return daysUntilRenew > 0 ? daysUntilRenew : 0
+  }
+
+  const handleRenewListing = async (listingId: string) => {
+    try {
+      // Call API to renew listing
+      const response = await fetch('/api/listings/renew', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ listingId })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to renew listing')
+      }
+
+      // Update local state on success
       setListings(prevListings => 
         prevListings.map(listing => 
           listing.id === listingId 
-            ? { ...listing, status: 'sold' as const }
+            ? { ...listing, postedDate: new Date().toISOString().split('T')[0] }
             : listing
         )
       )
-      alert('Failed to relist the item')
+
+      alert(data.message || 'Listing renewed successfully!')
+      
+      // Close the action menu
+      setShowActionMenu(null)
+    } catch (error: any) {
+      console.error('Error renewing listing:', error)
+      alert(error.message || 'Failed to renew listing. Please try again.')
+    }
+  }
+
+  const handlePauseAd = async (listingId: string) => {
+    try {
+      const response = await fetch('/api/listings/pause', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ listingId, action: 'pause' }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to pause ad')
+      }
+
+      // Update local state
+      setListings(prevListings => 
+        prevListings.map(listing => 
+          listing.id === listingId 
+            ? { 
+                ...listing, 
+                status: 'pending' as const,
+                isPaused: true,
+                pauseDate: new Date().toISOString()
+              }
+            : listing
+        )
+      )
+
+      alert(data.message)
+      setShowActionMenu(null)
+    } catch (error) {
+      console.error('Error pausing ad:', error)
+      alert(error instanceof Error ? error.message : 'Failed to pause ad. Please try again.')
+    }
+  }
+
+  const handleResumeAd = async (listingId: string) => {
+    try {
+      const response = await fetch('/api/listings/pause', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ listingId, action: 'resume' }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to resume ad')
+      }
+
+      // Update local state
+      setListings(prevListings => 
+        prevListings.map(listing => 
+          listing.id === listingId 
+            ? { 
+                ...listing, 
+                status: 'active' as const,
+                isPaused: false,
+                pauseDate: undefined
+              }
+            : listing
+        )
+      )
+
+      alert(data.message)
+      setShowActionMenu(null)
+    } catch (error) {
+      console.error('Error resuming ad:', error)
+      alert(error instanceof Error ? error.message : 'Failed to resume ad. Please try again.')
     }
   }
 
@@ -621,10 +754,56 @@ export default function ProfilePage() {
     }
   }
 
-  const handleDelete = (itemId: string, itemType: string) => {
-    if (confirm('Are you sure you want to delete this item?')) {
-      console.log(`Deleting ${itemType}:`, itemId)
-      // Implementation here
+  const handleDelete = async (itemId: string, itemType: 'listing' | 'wanted request') => {
+    if (!confirm(`Are you sure you want to move this ${itemType} to bin?`)) {
+      return
+    }
+
+    try {
+      const endpoint = itemType === 'listing' 
+        ? '/api/listings/delete'
+        : '/api/wanted-requests/delete'
+      
+      const bodyKey = itemType === 'listing' ? 'listingId' : 'requestId'
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ [bodyKey]: itemId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || `Failed to delete ${itemType}`)
+      }
+
+      // Update local state based on item type
+      if (itemType === 'listing') {
+        setListings(prevListings => 
+          prevListings.map(listing => 
+            listing.id === itemId 
+              ? { ...listing, status: 'deleted' as const }
+              : listing
+          )
+        )
+      } else {
+        setWantedRequests(prevRequests => 
+          prevRequests.map(request => 
+            request.id === itemId 
+              ? { ...request, status: 'deleted' as const }
+              : request
+          )
+        )
+      }
+
+      alert(data.message)
+      setShowActionMenu(null)
+    } catch (error) {
+      console.error(`Error deleting ${itemType}:`, error)
+      alert(error instanceof Error ? error.message : `Failed to delete ${itemType}`)
     }
   }
 
@@ -645,30 +824,59 @@ export default function ProfilePage() {
   }
 
   // Wanted request action handlers
-  const handlePauseWantedRequest = (requestId: string) => {
-    setWantedRequests(prevRequests => 
-      prevRequests.map(request => 
-        request.id === requestId 
-          ? { ...request, status: 'paused' as const }
-          : request
+  const handlePauseResumeWantedRequest = async (requestId: string, action: 'pause' | 'resume') => {
+    try {
+      const response = await fetch('/api/wanted-requests/pause', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ requestId, action }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || `Failed to ${action} wanted request`)
+      }
+
+      // Update local state
+      setWantedRequests(prevRequests => 
+        prevRequests.map(request => 
+          request.id === requestId 
+            ? { ...request, status: action === 'pause' ? 'paused' as const : 'active' as const }
+            : request
+        )
       )
-    )
-    alert('Wanted request paused successfully!')
+
+      alert(data.message)
+    } catch (error) {
+      console.error(`Error ${action}ing wanted request:`, error)
+      alert(error instanceof Error ? error.message : `Failed to ${action} wanted request`)
+    }
   }
 
-  const handleActivateWantedRequest = (requestId: string) => {
-    setWantedRequests(prevRequests => 
-      prevRequests.map(request => 
-        request.id === requestId 
-          ? { ...request, status: 'active' as const }
-          : request
-      )
-    )
-    alert('Wanted request activated successfully!')
-  }
+  const handleCloseWantedRequest = async (requestId: string) => {
+    if (!confirm('Are you sure you want to close this wanted request? This action cannot be undone.')) {
+      return
+    }
 
-  const handleCloseWantedRequest = (requestId: string) => {
-    if (confirm('Are you sure you want to close this wanted request? This action cannot be undone.')) {
+    try {
+      const response = await fetch('/api/wanted-requests/close', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ requestId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to close wanted request')
+      }
+
+      // Update local state
       setWantedRequests(prevRequests => 
         prevRequests.map(request => 
           request.id === requestId 
@@ -676,8 +884,135 @@ export default function ProfilePage() {
             : request
         )
       )
-      alert('Wanted request closed successfully!')
+
+      alert(data.message)
+    } catch (error) {
+      console.error('Error closing wanted request:', error)
+      alert(error instanceof Error ? error.message : 'Failed to close wanted request')
     }
+  }
+
+  const handleRenewWantedRequest = async (requestId: string) => {
+    try {
+      const response = await fetch('/api/wanted-requests/renew', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ requestId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to renew wanted request')
+      }
+
+      // Update local state
+      setWantedRequests(prevRequests => 
+        prevRequests.map(request => 
+          request.id === requestId 
+            ? { ...request, status: 'active' as const, postedDate: new Date().toLocaleDateString() }
+            : request
+        )
+      )
+
+      alert(data.message)
+    } catch (error) {
+      console.error('Error renewing wanted request:', error)
+      alert(error instanceof Error ? error.message : 'Failed to renew wanted request')
+    }
+  }
+
+  // Refresh wanted requests data when returning from edit
+  useEffect(() => {
+    const handleFocus = () => {
+      if (tab === 'wanted') {
+        // Reload wanted requests data when page gets focus
+        // This will refresh the list after editing
+        const loadWantedRequests = async () => {
+          if (!user) return
+          
+          try {
+            // Use the same sample data loading logic as before
+            const sampleWantedRequests: WantedRequest[] = [
+              {
+                id: '1',
+                title: 'Looking for Toyota Prius 2018-2020',
+                description: 'Need a well-maintained Toyota Prius, preferably white or silver color. Low mileage preferred.',
+                budget: 3500000,
+                status: 'active',
+                postedDate: '2025-07-10', // 41 days ago - can be renewed
+                responses: 12,
+                location: 'Colombo',
+              },
+              {
+                id: '2', 
+                title: 'Honda Vezel or HR-V under 4M',
+                description: 'Looking for Honda Vezel or HR-V in good condition. Any color acceptable. Must be within 4 million budget.',
+                budget: 4000000,
+                status: 'active',
+                postedDate: '2025-08-15', // 5 days ago - cannot be renewed (13 days remaining)
+                responses: 8,
+                location: 'Kandy',
+              },
+              {
+                id: '3',
+                title: 'BMW 3 Series F30 - 2015 onwards',
+                description: 'Searching for BMW 3 Series F30 model, 2015 or newer. Prefer automatic transmission.',
+                budget: 8500000,
+                status: 'paused',
+                postedDate: '2025-07-25', // 26 days ago - can be renewed
+                responses: 5,
+                location: 'Galle',
+              },
+              {
+                id: '4',
+                title: 'Looking for Mercedes-Benz C-Class',
+                description: 'Need C200 or C250, must be in excellent condition with AMG package',
+                budget: 12000000,
+                status: 'deleted',
+                postedDate: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+                responses: 15,
+                location: 'Colombo',
+                isReportedTakedown: true,
+                rejectionReason: 'Multiple reports: Suspected fraudulent payment terms'
+              },
+              {
+                id: '5',
+                title: 'Urgent: Need any SUV under 5M',
+                description: 'Looking for any SUV in good condition, prefer Japanese brands',
+                budget: 5000000,
+                status: 'deleted',
+                postedDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+                responses: 7,
+                location: 'Matara',
+                isReportedTakedown: true,
+                rejectionReason: 'Reported: Suspicious contact information provided'
+              }
+            ]
+            
+            setWantedRequests(sampleWantedRequests)
+          } catch (error) {
+            console.error('Error refreshing wanted requests:', error)
+          }
+        }
+        
+        loadWantedRequests()
+      }
+    }
+
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [user, tab])
+
+  // Helper function to calculate days until renewal for wanted requests
+  const getDaysUntilWantedRequestRenewal = (postedDate: string) => {
+    const posted = new Date(postedDate)
+    const now = new Date()
+    const daysSincePosted = Math.floor((now.getTime() - posted.getTime()) / (1000 * 60 * 60 * 24))
+    const daysUntilRenewal = 18 - daysSincePosted
+    return daysUntilRenewal > 0 ? daysUntilRenewal : 0
   }
 
   const handleShareWantedRequest = (requestId: string) => {
@@ -918,6 +1253,17 @@ export default function ProfilePage() {
       handleSendPhoneOtp(profile.phone)
     }
   }
+
+  // Filter listings based on selected status
+  const filteredListings = listings.filter(listing => {
+    if (listingStatusFilter === 'all') return true
+    if (listingStatusFilter === 'active') return listing.status === 'active'
+    if (listingStatusFilter === 'sold') return listing.status === 'sold'
+    if (listingStatusFilter === 'pending') return listing.status === 'pending' && !listing.isPaused
+    if (listingStatusFilter === 'paused') return listing.status === 'pending' && listing.isPaused
+    if (listingStatusFilter === 'reported') return listing.status === 'deleted' && listing.isReportedTakedown
+    return true
+  })
 
   // Stats calculation
   const stats = {
@@ -1472,10 +1818,22 @@ export default function ProfilePage() {
               {/* Listings Tab */}
               {activeTab === 'listings' && (
                 <>
-                  <div className="p-6 border-b flex justify-between items-center">
-                    <h1 className="text-2xl font-semibold">My Listings</h1>
+                  <div className="p-4 md:p-6 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <h1 className="text-xl md:text-2xl font-semibold">My Listings</h1>
+                    <select
+                      value={listingStatusFilter}
+                      onChange={(e) => setListingStatusFilter(e.target.value as any)}
+                      className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="all">All Listings</option>
+                      <option value="active">Active</option>
+                      <option value="sold">Sold</option>
+                      <option value="pending">Under Review</option>
+                      <option value="paused">Paused</option>
+                      <option value="reported">Reported & Removed</option>
+                    </select>
                   </div>
-                  <div className="p-6">
+                  <div className="p-4 md:p-6">
 
                     {/* Listings Table */}
                     {listingsLoading ? (
@@ -1483,11 +1841,15 @@ export default function ProfilePage() {
                         <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                         <p className="text-gray-600">Loading your listings...</p>
                       </div>
-                    ) : listings.length === 0 ? (
+                    ) : filteredListings.length === 0 ? (
                       <div className="text-center py-12">
                         <Car className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                        <p className="font-medium text-gray-900 mb-1">No listings yet</p>
-                        <p className="text-sm text-gray-600 mb-4">Start selling by posting your first vehicle</p>
+                        <p className="font-medium text-gray-900 mb-1">
+                          {listingStatusFilter === 'all' ? 'No listings yet' : `No ${listingStatusFilter === 'pending' ? 'under review' : listingStatusFilter === 'reported' ? 'reported' : listingStatusFilter} listings`}
+                        </p>
+                        <p className="text-sm text-gray-600 mb-4">
+                          {listingStatusFilter === 'all' ? 'Start selling by posting your first vehicle' : 'Try selecting a different filter'}
+                        </p>
                         <Link
                           href="/post"
                           className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium inline-block"
@@ -1498,7 +1860,7 @@ export default function ProfilePage() {
                     ) : (
                       <>
                         {/* Desktop Table View */}
-                        <div className="hidden md:block overflow-x-auto">
+                        <div className="hidden md:block overflow-hidden">
                         <table className="w-full">
                           <thead className="bg-gray-50 border-b">
                             <tr>
@@ -1511,7 +1873,7 @@ export default function ProfilePage() {
                             </tr>
                           </thead>
                           <tbody className="divide-y">
-                            {listings.map((listing) => (
+                            {filteredListings.map((listing) => (
                             <tr key={listing.id} className="hover:bg-gray-50">
                               <td className="px-4 py-4">
                                 <div className="flex items-center gap-3">
@@ -1545,15 +1907,13 @@ export default function ProfilePage() {
                                       : 'bg-gray-100 text-gray-800'
                                   }`}>
                                     {listing.status === 'active' ? 'Active' : 
+                                     listing.status === 'pending' && listing.isPaused ? 'Paused' :
                                      listing.status === 'pending' ? 'Under Review' :
                                      listing.status === 'deleted' && listing.isReportedTakedown ? 'Reported & Removed' :
                                      listing.status === 'deleted' && listing.rejectionReason ? 'Rejected' :
                                      listing.status === 'deleted' ? 'Deleted' : 'Sold'}
                                   </span>
-                                  {listing.isReportedTakedown && (
-                                    <p className="text-xs text-red-600 font-medium">⚠️ Removed due to reports</p>
-                                  )}
-                                  {listing.rejectionReason && (
+                                  {listing.status === 'deleted' && listing.rejectionReason && (
                                     <p className="text-xs text-red-600">Reason: {listing.rejectionReason}</p>
                                   )}
                                 </div>
@@ -1585,22 +1945,13 @@ export default function ProfilePage() {
                                       <p className="text-xs text-red-700 font-medium mb-2">
                                         {listing.isReportedTakedown ? 'Your listing was reported and removed' : 'Your listing was rejected'}
                                       </p>
-                                      <div className="flex gap-2">
-                                        <Link 
-                                          href={`/post?edit=${listing.id}`}
-                                          className="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 inline-flex items-center gap-1 font-medium transition-all"
-                                        >
-                                          <Edit className="w-3 h-3" />
-                                          Edit
-                                        </Link>
-                                        <button
-                                          onClick={() => handleRelist(listing.id)}
-                                          className="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 flex items-center gap-1 font-medium transition-all"
-                                        >
-                                          <RefreshCw className="w-3 h-3" />
-                                          Relist
-                                        </button>
-                                      </div>
+                                      <Link 
+                                        href={`/post?edit=${listing.id}`}
+                                        className="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 inline-flex items-center gap-1 font-medium transition-all"
+                                      >
+                                        <Edit className="w-3 h-3" />
+                                        Edit & Resubmit
+                                      </Link>
                                     </div>
                                   )}
                                   
@@ -1624,8 +1975,9 @@ export default function ProfilePage() {
                                   )}
                                   
                                   {listing.status !== 'sold' && (
-                                    <div className="relative">
+                                    <div className="relative overflow-visible">
                                     <button
+                                      data-dropdown-id={listing.id}
                                       onClick={() => setShowActionMenu(showActionMenu === listing.id ? null : listing.id)}
                                       className="p-1 hover:bg-gray-100 rounded"
                                     >
@@ -1633,7 +1985,11 @@ export default function ProfilePage() {
                                     </button>
                                     
                                     {showActionMenu === listing.id && (
-                                      <div className="absolute right-0 top-8 bg-white border rounded-lg shadow-lg py-2 z-10 w-48">
+                                      <div className={`absolute right-0 bg-white border rounded-lg shadow-lg py-2 z-50 w-48 ${
+                                        getDropdownPosition(listing.id).openUp 
+                                          ? 'bottom-full mb-1' 
+                                          : 'top-full mt-1'
+                                      }`}>
                                         <button 
                                           onClick={() => handleShare(listing.id)}
                                           className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
@@ -1648,14 +2004,54 @@ export default function ProfilePage() {
                                           <Edit className="w-4 h-4" />
                                           Edit Listing
                                         </Link>
-                                        <button className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2">
-                                          <RefreshCw className="w-4 h-4" />
-                                          Renew Listing
-                                        </button>
-                                        <button className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2">
-                                          <Clock className="w-4 h-4" />
-                                          Mark as Pending
-                                        </button>
+                                        {listing.status === 'active' && (
+                                          <button 
+                                            onClick={() => canRenewListing(listing.postedDate) ? handleRenewListing(listing.id) : null}
+                                            disabled={!canRenewListing(listing.postedDate)}
+                                            className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 ${
+                                              canRenewListing(listing.postedDate) 
+                                                ? 'hover:bg-gray-50 cursor-pointer' 
+                                                : 'opacity-50 cursor-not-allowed'
+                                            }`}
+                                          >
+                                            <RefreshCw className="w-4 h-4" />
+                                            <span>
+                                              Renew Listing
+                                              {!canRenewListing(listing.postedDate) && (
+                                                <span className="text-xs text-gray-500 ml-1">
+                                                  ({getDaysUntilRenew(listing.postedDate)} days to renew)
+                                                </span>
+                                              )}
+                                            </span>
+                                          </button>
+                                        )}
+                                        {listing.status === 'active' && !listing.isPaused && (
+                                          <button 
+                                            onClick={() => handlePauseAd(listing.id)}
+                                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                                          >
+                                            <Pause className="w-4 h-4" />
+                                            Pause Ad
+                                          </button>
+                                        )}
+                                        {listing.status === 'pending' && listing.isPaused && (
+                                          <>
+                                            <button 
+                                              onClick={() => handleResumeAd(listing.id)}
+                                              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                                            >
+                                              <Play className="w-4 h-4" />
+                                              Resume Ad
+                                            </button>
+                                            <button 
+                                              onClick={() => handleMarkAsSold(listing.id)}
+                                              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                                            >
+                                              <CheckCircle className="w-4 h-4" />
+                                              Mark as Sold
+                                            </button>
+                                          </>
+                                        )}
                                         <hr className="my-2" />
                                         <button 
                                           onClick={() => handleDelete(listing.id, 'listing')}
@@ -1678,7 +2074,7 @@ export default function ProfilePage() {
 
                       {/* Mobile Card View */}
                       <div className="md:hidden space-y-4">
-                        {listings.map((listing) => (
+                        {filteredListings.map((listing) => (
                           <div key={listing.id} className="bg-white border rounded-lg shadow-sm">
                             {/* Card Header with Image and Title */}
                             <div className="p-4">
@@ -1696,8 +2092,9 @@ export default function ProfilePage() {
                                   <p className="text-sm text-gray-600 mt-1 line-clamp-2">{listing.details}</p>
                                   <div className="flex items-center justify-between mt-2">
                                     <span className="text-lg font-bold text-gray-900">Rs. {listing.price.toLocaleString()}</span>
-                                    <div className="relative">
+                                    <div className="relative overflow-visible">
                                       <button
+                                        data-dropdown-id={listing.id}
                                         onClick={() => setShowActionMenu(showActionMenu === listing.id ? null : listing.id)}
                                         className="p-2 hover:bg-gray-100 rounded-full"
                                       >
@@ -1705,7 +2102,11 @@ export default function ProfilePage() {
                                       </button>
                                       
                                       {showActionMenu === listing.id && (
-                                        <div className="absolute right-0 top-10 bg-white border rounded-lg shadow-lg py-2 z-10 w-48">
+                                        <div className={`absolute right-0 bg-white border rounded-lg shadow-lg py-2 z-50 w-48 ${
+                                          getDropdownPosition(listing.id).openUp 
+                                            ? 'bottom-full mb-1' 
+                                            : 'top-full mt-1'
+                                        }`}>
                                           <button 
                                             onClick={() => handleShare(listing.id)}
                                             className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
@@ -1720,14 +2121,54 @@ export default function ProfilePage() {
                                             <Edit className="w-4 h-4" />
                                             Edit Listing
                                           </Link>
-                                          <button className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2">
-                                            <RefreshCw className="w-4 h-4" />
-                                            Renew Listing
-                                          </button>
-                                          <button className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2">
-                                            <Clock className="w-4 h-4" />
-                                            Mark as Pending
-                                          </button>
+                                          {listing.status === 'active' && (
+                                            <button 
+                                              onClick={() => canRenewListing(listing.postedDate) ? handleRenewListing(listing.id) : null}
+                                              disabled={!canRenewListing(listing.postedDate)}
+                                              className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 ${
+                                                canRenewListing(listing.postedDate) 
+                                                  ? 'hover:bg-gray-50 cursor-pointer' 
+                                                  : 'opacity-50 cursor-not-allowed'
+                                              }`}
+                                            >
+                                              <RefreshCw className="w-4 h-4" />
+                                              <span>
+                                                Renew Listing
+                                                {!canRenewListing(listing.postedDate) && (
+                                                  <span className="text-xs text-gray-500 ml-1">
+                                                    ({getDaysUntilRenew(listing.postedDate)} days to renew)
+                                                  </span>
+                                                )}
+                                              </span>
+                                            </button>
+                                          )}
+                                          {listing.status === 'active' && !listing.isPaused && (
+                                            <button 
+                                              onClick={() => handlePauseAd(listing.id)}
+                                              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                                            >
+                                              <Pause className="w-4 h-4" />
+                                              Pause Ad
+                                            </button>
+                                          )}
+                                          {listing.status === 'pending' && listing.isPaused && (
+                                            <>
+                                              <button 
+                                                onClick={() => handleResumeAd(listing.id)}
+                                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                                              >
+                                                <Play className="w-4 h-4" />
+                                                Resume Ad
+                                              </button>
+                                              <button 
+                                                onClick={() => handleMarkAsSold(listing.id)}
+                                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                                              >
+                                                <CheckCircle className="w-4 h-4" />
+                                                Mark as Sold
+                                              </button>
+                                            </>
+                                          )}
                                           <hr className="my-2" />
                                           <button 
                                             onClick={() => handleDelete(listing.id, 'listing')}
@@ -1768,15 +2209,13 @@ export default function ProfilePage() {
                                     : 'bg-gray-100 text-gray-800'
                                 }`}>
                                   {listing.status === 'active' ? 'Active' : 
+                                   listing.status === 'pending' && listing.isPaused ? 'Paused' :
                                    listing.status === 'pending' ? 'Under Review' :
                                    listing.status === 'deleted' && listing.isReportedTakedown ? 'Reported & Removed' :
                                    listing.status === 'deleted' && listing.rejectionReason ? 'Rejected' :
                                    listing.status === 'deleted' ? 'Deleted' : 'Sold'}
                                 </span>
-                                {listing.isReportedTakedown && (
-                                  <p className="text-xs text-red-600 font-medium mt-1">⚠️ Removed due to reports</p>
-                                )}
-                                {listing.rejectionReason && (
+                                {listing.status === 'deleted' && listing.rejectionReason && (
                                   <p className="text-xs text-red-600 mt-1">Reason: {listing.rejectionReason}</p>
                                 )}
                               </div>
@@ -1807,22 +2246,13 @@ export default function ProfilePage() {
                                     <p className="text-xs text-red-700 font-medium mb-2">
                                       {listing.isReportedTakedown ? 'Your listing was reported and removed' : 'Your listing was rejected'}
                                     </p>
-                                    <div className="flex gap-2">
-                                      <Link 
-                                        href={`/post?edit=${listing.id}`}
-                                        className="flex-1 bg-red-600 text-white py-2 px-3 rounded text-xs hover:bg-red-700 flex items-center justify-center gap-1 font-medium transition-all"
-                                      >
-                                        <Edit className="w-3 h-3" />
-                                        Edit & Resubmit
-                                      </Link>
-                                      <button
-                                        onClick={() => handleRelist(listing.id)}
-                                        className="flex-1 bg-blue-600 text-white py-2 px-3 rounded text-xs hover:bg-blue-700 flex items-center justify-center gap-1 font-medium transition-all"
-                                      >
-                                        <RefreshCw className="w-3 h-3" />
-                                        Relist
-                                      </button>
-                                    </div>
+                                    <Link 
+                                      href={`/post?edit=${listing.id}`}
+                                      className="block bg-red-600 text-white py-2 px-3 rounded text-xs hover:bg-red-700 flex items-center justify-center gap-1 font-medium transition-all"
+                                    >
+                                      <Edit className="w-3 h-3" />
+                                      Edit & Resubmit
+                                    </Link>
                                   </div>
                                 )}
                                 
@@ -1927,6 +2357,7 @@ export default function ProfilePage() {
                                         </Link>
                                         <div className="relative ml-2">
                                           <button
+                                            data-dropdown-id={ad.id}
                                             onClick={() => setShowActionMenu(showActionMenu === ad.id ? null : ad.id)}
                                             className="p-1 hover:bg-gray-100 rounded"
                                           >
@@ -1934,7 +2365,11 @@ export default function ProfilePage() {
                                           </button>
                                           
                                           {showActionMenu === ad.id && (
-                                            <div className="absolute right-0 top-6 bg-white border rounded-lg shadow-lg py-2 z-10 w-48">
+                                            <div className={`absolute right-0 bg-white border rounded-lg shadow-lg py-2 z-50 w-48 ${
+                                              getDropdownPosition(ad.id).openUp 
+                                                ? 'bottom-full mb-1' 
+                                                : 'top-full mt-1'
+                                            }`}>
                                               <Link
                                                 href={`/listings/${ad.id}`}
                                                 className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 block"
@@ -2034,6 +2469,7 @@ export default function ProfilePage() {
                                         </Link>
                                         <div className="relative ml-2">
                                           <button
+                                            data-dropdown-id={request.id}
                                             onClick={() => setShowActionMenu(showActionMenu === request.id ? null : request.id)}
                                             className="p-1 hover:bg-gray-100 rounded"
                                           >
@@ -2041,7 +2477,11 @@ export default function ProfilePage() {
                                           </button>
                                           
                                           {showActionMenu === request.id && (
-                                            <div className="absolute right-0 top-6 bg-white border rounded-lg shadow-lg py-2 z-10 w-48">
+                                            <div className={`absolute right-0 bg-white border rounded-lg shadow-lg py-2 z-50 w-48 ${
+                                              getDropdownPosition(request.id).openUp 
+                                                ? 'bottom-full mb-1' 
+                                                : 'top-full mt-1'
+                                            }`}>
                                               <Link
                                                 href={`/wanted/${request.id}`}
                                                 className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 block"
@@ -2161,7 +2601,7 @@ export default function ProfilePage() {
                     ) : (
                       <>
                         {/* Desktop Table View */}
-                        <div className="hidden md:block overflow-x-auto">
+                        <div className="hidden md:block overflow-hidden">
                           <table className="w-full">
                             <thead className="bg-gray-50 border-b">
                               <tr>
@@ -2205,44 +2645,64 @@ export default function ProfilePage() {
                                   }`}>
                                     {request.status === 'active' ? 'Active' : 
                                      request.status === 'paused' ? 'Paused' :
-                                     request.status === 'closed' ? 'Closed' : 'Deleted'}
+                                     request.status === 'closed' ? 'Closed' : 
+                                     request.status === 'deleted' && request.isReportedTakedown ? 'Reported' :
+                                     'Deleted'}
                                   </span>
                                 </td>
                                 <td className="px-4 py-4 text-sm text-gray-600">{request.postedDate}</td>
                                 <td className="px-4 py-4">
                                   <div className="flex items-center gap-2">
                                     {request.status === 'active' && (
-                                      <button
-                                        onClick={() => handlePauseWantedRequest(request.id)}
-                                        className="bg-yellow-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-yellow-700 flex items-center gap-1 font-medium transition-all"
-                                      >
-                                        <Clock className="w-3 h-3" />
-                                        Pause
-                                      </button>
+                                      <>
+                                        <button
+                                          onClick={() => handleCloseWantedRequest(request.id)}
+                                          className="bg-gray-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-gray-700 flex items-center gap-1 font-medium transition-all"
+                                        >
+                                          <X className="w-3 h-3" />
+                                          Close
+                                        </button>
+                                        <Link 
+                                          href={`/wanted-request/paid-features?request=${request.id}`}
+                                          className="bg-amber-500 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-amber-600 inline-flex items-center gap-1 font-medium shadow-sm transition-all"
+                                        >
+                                          <Zap className="w-3 h-3 animate-pulse" />
+                                          Boost
+                                        </Link>
+                                      </>
                                     )}
 
                                     {request.status === 'paused' && (
-                                      <button
-                                        onClick={() => handleActivateWantedRequest(request.id)}
-                                        className="bg-green-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-green-700 flex items-center gap-1 font-medium transition-all"
-                                      >
-                                        <CheckCircle className="w-3 h-3" />
-                                        Activate
-                                      </button>
+                                      <>
+                                        <button
+                                          onClick={() => handlePauseResumeWantedRequest(request.id, 'resume')}
+                                          className="bg-green-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-green-700 flex items-center gap-1 font-medium transition-all"
+                                        >
+                                          <Play className="w-3 h-3" />
+                                          Resume
+                                        </button>
+                                        <button
+                                          onClick={() => handleCloseWantedRequest(request.id)}
+                                          className="bg-gray-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-gray-700 flex items-center gap-1 font-medium transition-all"
+                                        >
+                                          <X className="w-3 h-3" />
+                                          Close
+                                        </button>
+                                      </>
                                     )}
-
-                                    {(request.status === 'active' || request.status === 'paused') && (
-                                      <button
-                                        onClick={() => handleCloseWantedRequest(request.id)}
-                                        className="bg-gray-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-gray-700 flex items-center gap-1 font-medium transition-all"
+                                    {request.status === 'deleted' && request.isReportedTakedown && (
+                                      <Link
+                                        href={`/wanted/edit/${request.id}`}
+                                        className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-red-700 inline-flex items-center gap-1 font-medium transition-all"
                                       >
-                                        <X className="w-3 h-3" />
-                                        Close
-                                      </button>
+                                        <Edit className="w-3 h-3" />
+                                        Edit & Resubmit
+                                      </Link>
                                     )}
                                     
-                                    <div className="relative">
+                                    <div className="relative overflow-visible">
                                       <button
+                                        data-dropdown-id={request.id}
                                         onClick={() => setShowActionMenu(showActionMenu === request.id ? null : request.id)}
                                         className="p-1 hover:bg-gray-100 rounded"
                                       >
@@ -2250,7 +2710,11 @@ export default function ProfilePage() {
                                       </button>
                                       
                                       {showActionMenu === request.id && (
-                                        <div className="absolute right-0 top-8 bg-white border rounded-lg shadow-lg py-2 z-10 w-48">
+                                        <div className={`absolute right-0 bg-white border rounded-lg shadow-lg py-2 z-50 w-48 ${
+                                          getDropdownPosition(request.id).openUp 
+                                            ? 'bottom-full mb-1' 
+                                            : 'top-full mt-1'
+                                        }`}>
                                           <button 
                                             onClick={() => handleShareWantedRequest(request.id)}
                                             className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
@@ -2265,6 +2729,45 @@ export default function ProfilePage() {
                                             <Edit className="w-4 h-4" />
                                             Edit Request
                                           </Link>
+                                          
+                                          {(request.status === 'active' || request.status === 'paused') && (
+                                            <>
+                                              <hr className="my-2" />
+                                              {request.status === 'active' ? (
+                                                <>
+                                                  <button 
+                                                    onClick={() => handlePauseResumeWantedRequest(request.id, 'pause')}
+                                                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                                                  >
+                                                    <Pause className="w-4 h-4" />
+                                                    Pause Request
+                                                  </button>
+                                                  
+                                                  <button 
+                                                    onClick={() => handleRenewWantedRequest(request.id)}
+                                                    className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 ${
+                                                      getDaysUntilWantedRequestRenewal(request.postedDate) > 0 
+                                                        ? 'text-gray-400 cursor-not-allowed' 
+                                                        : 'text-gray-900'
+                                                    }`}
+                                                    disabled={getDaysUntilWantedRequestRenewal(request.postedDate) > 0}
+                                                    title={
+                                                      getDaysUntilWantedRequestRenewal(request.postedDate) > 0 
+                                                        ? `${getDaysUntilWantedRequestRenewal(request.postedDate)} days to renew`
+                                                        : 'Renew request to boost visibility'
+                                                    }
+                                                  >
+                                                    <RefreshCw className="w-4 h-4" />
+                                                    {getDaysUntilWantedRequestRenewal(request.postedDate) > 0 
+                                                      ? `${getDaysUntilWantedRequestRenewal(request.postedDate)} days to renew`
+                                                      : 'Renew Request'
+                                                    }
+                                                  </button>
+                                                </>
+                                              ) : null}
+                                            </>
+                                          )}
+                                          
                                           <hr className="my-2" />
                                           <button 
                                             onClick={() => handleDelete(request.id, 'wanted request')}
@@ -2300,8 +2803,9 @@ export default function ProfilePage() {
                                     </Link>
                                     <p className="text-sm text-gray-600 mt-1 line-clamp-2">{request.description}</p>
                                   </div>
-                                  <div className="relative ml-3">
+                                  <div className="relative ml-3 overflow-visible">
                                     <button
+                                      data-dropdown-id={request.id}
                                       onClick={() => setShowActionMenu(showActionMenu === request.id ? null : request.id)}
                                       className="p-2 hover:bg-gray-100 rounded-full"
                                     >
@@ -2309,7 +2813,11 @@ export default function ProfilePage() {
                                     </button>
                                     
                                     {showActionMenu === request.id && (
-                                      <div className="absolute right-0 top-10 bg-white border rounded-lg shadow-lg py-2 z-10 w-48">
+                                      <div className={`absolute right-0 bg-white border rounded-lg shadow-lg py-2 z-50 w-48 ${
+                                        getDropdownPosition(request.id).openUp 
+                                          ? 'bottom-full mb-1' 
+                                          : 'top-full mt-1'
+                                      }`}>
                                         <button 
                                           onClick={() => handleShareWantedRequest(request.id)}
                                           className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
@@ -2324,6 +2832,45 @@ export default function ProfilePage() {
                                           <Edit className="w-4 h-4" />
                                           Edit Request
                                         </Link>
+                                        
+                                        {(request.status === 'active' || request.status === 'paused') && (
+                                          <>
+                                            <hr className="my-2" />
+                                            {request.status === 'active' ? (
+                                              <>
+                                                <button 
+                                                  onClick={() => handlePauseResumeWantedRequest(request.id, 'pause')}
+                                                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                                                >
+                                                  <Pause className="w-4 h-4" />
+                                                  Pause Request
+                                                </button>
+                                                
+                                                <button 
+                                                  onClick={() => handleRenewWantedRequest(request.id)}
+                                                  className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 ${
+                                                    getDaysUntilWantedRequestRenewal(request.postedDate) > 0 
+                                                      ? 'text-gray-400 cursor-not-allowed' 
+                                                      : 'text-gray-900'
+                                                  }`}
+                                                  disabled={getDaysUntilWantedRequestRenewal(request.postedDate) > 0}
+                                                  title={
+                                                    getDaysUntilWantedRequestRenewal(request.postedDate) > 0 
+                                                      ? `${getDaysUntilWantedRequestRenewal(request.postedDate)} days to renew`
+                                                      : 'Renew request to boost visibility'
+                                                  }
+                                                >
+                                                  <RefreshCw className="w-4 h-4" />
+                                                  {getDaysUntilWantedRequestRenewal(request.postedDate) > 0 
+                                                    ? `${getDaysUntilWantedRequestRenewal(request.postedDate)} days to renew`
+                                                    : 'Renew Request'
+                                                  }
+                                                </button>
+                                              </>
+                                            ) : null}
+                                          </>
+                                        )}
+                                        
                                         <hr className="my-2" />
                                         <button 
                                           onClick={() => handleDelete(request.id, 'wanted request')}
@@ -2365,40 +2912,59 @@ export default function ProfilePage() {
                                     }`}>
                                       {request.status === 'active' ? 'Active' : 
                                        request.status === 'paused' ? 'Paused' :
-                                       request.status === 'closed' ? 'Closed' : 'Deleted'}
+                                       request.status === 'closed' ? 'Closed' : 
+                                       request.status === 'deleted' && request.isReportedTakedown ? 'Reported' :
+                                       'Deleted'}
                                     </span>
                                   </div>
 
                                   {/* Action Buttons */}
                                   <div className="flex gap-2 pt-2">
                                     {request.status === 'active' && (
-                                      <button
-                                        onClick={() => handlePauseWantedRequest(request.id)}
-                                        className="flex-1 bg-yellow-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-yellow-700 flex items-center justify-center gap-2 font-medium transition-all"
-                                      >
-                                        <Clock className="w-4 h-4" />
-                                        Pause
-                                      </button>
+                                      <>
+                                        <button
+                                          onClick={() => handleCloseWantedRequest(request.id)}
+                                          className="flex-1 bg-gray-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-gray-700 flex items-center justify-center gap-2 font-medium transition-all"
+                                        >
+                                          <X className="w-4 h-4" />
+                                          Close
+                                        </button>
+                                        <Link 
+                                          href={`/wanted-request/paid-features?request=${request.id}`}
+                                          className="flex-1 bg-amber-500 text-white py-2 px-3 rounded-lg text-sm hover:bg-amber-600 flex items-center justify-center gap-2 font-medium transition-all"
+                                        >
+                                          <Zap className="w-4 h-4" />
+                                          Boost
+                                        </Link>
+                                      </>
                                     )}
 
                                     {request.status === 'paused' && (
-                                      <button
-                                        onClick={() => handleActivateWantedRequest(request.id)}
-                                        className="flex-1 bg-green-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-green-700 flex items-center justify-center gap-2 font-medium transition-all"
-                                      >
-                                        <CheckCircle className="w-4 h-4" />
-                                        Activate
-                                      </button>
+                                      <>
+                                        <button
+                                          onClick={() => handlePauseResumeWantedRequest(request.id, 'resume')}
+                                          className="flex-1 bg-green-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-green-700 flex items-center justify-center gap-2 font-medium transition-all"
+                                        >
+                                          <Play className="w-4 h-4" />
+                                          Resume
+                                        </button>
+                                        <button
+                                          onClick={() => handleCloseWantedRequest(request.id)}
+                                          className="flex-1 bg-gray-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-gray-700 flex items-center justify-center gap-2 font-medium transition-all"
+                                        >
+                                          <X className="w-4 h-4" />
+                                          Close
+                                        </button>
+                                      </>
                                     )}
-
-                                    {(request.status === 'active' || request.status === 'paused') && (
-                                      <button
-                                        onClick={() => handleCloseWantedRequest(request.id)}
-                                        className="flex-1 bg-gray-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-gray-700 flex items-center justify-center gap-2 font-medium transition-all"
+                                    {request.status === 'deleted' && request.isReportedTakedown && (
+                                      <Link
+                                        href={`/wanted/edit/${request.id}`}
+                                        className="flex-1 bg-red-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-red-700 flex items-center justify-center gap-2 font-medium transition-all"
                                       >
-                                        <X className="w-4 h-4" />
-                                        Close Request
-                                      </button>
+                                        <Edit className="w-4 h-4" />
+                                        Edit & Resubmit
+                                      </Link>
                                     )}
                                   </div>
                                 </div>
@@ -2814,15 +3380,10 @@ export default function ProfilePage() {
     }, [selectedConversation])
 
     const fetchConversations = async () => {
-      try {
-        const response = await fetch('/api/messages/conversations')
-        if (response.ok) {
-          const data = await response.json()
-          setConversations(data.conversations || [])
-        }
-      } catch (error) {
-        console.error('Error fetching conversations:', error)
-      }
+      // Use sample data instead of API call
+      setTimeout(() => {
+        setConversations(sampleConversations)
+      }, 300)
     }
 
     const fetchMessages = async (conversationId: string) => {
@@ -2864,14 +3425,6 @@ export default function ProfilePage() {
       }
     }
 
-    const filteredConversations = conversations.filter(conv => {
-      if (searchTerm === '') return true
-      const otherUser = conv.current_user_role === 'buyer' 
-        ? conv.seller.profiles.name 
-        : conv.buyer.profiles.name
-      return conv.listing_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-             (otherUser?.toLowerCase().includes(searchTerm.toLowerCase()))
-    })
 
     const formatDate = (dateString: string) => {
       const date = new Date(dateString)
@@ -2915,31 +3468,32 @@ export default function ProfilePage() {
       return (
         <>
           {/* Conversation Header */}
-          <div className="border-b px-6 py-4">
+          <div className="border-b px-3 md:px-6 py-3 md:py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
                 <button 
                   onClick={() => setSelectedConversation(null)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 hover:text-gray-700 flex-shrink-0"
                 >
-                  <ArrowLeft className="w-5 h-5" />
+                  <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
                 </button>
                 
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                    <User className="w-5 h-5 text-gray-500" />
+                <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                  <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                    <User className="w-4 h-4 md:w-5 md:h-5 text-gray-500" />
                   </div>
-                  <div>
-                    <h2 className="font-semibold">{otherUser.profiles.name || 'User'}</h2>
-                    <p className="text-sm text-gray-500">
+                  <div className="min-w-0 flex-1">
+                    <h2 className="font-semibold text-sm md:text-base truncate">{otherUser.profiles.name || 'User'}</h2>
+                    {/* Show subtitle on both mobile and desktop */}
+                    <p className="text-xs md:text-sm text-gray-500">
                       {conversation.current_user_role === 'buyer' ? 'Seller' : 'Buyer'}
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Listing Info */}
-              <div className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition-colors">
+              {/* Listing Info - Desktop only */}
+              <div className="hidden md:flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition-colors flex-shrink-0">
                 {conversation.listing_image_url ? (
                   <img
                     src={conversation.listing_image_url}
@@ -2961,8 +3515,33 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Secondary Header - Mobile only (Vehicle Info) */}
+          <div className="md:hidden border-b bg-gray-50 px-3 py-2">
+            <div className="flex items-center gap-3">
+              {conversation.listing_image_url ? (
+                <img
+                  src={conversation.listing_image_url}
+                  alt={conversation.listing_title}
+                  className="w-10 h-10 object-cover rounded"
+                />
+              ) : (
+                <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
+                  <Car className="w-5 h-5 text-gray-400" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {conversation.listing_title}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {formatPrice(conversation.listing_price)}
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 h-96">
+          <div className="flex-1 overflow-y-auto px-3 md:px-6 py-3 md:py-4 space-y-3 md:space-y-4 h-96">
             {loadingMessages ? (
               <div className="flex justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -3046,22 +3625,11 @@ export default function ProfilePage() {
             </h1>
           </div>
           
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Search conversations..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
         </div>
 
         {/* Conversations List */}
         <div className="divide-y">
-          {filteredConversations.length === 0 ? (
+          {conversations.length === 0 ? (
             <div className="px-6 py-12 text-center text-gray-500">
               <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-300" />
               <p className="font-medium">No messages yet</p>
@@ -3070,7 +3638,7 @@ export default function ProfilePage() {
               </p>
             </div>
           ) : (
-            filteredConversations.map(conversation => {
+            conversations.map(conversation => {
               const otherUser = conversation.current_user_role === 'buyer' 
                 ? conversation.seller.profiles
                 : conversation.buyer.profiles
@@ -3081,19 +3649,19 @@ export default function ProfilePage() {
                   onClick={() => setSelectedConversation(conversation.id)}
                   className="block w-full hover:bg-gray-50 transition-colors text-left"
                 >
-                  <div className="px-6 py-4">
-                    <div className="flex items-start gap-4">
+                  <div className="px-3 md:px-6 py-3 md:py-4">
+                    <div className="flex items-start gap-3 md:gap-4">
                       {/* Listing Image */}
                       <div className="flex-shrink-0">
                         {conversation.listing_image_url ? (
                           <img
                             src={conversation.listing_image_url}
                             alt={conversation.listing_title}
-                            className="w-16 h-16 object-cover rounded-lg"
+                            className="w-12 h-12 md:w-16 md:h-16 object-cover rounded-lg"
                           />
                         ) : (
-                          <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                            <MessageSquare className="w-6 h-6 text-gray-400" />
+                          <div className="w-12 h-12 md:w-16 md:h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                            <MessageSquare className="w-4 h-4 md:w-6 md:h-6 text-gray-400" />
                           </div>
                         )}
                       </div>
@@ -3101,29 +3669,29 @@ export default function ProfilePage() {
                       {/* Conversation Details */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-semibold text-gray-900 truncate">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold text-sm md:text-base text-gray-900 truncate">
                                 {otherUser.name || 'User'}
                               </h3>
                               {conversation.unread_count > 0 && (
-                                <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
+                                <span className="bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[16px] text-center">
                                   {conversation.unread_count}
                                 </span>
                               )}
                             </div>
-                            <p className="text-sm text-gray-600 truncate">
+                            <p className="text-xs md:text-sm text-gray-600 truncate">
                               {conversation.listing_title} • {formatPrice(conversation.listing_price)}
                             </p>
                             {conversation.last_message_preview && (
-                              <p className="text-sm text-gray-500 truncate mt-1">
+                              <p className="text-xs md:text-sm text-gray-500 truncate mt-1 max-w-[200px] md:max-w-none">
                                 {conversation.last_message_preview}
                               </p>
                             )}
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-gray-500">
-                            <span>{formatDate(conversation.last_message_at)}</span>
-                            <ChevronRight className="w-4 h-4" />
+                          <div className="flex flex-col items-end gap-1 text-xs md:text-sm text-gray-500 ml-2">
+                            <span className="whitespace-nowrap">{formatDate(conversation.last_message_at)}</span>
+                            <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
                           </div>
                         </div>
                       </div>

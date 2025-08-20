@@ -1,10 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
 export default function WantedRequestPaidFeatures() {
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([])
+  const searchParams = useSearchParams()
+  const [isNewPost, setIsNewPost] = useState(false)
+  
+  useEffect(() => {
+    // Check if coming from new post flow
+    const fromNewPost = searchParams.get('new') === 'true'
+    setIsNewPost(fromNewPost)
+  }, [searchParams])
 
   const features = [
     {
@@ -73,19 +82,21 @@ export default function WantedRequestPaidFeatures() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Success Message */}
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-8">
-          <div className="flex items-center">
-            <i className="fas fa-check-circle text-green-600 text-2xl mr-3"></i>
-            <div>
-              <h2 className="text-xl font-bold text-green-800">Your wanted request is live!</h2>
-              <p className="text-green-700 mt-1">
-                Great! Your wanted request has been published and sellers can now find it. 
-                Boost your chances of finding what you're looking for with our premium features below.
-              </p>
+        {/* Success Message - Only show when coming from new post flow */}
+        {isNewPost && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-8">
+            <div className="flex items-center">
+              <i className="fas fa-check-circle text-green-600 text-2xl mr-3"></i>
+              <div>
+                <h2 className="text-xl font-bold text-green-800">Your wanted request is live!</h2>
+                <p className="text-green-700 mt-1">
+                  Great! Your wanted request is under review and sellers will be able to find it once approved. 
+                  Boost your chances of finding what you're looking for with our premium features below.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Page Header */}
         <div className="text-center mb-8">
