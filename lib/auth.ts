@@ -201,54 +201,32 @@ export async function getUser() {
 
 export async function signInWithGoogle(): Promise<{ success: boolean; error?: AuthError }> {
   try {
-    // Check if Google One-Tap is available
-    if (typeof window !== 'undefined' && window.google) {
-      // Trigger Google One-Tap sign in
-      window.google.accounts.id.prompt((notification: any) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          // Fall back to redirect-based OAuth if One-Tap fails
-          console.log('One-Tap not displayed, using redirect flow')
-          // For now, show an error since OAuth provider is not enabled
-          return { 
-            success: false, 
-            error: { 
-              message: 'Please enable Google provider in Supabase Dashboard first',
-              code: 'provider_not_enabled'
-            }
-          }
+    // Use Supabase OAuth flow as recommended in documentation
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/profile`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
         }
-      })
-      
-      // Return success as One-Tap will handle the flow
-      return { success: true }
-    } else {
-      // If Google library not loaded, try Supabase OAuth (requires provider to be enabled)
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          }
-        }
-      })
-
-      if (error) {
-        if (error.message?.includes('provider is not enabled')) {
-          return { 
-            success: false, 
-            error: { 
-              message: 'Google sign-in requires enabling Google provider in Supabase Dashboard. Go to Authentication > Providers and enable Google.',
-              code: 'provider_not_enabled'
-            }
-          }
-        }
-        return { success: false, error: { message: error.message, code: error.code } }
       }
+    })
 
-      return { success: true }
+    if (error) {
+      if (error.message?.includes('provider is not enabled')) {
+        return { 
+          success: false, 
+          error: { 
+            message: 'Google sign-in requires enabling Google provider in Supabase Dashboard. Go to Authentication > Providers and enable Google.',
+            code: 'provider_not_enabled'
+          }
+        }
+      }
+      return { success: false, error: { message: error.message, code: error.code } }
     }
+
+    return { success: true }
   } catch (error: any) {
     if (error?.message?.includes('provider is not enabled')) {
       return { 
@@ -262,6 +240,58 @@ export async function signInWithGoogle(): Promise<{ success: boolean; error?: Au
     return { 
       success: false, 
       error: { message: 'Failed to sign in with Google. Please try again.' }
+    }
+  }
+}
+
+export async function signInWithFacebook(): Promise<{ success: boolean; error?: AuthError }> {
+  try {
+    // Use Supabase OAuth flow for Facebook
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'facebook',
+      options: {
+        redirectTo: `${window.location.origin}/profile`,
+      }
+    })
+
+    if (error) {
+      if (error.message?.includes('provider is not enabled')) {
+        return { 
+          success: false, 
+          error: { 
+            message: 'Facebook sign-in requires enabling Facebook provider in Supabase Dashboard. Go to Authentication > Providers and enable Facebook.',
+            code: 'provider_not_enabled'
+          }
+        }
+      }
+      return { success: false, error: { message: error.message, code: error.code } }
+    }
+
+    return { success: true }
+  } catch (error: any) {
+    return { 
+      success: false, 
+      error: { message: 'Failed to sign in with Facebook. Please try again.' }
+    }
+  }
+}
+
+export async function signInWithPassword(email: string, password: string): Promise<{ success: boolean; error?: AuthError; user?: any }> {
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (error) {
+      return { success: false, error: { message: error.message, code: error.code } }
+    }
+
+    return { success: true, user: data.user }
+  } catch (error: any) {
+    return { 
+      success: false, 
+      error: { message: 'Failed to sign in. Please try again.' }
     }
   }
 }

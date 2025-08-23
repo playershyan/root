@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Heart, MapPin, Calendar, Eye, Star } from 'lucide-react'
 import PromotionBadges from './PromotionBadges'
+import ImageCarousel from '@/components/ui/ImageCarousel'
 
 interface FeaturedAdCardProps {
   listing: any
@@ -88,64 +88,17 @@ export default function FeaturedAdCard({ listing, promotionType }: FeaturedAdCar
         <div className="flex flex-col lg:flex-row">
           {/* Image Section - Larger for featured ads */}
           <div className={`relative ${priority === 'featured' ? 'lg:w-2/5' : 'lg:w-1/3'} h-64 lg:h-auto`}>
-            <div className="relative w-full h-full">
-              {!imageError && images.length > 0 ? (
-                <>
-                  <img
-                    src={images[currentImageIndex]}
-                    alt={listing.title}
-                    className="w-full h-full object-cover"
-                    onError={handleImageError}
-                  />
-                  
-                  {/* Image navigation for multiple images */}
-                  {hasMultipleImages && (
-                    <>
-                      <button
-                        onClick={prevImage}
-                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-colors"
-                      >
-                        <i className="fas fa-chevron-left text-xs"></i>
-                      </button>
-                      <button
-                        onClick={nextImage}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-colors"
-                      >
-                        <i className="fas fa-chevron-right text-xs"></i>
-                      </button>
-                      
-                      {/* Image indicators */}
-                      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                        {images.map((_, index) => (
-                          <div
-                            key={index}
-                            className={`w-2 h-2 rounded-full transition-colors ${
-                              index === currentImageIndex ? 'bg-white' : 'bg-white/50'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </>
-                  )}
+            <ImageCarousel
+              images={images}
+              alt={listing.title}
+              className="w-full h-full"
+              priority={priority === 'featured'}
+              showThumbnails={false}
+            />
 
-                  {/* Image count badge */}
-                  {hasMultipleImages && (
-                    <div className="absolute top-2 right-2 bg-black/60 text-white px-2 py-1 rounded-lg text-xs flex items-center gap-1">
-                      <i className="fas fa-camera"></i>
-                      <span>{images.length}</span>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                  <i className="fas fa-car text-gray-400 text-4xl"></i>
-                </div>
-              )}
-
-              {/* Promotion Badges Overlay */}
-              <div className="absolute bottom-2 left-2 z-10">
-                <PromotionBadges listing={listing} size="small" />
-              </div>
+            {/* Promotion Badges Overlay */}
+            <div className="absolute bottom-2 left-2 z-10">
+              <PromotionBadges listing={listing} size="small" />
             </div>
           </div>
 

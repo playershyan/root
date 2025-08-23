@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Heart, MapPin, Calendar, Eye } from 'lucide-react'
 import PromotionBadges from './PromotionBadges'
+import OptimizedImage from '@/components/ui/OptimizedImage'
 
 interface ListingCardProps {
   listing: {
@@ -65,11 +66,14 @@ export default function ListingCard({ listing }: ListingCardProps) {
         {/* Image Section */}
         <div className="relative h-48 bg-gray-100">
           {!imageError && primaryImage ? (
-            <img
+            <OptimizedImage
               src={primaryImage}
               alt={listing.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
               onError={() => setImageError(true)}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              quality={80}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">

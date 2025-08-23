@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { signInWithOTP, verifyOTP, signUp } from '@/lib/auth'
+import CountrySelector, { useCountrySelector } from './CountrySelector'
 import { useAuth } from '../contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 
@@ -30,6 +31,7 @@ export default function AuthModal({ isOpen, onClose, initialAuthType = 'login' }
   const [resendTimer, setResendTimer] = useState(0)
   const otpInputRefs = useRef<(HTMLInputElement | null)[]>([])
   const abortControllerRef = useRef<AbortController | null>(null)
+  const { selectedCountry, setSelectedCountry } = useCountrySelector('LK')
 
   // Reset state when modal closes
   useEffect(() => {
@@ -96,12 +98,14 @@ export default function AuthModal({ isOpen, onClose, initialAuthType = 'login' }
 
   const formatPhoneNumber = (value: string) => {
     const numbers = value.replace(/\D/g, '')
-    if (numbers.startsWith('94')) {
-      return '+' + numbers.slice(0, 11)
-    } else if (numbers.startsWith('0')) {
-      return '+94' + numbers.slice(1, 10)
+    const dialCode = selectedCountry.dialCode
+    
+    if (numbers.startsWith(dialCode)) {
+      return '+' + numbers.slice(0, dialCode.length + 9)
+    } else if (selectedCountry.code === 'LK' && numbers.startsWith('0')) {
+      return '+' + dialCode + numbers.slice(1, 10)
     } else {
-      return '+94' + numbers.slice(0, 9)
+      return '+' + dialCode + numbers.slice(0, 9)
     }
   }
 
@@ -539,19 +543,18 @@ export default function AuthModal({ isOpen, onClose, initialAuthType = 'login' }
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Mobile Number <span className="text-red-500">*</span>
                     </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value="+94"
-                        className="w-20 px-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg text-center"
-                        disabled
+                    <div className="flex">
+                      <CountrySelector
+                        selectedCountry={selectedCountry}
+                        onCountrySelect={setSelectedCountry}
+                        className="w-32"
                       />
                       <input
                         type="tel"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 9))}
-                        placeholder="771234567"
-                        className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder={selectedCountry.code === 'LK' ? '771234567' : 'Phone number'}
+                        className="flex-1 px-4 py-2 border border-gray-300 border-l-0 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
                         required
                         maxLength={9}
                       />
@@ -653,7 +656,7 @@ export default function AuthModal({ isOpen, onClose, initialAuthType = 'login' }
                 <p className="text-center text-gray-600 mb-4">
                   {mode === 'email-otp' ? 
                     `We've sent a code to ${email}` : 
-                    `We've sent a code to +94 ${phone}`
+                    `We've sent a code to +${selectedCountry.dialCode} ${phone}`
                   }
                 </p>
 
@@ -724,36 +727,19 @@ export default function AuthModal({ isOpen, onClose, initialAuthType = 'login' }
                       setError('')
                       
                       try {
-                        if (window.google && window.google.accounts) {
-                          // Use Google One Tap directly
-                          window.google.accounts.id.prompt((notification: any) => {
-                            if (notification.isNotDisplayed()) {
-                              // Fallback to OAuth redirect
-                              const { signInWithGoogle } = require('@/lib/auth')
-                              signInWithGoogle().then((result: any) => {
-                                if (!result.success) {
-                                  setError(result.error?.message || 'Failed to sign in with Google')
-                                }
-                                setLoading(false)
-                              })
-                            }
-                          })
+                        const { signInWithGoogle } = await import('@/lib/auth')
+                        const result = await signInWithGoogle()
+                        
+                        if (result.success) {
+                          await refreshUser()
+                          onClose()
+                          // Don't redirect immediately - let the OAuth flow handle it
                         } else {
-                          // Fallback to traditional OAuth
-                          const { signInWithGoogle } = await import('@/lib/auth')
-                          const result = await signInWithGoogle()
-                          
-                          if (!result.success) {
-                            if (result.error?.code === 'provider_not_enabled') {
-                              setError('⚠️ Google sign-in is not yet configured. Please follow these steps:\n\n1. Go to Supabase Dashboard\n2. Navigate to Authentication → Providers\n3. Enable Google and add your credentials\n\nOr use phone/email sign-in instead.')
-                            } else {
-                              setError(result.error?.message || 'Failed to sign in with Google')
-                            }
-                          }
-                          setLoading(false)
+                          setError(result.error?.message || 'Failed to sign in with Google')
                         }
-                      } catch (err) {
-                        setError('Failed to initialize Google sign-in')
+                      } catch (error) {
+                        setError('Google sign-in failed. Please try again.')
+                      } finally {
                         setLoading(false)
                       }
                     }}

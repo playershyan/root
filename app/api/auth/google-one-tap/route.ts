@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No credential provided' }, { status: 400 })
     }
 
-    // Verify the token with Google
+    // First verify the token with Google to get user info
     const ticket = await client.verifyIdToken({
       idToken: credential,
       audience: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
@@ -26,45 +26,41 @@ export async function POST(request: NextRequest) {
 
     const supabase = createRouteHandlerClient({ cookies })
     
-    // Try to sign in with the Google ID token
+    // Try to use signInWithIdToken
     const { data, error } = await supabase.auth.signInWithIdToken({
       provider: 'google',
       token: credential,
     })
 
     if (error) {
-      console.error('Supabase auth error:', error)
+      console.error('Supabase signInWithIdToken error:', error)
       
-      // If provider not enabled error
-      if (error.message?.includes('provider is not enabled')) {
-        return NextResponse.json({ 
-          error: 'Google provider not enabled in Supabase. Please enable it in your Supabase dashboard under Authentication > Providers.',
-          details: 'Go to: https://supabase.com/dashboard/project/ahmynvxoxzhocuhxlcvo/auth/providers'
-        }, { status: 400 })
-      }
-      
-      return NextResponse.json({ error: error.message }, { status: 400 })
-    }
-
-    // Check if profile exists, if not create one
-    if (data.user) {
-      const { data: profile } = await supabase
+      // If signInWithIdToken doesn't work, fallback to checking if user exists
+      // and prompt them to use OAuth flow
+      const { data: existingProfile } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', data.user.id)
+        .eq('email', payload.email)
         .single()
 
-      if (!profile) {
-        await supabase.from('profiles').insert({
-          id: data.user.id,
-          email: payload.email,
-          name: payload.name,
-          avatar_url: payload.picture,
-          created_at: new Date().toISOString()
+      if (existingProfile) {
+        // User exists - they need to sign in with OAuth
+        return NextResponse.json({ 
+          success: false,
+          needsOAuth: true,
+          message: 'Account exists. Please use "Continue with Google" button to sign in.'
+        })
+      } else {
+        // New user - they need to create account with OAuth
+        return NextResponse.json({ 
+          success: false,
+          needsOAuth: true,
+          message: 'Please use "Continue with Google" button to create your account.'
         })
       }
     }
 
+    // If successful, user is signed in
     return NextResponse.json({ success: true, user: data.user })
   } catch (error) {
     console.error('Google One Tap error:', error)

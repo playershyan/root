@@ -6,6 +6,7 @@ import Footer from './components/Footer'
 import ErrorBoundary from './components/ErrorBoundary'
 import { NotificationProvider } from './components/NotificationSystem'
 import { AuthProvider } from './contexts/AuthContext'
+import { GoogleOneTapProvider } from './components/auth'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -28,6 +29,7 @@ export default function RootLayout({
         <ErrorBoundary>
           <AuthProvider>
             <NotificationProvider>
+              <GoogleOneTapProvider />
               <Header />
               <main className="min-h-screen">
                 {children}

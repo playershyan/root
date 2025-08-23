@@ -16,7 +16,7 @@ export default function GoogleOneTap() {
 
   const handleCredentialResponse = useCallback(async (response: any) => {
     try {
-      console.log('Google credential received:', response)
+      console.log('Google credential received')
       
       const res = await fetch('/api/auth/google-one-tap', {
         method: 'POST',
@@ -28,21 +28,20 @@ export default function GoogleOneTap() {
 
       const data = await res.json()
       
-      if (res.ok) {
-        console.log('Google auth successful:', data)
+      if (data.success) {
+        console.log('Google One Tap sign-in successful')
         await refreshUser()
         window.location.href = '/profile'
+      } else if (data.needsOAuth) {
+        // One Tap detected user, but needs OAuth flow
+        console.log('Redirecting to OAuth flow...')
+        const { signInWithGoogle } = await import('@/lib/auth')
+        await signInWithGoogle()
       } else {
-        console.error('Google auth error:', data.error)
-        if (data.details) {
-          alert(`Google sign-in failed:\n${data.error}\n\nDetails: ${data.details}`)
-        } else {
-          alert(`Google sign-in failed: ${data.error}`)
-        }
+        console.error('Google One Tap error:', data.error || data.message)
       }
     } catch (error) {
       console.error('Error handling Google One Tap response:', error)
-      alert('Failed to process Google sign-in. Please try again.')
     }
   }, [refreshUser])
 
@@ -64,12 +63,12 @@ export default function GoogleOneTap() {
 
     try {
       window.google.accounts.id.initialize({
-        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+        client_id: '20310748886-utpvg105jq237vuv10vcn0mh5dvsfum5.apps.googleusercontent.com',
         callback: handleCredentialResponse,
-        auto_select: false, // Disable auto-select to avoid conflicts
+        auto_select: false,
         cancel_on_tap_outside: true,
-        use_federated_login_hint: false, // Disable FedCM for now
-        ux_mode: 'popup', // Use popup mode instead of redirect
+        use_federated_login_hint: false,
+        ux_mode: 'popup',
         context: 'signin'
       })
 

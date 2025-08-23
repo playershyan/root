@@ -28,8 +28,28 @@ export async function GET(request: Request) {
         return NextResponse.redirect(new URL('/?email_verified=true', requestUrl.origin))
       }
     } else {
-      // Regular OAuth callback
-      await supabase.auth.exchangeCodeForSession(code)
+      // Regular OAuth callback (e.g., Google OAuth)
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+      
+      if (!error && data.user) {
+        // Check if profile exists, if not create one
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single()
+
+        if (!profile) {
+          await supabase.from('profiles').insert({
+            id: data.user.id,
+            email: data.user.email,
+            name: data.user.user_metadata?.full_name || data.user.user_metadata?.name,
+            avatar_url: data.user.user_metadata?.avatar_url || data.user.user_metadata?.picture,
+            created_at: new Date().toISOString()
+          })
+        }
+      }
+      
       return NextResponse.redirect(new URL('/profile', requestUrl.origin))
     }
   }

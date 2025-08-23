@@ -167,27 +167,59 @@ export default function AdvancedListingsPage() {
   const loadPromotedAds = async () => {
     try {
       // Get rotated promoted ads for the selected category
-      const [featured, topSpot, boosted, urgent] = await Promise.all([
+      const [featuredRes, topSpotRes, boostedRes, urgentRes] = await Promise.all([
         RotationService.getRotatedFeaturedAds(selectedVehicleCategory, 2),
         RotationService.getRotatedTopSpotAds(selectedVehicleCategory, 3),
-        PromotionService.getPromotedListings('boost', selectedVehicleCategory, 10),
-        PromotionService.getPromotedListings('urgent', selectedVehicleCategory, 10)
+        PromotionService.getBoostedListings(selectedVehicleCategory, 10),
+        PromotionService.getUrgentListings(selectedVehicleCategory, 10)
       ])
 
-      setFeaturedAds(featured)
-      setTopSpotAds(topSpot)
-      setBoostedAds(boosted)
-      setUrgentAds(urgent)
+      // Robust data extraction with type checking
+      const extractArrayFromResponse = (response: any): PromotedListing[] => {
+        if (!response) return []
+        if (Array.isArray(response)) return response
+        if (response.data && Array.isArray(response.data)) return response.data
+        if (response.error) {
+          console.error('Service error:', response.error)
+          return []
+        }
+        return []
+      }
+
+      const featured = extractArrayFromResponse(featuredRes)
+      const topSpot = extractArrayFromResponse(topSpotRes)
+      const boosted = extractArrayFromResponse(boostedRes)
+      const urgent = extractArrayFromResponse(urgentRes)
+
+      // Additional safety check before setting state
+      setFeaturedAds(Array.isArray(featured) ? featured : [])
+      setTopSpotAds(Array.isArray(topSpot) ? topSpot : [])
+      setBoostedAds(Array.isArray(boosted) ? boosted : [])
+      setUrgentAds(Array.isArray(urgent) ? urgent : [])
+
+      // Debug logging (remove in production)
+      console.log('Promoted ads loaded:', {
+        featured: featured.length,
+        topSpot: topSpot.length,
+        boosted: boosted.length,
+        urgent: urgent.length
+      })
 
       // Track impressions for featured and top spot ads
       const impressionPromises = []
-      featured.forEach(ad => {
-        impressionPromises.push(RotationService.trackImpression(ad.id, 'featured'))
-      })
-      topSpot.forEach(ad => {
-        impressionPromises.push(RotationService.trackImpression(ad.id, 'top_spot'))
-      })
-      await Promise.all(impressionPromises)
+      if (featured && featured.length > 0) {
+        featured.forEach(ad => {
+          impressionPromises.push(RotationService.trackImpression(ad.id, 'featured'))
+        })
+      }
+      if (topSpot && topSpot.length > 0) {
+        topSpot.forEach(ad => {
+          impressionPromises.push(RotationService.trackImpression(ad.id, 'top_spot'))
+        })
+      }
+      if (impressionPromises.length > 0) {
+        await Promise.all(impressionPromises)
+      }
 
     } catch (error) {
       console.error('Error loading promoted ads:', error)
@@ -1049,11 +1081,18 @@ export default function AdvancedListingsPage() {
             ) : filteredListings.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {/* Mix promoted ads (urgent/boosted) with regular ads */}
-                {[
-                  ...urgentAds.map(ad => ({ ...ad, isPromoted: true, promotionType: 'urgent' })),
-                  ...boostedAds.map(ad => ({ ...ad, isPromoted: true, promotionType: 'boost' })),
-                  ...filteredListings.map(ad => ({ ...ad, isPromoted: false }))
-                ].map((listing) => {
+                {(() => {
+                  // Runtime safety: ensure all variables are arrays
+                  const safeUrgentAds = Array.isArray(urgentAds) ? urgentAds : []
+                  const safeBoostedAds = Array.isArray(boostedAds) ? boostedAds : []
+                  const safeFilteredListings = Array.isArray(filteredListings) ? filteredListings : []
+                  
+                  return [
+                    ...safeUrgentAds.map(ad => ({ ...ad, isPromoted: true, promotionType: 'urgent' })),
+                    ...safeBoostedAds.map(ad => ({ ...ad, isPromoted: true, promotionType: 'boost' })),
+                    ...safeFilteredListings.map(ad => ({ ...ad, isPromoted: false }))
+                  ]
+                })().map((listing) => {
                   const images = listing.image_urls || []
                   const currentImageIndex = activeImageIndex[listing.id] || 0
                   const isSaved = savedListings.includes(listing.id)

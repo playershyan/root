@@ -20,6 +20,52 @@ export interface PromotionPricing {
   urgent: { price: number; days: number }
 }
 
+export interface PromotedListing {
+  id: string
+  title: string
+  description: string | null
+  price: number
+  make: string
+  model: string
+  year: number
+  mileage?: number
+  fuel_type: string
+  transmission: string
+  body_type?: string
+  engine_capacity?: string
+  location: string
+  phone?: string
+  whatsapp?: string
+  email?: string
+  image_url?: string
+  image_urls: string[]
+  ai_generated_description?: string
+  ai_summary?: string
+  is_featured: boolean
+  is_top_spot: boolean
+  is_boosted: boolean
+  is_urgent: boolean
+  boost_score: number
+  featured_until?: string
+  top_spot_until?: string
+  boosted_until?: string
+  urgent_until?: string
+  pricing_type: 'cash' | 'finance'
+  negotiable: boolean
+  finance_type?: string
+  finance_provider?: string
+  original_amount?: number
+  outstanding_balance?: number
+  monthly_payment?: number
+  remaining_term?: number
+  early_settlement?: number
+  asking_price?: number
+  is_sold: boolean
+  views: number
+  created_at: string
+  updated_at: string
+}
+
 // Pricing configuration
 export const PROMOTION_PRICING: PromotionPricing = {
   featured: { price: 3500, days: 7 },
@@ -260,6 +306,54 @@ export class PromotionService {
       .select('*')
       .eq('is_top_spot', true)
       .gt('top_spot_until', new Date().toISOString())
+
+    if (vehicleType) {
+      query = query.eq('vehicle_type', vehicleType)
+    }
+
+    const { data, error } = await query
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    return { data, error }
+  }
+
+  /**
+   * Get boosted listings
+   */
+  static async getBoostedListings(
+    vehicleType?: string,
+    limit = 10
+  ): Promise<{ data: any; error: any }> {
+    let query = supabase
+      .from('listings')
+      .select('*')
+      .eq('is_boosted', true)
+      .gt('boosted_until', new Date().toISOString())
+
+    if (vehicleType) {
+      query = query.eq('vehicle_type', vehicleType)
+    }
+
+    const { data, error } = await query
+      .order('boost_score', { ascending: false })
+      .limit(limit)
+
+    return { data, error }
+  }
+
+  /**
+   * Get urgent listings
+   */
+  static async getUrgentListings(
+    vehicleType?: string,
+    limit = 10
+  ): Promise<{ data: any; error: any }> {
+    let query = supabase
+      .from('listings')
+      .select('*')
+      .eq('is_urgent', true)
+      .gt('urgent_until', new Date().toISOString())
 
     if (vehicleType) {
       query = query.eq('vehicle_type', vehicleType)

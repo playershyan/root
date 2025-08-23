@@ -9,7 +9,7 @@ import {
   Crown, Shield, FileText, HelpCircle, Plus
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
-import AuthModal from './AuthModal'
+import { AuthModal } from './auth'
 import { useUnreadMessages } from '@/lib/hooks/useUnreadMessages'
 
 interface User {

@@ -8,6 +8,7 @@ import {
   AlertCircle, Upload, X, Sparkles, ChevronRight, 
   FileText, User, Image as ImageIcon, Star
 } from 'lucide-react'
+import CountrySelector, { useCountrySelector } from '@/app/components/CountrySelector'
 import { 
   DISTRICTS, 
   getCitiesByDistrictId,
@@ -91,6 +92,7 @@ export default function EnhancedPostVehiclePage() {
   const [selectedDistrict, setSelectedDistrict] = useState<string>('')
   const [availableCities, setAvailableCities] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
+  const { selectedCountry, setSelectedCountry } = useCountrySelector('LK')
   const [aiLoading, setAiLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [dragActive, setDragActive] = useState(false)
@@ -907,16 +909,23 @@ export default function EnhancedPostVehiclePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number <span className="text-red-500">*</span></label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                      placeholder="e.g., 0771234567"
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
-                        errors.phone ? 'border-red-300' : 'border-gray-300'
-                      }`}
-                    />
+                    <div className="flex">
+                      <CountrySelector
+                        selectedCountry={selectedCountry}
+                        onCountrySelect={setSelectedCountry}
+                        className="w-32"
+                      />
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                        placeholder={selectedCountry.code === 'LK' ? 'e.g., 771234567' : 'Phone number'}
+                        className={`flex-1 px-4 py-3 h-[50px] border border-l-0 rounded-r-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 focus:outline-none ${
+                          errors.phone ? 'border-red-300' : 'border-gray-300'
+                        }`}
+                      />
+                    </div>
                     {errors.phone && <p className="text-red-600 text-sm mt-1">{errors.phone}</p>}
                   </div>
                   

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { 
@@ -9,13 +9,26 @@ import {
   Upload, Edit, Share2, RefreshCw, Clock, MoreVertical,
   Camera, MapPin, Phone, Mail, Calendar, Eye, X,
   AlertTriangle, CheckCircle, Building2, Globe, Star, Zap,
-  ChevronRight, ArrowLeft, Send, HeartOff, Pause, Play
+  ChevronRight, ArrowLeft, Send, HeartOff, Pause, Play, RotateCcw
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
+import { useSessionManager } from '@/app/hooks/useSessionManager'
 import PhoneVerificationModal from '../components/PhoneVerificationModal'
 import { sampleListings } from '@/data/sampleListingsData'
 import { sampleConversations } from '@/data/sampleMessagesData'
+import ListingStatusBadge from '@/app/components/listings/ListingStatusBadge'
+import ListingActions from '@/app/components/listings/ListingActions'
+import ListingStatusMessage from '@/app/components/listings/ListingStatusMessage'
+import { filterListingsByStatus } from '@/lib/utils/listingStatus'
+import WantedRequestStatusBadge from '@/app/components/wantedRequests/WantedRequestStatusBadge'
+import WantedRequestActions from '@/app/components/wantedRequests/WantedRequestActions'
+import WantedRequestStatusMessage from '@/app/components/wantedRequests/WantedRequestStatusMessage'
+import MessagesTab from '@/app/components/messages/MessagesTab'
+import FavoritesTab from '@/app/components/favorites/FavoritesTab'
+import BinTab from '@/app/components/bin/BinTab'
+import SecurityTab from '@/app/components/security/SecurityTab'
+import NotificationsTab from '@/app/components/notifications/NotificationsTab'
 
 // Types
 interface UserProfile {
@@ -142,8 +155,6 @@ export default function ProfilePage() {
   const router = useRouter()
   const { user, loading } = useAuth()
   const [activeTab, setActiveTab] = useState('profile')
-  const [activeFavoritesTab, setActiveFavoritesTab] = useState('ads')
-  const [activeBinTab, setActiveBinTab] = useState('listings')
   const [showActionMenu, setShowActionMenu] = useState<string | null>(null)
   const [selectedItems, setSelectedItems] = useState<string[]>([])
   const [profileLoading, setProfileLoading] = useState(true)
@@ -271,6 +282,153 @@ export default function ProfilePage() {
     marketingNewsletter: true,
     marketingPromotions: false
   })
+
+  // Bin data
+  const [binItems, setBinItems] = useState<any[]>([])
+  const [binLoading, setBinLoading] = useState(false)
+  const [restoring, setRestoring] = useState<string | null>(null)
+
+  // Session management
+  const {
+    sessions,
+    loading: sessionsLoading,
+    error: sessionsError,
+    refreshSessions,
+    revokeSession,
+    revokeAllOtherSessions
+  } = useSessionManager()
+
+  // Load bin items - moved here to follow Rules of Hooks
+  const loadBinItems = useCallback(async () => {
+    if (!user) return
+    
+    setBinLoading(true)
+    try {
+      // Sample data for testing the bin functionality
+      const sampleBinData = [
+        // Deleted Listings
+        {
+          id: 'listing-1',
+          item_type: 'listing',
+          title: '2019 Toyota Prius - Hybrid',
+          deleted_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+          deletion_reason: 'Sold the vehicle',
+          can_restore: true,
+          days_until_permanent_deletion: 25,
+          original_data: {
+            price: 8500000,
+            location: 'Colombo'
+          }
+        },
+        {
+          id: 'listing-2',
+          item_type: 'listing',
+          title: '2015 Honda Vezel RS',
+          deleted_at: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString(), // 28 days ago
+          deletion_reason: 'Listing expired',
+          can_restore: true,
+          days_until_permanent_deletion: 2, // Expiring soon!
+          original_data: {
+            price: 5200000,
+            location: 'Kandy'
+          }
+        },
+        
+        // Deleted Messages
+        {
+          id: 'message-1',
+          item_type: 'message',
+          title: 'Inquiry about Toyota Aqua',
+          deleted_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago
+          deletion_reason: 'Cleaned up conversation',
+          can_restore: true,
+          days_until_permanent_deletion: 20,
+          original_data: {
+            conversation_with: 'John Doe',
+            last_message: 'Is the vehicle still available?'
+          }
+        },
+        {
+          id: 'message-2',
+          item_type: 'message',
+          title: 'Price negotiation for Nissan Leaf',
+          deleted_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+          deletion_reason: 'Accidental deletion',
+          can_restore: true,
+          days_until_permanent_deletion: 27,
+          original_data: {
+            conversation_with: 'Sarah Smith',
+            last_message: 'Can you do 4.5M?'
+          }
+        },
+        
+        // Deleted Wanted Requests
+        {
+          id: 'wanted-1',
+          item_type: 'wanted_request',
+          title: 'Looking for Honda Fit 2018-2020',
+          deleted_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+          deletion_reason: 'Found a vehicle',
+          can_restore: true,
+          days_until_permanent_deletion: 23,
+          original_data: {
+            budget: 4000000,
+            location: 'Anywhere in Sri Lanka'
+          }
+        },
+        {
+          id: 'wanted-2',
+          item_type: 'wanted_request',
+          title: 'Need Toyota Axio Hybrid under 5M',
+          deleted_at: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000).toISOString(), // 29 days ago
+          deletion_reason: 'Request expired',
+          can_restore: true,
+          days_until_permanent_deletion: 1, // Critical - expiring tomorrow!
+          original_data: {
+            budget: 5000000,
+            location: 'Western Province'
+          }
+        },
+        {
+          id: 'wanted-3',
+          item_type: 'wanted_request',
+          title: 'Mercedes Benz C200 2015+',
+          deleted_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days ago
+          deletion_reason: 'No longer needed',
+          can_restore: true,
+          days_until_permanent_deletion: 15,
+          original_data: {
+            budget: 12000000,
+            location: 'Colombo'
+          }
+        }
+      ]
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      setBinItems(sampleBinData)
+      
+      // Uncomment below to use actual API instead of sample data
+      // const { data: { session } } = await supabase.auth.getSession()
+      // const response = await fetch('/api/user/bin', {
+      //   headers: {
+      //     'Authorization': `Bearer ${session?.access_token}`,
+      //     'Content-Type': 'application/json',
+      //   }
+      // })
+      // 
+      // if (!response.ok) throw new Error('Failed to load bin items')
+      // 
+      // const data = await response.json()
+      // setBinItems(data.all_items || [])
+    } catch (error) {
+      console.error('Error loading bin items:', error)
+      alert('Failed to load bin items')
+    } finally {
+      setBinLoading(false)
+    }
+  }, [user])
 
   // Handle URL tab parameter
   useEffect(() => {
@@ -517,6 +675,140 @@ export default function ProfilePage() {
     }
   }, [user, loading, router])
 
+  // Refresh wanted requests data when returning from edit
+  useEffect(() => {
+    // Only set up the listener when on the wanted tab
+    if (activeTab !== 'wanted') return
+    
+    const handleFocus = async () => {
+      // Reload wanted requests data when page gets focus
+      // This will refresh the list after editing
+      if (!user) return
+      
+      try {
+        // Use the same sample data loading logic as before
+        const sampleWantedRequests: WantedRequest[] = [
+          {
+            id: '1',
+            title: 'Looking for Toyota Prius 2018-2020',
+            description: 'Need a well-maintained Toyota Prius, preferably white or silver color. Low mileage preferred.',
+            budget: 3500000,
+            status: 'active',
+            postedDate: '2025-07-10', // 41 days ago - can be renewed
+            responses: 12,
+            location: 'Colombo',
+          },
+          {
+            id: '2', 
+            title: 'Honda Vezel or HR-V under 4M',
+            description: 'Looking for Honda Vezel or HR-V in good condition. Any color acceptable. Must be within 4 million budget.',
+            budget: 4000000,
+            status: 'active',
+            postedDate: '2025-08-15', // 5 days ago - cannot be renewed (13 days remaining)
+            responses: 8,
+            location: 'Kandy',
+          },
+          {
+            id: '3',
+            title: 'BMW 3 Series F30 - 2015 onwards',
+            description: 'Searching for BMW 3 Series F30 model, 2015 or newer. Prefer automatic transmission.',
+            budget: 8500000,
+            status: 'paused',
+            postedDate: '2025-07-25', // 26 days ago - can be renewed
+            responses: 5,
+            location: 'Galle',
+          },
+          {
+            id: '4',
+            title: 'Looking for Mercedes-Benz C-Class',
+            description: 'Need C200 or C250, must be in excellent condition with AMG package',
+            budget: 12000000,
+            status: 'deleted',
+            postedDate: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+            responses: 15,
+            location: 'Colombo',
+            isReportedTakedown: true,
+            rejectionReason: 'Multiple reports: Suspected fraudulent payment terms'
+          },
+          {
+            id: '5',
+            title: 'Urgent: Need any SUV under 5M',
+            description: 'Looking for any SUV in good condition, prefer Japanese brands',
+            budget: 5000000,
+            status: 'deleted',
+            postedDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+            responses: 7,
+            location: 'Matara',
+            isReportedTakedown: true,
+            rejectionReason: 'Reported: Suspicious contact information provided'
+          }
+        ]
+        
+        setWantedRequests(() => sampleWantedRequests)
+      } catch (error) {
+        console.error('Error refreshing wanted requests:', error)
+      }
+    }
+    
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, activeTab])
+
+  // Load bin items when bin tab is active
+  useEffect(() => {
+    if (activeTab === 'bin') {
+      loadBinItems()
+    }
+  }, [activeTab, loadBinItems])
+
+  // Load conversations when messages tab is active
+  useEffect(() => {
+    if (activeTab === 'messages') {
+      fetchConversations()
+      
+      // Set up real-time subscription
+      const channel = supabase
+        .channel('conversations')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'conversations'
+        }, () => {
+          fetchConversations()
+        })
+        .subscribe()
+
+      return () => {
+        supabase.removeChannel(channel)
+      }
+    }
+  }, [activeTab])
+
+  // Load messages when a conversation is selected
+  useEffect(() => {
+    if (selectedConversation) {
+      fetchMessages(selectedConversation)
+      
+      // Set up real-time subscription for messages
+      const channel = supabase
+        .channel(`conversation-${selectedConversation}`)
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${selectedConversation}`
+        }, () => {
+          fetchMessages(selectedConversation)
+        })
+        .subscribe()
+
+      return () => {
+        supabase.removeChannel(channel)
+      }
+    }
+  }, [selectedConversation])
+
   // Show loading state while authentication is being checked
   if (loading || profileLoading) {
     return (
@@ -544,6 +836,120 @@ export default function ProfilePage() {
         </div>
       </div>
     )
+  }
+
+  // Handle item restoration
+  const handleRestoreItem = async (itemType: string, itemId: string) => {
+    if (!user) return
+    
+    setRestoring(itemId)
+    try {
+      // Simulate restoration for demo purposes
+      await new Promise(resolve => setTimeout(resolve, 1500)) // Simulate API delay
+      
+      // Find the item being restored
+      const item = binItems.find(i => i.id === itemId)
+      if (!item) {
+        throw new Error('Item not found')
+      }
+      
+      // Show success message based on item type
+      let message = ''
+      let nextSteps = ''
+      
+      if (itemType === 'listing') {
+        message = `Successfully restored listing: "${item.title}"`
+        nextSteps = 'Your listing has been restored but is currently paused. Please review and activate it in your listings management.'
+      } else if (itemType === 'message') {
+        message = `Successfully restored message: "${item.title}"`
+        nextSteps = 'Your message has been restored and is now visible in the conversation.'
+      } else if (itemType === 'wanted_request') {
+        message = `Successfully restored wanted request: "${item.title}"`
+        nextSteps = 'Your wanted request has been restored but is currently paused. Please review and activate it in your wanted requests management.'
+      }
+      
+      alert(message + '\n\n' + nextSteps)
+      
+      // Remove the restored item from the bin (for demo)
+      setBinItems(prevItems => prevItems.filter(i => i.id !== itemId))
+      
+      console.log('Next steps:', nextSteps)
+      
+      // Uncomment below to use actual API instead of sample behavior
+      // const { data: { session } } = await supabase.auth.getSession()
+      // const response = await fetch('/api/user/bin', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Authorization': `Bearer ${session?.access_token}`,
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify({
+      //     action: 'restore',
+      //     item_type: itemType,
+      //     item_id: itemId
+      //   })
+      // })
+      // 
+      // if (!response.ok) {
+      //   const errorData = await response.json()
+      //   throw new Error(errorData.error || 'Failed to restore item')
+      // }
+      // 
+      // const data = await response.json()
+      // alert(data.message)
+      // 
+      // // Reload bin items to reflect changes
+      // await loadBinItems()
+      
+    } catch (error) {
+      console.error('Error restoring item:', error)
+      alert(error instanceof Error ? error.message : 'Failed to restore item')
+    } finally {
+      setRestoring(null)
+    }
+  }
+
+  // Handle user logout
+  const handleLogout = async () => {
+    try {
+      // Get current session for the API call
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      // Call backend logout API for cleanup (optional)
+      if (session?.access_token) {
+        try {
+          await fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json'
+            }
+          })
+        } catch (apiError) {
+          // Don't block logout if API call fails
+          console.warn('Backend logout API call failed:', apiError)
+        }
+      }
+      
+      // Sign out from Supabase (this is the main logout)
+      const { error } = await supabase.auth.signOut()
+      
+      if (error) {
+        console.error('Error signing out:', error)
+        alert('Failed to sign out. Please try again.')
+        return
+      }
+      
+      // Redirect to home page
+      router.push('/')
+      
+      // Optional: Show success message
+      // alert('You have been signed out successfully')
+      
+    } catch (error) {
+      console.error('Unexpected error during logout:', error)
+      alert('An unexpected error occurred. Please try again.')
+    }
   }
 
   // Action handlers
@@ -754,17 +1160,25 @@ export default function ProfilePage() {
     }
   }
 
-  const handleDelete = async (itemId: string, itemType: 'listing' | 'wanted request') => {
+  const handleDelete = async (itemId: string, itemType: 'listing' | 'wanted request' | 'message') => {
     if (!confirm(`Are you sure you want to move this ${itemType} to bin?`)) {
       return
     }
 
     try {
-      const endpoint = itemType === 'listing' 
-        ? '/api/listings/delete'
-        : '/api/wanted-requests/delete'
+      let endpoint: string
+      let bodyKey: string
       
-      const bodyKey = itemType === 'listing' ? 'listingId' : 'requestId'
+      if (itemType === 'listing') {
+        endpoint = '/api/listings/delete'
+        bodyKey = 'listingId'
+      } else if (itemType === 'wanted request') {
+        endpoint = '/api/wanted-requests/delete'
+        bodyKey = 'requestId'
+      } else { // message
+        endpoint = '/api/messages/delete'
+        bodyKey = 'conversationId'
+      }
       
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -789,7 +1203,7 @@ export default function ProfilePage() {
               : listing
           )
         )
-      } else {
+      } else if (itemType === 'wanted request') {
         setWantedRequests(prevRequests => 
           prevRequests.map(request => 
             request.id === itemId 
@@ -797,9 +1211,14 @@ export default function ProfilePage() {
               : request
           )
         )
+      } else if (itemType === 'message') {
+        // Remove conversation from list
+        setConversations(prevConversations => 
+          prevConversations.filter(conversation => conversation.id !== itemId)
+        )
       }
 
-      alert(data.message)
+      alert(data.message || `${itemType} moved to bin successfully`)
       setShowActionMenu(null)
     } catch (error) {
       console.error(`Error deleting ${itemType}:`, error)
@@ -812,16 +1231,6 @@ export default function ProfilePage() {
     // Implementation here
   }
 
-  const handleBulkAction = (action: 'restore' | 'delete') => {
-    if (selectedItems.length === 0) return
-    
-    if (action === 'delete' && !confirm(`Delete ${selectedItems.length} items permanently?`)) {
-      return
-    }
-    
-    console.log(`${action} items:`, selectedItems)
-    setSelectedItems([])
-  }
 
   // Wanted request action handlers
   const handlePauseResumeWantedRequest = async (requestId: string, action: 'pause' | 'resume') => {
@@ -924,88 +1333,6 @@ export default function ProfilePage() {
     }
   }
 
-  // Refresh wanted requests data when returning from edit
-  useEffect(() => {
-    const handleFocus = () => {
-      if (tab === 'wanted') {
-        // Reload wanted requests data when page gets focus
-        // This will refresh the list after editing
-        const loadWantedRequests = async () => {
-          if (!user) return
-          
-          try {
-            // Use the same sample data loading logic as before
-            const sampleWantedRequests: WantedRequest[] = [
-              {
-                id: '1',
-                title: 'Looking for Toyota Prius 2018-2020',
-                description: 'Need a well-maintained Toyota Prius, preferably white or silver color. Low mileage preferred.',
-                budget: 3500000,
-                status: 'active',
-                postedDate: '2025-07-10', // 41 days ago - can be renewed
-                responses: 12,
-                location: 'Colombo',
-              },
-              {
-                id: '2', 
-                title: 'Honda Vezel or HR-V under 4M',
-                description: 'Looking for Honda Vezel or HR-V in good condition. Any color acceptable. Must be within 4 million budget.',
-                budget: 4000000,
-                status: 'active',
-                postedDate: '2025-08-15', // 5 days ago - cannot be renewed (13 days remaining)
-                responses: 8,
-                location: 'Kandy',
-              },
-              {
-                id: '3',
-                title: 'BMW 3 Series F30 - 2015 onwards',
-                description: 'Searching for BMW 3 Series F30 model, 2015 or newer. Prefer automatic transmission.',
-                budget: 8500000,
-                status: 'paused',
-                postedDate: '2025-07-25', // 26 days ago - can be renewed
-                responses: 5,
-                location: 'Galle',
-              },
-              {
-                id: '4',
-                title: 'Looking for Mercedes-Benz C-Class',
-                description: 'Need C200 or C250, must be in excellent condition with AMG package',
-                budget: 12000000,
-                status: 'deleted',
-                postedDate: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-                responses: 15,
-                location: 'Colombo',
-                isReportedTakedown: true,
-                rejectionReason: 'Multiple reports: Suspected fraudulent payment terms'
-              },
-              {
-                id: '5',
-                title: 'Urgent: Need any SUV under 5M',
-                description: 'Looking for any SUV in good condition, prefer Japanese brands',
-                budget: 5000000,
-                status: 'deleted',
-                postedDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-                responses: 7,
-                location: 'Matara',
-                isReportedTakedown: true,
-                rejectionReason: 'Reported: Suspicious contact information provided'
-              }
-            ]
-            
-            setWantedRequests(sampleWantedRequests)
-          } catch (error) {
-            console.error('Error refreshing wanted requests:', error)
-          }
-        }
-        
-        loadWantedRequests()
-      }
-    }
-
-    window.addEventListener('focus', handleFocus)
-    return () => window.removeEventListener('focus', handleFocus)
-  }, [user, tab])
-
   // Helper function to calculate days until renewal for wanted requests
   const getDaysUntilWantedRequestRenewal = (postedDate: string) => {
     const posted = new Date(postedDate)
@@ -1049,6 +1376,66 @@ export default function ProfilePage() {
     } else {
       navigator.clipboard.writeText(`${window.location.origin}${url}`)
       alert('Link copied to clipboard!')
+    }
+  }
+
+  // Message handlers
+  const handleFetchMessages = async (conversationId: string): Promise<Message[]> => {
+    try {
+      const response = await fetch(`/api/messages/${conversationId}`)
+      if (response.ok) {
+        const data = await response.json()
+        return data.messages || []
+      }
+      return []
+    } catch (error) {
+      console.error('Error fetching messages:', error)
+      return []
+    }
+  }
+
+  const handleSendMessage = async (conversationId: string, content: string) => {
+    try {
+      const response = await fetch(`/api/messages/${conversationId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to send message')
+      }
+    } catch (error) {
+      console.error('Error sending message:', error)
+      throw error
+    }
+  }
+
+  const handleArchiveConversation = async (conversationId: string) => {
+    try {
+      // API call to archive conversation
+      // For now, just simulate the action
+      console.log('Archiving conversation:', conversationId)
+    } catch (error) {
+      console.error('Error archiving conversation:', error)
+    }
+  }
+
+  const handleMoveConversationToBin = async (conversationId: string) => {
+    await handleDelete(conversationId, 'message')
+  }
+
+  const handleMarkConversationAsRead = async (conversationId: string) => {
+    try {
+      const response = await fetch(`/api/messages/${conversationId}/mark-read`, {
+        method: 'PATCH'
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to mark as read')
+      }
+    } catch (error) {
+      console.error('Error marking conversation as read:', error)
     }
   }
 
@@ -1255,15 +1642,7 @@ export default function ProfilePage() {
   }
 
   // Filter listings based on selected status
-  const filteredListings = listings.filter(listing => {
-    if (listingStatusFilter === 'all') return true
-    if (listingStatusFilter === 'active') return listing.status === 'active'
-    if (listingStatusFilter === 'sold') return listing.status === 'sold'
-    if (listingStatusFilter === 'pending') return listing.status === 'pending' && !listing.isPaused
-    if (listingStatusFilter === 'paused') return listing.status === 'pending' && listing.isPaused
-    if (listingStatusFilter === 'reported') return listing.status === 'deleted' && listing.isReportedTakedown
-    return true
-  })
+  const filteredListings = filterListingsByStatus(listings, listingStatusFilter)
 
   // Stats calculation
   const stats = {
@@ -1830,7 +2209,7 @@ export default function ProfilePage() {
                       <option value="sold">Sold</option>
                       <option value="pending">Under Review</option>
                       <option value="paused">Paused</option>
-                      <option value="reported">Reported & Removed</option>
+                      <option value="reported">Reported</option>
                     </select>
                   </div>
                   <div className="p-4 md:p-6">
@@ -1894,29 +2273,7 @@ export default function ProfilePage() {
                               <td className="px-4 py-4">Rs. {listing.price.toLocaleString()}</td>
                               <td className="px-4 py-4">{listing.views}</td>
                               <td className="px-4 py-4">
-                                <div className="space-y-1">
-                                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                                    listing.status === 'active' 
-                                      ? 'bg-green-100 text-green-800'
-                                      : listing.status === 'pending'
-                                      ? 'bg-yellow-100 text-yellow-800'
-                                      : listing.status === 'deleted' && listing.isReportedTakedown
-                                      ? 'bg-red-100 text-red-800'
-                                      : listing.status === 'deleted'
-                                      ? 'bg-gray-100 text-gray-800'
-                                      : 'bg-gray-100 text-gray-800'
-                                  }`}>
-                                    {listing.status === 'active' ? 'Active' : 
-                                     listing.status === 'pending' && listing.isPaused ? 'Paused' :
-                                     listing.status === 'pending' ? 'Under Review' :
-                                     listing.status === 'deleted' && listing.isReportedTakedown ? 'Reported & Removed' :
-                                     listing.status === 'deleted' && listing.rejectionReason ? 'Rejected' :
-                                     listing.status === 'deleted' ? 'Deleted' : 'Sold'}
-                                  </span>
-                                  {listing.status === 'deleted' && listing.rejectionReason && (
-                                    <p className="text-xs text-red-600">Reason: {listing.rejectionReason}</p>
-                                  )}
-                                </div>
+                                <ListingStatusBadge listing={listing} showReason={true} />
                               </td>
                               <td className="px-4 py-4 text-sm text-gray-600">{listing.postedDate}</td>
                               <td className="px-4 py-4">
@@ -1939,21 +2296,6 @@ export default function ProfilePage() {
                                       </Link>
                                     </>
                                   )}
-
-                                  {(listing.status === 'deleted' && (listing.isReportedTakedown || listing.rejectionReason)) && (
-                                    <div className="bg-red-50 border border-red-200 rounded-lg p-2 space-y-2">
-                                      <p className="text-xs text-red-700 font-medium mb-2">
-                                        {listing.isReportedTakedown ? 'Your listing was reported and removed' : 'Your listing was rejected'}
-                                      </p>
-                                      <Link 
-                                        href={`/post?edit=${listing.id}`}
-                                        className="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 inline-flex items-center gap-1 font-medium transition-all"
-                                      >
-                                        <Edit className="w-3 h-3" />
-                                        Edit & Resubmit
-                                      </Link>
-                                    </div>
-                                  )}
                                   
                                   {listing.status === 'sold' && (
                                     <>
@@ -1975,94 +2317,15 @@ export default function ProfilePage() {
                                   )}
                                   
                                   {listing.status !== 'sold' && (
-                                    <div className="relative overflow-visible">
-                                    <button
-                                      data-dropdown-id={listing.id}
-                                      onClick={() => setShowActionMenu(showActionMenu === listing.id ? null : listing.id)}
-                                      className="p-1 hover:bg-gray-100 rounded"
-                                    >
-                                      <MoreVertical className="w-4 h-4" />
-                                    </button>
-                                    
-                                    {showActionMenu === listing.id && (
-                                      <div className={`absolute right-0 bg-white border rounded-lg shadow-lg py-2 z-50 w-48 ${
-                                        getDropdownPosition(listing.id).openUp 
-                                          ? 'bottom-full mb-1' 
-                                          : 'top-full mt-1'
-                                      }`}>
-                                        <button 
-                                          onClick={() => handleShare(listing.id)}
-                                          className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                                        >
-                                          <Share2 className="w-4 h-4" />
-                                          Share Listing
-                                        </button>
-                                        <Link 
-                                          href={`/post?edit=${listing.id}`}
-                                          className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 block"
-                                        >
-                                          <Edit className="w-4 h-4" />
-                                          Edit Listing
-                                        </Link>
-                                        {listing.status === 'active' && (
-                                          <button 
-                                            onClick={() => canRenewListing(listing.postedDate) ? handleRenewListing(listing.id) : null}
-                                            disabled={!canRenewListing(listing.postedDate)}
-                                            className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 ${
-                                              canRenewListing(listing.postedDate) 
-                                                ? 'hover:bg-gray-50 cursor-pointer' 
-                                                : 'opacity-50 cursor-not-allowed'
-                                            }`}
-                                          >
-                                            <RefreshCw className="w-4 h-4" />
-                                            <span>
-                                              Renew Listing
-                                              {!canRenewListing(listing.postedDate) && (
-                                                <span className="text-xs text-gray-500 ml-1">
-                                                  ({getDaysUntilRenew(listing.postedDate)} days to renew)
-                                                </span>
-                                              )}
-                                            </span>
-                                          </button>
-                                        )}
-                                        {listing.status === 'active' && !listing.isPaused && (
-                                          <button 
-                                            onClick={() => handlePauseAd(listing.id)}
-                                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                                          >
-                                            <Pause className="w-4 h-4" />
-                                            Pause Ad
-                                          </button>
-                                        )}
-                                        {listing.status === 'pending' && listing.isPaused && (
-                                          <>
-                                            <button 
-                                              onClick={() => handleResumeAd(listing.id)}
-                                              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                                            >
-                                              <Play className="w-4 h-4" />
-                                              Resume Ad
-                                            </button>
-                                            <button 
-                                              onClick={() => handleMarkAsSold(listing.id)}
-                                              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                                            >
-                                              <CheckCircle className="w-4 h-4" />
-                                              Mark as Sold
-                                            </button>
-                                          </>
-                                        )}
-                                        <hr className="my-2" />
-                                        <button 
-                                          onClick={() => handleDelete(listing.id, 'listing')}
-                                          className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-red-600"
-                                        >
-                                          <Trash2 className="w-4 h-4" />
-                                          Move to Bin
-                                        </button>
-                                      </div>
-                                    )}
-                                  </div>
+                                    <ListingActions
+                                      listing={listing}
+                                      onPause={handlePauseAd}
+                                      onResume={handleResumeAd}
+                                      onMarkAsSold={handleMarkAsSold}
+                                      onDelete={(id) => handleDelete(id, 'listing')}
+                                      onShare={handleShare}
+                                      viewMode="mobile"
+                                    />
                                   )}
                                 </div>
                               </td>
@@ -2092,94 +2355,15 @@ export default function ProfilePage() {
                                   <p className="text-sm text-gray-600 mt-1 line-clamp-2">{listing.details}</p>
                                   <div className="flex items-center justify-between mt-2">
                                     <span className="text-lg font-bold text-gray-900">Rs. {listing.price.toLocaleString()}</span>
-                                    <div className="relative overflow-visible">
-                                      <button
-                                        data-dropdown-id={listing.id}
-                                        onClick={() => setShowActionMenu(showActionMenu === listing.id ? null : listing.id)}
-                                        className="p-2 hover:bg-gray-100 rounded-full"
-                                      >
-                                        <MoreVertical className="w-5 h-5" />
-                                      </button>
-                                      
-                                      {showActionMenu === listing.id && (
-                                        <div className={`absolute right-0 bg-white border rounded-lg shadow-lg py-2 z-50 w-48 ${
-                                          getDropdownPosition(listing.id).openUp 
-                                            ? 'bottom-full mb-1' 
-                                            : 'top-full mt-1'
-                                        }`}>
-                                          <button 
-                                            onClick={() => handleShare(listing.id)}
-                                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                                          >
-                                            <Share2 className="w-4 h-4" />
-                                            Share Listing
-                                          </button>
-                                          <Link 
-                                            href={`/post?edit=${listing.id}`}
-                                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 block"
-                                          >
-                                            <Edit className="w-4 h-4" />
-                                            Edit Listing
-                                          </Link>
-                                          {listing.status === 'active' && (
-                                            <button 
-                                              onClick={() => canRenewListing(listing.postedDate) ? handleRenewListing(listing.id) : null}
-                                              disabled={!canRenewListing(listing.postedDate)}
-                                              className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 ${
-                                                canRenewListing(listing.postedDate) 
-                                                  ? 'hover:bg-gray-50 cursor-pointer' 
-                                                  : 'opacity-50 cursor-not-allowed'
-                                              }`}
-                                            >
-                                              <RefreshCw className="w-4 h-4" />
-                                              <span>
-                                                Renew Listing
-                                                {!canRenewListing(listing.postedDate) && (
-                                                  <span className="text-xs text-gray-500 ml-1">
-                                                    ({getDaysUntilRenew(listing.postedDate)} days to renew)
-                                                  </span>
-                                                )}
-                                              </span>
-                                            </button>
-                                          )}
-                                          {listing.status === 'active' && !listing.isPaused && (
-                                            <button 
-                                              onClick={() => handlePauseAd(listing.id)}
-                                              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                                            >
-                                              <Pause className="w-4 h-4" />
-                                              Pause Ad
-                                            </button>
-                                          )}
-                                          {listing.status === 'pending' && listing.isPaused && (
-                                            <>
-                                              <button 
-                                                onClick={() => handleResumeAd(listing.id)}
-                                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                                              >
-                                                <Play className="w-4 h-4" />
-                                                Resume Ad
-                                              </button>
-                                              <button 
-                                                onClick={() => handleMarkAsSold(listing.id)}
-                                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                                              >
-                                                <CheckCircle className="w-4 h-4" />
-                                                Mark as Sold
-                                              </button>
-                                            </>
-                                          )}
-                                          <hr className="my-2" />
-                                          <button 
-                                            onClick={() => handleDelete(listing.id, 'listing')}
-                                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-red-600"
-                                          >
-                                            <Trash2 className="w-4 h-4" />
-                                            Move to Bin
-                                          </button>
-                                        </div>
-                                      )}
-                                    </div>
+                                    <ListingActions
+                                      listing={listing}
+                                      onPause={handlePauseAd}
+                                      onResume={handleResumeAd}
+                                      onMarkAsSold={handleMarkAsSold}
+                                      onDelete={(id) => handleDelete(id, 'listing')}
+                                      onShare={handleShare}
+                                      viewMode="mobile"
+                                    />
                                   </div>
                                 </div>
                               </div>
@@ -2197,27 +2381,7 @@ export default function ProfilePage() {
 
                               {/* Status */}
                               <div className="mb-3">
-                                <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                                  listing.status === 'active' 
-                                    ? 'bg-green-100 text-green-800'
-                                    : listing.status === 'pending'
-                                    ? 'bg-yellow-100 text-yellow-800'
-                                    : listing.status === 'deleted' && listing.isReportedTakedown
-                                    ? 'bg-red-100 text-red-800'
-                                    : listing.status === 'deleted'
-                                    ? 'bg-gray-100 text-gray-800'
-                                    : 'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {listing.status === 'active' ? 'Active' : 
-                                   listing.status === 'pending' && listing.isPaused ? 'Paused' :
-                                   listing.status === 'pending' ? 'Under Review' :
-                                   listing.status === 'deleted' && listing.isReportedTakedown ? 'Reported & Removed' :
-                                   listing.status === 'deleted' && listing.rejectionReason ? 'Rejected' :
-                                   listing.status === 'deleted' ? 'Deleted' : 'Sold'}
-                                </span>
-                                {listing.status === 'deleted' && listing.rejectionReason && (
-                                  <p className="text-xs text-red-600 mt-1">Reason: {listing.rejectionReason}</p>
-                                )}
+                                <ListingStatusBadge listing={listing} showReason={true} />
                               </div>
 
                               {/* Action Buttons */}
@@ -2241,20 +2405,7 @@ export default function ProfilePage() {
                                   </div>
                                 )}
 
-                                {(listing.status === 'deleted' && (listing.isReportedTakedown || listing.rejectionReason)) && (
-                                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                                    <p className="text-xs text-red-700 font-medium mb-2">
-                                      {listing.isReportedTakedown ? 'Your listing was reported and removed' : 'Your listing was rejected'}
-                                    </p>
-                                    <Link 
-                                      href={`/post?edit=${listing.id}`}
-                                      className="block bg-red-600 text-white py-2 px-3 rounded text-xs hover:bg-red-700 flex items-center justify-center gap-1 font-medium transition-all"
-                                    >
-                                      <Edit className="w-3 h-3" />
-                                      Edit & Resubmit
-                                    </Link>
-                                  </div>
-                                )}
+                                <ListingStatusMessage listing={listing} />
                                 
                                 {listing.status === 'sold' && (
                                   <div className="flex gap-2">
@@ -2287,279 +2438,45 @@ export default function ProfilePage() {
 
               {/* Favorites Tab */}
               {activeTab === 'favorites' && (
-                <>
-                  <div className="p-6 border-b">
-                    <h1 className="text-2xl font-semibold">My Favorites</h1>
-                  </div>
-                  <div className="p-6">
-                    <div className="flex border-b mb-6">
-                      <button
-                        onClick={() => setActiveFavoritesTab('ads')}
-                        className={`pb-3 px-1 mr-8 font-medium border-b-2 transition-colors ${
-                          activeFavoritesTab === 'ads'
-                            ? 'text-blue-600 border-blue-600'
-                            : 'text-gray-600 border-transparent hover:text-gray-900'
-                        }`}
-                      >
-                        Ads ({favoritedAds.length})
-                      </button>
-                      <button
-                        onClick={() => setActiveFavoritesTab('wanted')}
-                        className={`pb-3 px-1 font-medium border-b-2 transition-colors ${
-                          activeFavoritesTab === 'wanted'
-                            ? 'text-blue-600 border-blue-600'
-                            : 'text-gray-600 border-transparent hover:text-gray-900'
-                        }`}
-                      >
-                        Wanted Requests ({favoritedWantedRequests.length})
-                      </button>
-                    </div>
-
-                    {favoritesLoading ? (
-                      <div className="text-center py-12">
-                        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                        <p className="text-gray-600">Loading your favorites...</p>
-                      </div>
-                    ) : (
-                      <>
-                        {/* Favorited Ads */}
-                        {activeFavoritesTab === 'ads' && (
-                          <>
-                            {favoritedAds.length === 0 ? (
-                              <div className="text-center py-12 text-gray-500">
-                                <Heart className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                                <p className="font-medium">No saved ads yet</p>
-                                <p className="text-sm mt-1">Start browsing to save your favorite vehicles</p>
-                                <Link
-                                  href="/listings"
-                                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium inline-block mt-4"
-                                >
-                                  Browse Vehicles
-                                </Link>
-                              </div>
-                            ) : (
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {favoritedAds.map((ad) => (
-                                  <div key={ad.id} className="bg-white border rounded-lg shadow-sm overflow-hidden">
-                                    {/* Image */}
-                                    <div className="h-48 bg-gray-200 flex items-center justify-center">
-                                      <Camera className="w-12 h-12 text-gray-400" />
-                                    </div>
-                                    
-                                    {/* Content */}
-                                    <div className="p-4">
-                                      <div className="flex justify-between items-start mb-2">
-                                        <Link 
-                                          href={`/listings/${ad.id}`}
-                                          className="font-medium text-blue-600 hover:text-blue-700 block flex-1"
-                                        >
-                                          {ad.title}
-                                        </Link>
-                                        <div className="relative ml-2">
-                                          <button
-                                            data-dropdown-id={ad.id}
-                                            onClick={() => setShowActionMenu(showActionMenu === ad.id ? null : ad.id)}
-                                            className="p-1 hover:bg-gray-100 rounded"
-                                          >
-                                            <MoreVertical className="w-4 h-4" />
-                                          </button>
-                                          
-                                          {showActionMenu === ad.id && (
-                                            <div className={`absolute right-0 bg-white border rounded-lg shadow-lg py-2 z-50 w-48 ${
-                                              getDropdownPosition(ad.id).openUp 
-                                                ? 'bottom-full mb-1' 
-                                                : 'top-full mt-1'
-                                            }`}>
-                                              <Link
-                                                href={`/listings/${ad.id}`}
-                                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 block"
-                                              >
-                                                <Eye className="w-4 h-4" />
-                                                View Listing
-                                              </Link>
-                                              <button 
-                                                onClick={() => handleShareFavorite(ad.id, 'ad')}
-                                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                                              >
-                                                <Share2 className="w-4 h-4" />
-                                                Share
-                                              </button>
-                                              <hr className="my-2" />
-                                              <button 
-                                                onClick={() => handleRemoveFromFavorites(ad.id, 'ad')}
-                                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-red-600"
-                                              >
-                                                <HeartOff className="w-4 h-4" />
-                                                Remove from Favorites
-                                              </button>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                      
-                                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{ad.description}</p>
-                                      
-                                      <div className="space-y-2">
-                                        <div className="flex justify-between items-center">
-                                          <span className="text-lg font-bold text-gray-900">Rs. {ad.price.toLocaleString()}</span>
-                                        </div>
-                                        
-                                        <div className="flex items-center justify-between text-sm text-gray-600">
-                                          <span className="flex items-center gap-1">
-                                            <MapPin className="w-4 h-4" />
-                                            {ad.location}
-                                          </span>
-                                          <span>{ad.postedDate}</span>
-                                        </div>
-                                        
-                                        <div className="text-sm text-gray-600">
-                                          By: {ad.seller}
-                                        </div>
-                                      </div>
-                                      
-                                      {/* Action Buttons */}
-                                      <div className="flex gap-2 mt-4">
-                                        <Link
-                                          href={`/listings/${ad.id}`}
-                                          className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-blue-700 text-center font-medium transition-all"
-                                        >
-                                          View Details
-                                        </Link>
-                                        <button
-                                          onClick={() => handleRemoveFromFavorites(ad.id, 'ad')}
-                                          className="bg-gray-200 text-gray-700 py-2 px-3 rounded-lg text-sm hover:bg-gray-300 transition-all"
-                                        >
-                                          <HeartOff className="w-4 h-4" />
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </>
-                        )}
-
-                        {/* Favorited Wanted Requests */}
-                        {activeFavoritesTab === 'wanted' && (
-                          <>
-                            {favoritedWantedRequests.length === 0 ? (
-                              <div className="text-center py-12 text-gray-500">
-                                <Search className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                                <p className="font-medium">No saved wanted requests</p>
-                                <p className="text-sm mt-1">Save wanted requests that match your inventory</p>
-                                <Link
-                                  href="/wanted"
-                                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium inline-block mt-4"
-                                >
-                                  Browse Wanted Requests
-                                </Link>
-                              </div>
-                            ) : (
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {favoritedWantedRequests.map((request) => (
-                                  <div key={request.id} className="bg-white border rounded-lg shadow-sm">
-                                    <div className="p-4">
-                                      <div className="flex justify-between items-start mb-2">
-                                        <Link 
-                                          href={`/wanted/${request.id}`}
-                                          className="font-medium text-blue-600 hover:text-blue-700 block flex-1"
-                                        >
-                                          {request.title}
-                                        </Link>
-                                        <div className="relative ml-2">
-                                          <button
-                                            data-dropdown-id={request.id}
-                                            onClick={() => setShowActionMenu(showActionMenu === request.id ? null : request.id)}
-                                            className="p-1 hover:bg-gray-100 rounded"
-                                          >
-                                            <MoreVertical className="w-4 h-4" />
-                                          </button>
-                                          
-                                          {showActionMenu === request.id && (
-                                            <div className={`absolute right-0 bg-white border rounded-lg shadow-lg py-2 z-50 w-48 ${
-                                              getDropdownPosition(request.id).openUp 
-                                                ? 'bottom-full mb-1' 
-                                                : 'top-full mt-1'
-                                            }`}>
-                                              <Link
-                                                href={`/wanted/${request.id}`}
-                                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 block"
-                                              >
-                                                <Eye className="w-4 h-4" />
-                                                View Request
-                                              </Link>
-                                              <button 
-                                                onClick={() => handleShareFavorite(request.id, 'wanted')}
-                                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                                              >
-                                                <Share2 className="w-4 h-4" />
-                                                Share
-                                              </button>
-                                              <hr className="my-2" />
-                                              <button 
-                                                onClick={() => handleRemoveFromFavorites(request.id, 'wanted')}
-                                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-red-600"
-                                              >
-                                                <HeartOff className="w-4 h-4" />
-                                                Remove from Favorites
-                                              </button>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                      
-                                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{request.description}</p>
-                                      
-                                      <div className="space-y-2">
-                                        <div className="flex justify-between items-center">
-                                          <span className="text-lg font-bold text-gray-900">Budget: Rs. {request.price.toLocaleString()}</span>
-                                        </div>
-                                        
-                                        <div className="flex items-center justify-between text-sm text-gray-600">
-                                          <span className="flex items-center gap-1">
-                                            <MapPin className="w-4 h-4" />
-                                            {request.location}
-                                          </span>
-                                          <span>{request.postedDate}</span>
-                                        </div>
-                                        
-                                        <div className="text-sm text-gray-600">
-                                          By: {request.seller}
-                                        </div>
-                                      </div>
-                                      
-                                      {/* Action Buttons */}
-                                      <div className="flex gap-2 mt-4">
-                                        <Link
-                                          href={`/wanted/${request.id}`}
-                                          className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-blue-700 text-center font-medium transition-all"
-                                        >
-                                          View Request
-                                        </Link>
-                                        <button
-                                          onClick={() => handleRemoveFromFavorites(request.id, 'wanted')}
-                                          className="bg-gray-200 text-gray-700 py-2 px-3 rounded-lg text-sm hover:bg-gray-300 transition-all"
-                                        >
-                                          <HeartOff className="w-4 h-4" />
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </>
+                <FavoritesTab
+                  favoriteAds={favoritedAds.map(ad => ({
+                    id: ad.id,
+                    title: ad.title,
+                    description: ad.description,
+                    price: ad.price,
+                    location: ad.location,
+                    image: ad.image,
+                    postedDate: ad.postedDate,
+                    seller: ad.seller
+                  }))}
+                  favoriteWanted={favoritedWantedRequests.map(request => ({
+                    id: request.id,
+                    title: request.title,
+                    description: request.description || '',
+                    budget: request.price,
+                    location: request.location,
+                    postedDate: request.postedDate || new Date().toISOString()
+                  }))}
+                  onRemoveAdFromFavorites={(id) => handleRemoveFromFavorites(id, 'ad')}
+                  onRemoveWantedFromFavorites={(id) => handleRemoveFromFavorites(id, 'wanted')}
+                  onShareAd={(id) => handleShareFavorite(id, 'ad')}
+                  onShareWanted={(id) => handleShareFavorite(id, 'wanted')}
+                  loading={favoritesLoading}
+                />
               )}
 
               {/* Messages Tab */}
               {activeTab === 'messages' && (
-                <MessagesTab />
+                <MessagesTab
+                  conversations={conversations}
+                  currentUserId={user?.id}
+                  onFetchConversations={fetchConversations}
+                  onFetchMessages={handleFetchMessages}
+                  onSendMessage={handleSendMessage}
+                  onArchiveConversation={handleArchiveConversation}
+                  onMoveConversationToBin={handleMoveConversationToBin}
+                  onMarkConversationAsRead={handleMarkConversationAsRead}
+                />
               )}
 
               {/* Wanted Requests Tab */}
@@ -2634,21 +2551,7 @@ export default function ProfilePage() {
                                 <td className="px-4 py-4">Rs. {request.budget.toLocaleString()}</td>
                                 <td className="px-4 py-4">{request.responses}</td>
                                 <td className="px-4 py-4">
-                                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                                    request.status === 'active' 
-                                      ? 'bg-green-100 text-green-800'
-                                      : request.status === 'paused'
-                                      ? 'bg-yellow-100 text-yellow-800'
-                                      : request.status === 'closed'
-                                      ? 'bg-gray-100 text-gray-800'
-                                      : 'bg-red-100 text-red-800'
-                                  }`}>
-                                    {request.status === 'active' ? 'Active' : 
-                                     request.status === 'paused' ? 'Paused' :
-                                     request.status === 'closed' ? 'Closed' : 
-                                     request.status === 'deleted' && request.isReportedTakedown ? 'Reported' :
-                                     'Deleted'}
-                                  </span>
+                                  <WantedRequestStatusBadge request={request} />
                                 </td>
                                 <td className="px-4 py-4 text-sm text-gray-600">{request.postedDate}</td>
                                 <td className="px-4 py-4">
@@ -2690,95 +2593,17 @@ export default function ProfilePage() {
                                         </button>
                                       </>
                                     )}
-                                    {request.status === 'deleted' && request.isReportedTakedown && (
-                                      <Link
-                                        href={`/wanted/edit/${request.id}`}
-                                        className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-red-700 inline-flex items-center gap-1 font-medium transition-all"
-                                      >
-                                        <Edit className="w-3 h-3" />
-                                        Edit & Resubmit
-                                      </Link>
-                                    )}
+                                    <WantedRequestStatusMessage request={request} />
                                     
-                                    <div className="relative overflow-visible">
-                                      <button
-                                        data-dropdown-id={request.id}
-                                        onClick={() => setShowActionMenu(showActionMenu === request.id ? null : request.id)}
-                                        className="p-1 hover:bg-gray-100 rounded"
-                                      >
-                                        <MoreVertical className="w-4 h-4" />
-                                      </button>
-                                      
-                                      {showActionMenu === request.id && (
-                                        <div className={`absolute right-0 bg-white border rounded-lg shadow-lg py-2 z-50 w-48 ${
-                                          getDropdownPosition(request.id).openUp 
-                                            ? 'bottom-full mb-1' 
-                                            : 'top-full mt-1'
-                                        }`}>
-                                          <button 
-                                            onClick={() => handleShareWantedRequest(request.id)}
-                                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                                          >
-                                            <Share2 className="w-4 h-4" />
-                                            Share Request
-                                          </button>
-                                          <Link 
-                                            href={`/wanted/edit/${request.id}`}
-                                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 block"
-                                          >
-                                            <Edit className="w-4 h-4" />
-                                            Edit Request
-                                          </Link>
-                                          
-                                          {(request.status === 'active' || request.status === 'paused') && (
-                                            <>
-                                              <hr className="my-2" />
-                                              {request.status === 'active' ? (
-                                                <>
-                                                  <button 
-                                                    onClick={() => handlePauseResumeWantedRequest(request.id, 'pause')}
-                                                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                                                  >
-                                                    <Pause className="w-4 h-4" />
-                                                    Pause Request
-                                                  </button>
-                                                  
-                                                  <button 
-                                                    onClick={() => handleRenewWantedRequest(request.id)}
-                                                    className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 ${
-                                                      getDaysUntilWantedRequestRenewal(request.postedDate) > 0 
-                                                        ? 'text-gray-400 cursor-not-allowed' 
-                                                        : 'text-gray-900'
-                                                    }`}
-                                                    disabled={getDaysUntilWantedRequestRenewal(request.postedDate) > 0}
-                                                    title={
-                                                      getDaysUntilWantedRequestRenewal(request.postedDate) > 0 
-                                                        ? `${getDaysUntilWantedRequestRenewal(request.postedDate)} days to renew`
-                                                        : 'Renew request to boost visibility'
-                                                    }
-                                                  >
-                                                    <RefreshCw className="w-4 h-4" />
-                                                    {getDaysUntilWantedRequestRenewal(request.postedDate) > 0 
-                                                      ? `${getDaysUntilWantedRequestRenewal(request.postedDate)} days to renew`
-                                                      : 'Renew Request'
-                                                    }
-                                                  </button>
-                                                </>
-                                              ) : null}
-                                            </>
-                                          )}
-                                          
-                                          <hr className="my-2" />
-                                          <button 
-                                            onClick={() => handleDelete(request.id, 'wanted request')}
-                                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-red-600"
-                                          >
-                                            <Trash2 className="w-4 h-4" />
-                                            Move to Bin
-                                          </button>
-                                        </div>
-                                      )}
-                                    </div>
+                                    <WantedRequestActions
+                                      request={request}
+                                      onPause={(id) => handlePauseResumeWantedRequest(id, 'pause')}
+                                      onResume={(id) => handlePauseResumeWantedRequest(id, 'resume')}
+                                      onClose={handleCloseWantedRequest}
+                                      onDelete={(id) => handleDelete(id, 'wanted request')}
+                                      onShare={handleShareWantedRequest}
+                                      viewMode="mobile"
+                                    />
                                   </div>
                                 </td>
                               </tr>
@@ -2901,23 +2726,11 @@ export default function ProfilePage() {
 
                                   {/* Status */}
                                   <div className="flex items-center justify-between">
-                                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                                      request.status === 'active' 
-                                        ? 'bg-green-100 text-green-800'
-                                        : request.status === 'paused'
-                                        ? 'bg-yellow-100 text-yellow-800'
-                                        : request.status === 'closed'
-                                        ? 'bg-gray-100 text-gray-800'
-                                        : 'bg-red-100 text-red-800'
-                                    }`}>
-                                      {request.status === 'active' ? 'Active' : 
-                                       request.status === 'paused' ? 'Paused' :
-                                       request.status === 'closed' ? 'Closed' : 
-                                       request.status === 'deleted' && request.isReportedTakedown ? 'Reported' :
-                                       'Deleted'}
-                                    </span>
+                                    <WantedRequestStatusBadge request={request} />
                                   </div>
 
+                                  <WantedRequestStatusMessage request={request} />
+                                  
                                   {/* Action Buttons */}
                                   <div className="flex gap-2 pt-2">
                                     {request.status === 'active' && (
@@ -2980,332 +2793,65 @@ export default function ProfilePage() {
 
               {/* Notifications Tab */}
               {activeTab === 'notifications' && (
-                <>
-                  <div className="p-6 border-b">
-                    <h1 className="text-2xl font-semibold">Notification Preferences</h1>
-                  </div>
-                  <div className="p-6 space-y-6">
-                    <div className="border rounded-lg p-6">
-                      <h3 className="font-semibold mb-4">Email Notifications</h3>
-                      <div className="space-y-3">
-                        {[
-                          { key: 'emailNewMatches', label: 'New matches for my wanted requests' },
-                          { key: 'emailPriceDrops', label: 'Price drops on favorited vehicles' },
-                          { key: 'emailMessages', label: 'New messages from buyers/sellers' },
-                          { key: 'emailListingUpdates', label: 'Updates on my listings' }
-                        ].map(item => (
-                          <label key={item.key} className="flex items-center gap-3 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={notifications[item.key as keyof typeof notifications]}
-                              onChange={(e) => setNotifications({
-                                ...notifications,
-                                [item.key]: e.target.checked
-                              })}
-                              className="w-4 h-4 text-blue-600"
-                            />
-                            <span>{item.label}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="border rounded-lg p-6">
-                      <h3 className="font-semibold mb-4">SMS Notifications</h3>
-                      <div className="space-y-3">
-                        {[
-                          { key: 'smsUrgent', label: 'Urgent messages only' },
-                          { key: 'smsSecurity', label: 'Security alerts' }
-                        ].map(item => (
-                          <label key={item.key} className="flex items-center gap-3 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={notifications[item.key as keyof typeof notifications]}
-                              onChange={(e) => setNotifications({
-                                ...notifications,
-                                [item.key]: e.target.checked
-                              })}
-                              className="w-4 h-4 text-blue-600"
-                            />
-                            <span>{item.label}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="border rounded-lg p-6">
-                      <h3 className="font-semibold mb-4">Marketing Communications</h3>
-                      <div className="space-y-3">
-                        {[
-                          { key: 'marketingNewsletter', label: 'Weekly newsletter with market insights' },
-                          { key: 'marketingPromotions', label: 'Special offers and promotions' }
-                        ].map(item => (
-                          <label key={item.key} className="flex items-center gap-3 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={notifications[item.key as keyof typeof notifications]}
-                              onChange={(e) => setNotifications({
-                                ...notifications,
-                                [item.key]: e.target.checked
-                              })}
-                              className="w-4 h-4 text-blue-600"
-                            />
-                            <span>{item.label}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium">
-                      Save Preferences
-                    </button>
-                  </div>
-                </>
+                <NotificationsTab
+                  preferences={notifications}
+                  onUpdate={async (newPreferences) => {
+                    setNotifications(newPreferences)
+                    // Here you would typically save to backend
+                    console.log('Saving notification preferences:', newPreferences)
+                  }}
+                  loading={false}
+                />
               )}
 
-              {/* Bin Tab */}
-              {activeTab === 'bin' && (
-                <>
-                  <div className="p-6 border-b">
-                    <h1 className="text-2xl font-semibold">Bin</h1>
-                  </div>
-                  <div className="p-6">
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 flex items-start gap-3">
-                      <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-amber-900">Items are automatically deleted after 30 days</p>
-                        <p className="text-sm text-amber-700 mt-1">
-                          Deleted items will be permanently removed from your account after 30 days in the bin.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex border-b mb-6">
-                      {['listings', 'messages', 'wanted'].map((tab) => (
-                        <button
-                          key={tab}
-                          onClick={() => setActiveBinTab(tab)}
-                          className={`pb-3 px-1 mr-8 font-medium border-b-2 transition-colors capitalize ${
-                            activeBinTab === tab
-                              ? 'text-blue-600 border-blue-600'
-                              : 'text-gray-600 border-transparent hover:text-gray-900'
-                          }`}
-                        >
-                          Deleted {tab === 'wanted' ? 'Wanted Requests' : tab}
-                        </button>
-                      ))}
-                    </div>
-
-                    {selectedItems.length > 0 && (
-                      <div className="bg-gray-50 rounded-lg p-4 mb-6 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="checkbox"
-                            checked={true}
-                            onChange={() => setSelectedItems([])}
-                            className="w-4 h-4"
-                          />
-                          <span className="font-medium">{selectedItems.length} items selected</span>
-                        </div>
-                        <div className="flex gap-3">
-                          <button
-                            onClick={() => handleBulkAction('restore')}
-                            className="bg-green-600 text-white px-4 py-1.5 rounded text-sm hover:bg-green-700"
-                          >
-                            Restore Selected
-                          </button>
-                          <button
-                            onClick={() => handleBulkAction('delete')}
-                            className="bg-red-600 text-white px-4 py-1.5 rounded text-sm hover:bg-red-700"
-                          >
-                            Delete Permanently
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="text-center py-12 text-gray-500">
-                      <Trash2 className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                      <p className="font-medium">Bin is empty</p>
-                      <p className="text-sm mt-1">Deleted items will appear here</p>
-                    </div>
-                  </div>
-                </>
-              )}
 
 
               {/* Security Tab */}
               {activeTab === 'security' && (
-                <>
-                  <div className="p-6 border-b">
-                    <h1 className="text-2xl font-semibold">Security Settings</h1>
-                  </div>
-                  <div className="p-6 space-y-8">
-                    <div>
-                      <h3 className="text-lg font-semibold mb-4">Change Email Address</h3>
-                      <div className="space-y-4 max-w-md">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Current Email
-                          </label>
-                          <div>
-                            <input
-                              type="email"
-                              value={user?.email || ''}
-                              disabled
-                              className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-600"
-                            />
-                            {!emailVerified && (
-                              <div className="mt-2 flex items-center gap-2">
-                                <AlertTriangle className="w-4 h-4 text-amber-500" />
-                                <span className="text-sm text-amber-600 font-medium">
-                                  Unverified - Check your email to verify
-                                </span>
-                              </div>
-                            )}
-                            {emailVerified && user?.email && (
-                              <div className="mt-2 flex items-center gap-2">
-                                <CheckCircle className="w-4 h-4 text-green-500" />
-                                <span className="text-sm text-green-600 font-medium">
-                                  Verified
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            New Email Address
-                          </label>
-                          <input
-                            type="email"
-                            value={newEmail}
-                            onChange={(e) => setNewEmail(e.target.value)}
-                            placeholder="Enter new email address"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Confirm New Email
-                          </label>
-                          <input
-                            type="email"
-                            value={confirmEmail}
-                            onChange={(e) => setConfirmEmail(e.target.value)}
-                            placeholder="Confirm new email address"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          />
-                        </div>
-                        {emailUpdateSuccess && (
-                          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                            <p className="text-sm text-green-700">
-                              Email updated successfully! Please check your inbox at <strong>{user?.email}</strong> for a verification link.
-                            </p>
-                          </div>
-                        )}
-                        <button 
-                          onClick={handleEmailUpdate}
-                          disabled={emailUpdateLoading}
-                          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
-                        >
-                          {emailUpdateLoading ? 'Updating...' : 'Update Email'}
-                        </button>
-                      </div>
-                    </div>
+                <SecurityTab
+                  emailData={{
+                    currentEmail: user?.email || '',
+                    newEmail: '',
+                    confirmEmail: '',
+                    isVerified: emailVerified
+                  }}
+                  twoFactorData={{
+                    isEnabled: false,
+                    method: 'sms'
+                  }}
+                  sessions={sessions}
+                  onEmailUpdate={async (data) => {
+                    await handleEmailUpdate()
+                  }}
+                  onPasswordUpdate={async (data) => {
+                    console.log('Password update:', data)
+                    // Handle password update
+                  }}
+                  onTwoFactorUpdate={async (data) => {
+                    console.log('2FA update:', data)
+                    // Handle 2FA update
+                  }}
+                  onSessionUpdate={async (data) => {
+                    if (data.action === 'refresh') {
+                      await refreshSessions()
+                    } else if (data.action === 'revoke' && data.sessionId) {
+                      await revokeSession(data.sessionId)
+                    } else if (data.action === 'revokeAll') {
+                      await revokeAllOtherSessions()
+                    }
+                  }}
+                  loading={sessionsLoading}
+                />
+              )}
 
-                    <div>
-                      <h3 className="text-lg font-semibold mb-4">Change Password</h3>
-                      <div className="space-y-4 max-w-md">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Current Password
-                          </label>
-                          <input
-                            type="password"
-                            placeholder="Enter current password"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            New Password
-                          </label>
-                          <input
-                            type="password"
-                            placeholder="Enter new password (min. 6 characters)"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Confirm New Password
-                          </label>
-                          <input
-                            type="password"
-                            placeholder="Confirm new password"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          />
-                        </div>
-                        <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium">
-                          Update Password
-                        </button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="text-lg font-semibold mb-4">Two-Factor Authentication</h3>
-                      <div className="bg-gray-50 rounded-lg p-6 flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">SMS Authentication</p>
-                          <p className="text-sm text-gray-600 mt-1">Receive verification codes via SMS</p>
-                        </div>
-                        <button className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 font-medium">
-                          Enable
-                        </button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="text-lg font-semibold mb-4">Active Sessions</h3>
-                      <div className="space-y-3">
-                        <div className="bg-gray-50 rounded-lg p-4 flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">Chrome on Windows</p>
-                            <p className="text-sm text-gray-600">Current session • Colombo, Sri Lanka</p>
-                          </div>
-                          <span className="text-green-600 text-sm font-medium">Active</span>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg p-4 flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">Safari on iPhone</p>
-                            <p className="text-sm text-gray-600">Last active 2 days ago • Negombo, Sri Lanka</p>
-                          </div>
-                          <button className="text-gray-600 hover:text-gray-800 text-sm font-medium">
-                            Revoke
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="text-lg font-semibold mb-4">Account Actions</h3>
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium text-red-900">Delete Account</p>
-                            <p className="text-sm text-gray-600 mt-1">
-                              Permanently delete your account and all data
-                            </p>
-                          </div>
-                          <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 font-medium">
-                            Delete Account
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </>
+              {/* Bin Tab */}
+              {activeTab === 'bin' && (
+                <BinTab
+                  binItems={binItems}
+                  onRestoreItem={handleRestoreItem}
+                  restoringItemId={restoring}
+                  loading={binLoading}
+                />
               )}
             </div>
           </div>
@@ -3321,7 +2867,6 @@ export default function ProfilePage() {
       )}
 
       {/* Phone Verification Modal */}
-      {console.log('Modal render state:', { showPhoneVerification, phoneToVerify })}
       <PhoneVerificationModal
         isOpen={showPhoneVerification}
         onClose={() => setShowPhoneVerification(false)}
@@ -3331,378 +2876,4 @@ export default function ProfilePage() {
       />
     </div>
   )
-
-  // Messages Tab Component  
-  function MessagesTab() {
-    useEffect(() => {
-      if (activeTab === 'messages') {
-        fetchConversations()
-        
-        // Set up real-time subscription
-        const channel = supabase
-          .channel('conversations')
-          .on('postgres_changes', {
-            event: '*',
-            schema: 'public',
-            table: 'conversations'
-          }, () => {
-            fetchConversations()
-          })
-          .subscribe()
-
-        return () => {
-          supabase.removeChannel(channel)
-        }
-      }
-    }, [activeTab])
-
-    useEffect(() => {
-      if (selectedConversation) {
-        fetchMessages(selectedConversation)
-        
-        // Set up real-time subscription for messages
-        const channel = supabase
-          .channel(`conversation-${selectedConversation}`)
-          .on('postgres_changes', {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'messages',
-            filter: `conversation_id=eq.${selectedConversation}`
-          }, () => {
-            fetchMessages(selectedConversation)
-          })
-          .subscribe()
-
-        return () => {
-          supabase.removeChannel(channel)
-        }
-      }
-    }, [selectedConversation])
-
-    const fetchConversations = async () => {
-      // Use sample data instead of API call
-      setTimeout(() => {
-        setConversations(sampleConversations)
-      }, 300)
-    }
-
-    const fetchMessages = async (conversationId: string) => {
-      setLoadingMessages(true)
-      try {
-        const response = await fetch(`/api/messages/${conversationId}`)
-        if (response.ok) {
-          const data = await response.json()
-          setMessages(data.messages || [])
-        }
-      } catch (error) {
-        console.error('Error fetching messages:', error)
-      } finally {
-        setLoadingMessages(false)
-      }
-    }
-
-    const sendMessage = async (e: React.FormEvent) => {
-      e.preventDefault()
-      if (!newMessage.trim() || sendingMessage || !selectedConversation) return
-
-      setSendingMessage(true)
-      try {
-        const response = await fetch(`/api/messages/${selectedConversation}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: newMessage })
-        })
-
-        if (response.ok) {
-          const data = await response.json()
-          setMessages([...messages, data.message])
-          setNewMessage('')
-        }
-      } catch (error) {
-        console.error('Error sending message:', error)
-      } finally {
-        setSendingMessage(false)
-      }
-    }
-
-
-    const formatDate = (dateString: string) => {
-      const date = new Date(dateString)
-      const now = new Date()
-      const diff = now.getTime() - date.getTime()
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-      
-      if (days === 0) {
-        const hours = Math.floor(diff / (1000 * 60 * 60))
-        if (hours === 0) {
-          const minutes = Math.floor(diff / (1000 * 60))
-          return `${minutes}m ago`
-        }
-        return `${hours}h ago`
-      } else if (days < 7) {
-        return `${days}d ago`
-      } else {
-        return date.toLocaleDateString()
-      }
-    }
-
-    const formatPrice = (price: number) => {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'LKR',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-      }).format(price).replace('LKR', 'Rs.')
-    }
-
-    if (selectedConversation) {
-      const conversation = conversations.find(c => c.id === selectedConversation)
-      if (!conversation) return null
-
-      const otherUser = conversation.current_user_role === 'buyer' 
-        ? conversation.seller
-        : conversation.buyer
-
-      const currentUserId = user?.id
-
-      return (
-        <>
-          {/* Conversation Header */}
-          <div className="border-b px-3 md:px-6 py-3 md:py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
-                <button 
-                  onClick={() => setSelectedConversation(null)}
-                  className="text-gray-500 hover:text-gray-700 flex-shrink-0"
-                >
-                  <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
-                </button>
-                
-                <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
-                  <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
-                    <User className="w-4 h-4 md:w-5 md:h-5 text-gray-500" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h2 className="font-semibold text-sm md:text-base truncate">{otherUser.profiles.name || 'User'}</h2>
-                    {/* Show subtitle on both mobile and desktop */}
-                    <p className="text-xs md:text-sm text-gray-500">
-                      {conversation.current_user_role === 'buyer' ? 'Seller' : 'Buyer'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Listing Info - Desktop only */}
-              <div className="hidden md:flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition-colors flex-shrink-0">
-                {conversation.listing_image_url ? (
-                  <img
-                    src={conversation.listing_image_url}
-                    alt={conversation.listing_title}
-                    className="w-12 h-12 object-cover rounded"
-                  />
-                ) : (
-                  <div className="w-12 h-12 bg-gray-200 rounded"></div>
-                )}
-                <div className="text-right">
-                  <p className="text-sm font-medium truncate max-w-[200px]">
-                    {conversation.listing_title}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {formatPrice(conversation.listing_price)}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Secondary Header - Mobile only (Vehicle Info) */}
-          <div className="md:hidden border-b bg-gray-50 px-3 py-2">
-            <div className="flex items-center gap-3">
-              {conversation.listing_image_url ? (
-                <img
-                  src={conversation.listing_image_url}
-                  alt={conversation.listing_title}
-                  className="w-10 h-10 object-cover rounded"
-                />
-              ) : (
-                <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
-                  <Car className="w-5 h-5 text-gray-400" />
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {conversation.listing_title}
-                </p>
-                <p className="text-sm text-gray-600">
-                  {formatPrice(conversation.listing_price)}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-3 md:px-6 py-3 md:py-4 space-y-3 md:space-y-4 h-96">
-            {loadingMessages ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              </div>
-            ) : messages.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">
-                <p>No messages yet. Start the conversation!</p>
-              </div>
-            ) : (
-              messages.map((message, index) => {
-                const isCurrentUser = message.sender_id === currentUserId
-                const showDate = index === 0 || 
-                  new Date(messages[index - 1].created_at).toDateString() !== 
-                  new Date(message.created_at).toDateString()
-
-                return (
-                  <div key={message.id}>
-                    {showDate && (
-                      <div className="text-center text-xs text-gray-500 my-4">
-                        {formatDate(message.created_at).split(' ')[0]}
-                      </div>
-                    )}
-                    <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[70%] ${isCurrentUser ? 'order-2' : ''}`}>
-                        <div 
-                          className={`rounded-lg px-4 py-2 ${
-                            isCurrentUser 
-                              ? 'bg-blue-600 text-white' 
-                              : 'bg-gray-100 text-gray-900'
-                          }`}
-                        >
-                          <p className="whitespace-pre-wrap break-words">{message.content}</p>
-                        </div>
-                        <p className={`text-xs text-gray-500 mt-1 ${
-                          isCurrentUser ? 'text-right' : ''
-                        }`}>
-                          {formatDate(message.created_at).split(' ').slice(1).join(' ')}
-                          {isCurrentUser && message.is_read && ' • Read'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })
-            )}
-          </div>
-
-          {/* Message Input */}
-          <form onSubmit={sendMessage} className="border-t px-6 py-4">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type a message..."
-                className="flex-1 px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={sendingMessage}
-              />
-              <button
-                type="submit"
-                disabled={!newMessage.trim() || sendingMessage}
-                className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <Send className="w-5 h-5" />
-              </button>
-            </div>
-          </form>
-        </>
-      )
-    }
-
-    // Conversations List View
-    return (
-      <>
-        {/* Header */}
-        <div className="border-b px-6 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-semibold flex items-center gap-2">
-              <MessageSquare className="w-6 h-6" />
-              Messages
-            </h1>
-          </div>
-          
-        </div>
-
-        {/* Conversations List */}
-        <div className="divide-y">
-          {conversations.length === 0 ? (
-            <div className="px-6 py-12 text-center text-gray-500">
-              <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-              <p className="font-medium">No messages yet</p>
-              <p className="text-sm mt-2">
-                When you contact sellers about their listings, your conversations will appear here.
-              </p>
-            </div>
-          ) : (
-            conversations.map(conversation => {
-              const otherUser = conversation.current_user_role === 'buyer' 
-                ? conversation.seller.profiles
-                : conversation.buyer.profiles
-              
-              return (
-                <button
-                  key={conversation.id}
-                  onClick={() => setSelectedConversation(conversation.id)}
-                  className="block w-full hover:bg-gray-50 transition-colors text-left"
-                >
-                  <div className="px-3 md:px-6 py-3 md:py-4">
-                    <div className="flex items-start gap-3 md:gap-4">
-                      {/* Listing Image */}
-                      <div className="flex-shrink-0">
-                        {conversation.listing_image_url ? (
-                          <img
-                            src={conversation.listing_image_url}
-                            alt={conversation.listing_title}
-                            className="w-12 h-12 md:w-16 md:h-16 object-cover rounded-lg"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 md:w-16 md:h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                            <MessageSquare className="w-4 h-4 md:w-6 md:h-6 text-gray-400" />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Conversation Details */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-semibold text-sm md:text-base text-gray-900 truncate">
-                                {otherUser.name || 'User'}
-                              </h3>
-                              {conversation.unread_count > 0 && (
-                                <span className="bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[16px] text-center">
-                                  {conversation.unread_count}
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-xs md:text-sm text-gray-600 truncate">
-                              {conversation.listing_title} • {formatPrice(conversation.listing_price)}
-                            </p>
-                            {conversation.last_message_preview && (
-                              <p className="text-xs md:text-sm text-gray-500 truncate mt-1 max-w-[200px] md:max-w-none">
-                                {conversation.last_message_preview}
-                              </p>
-                            )}
-                          </div>
-                          <div className="flex flex-col items-end gap-1 text-xs md:text-sm text-gray-500 ml-2">
-                            <span className="whitespace-nowrap">{formatDate(conversation.last_message_at)}</span>
-                            <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              )
-            })
-          )}
-        </div>
-      </>
-    )
-  }
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import CountrySelector, { useCountrySelector } from '@/app/components/CountrySelector'
 import { 
   DISTRICTS, 
   getCitiesByDistrictId,
@@ -55,6 +56,7 @@ interface FormErrors {
 
 export default function PostWantedPage() {
   const router = useRouter()
+  const { selectedCountry, setSelectedCountry } = useCountrySelector('LK')
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState(1) // Multi-step form
   const [showPreview, setShowPreview] = useState(true)
@@ -663,19 +665,26 @@ export default function PostWantedPage() {
                 <label className="block text-sm font-medium mb-2">
                   Phone Number <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="tel"
-                  required
-                  placeholder="e.g., 0771234567"
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
-                    errors.phone ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  value={formData.phone}
-                  onChange={(e) => {
-                    setFormData({ ...formData, phone: e.target.value })
-                    if (errors.phone) setErrors({ ...errors, phone: '' })
-                  }}
-                />
+                <div className="flex">
+                  <CountrySelector
+                    selectedCountry={selectedCountry}
+                    onCountrySelect={setSelectedCountry}
+                    className="w-32"
+                  />
+                  <input
+                    type="tel"
+                    required
+                    placeholder={selectedCountry.code === 'LK' ? 'e.g., 771234567' : 'Phone number'}
+                    className={`flex-1 px-4 py-3 h-[50px] border border-l-0 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${
+                      errors.phone ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    value={formData.phone}
+                    onChange={(e) => {
+                      setFormData({ ...formData, phone: e.target.value })
+                      if (errors.phone) setErrors({ ...errors, phone: '' })
+                    }}
+                  />
+                </div>
                 {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
                 <p className="text-sm text-gray-600 mt-1">Sellers will contact you on this number</p>
               </div>
