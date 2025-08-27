@@ -1,0 +1,108 @@
+'use client'
+
+import { useEffect, useCallback } from 'react'
+import { useAuth } from '../contexts/AuthContext'
+import Script from 'next/script'
+
+declare global {
+  interface Window {
+    google?: any
+    handleCredentialResponse?: (response: any) => void
+  }
+}
+
+export default function GoogleOneTap() {
+  const { user, refreshUser } = useAuth()
+
+  const handleCredentialResponse = useCallback(async (response: any) => {
+    try {
+      console.log('Google credential received')
+      
+      const res = await fetch('/api/auth/google-one-tap', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ credential: response.credential }),
+      })
+
+      const data = await res.json()
+      
+      if (data.success) {
+        console.log('Google One Tap sign-in successful')
+        await refreshUser()
+        // Check for pending redirect
+        const redirectUrl = localStorage.getItem('pendingRedirect')
+        if (redirectUrl) {
+          localStorage.removeItem('pendingRedirect')
+          window.location.href = redirectUrl
+        } else {
+          window.location.href = '/profile'
+        }
+      } else if (data.needsOAuth) {
+        // One Tap detected user, but needs OAuth flow
+        console.log('Redirecting to OAuth flow...')
+        const { signInWithGoogle } = await import('@/lib/auth')
+        await signInWithGoogle()
+      } else {
+        console.error('Google One Tap error:', data.error || data.message)
+      }
+    } catch (error) {
+      console.error('Error handling Google One Tap response:', error)
+    }
+  }, [refreshUser])
+
+  useEffect(() => {
+    // Make callback globally available for HTML data-callback
+    if (typeof window !== 'undefined') {
+      window.handleCredentialResponse = handleCredentialResponse
+    }
+    
+    return () => {
+      if (typeof window !== 'undefined') {
+        delete window.handleCredentialResponse
+      }
+    }
+  }, [handleCredentialResponse])
+
+  const initializeGoogleOneTap = useCallback(() => {
+    if (!window.google || user) return
+
+    try {
+      window.google.accounts.id.initialize({
+        client_id: '20310748886-utpvg105jq237vuv10vcn0mh5dvsfum5.apps.googleusercontent.com',
+        callback: handleCredentialResponse,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+        use_federated_login_hint: false,
+        ux_mode: 'popup',
+        context: 'signin'
+      })
+
+      // Only show prompt if user is not signed in
+      if (!user) {
+        window.google.accounts.id.prompt((notification: any) => {
+          if (notification.isNotDisplayed()) {
+            console.log('One Tap not displayed:', notification.getNotDisplayedReason())
+          } else if (notification.isSkippedMoment()) {
+            console.log('One Tap skipped:', notification.getSkippedReason())
+          }
+        })
+      }
+    } catch (error) {
+      console.error('Error initializing Google One Tap:', error)
+    }
+  }, [user, handleCredentialResponse])
+
+  if (user) return null
+
+  return (
+    <>
+      <Script 
+        src="https://accounts.google.com/gsi/client" 
+        strategy="afterInteractive"
+        onLoad={initializeGoogleOneTap}
+      />
+    </>
+  )
+}

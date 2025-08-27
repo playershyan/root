@@ -104,9 +104,9 @@ export default function AdPaidFeatures() {
             <div className="flex items-center">
               <i className="fas fa-check-circle text-green-600 text-2xl mr-3"></i>
               <div>
-                <h2 className="text-xl font-bold text-green-800">Your ad is live!</h2>
+                <h2 className="text-xl font-bold text-green-800">Ad submitted successfully!</h2>
                 <p className="text-green-700 mt-1">
-                  Congratulations! Your ad is under review and will be visible to thousands of potential buyers once approved. 
+                  Congratulations! Your ad has been submitted and is currently under review. It will be visible to thousands of potential buyers once approved. 
                   Maximize your selling potential with our powerful promotion features below.
                 </p>
               </div>

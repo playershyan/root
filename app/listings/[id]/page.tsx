@@ -77,6 +77,15 @@ export default async function ListingDetailPage({
 
   // Prepare image array
   const images = listing.image_urls || (listing.image_url ? [listing.image_url] : [])
+  
+  // Debug logging
+  console.log('Listing detail page - Image data:', {
+    listing_id: listing.id,
+    image_urls: listing.image_urls,
+    image_url: listing.image_url,
+    images_array: images,
+    images_length: images?.length || 0
+  })
 
   // Mock dealer data (in production, this would come from a dealers table)
   // The dealer object is only used if listing.seller_type is 'dealer' or undefined (backward compatibility)

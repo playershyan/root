@@ -30,10 +30,14 @@ export default function LocationFilter({
     // Select district (deselects previous selection)
     onLocationChange(selectedLocation === districtName ? null : districtName)
     
-    // Always expand district to show cities when clicked
+    // Toggle district expansion - expand if collapsed, collapse if expanded
     setExpandedDistricts(prev => {
       const newExpanded = new Set(prev)
-      newExpanded.add(districtId)
+      if (newExpanded.has(districtId)) {
+        newExpanded.delete(districtId)
+      } else {
+        newExpanded.add(districtId)
+      }
       return newExpanded
     })
   }
@@ -41,6 +45,19 @@ export default function LocationFilter({
   const handleLocationSelect = (locationName: string) => {
     // Single selection - deselects previous selection
     onLocationChange(selectedLocation === locationName ? null : locationName)
+  }
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      // If search is empty, set to "All of Sri Lanka" to show all results
+      if (searchQuery.trim() === '') {
+        onLocationChange('All of Sri Lanka')
+      }
+    }
+  }
+
+  const handleAllSriLankaSelect = () => {
+    onLocationChange(selectedLocation === 'All of Sri Lanka' ? null : 'All of Sri Lanka')
   }
 
   const filteredResults = searchQuery ? searchLocations(searchQuery) : null
@@ -73,16 +90,31 @@ export default function LocationFilter({
       {expanded && (
         <div className={variant === 'listings' ? 'mt-2' : 'mt-3 space-y-2'}>
           {/* Search Input */}
-          <input 
-            type="text" 
-            placeholder="Search districts and cities..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={variant === 'listings' 
-              ? "w-full px-3 py-2 mb-2 border border-gray-300 rounded text-sm"
-              : "w-full px-3 py-2 border rounded-md text-sm mb-2"
-            }
-          />
+          <div className="relative mb-2">
+            <input 
+              type="text" 
+              placeholder="Search districts and cities..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              className={variant === 'listings' 
+                ? "w-full px-3 py-2 pr-8 border border-gray-300 rounded text-sm"
+                : "w-full px-3 py-2 pr-8 border rounded-md text-sm"
+              }
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                aria-label="Clear search"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
           
           <div className={variant === 'listings' 
             ? "space-y-2 max-h-64 overflow-y-auto"
@@ -91,6 +123,21 @@ export default function LocationFilter({
             {!searchQuery ? (
               /* Default view - All Districts */
               <div>
+                {/* All of Sri Lanka Option */}
+                <div
+                  onClick={handleAllSriLankaSelect}
+                  className={`flex items-center justify-between cursor-pointer py-2 px-3 rounded hover:bg-gray-50 transition-colors mb-2 w-full border-b border-gray-200 ${
+                    selectedLocation === 'All of Sri Lanka' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'
+                  }`}
+                >
+                  <span className="text-sm flex-1">🇱🇰 All of Sri Lanka</span>
+                  {selectedLocation === 'All of Sri Lanka' && (
+                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+                
                 {DISTRICTS.map(district => (
                   <div key={district.id} className="mb-1">
                     {/* District Row */}

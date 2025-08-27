@@ -13,5 +13,7 @@ export async function GET(request: NextRequest) {
   }
 
   // URL to redirect to after sign in process completes
-  return NextResponse.redirect(new URL('/profile', request.url))
+  // Check for pending redirect in URL params or default to profile
+  const redirectTo = requestUrl.searchParams.get('redirectTo') || '/profile'
+  return NextResponse.redirect(new URL(redirectTo, request.url))
 }

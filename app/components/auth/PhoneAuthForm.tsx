@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { authConfig } from '@/lib/config/auth.config'
 import { signInWithOTP } from '@/lib/auth'
 import { validatePhone } from '@/lib/errorHandling'
+import { formatPhoneForStorage, formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
 import CountrySelector, { useCountrySelector } from '../CountrySelector'
 import type { PhoneAuthProps, AuthResult } from './types'
 
@@ -45,7 +46,8 @@ export default function PhoneAuthForm({
     
     if (loading || externalLoading || disabled) return
 
-    const fullPhone = `${selectedCountry.dial_code}${phone.replace(/^0+/, '')}`
+    // Format phone for storage (country code + number without zero)
+    const fullPhone = formatPhoneForStorage(phone, selectedCountry.dial_code)
     
     if (!validatePhone(fullPhone)) {
       const errorMessage = 'Please enter a valid phone number'

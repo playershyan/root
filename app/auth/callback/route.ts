@@ -50,6 +50,11 @@ export async function GET(request: Request) {
         }
       }
       
+      // Check for stored redirect URL
+      const redirectTo = requestUrl.searchParams.get('redirectTo')
+      if (redirectTo) {
+        return NextResponse.redirect(new URL(redirectTo, requestUrl.origin))
+      }
       return NextResponse.redirect(new URL('/profile', requestUrl.origin))
     }
   }

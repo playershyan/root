@@ -5,6 +5,7 @@ import { Phone, MessageSquare, MessageCircle, MapPin, Star, User } from 'lucide-
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { formatPhoneDisplay, formatPhoneForWhatsApp, formatPhoneForTel } from '@/lib/utils/phoneFormatter'
 
 // Types
 type ContactProfileProps = {
@@ -30,10 +31,9 @@ type ContactProfileProps = {
 }
 
 // Dealer Profile Component
-function DealerProfile({ dealer, listing, formatPhoneNumber }: { 
+function DealerProfile({ dealer, listing }: { 
   dealer: ContactProfileProps['dealer'], 
-  listing: ContactProfileProps['listing'],
-  formatPhoneNumber: (phone: string) => string 
+  listing: ContactProfileProps['listing']
 }) {
   if (!dealer) return null
 
@@ -77,15 +77,15 @@ function DealerProfile({ dealer, listing, formatPhoneNumber }: {
       {/* Contact Actions */}
       <div className="space-y-3">
         <a
-          href={`tel:${dealer.phone}`}
+          href={formatPhoneForTel(dealer.phone)}
           className="btn-call btn-full btn-icon"
         >
           <Phone className="w-4 h-4" />
-          Call
+          Call {formatPhoneDisplay(dealer.phone)}
         </a>
         <MessageButton listing={listing} />
         <a
-          href={`https://wa.me/${formatPhoneNumber(dealer.whatsapp)}`}
+          href={`https://wa.me/${formatPhoneForWhatsApp(dealer.whatsapp)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="btn-whatsapp btn-full btn-icon"
@@ -99,9 +99,8 @@ function DealerProfile({ dealer, listing, formatPhoneNumber }: {
 }
 
 // Private Seller Profile Component
-function PrivateSellerProfile({ listing, formatPhoneNumber }: { 
-  listing: ContactProfileProps['listing'],
-  formatPhoneNumber: (phone: string) => string 
+function PrivateSellerProfile({ listing }: { 
+  listing: ContactProfileProps['listing']
 }) {
   const sellerName = listing.seller_name || 'Private Seller'
 
@@ -128,15 +127,15 @@ function PrivateSellerProfile({ listing, formatPhoneNumber }: {
       {/* Contact Actions - Simplified for private sellers */}
       <div className="space-y-3">
         <a
-          href={`tel:${listing.phone}`}
+          href={formatPhoneForTel(listing.phone)}
           className="btn-call btn-full btn-icon"
         >
           <Phone className="w-4 h-4" />
-          Call
+          Call {formatPhoneDisplay(listing.phone)}
         </a>
         <MessageButton listing={listing} />
         <a
-          href={`https://wa.me/${formatPhoneNumber(listing.whatsapp || listing.phone)}`}
+          href={`https://wa.me/${formatPhoneForWhatsApp(listing.whatsapp || listing.phone)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="btn-whatsapp btn-full btn-icon"
@@ -215,19 +214,13 @@ function MessageButton({ listing }: { listing: ContactProfileProps['listing'] })
 
 // Main ContactProfile Component
 export default function ContactProfile({ listing, dealer }: ContactProfileProps) {
-  const formatPhoneNumber = (phone: string) => {
-    // Format phone for WhatsApp (remove spaces and add country code if needed)
-    const cleaned = phone.replace(/\D/g, '')
-    return cleaned.startsWith('94') ? cleaned : `94${cleaned.startsWith('0') ? cleaned.slice(1) : cleaned}`
-  }
-
   // Determine profile type - if seller_type is explicitly set, use that
   // Otherwise, fallback to checking if dealer object exists (for backward compatibility)
   const isDealer = listing.seller_type === 'dealer' || (listing.seller_type === undefined && dealer !== undefined)
 
   if (isDealer && dealer) {
-    return <DealerProfile dealer={dealer} listing={listing} formatPhoneNumber={formatPhoneNumber} />
+    return <DealerProfile dealer={dealer} listing={listing} />
   } else {
-    return <PrivateSellerProfile listing={listing} formatPhoneNumber={formatPhoneNumber} />
+    return <PrivateSellerProfile listing={listing} />
   }
 }

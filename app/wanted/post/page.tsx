@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/app/contexts/AuthContext'
 import Link from 'next/link'
 import CountrySelector, { useCountrySelector } from '@/app/components/CountrySelector'
 import { 
@@ -56,6 +57,8 @@ interface FormErrors {
 
 export default function PostWantedPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const { user, loading: authLoading } = useAuth()
   const { selectedCountry, setSelectedCountry } = useCountrySelector('LK')
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState(1) // Multi-step form
@@ -64,6 +67,14 @@ export default function PostWantedPage() {
   const [availableModels, setAvailableModels] = useState<string[]>([])
   const [selectedDistrict, setSelectedDistrict] = useState<string>('')
   const [availableCities, setAvailableCities] = useState<string[]>([])
+  
+  // Check authentication status and redirect if not logged in
+  useEffect(() => {
+    if (!authLoading && !user) {
+      // Pass the redirect URL directly in the URL parameters
+      router.push('/?auth=true&redirect=/wanted/post')
+    }
+  }, [user, authLoading, router])
   
   const currentYear = new Date().getFullYear()
   const minYear = 1990
@@ -259,7 +270,7 @@ export default function PostWantedPage() {
 
 
     // Combine city and district for location
-    const locationString = formData.location && selectedDistrict ``
+    const locationString = formData.location && selectedDistrict
       ? `${formData.location}, ${selectedDistrict}` 
       : formData.location || selectedDistrict
 

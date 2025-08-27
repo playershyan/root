@@ -1,9 +1,12 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { Heart } from 'lucide-react'
 import PriceDisplay from '@/app/components/PriceDisplay'
 import PromotionBadges from './PromotionBadges'
+import ContactModal from '@/app/components/modals/ContactModal'
+import ConversationModal from '@/app/components/modals/ConversationModal'
 
 interface RegularAdCardProps {
   listing: any
@@ -31,6 +34,8 @@ export default function RegularAdCard({
   onImageError
 }: RegularAdCardProps) {
   const images = listing.image_urls || []
+  const [showContactModal, setShowContactModal] = useState(false)
+  const [showConversationModal, setShowConversationModal] = useState(false)
   
   const getPromotionBadge = () => {
     if (!showPromotionBadge || !listing.isPromoted) return null
@@ -187,16 +192,62 @@ export default function RegularAdCard({
       {/* Action Footer */}
       <div className="px-4 pb-4">
         <div className="flex gap-2">
-          <button className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">
+          <button 
+            onClick={(e) => {
+              e.preventDefault()
+              setShowContactModal(true)
+            }}
+            className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+          >
             <i className="fas fa-phone mr-2"></i>
             Call Now
           </button>
-          <button className="flex-1 border border-blue-600 text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition-colors font-medium text-sm">
+          <button 
+            onClick={(e) => {
+              e.preventDefault()
+              setShowConversationModal(true)
+            }}
+            className="flex-1 border border-blue-600 text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition-colors font-medium text-sm"
+          >
             <i className="fas fa-envelope mr-2"></i>
             Message
           </button>
         </div>
       </div>
+
+      {/* Contact Modal */}
+      <ContactModal
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        listing={{
+          id: listing.id,
+          title: listing.title,
+          phone: listing.phone,
+          whatsapp: listing.whatsapp,
+          price: listing.price,
+          location: listing.location,
+          make: listing.make,
+          model: listing.model,
+          year: listing.year
+        }}
+      />
+
+      {/* Conversation Modal */}
+      <ConversationModal
+        isOpen={showConversationModal}
+        onClose={() => setShowConversationModal(false)}
+        listing={{
+          id: listing.id,
+          title: listing.title,
+          price: listing.price,
+          location: listing.location,
+          make: listing.make,
+          model: listing.model,
+          year: listing.year,
+          primary_image_url: listing.primary_image_url,
+          user_id: listing.user_id
+        }}
+      />
     </div>
   )
 }

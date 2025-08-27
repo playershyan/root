@@ -47,12 +47,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null)
         setLoading(false)
         
-        // Refresh page to sync middleware on sign in/out
-        if (event === 'SIGNED_IN') {
-          console.log('User signed in, refreshing page...')
-          window.location.href = '/profile'
-        } else if (event === 'SIGNED_OUT') {
-          console.log('User signed out, redirecting home...')
+        // REMOVED ALL SIGN IN REDIRECTS - They were conflicting!
+        // Let AuthModal and OAuth callbacks handle their own redirects
+        if (event === 'SIGNED_OUT') {
           window.location.href = '/'
         }
       }

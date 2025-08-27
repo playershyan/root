@@ -26,6 +26,7 @@ export default function ConversationView({
   const [newMessage, setNewMessage] = useState('')
   const otherUser = getOtherUser(conversation)
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newMessage.trim() || sendingMessage) return

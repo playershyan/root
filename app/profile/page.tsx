@@ -15,6 +15,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { useSessionManager } from '@/app/hooks/useSessionManager'
 import PhoneVerificationModal from '../components/PhoneVerificationModal'
+import { formatPhoneForStorage, formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
 import { sampleListings } from '@/data/sampleListingsData'
 import { sampleConversations } from '@/data/sampleMessagesData'
 import ListingStatusBadge from '@/app/components/listings/ListingStatusBadge'
@@ -25,6 +26,7 @@ import WantedRequestStatusBadge from '@/app/components/wantedRequests/WantedRequ
 import WantedRequestActions from '@/app/components/wantedRequests/WantedRequestActions'
 import WantedRequestStatusMessage from '@/app/components/wantedRequests/WantedRequestStatusMessage'
 import MessagesTab from '@/app/components/messages/MessagesTab'
+import { ConversationData, MessageData } from '@/lib/utils/messageUtils'
 import FavoritesTab from '@/app/components/favorites/FavoritesTab'
 import BinTab from '@/app/components/bin/BinTab'
 import SecurityTab from '@/app/components/security/SecurityTab'
@@ -107,53 +109,23 @@ interface DeletedItem {
   meta?: string
 }
 
-interface Conversation {
-  id: string
-  listing_id: string
-  listing_title: string
-  listing_price: number
-  listing_image_url: string
-  buyer_id: string
-  seller_id: string
-  last_message_at: string
-  last_message_preview: string
-  unread_count: number
-  is_archived: boolean
-  current_user_role: 'buyer' | 'seller'
-  buyer: {
-    profiles: {
-      name: string
-      avatar_url: string
-    }
-  }
-  seller: {
-    profiles: {
-      name: string
-      avatar_url: string
-    }
-  }
-}
 
-interface Message {
-  id: string
-  conversation_id: string
-  sender_id: string
-  content: string
-  is_read: boolean
-  created_at: string
-  sender: {
-    id: string
-    email: string
-    profiles: {
-      name: string
-      avatar_url: string
-    }
-  }
-}
 
 export default function ProfilePage() {
   const router = useRouter()
   const { user, loading } = useAuth()
+  
+  // Debug: Check what happened during auth
+  useEffect(() => {
+    const authDebug = sessionStorage.getItem('authDebug')
+    if (authDebug) {
+      const debug = JSON.parse(authDebug)
+      console.error('AUTH REDIRECT DEBUG:', debug)
+      alert(`AUTH DEBUG (URL Params Method):\nReturn URL from prop: ${debug.returnUrl}\nRedirect To: ${debug.redirectTo}\nSource: ${debug.source}\n\nIf returnUrl was empty, the URL param wasn't passed correctly!`)
+      sessionStorage.removeItem('authDebug')
+    }
+  }, [])
+  
   const [activeTab, setActiveTab] = useState('profile')
   const [showActionMenu, setShowActionMenu] = useState<string | null>(null)
   const [selectedItems, setSelectedItems] = useState<string[]>([])
@@ -170,9 +142,9 @@ export default function ProfilePage() {
   const [originalPhone, setOriginalPhone] = useState('')
   
   // Messaging states
-  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [conversations, setConversations] = useState<ConversationData[]>([])
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null)
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<MessageData[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [sendingMessage, setSendingMessage] = useState(false)
   const [loadingMessages, setLoadingMessages] = useState(false)
@@ -451,18 +423,54 @@ export default function ProfilePage() {
     window.history.pushState({}, '', url)
   }
 
-  // Load user listings (using sample data)
+  // Load user listings from database
   useEffect(() => {
     const loadListings = async () => {
-      // Simulate loading delay
-      setTimeout(() => {
-        setListings(sampleListings)
+      if (!user) {
         setListingsLoading(false)
-      }, 500)
+        return
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('listings')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+
+        if (error) {
+          console.error('Error fetching user listings:', error)
+          setListings([])
+        } else {
+          // Transform database format to profile page format
+          const transformedListings = data?.map(listing => ({
+            id: listing.id,
+            title: listing.title || 'Untitled Listing',
+            details: listing.description || listing.details || '',
+            price: listing.price || 0,
+            views: listing.views || 0,
+            status: listing.status || 'pending',
+            postedDate: listing.created_at || new Date().toISOString().split('T')[0],
+            image: listing.primary_image_url || listing.image_urls?.[0] || listing.image_url,
+            isReportedTakedown: listing.is_reported_takedown || false,
+            takedownReason: listing.takedown_reason,
+            reportCount: listing.report_count || 0,
+            rejectionReason: listing.rejection_reason,
+            isPaused: listing.status === 'paused'
+          })) || []
+
+          setListings(transformedListings)
+        }
+      } catch (error) {
+        console.error('Error loading listings:', error)
+        setListings([])
+      } finally {
+        setListingsLoading(false)
+      }
     }
     
     loadListings()
-  }, [])
+  }, [user])
 
   // Load user wanted requests (sample data for now)
   useEffect(() => {
@@ -584,8 +592,34 @@ export default function ProfilePage() {
           }
         ]
         
-        setFavoritedAds(sampleFavoritedAds)
-        setFavoritedWantedRequests(sampleFavoritedWantedRequests)
+        // Load favorites from localStorage
+        const favoriteListingsData = localStorage.getItem('favoriteListingsData')
+        if (favoriteListingsData) {
+          const parsedData = JSON.parse(favoriteListingsData)
+          const formattedAds: Favorite[] = parsedData.map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            price: item.price,
+            location: item.location,
+            image: item.image || '/api/placeholder/400/300',
+            postedDate: item.postedDate ? new Date(item.postedDate).toLocaleDateString() : new Date().toLocaleDateString(),
+            seller: item.seller || 'Private Seller',
+            description: item.description || ''
+          }))
+          setFavoritedAds(formattedAds)
+        } else {
+          // Use sample data as fallback
+          setFavoritedAds(sampleFavoritedAds)
+        }
+        
+        // Load favorited wanted requests from localStorage (if implemented)
+        const favoriteWantedData = localStorage.getItem('favoriteWantedRequestsData')
+        if (favoriteWantedData) {
+          const parsedWanted = JSON.parse(favoriteWantedData)
+          setFavoritedWantedRequests(parsedWanted)
+        } else {
+          setFavoritedWantedRequests(sampleFavoritedWantedRequests)
+        }
       } catch (error) {
         console.error('Error loading favorites:', error)
       } finally {
@@ -762,6 +796,147 @@ export default function ProfilePage() {
     }
   }, [activeTab, loadBinItems])
 
+  // Message handlers
+  const fetchConversations = async () => {
+    try {
+      if (!user) return
+
+      const { data: conversationsData, error } = await supabase
+        .from('conversations')
+        .select(`
+          id,
+          listing_id,
+          listing_title,
+          listing_price,
+          listing_image_url,
+          buyer_id,
+          seller_id,
+          last_message_at,
+          last_message_preview,
+          buyer_unread_count,
+          seller_unread_count,
+          buyer_archived,
+          seller_archived
+        `)
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+        .order('last_message_at', { ascending: false })
+
+      if (error) throw error
+
+      // Get profile details for buyers and sellers
+      const allUserIds = [...new Set([
+        ...conversationsData?.map(c => c.buyer_id) || [],
+        ...conversationsData?.map(c => c.seller_id) || []
+      ])]
+
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, name, avatar_url')
+        .in('id', allUserIds)
+
+      // Transform to match ConversationData interface
+      const transformedConversations = conversationsData?.map(conv => {
+        const buyerProfile = profiles?.find(p => p.id === conv.buyer_id)
+        const sellerProfile = profiles?.find(p => p.id === conv.seller_id)
+
+        return {
+          id: conv.id,
+          listing_id: conv.listing_id,
+          listing_title: conv.listing_title,
+          listing_price: conv.listing_price,
+          listing_image_url: conv.listing_image_url,
+          buyer_id: conv.buyer_id,
+          seller_id: conv.seller_id,
+          last_message_at: conv.last_message_at,
+          last_message_preview: conv.last_message_preview || '',
+          unread_count: conv.buyer_id === user.id ? conv.buyer_unread_count : conv.seller_unread_count,
+          is_archived: conv.buyer_id === user.id ? conv.buyer_archived : conv.seller_archived,
+          current_user_role: conv.buyer_id === user.id ? 'buyer' : 'seller',
+          buyer: {
+            profiles: {
+              name: buyerProfile?.name || 'Unknown User',
+              avatar_url: buyerProfile?.avatar_url || ''
+            }
+          },
+          seller: {
+            profiles: {
+              name: sellerProfile?.name || 'Unknown User',
+              avatar_url: sellerProfile?.avatar_url || ''
+            }
+          }
+        }
+      }) || []
+
+      setConversations(transformedConversations)
+    } catch (error) {
+      console.error('Error fetching conversations:', error)
+      setConversations([])
+    }
+  }
+
+  const handleFetchMessages = async (conversationId: string): Promise<MessageData[]> => {
+    try {
+      // First get the messages
+      const { data: messagesData, error: messagesError } = await supabase
+        .from('messages')
+        .select(`
+          id,
+          conversation_id,
+          sender_id,
+          content,
+          is_read,
+          created_at
+        `)
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true })
+
+      if (messagesError) throw messagesError
+
+      // Get sender profiles separately
+      const senderIds = [...new Set(messagesData?.map(m => m.sender_id) || [])]
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, name, avatar_url')
+        .in('id', senderIds)
+
+      // Transform to match MessageData interface
+      const transformedMessages = messagesData?.map(msg => {
+        const senderProfile = profiles?.find(p => p.id === msg.sender_id)
+        return {
+          id: msg.id,
+          conversation_id: msg.conversation_id,
+          sender_id: msg.sender_id,
+          content: msg.content,
+          is_read: msg.is_read,
+          created_at: msg.created_at,
+          sender: {
+            id: msg.sender_id,
+            email: '', // Not needed for display
+            profiles: {
+              name: senderProfile?.name || 'Unknown User',
+              avatar_url: senderProfile?.avatar_url || ''
+            }
+          }
+        }
+      }) || []
+
+      return transformedMessages
+    } catch (error) {
+      console.error('Error fetching messages:', error)
+      return []
+    }
+  }
+
+  const fetchMessages = async (conversationId: string) => {
+    try {
+      const fetchedMessages = await handleFetchMessages(conversationId)
+      setMessages(fetchedMessages)
+    } catch (error) {
+      console.error('Error loading messages:', error)
+      setMessages([])
+    }
+  }
+
   // Load conversations when messages tab is active
   useEffect(() => {
     if (activeTab === 'messages') {
@@ -858,13 +1033,13 @@ export default function ProfilePage() {
       let nextSteps = ''
       
       if (itemType === 'listing') {
-        message = `Successfully restored listing: "${item.title}"`
+        message = `Successfully restored listing: "${item.title || 'Untitled'}"`
         nextSteps = 'Your listing has been restored but is currently paused. Please review and activate it in your listings management.'
       } else if (itemType === 'message') {
-        message = `Successfully restored message: "${item.title}"`
+        message = `Successfully restored message: "${item.title || 'Untitled'}"`
         nextSteps = 'Your message has been restored and is now visible in the conversation.'
       } else if (itemType === 'wanted_request') {
-        message = `Successfully restored wanted request: "${item.title}"`
+        message = `Successfully restored wanted request: "${item.title || 'Untitled'}"`
         nextSteps = 'Your wanted request has been restored but is currently paused. Please review and activate it in your wanted requests management.'
       }
       
@@ -1358,7 +1533,19 @@ export default function ProfilePage() {
   const handleRemoveFromFavorites = (itemId: string, type: 'ad' | 'wanted') => {
     if (confirm('Remove this item from your favorites?')) {
       if (type === 'ad') {
-        setFavoritedAds(prevAds => prevAds.filter(ad => ad.id !== itemId))
+        setFavoritedAds(prevAds => {
+          const filtered = prevAds.filter(ad => ad.id !== itemId)
+          // Update localStorage
+          const favoriteListings = JSON.parse(localStorage.getItem('favoriteListings') || '[]')
+          const updatedListings = favoriteListings.filter((id: string) => id !== itemId)
+          localStorage.setItem('favoriteListings', JSON.stringify(updatedListings))
+          
+          const favoriteListingsData = JSON.parse(localStorage.getItem('favoriteListingsData') || '[]')
+          const updatedData = favoriteListingsData.filter((item: any) => item.id !== itemId)
+          localStorage.setItem('favoriteListingsData', JSON.stringify(updatedData))
+          
+          return filtered
+        })
       } else {
         setFavoritedWantedRequests(prevRequests => prevRequests.filter(request => request.id !== itemId))
       }
@@ -1380,31 +1567,22 @@ export default function ProfilePage() {
   }
 
   // Message handlers
-  const handleFetchMessages = async (conversationId: string): Promise<Message[]> => {
-    try {
-      const response = await fetch(`/api/messages/${conversationId}`)
-      if (response.ok) {
-        const data = await response.json()
-        return data.messages || []
-      }
-      return []
-    } catch (error) {
-      console.error('Error fetching messages:', error)
-      return []
-    }
-  }
+
+
 
   const handleSendMessage = async (conversationId: string, content: string) => {
     try {
-      const response = await fetch(`/api/messages/${conversationId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content })
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to send message')
-      }
+      if (!user) throw new Error('User not authenticated')
+
+      const { error } = await supabase
+        .from('messages')
+        .insert({
+          conversation_id: conversationId,
+          sender_id: user.id,
+          content: content
+        })
+
+      if (error) throw error
     } catch (error) {
       console.error('Error sending message:', error)
       throw error
@@ -1505,7 +1683,7 @@ export default function ProfilePage() {
           description: businessProfile.description,
           website: businessProfile.website,
           address: businessProfile.address,
-          phone: businessProfile.phone,
+          phone: formatPhoneForStorage(businessProfile.phone),
           operating_hours: businessProfile.operatingHours
         })
 
@@ -1544,7 +1722,7 @@ export default function ProfilePage() {
           description: businessProfile.description,
           website: businessProfile.website,
           address: businessProfile.address,
-          phone: businessProfile.phone,
+          phone: formatPhoneForStorage(businessProfile.phone),
           operating_hours: businessProfile.operatingHours
         })
         .eq('id', user!.id)
@@ -1566,9 +1744,10 @@ export default function ProfilePage() {
     
     // If phone number changed from original, trigger verification
     if (newPhone !== originalPhone && newPhone.length > 0) {
-      console.log('Triggering phone verification for:', newPhone)
-      setPhoneToVerify(newPhone)
-      handleSendPhoneOtp(newPhone)
+      const formattedPhone = formatPhoneForStorage(newPhone)
+      console.log('Triggering phone verification for:', formattedPhone)
+      setPhoneToVerify(formattedPhone)
+      handleSendPhoneOtp(formattedPhone)
     }
   }
 
@@ -1847,7 +2026,7 @@ export default function ProfilePage() {
                                 value={profile.phone}
                                 onChange={(e) => handlePhoneChange(e.target.value)}
                                 className="w-full px-4 py-2 pr-20 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="+94 11 123 4567"
+                                placeholder="771234567"
                               />
                               {profile.phone && (
                                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">

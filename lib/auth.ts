@@ -201,11 +201,15 @@ export async function getUser() {
 
 export async function signInWithGoogle(): Promise<{ success: boolean; error?: AuthError }> {
   try {
+    // Check for pending redirect
+    const pendingRedirect = localStorage.getItem('pendingRedirect')
+    const redirectPath = pendingRedirect || '/profile'
+    
     // Use Supabase OAuth flow as recommended in documentation
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/profile`,
+        redirectTo: `${window.location.origin}/api/auth/callback?redirectTo=${encodeURIComponent(redirectPath)}`,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',
@@ -246,11 +250,15 @@ export async function signInWithGoogle(): Promise<{ success: boolean; error?: Au
 
 export async function signInWithFacebook(): Promise<{ success: boolean; error?: AuthError }> {
   try {
+    // Check for pending redirect
+    const pendingRedirect = localStorage.getItem('pendingRedirect')
+    const redirectPath = pendingRedirect || '/profile'
+    
     // Use Supabase OAuth flow for Facebook
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'facebook',
       options: {
-        redirectTo: `${window.location.origin}/profile`,
+        redirectTo: `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectPath)}`,
       }
     })
 

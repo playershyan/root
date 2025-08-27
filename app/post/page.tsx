@@ -1,14 +1,16 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/app/contexts/AuthContext'
 import { 
   Car, Camera, MapPin, Phone, CreditCard, CheckCircle, 
   AlertCircle, Upload, X, Sparkles, ChevronRight, 
   FileText, User, Image as ImageIcon, Star
 } from 'lucide-react'
 import CountrySelector, { useCountrySelector } from '@/app/components/CountrySelector'
+import { formatPhoneForStorage, formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
 import { 
   DISTRICTS, 
   getCitiesByDistrictId,
@@ -50,8 +52,8 @@ const initialFormData: FormData = {
   mileage: '',
   condition: '',
   engineCapacity: '',
-  fuelType: 'Petrol',
-  transmission: 'Manual',
+  fuelType: '',
+  transmission: '',
   color: 'White',
   trim: '',
   district: '',
@@ -84,6 +86,8 @@ const initialFormData: FormData = {
 
 export default function EnhancedPostVehiclePage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const { user, loading: authLoading } = useAuth()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const vehicleDropdownRef = useRef<HTMLDivElement>(null)
   
@@ -99,6 +103,14 @@ export default function EnhancedPostVehiclePage() {
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({})
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
   const [mounted, setMounted] = useState(false)
+  
+  // Check authentication status and redirect if not logged in
+  useEffect(() => {
+    if (!authLoading && !user) {
+      // Pass the redirect URL directly in the URL parameters
+      router.push('/?auth=true&redirect=/post')
+    }
+  }, [user, authLoading, router])
   
   // Set mounted state
   useEffect(() => {
@@ -218,9 +230,19 @@ export default function EnhancedPostVehiclePage() {
         newErrors.model = 'Please enter custom model name'
       }
       if (!formData.year) newErrors.year = 'Year is required'
-      if (!formData.mileage) newErrors.mileage = 'Mileage is required'
+      
+      // Mileage is not applicable for bicycles
+      if (formData.vehicleType !== 'bicycle' && !formData.mileage) {
+        newErrors.mileage = 'Mileage is required'
+      }
+      
       if (!formData.condition) newErrors.condition = 'Vehicle condition is required'
-      if (!formData.trim) newErrors.trim = 'Trim/grade is required'
+      
+      // Trim/grade is mainly for cars and some vans
+      if (['car'].includes(formData.vehicleType) && !formData.trim) {
+        newErrors.trim = 'Trim/grade is required'
+      }
+      
       if (!formData.district) newErrors.district = 'District is required'
       if (!formData.city) newErrors.city = 'City is required'
       if (!formData.price) newErrors.price = 'Price is required'
@@ -365,57 +387,144 @@ export default function EnhancedPostVehiclePage() {
     }
   }
   
+  const uploadImages = async (images: File[], userId: string): Promise<string[]> => {
+    const uploadedUrls: string[] = []
+    
+    for (const image of images) {
+      try {
+        const fileExt = image.name.split('.').pop()
+        const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
+        
+        const { data, error } = await supabase.storage
+          .from('listings')
+          .upload(fileName, image)
+        
+        if (error) {
+          console.error('Error uploading image:', error)
+          continue
+        }
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('listings')
+          .getPublicUrl(fileName)
+        
+        uploadedUrls.push(publicUrl)
+      } catch (error) {
+        console.error('Error processing image:', error)
+      }
+    }
+    
+    return uploadedUrls
+  }
+  
   const handleSubmit = async () => {
     if (!validateStep(3)) return
     
     setLoading(true)
     try {
-      const { error } = await supabase.from('listings').insert([
-        {
-          title: formData.title,
-          description: formData.description,
-          vehicle_type: formData.vehicleType,
-          price: formData.pricingType === 'finance' 
-            ? (parseFloat(formData.askingPrice || '') || parseFloat(formData.outstandingBalance || '') || parseFloat(formData.price || ''))
-            : parseFloat(formData.price || ''),
-          make: formData.make === 'Other' ? (formData.customMake || 'Other') : formData.make,
-          model: formData.model === 'Other' ? (formData.customModel || 'Other') : (formData.model || ''),
-          year: parseInt(formData.year || ''),
-          mileage: parseInt(formData.mileage || '') || null,
-          fuel_type: formData.fuelType,
-          transmission: formData.transmission,
-          location: `${formData.city}, ${formData.district}`,
-          phone: formData.phone,
-          whatsapp: formData.whatsapp,
-          email: formData.email,
-          image_url: formData.imageUrls[0] || null,
-          image_urls: formData.imageUrls,
-          is_featured: false,
-          is_sold: false,
-          pricing_type: formData.pricingType,
-          negotiable: formData.negotiable,
-          finance_type: formData.pricingType === 'finance' ? formData.financeType : null,
-          finance_provider: formData.pricingType === 'finance' ? formData.financeProvider : null,
-          original_amount: formData.pricingType === 'finance' && formData.originalAmount 
-            ? parseFloat(formData.originalAmount) : null,
-          outstanding_balance: formData.pricingType === 'finance' && formData.outstandingBalance 
-            ? parseFloat(formData.outstandingBalance) : null,
-          monthly_payment: formData.pricingType === 'finance' && formData.monthlyPayment 
-            ? parseFloat(formData.monthlyPayment) : null,
-          remaining_term: formData.pricingType === 'finance' ? formData.remainingTerm : null,
-          early_settlement: formData.pricingType === 'finance' ? formData.earlySettlement : null,
-          asking_price: formData.pricingType === 'finance' && formData.askingPrice 
-            ? parseFloat(formData.askingPrice) : null
-        },
-      ])
+      // Check if user is authenticated
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
       
-      if (error) throw error
+      if (authError || !user) {
+        alert('Please log in to post a listing')
+        router.push('/login')
+        return
+      }
+
+      // Upload images first if any exist
+      let imageUrls: string[] = []
+      if (formData.images.length > 0) {
+        console.log('Uploading images...')
+        imageUrls = await uploadImages(formData.images, user.id)
+        console.log('Images uploaded:', imageUrls)
+      }
+
+      // Prepare the listing data according to the database schema
+      const listingData = {
+        user_id: user.id,
+        title: formData.title,
+        description: formData.description,
+        details: formData.description, // Using description for details as well
+        price: formData.pricingType === 'finance' 
+          ? (parseFloat(formData.askingPrice || '') || parseFloat(formData.outstandingBalance || '') || parseFloat(formData.price || ''))
+          : parseFloat(formData.price || ''),
+        negotiable: formData.negotiable,
+        make: formData.make === 'Other' ? (formData.customMake || 'Other') : formData.make,
+        model: formData.model === 'Other' ? (formData.customModel || 'Other') : (formData.model || ''),
+        year: parseInt(formData.year || ''),
+        mileage: parseInt(formData.mileage || '') || null,
+        fuel_type: formData.fuelType,
+        transmission: formData.transmission,
+        body_type: formData.vehicleType,
+        vehicle_type: formData.vehicleType,
+        color: formData.color || null,
+        engine_capacity: formData.engineCapacity ? parseInt(formData.engineCapacity) : null,
+        location: `${formData.city}, ${formData.district}`,
+        city: formData.city,
+        district: formData.district,
+        images: imageUrls,
+        primary_image_url: imageUrls[0] || null,
+        status: 'pending', // New listings start as pending
+        // Contact information
+        phone: formatPhoneForStorage(formData.phone, selectedCountry.dial_code),
+        whatsapp: formatPhoneForStorage(formData.whatsapp || formData.phone, selectedCountry.dial_code),
+        email: formData.email,
+        // Finance information
+        pricing_type: formData.pricingType,
+        finance_type: formData.pricingType === 'finance' ? formData.financeType : null,
+        finance_provider: formData.pricingType === 'finance' ? formData.financeProvider : null,
+        original_amount: formData.pricingType === 'finance' && formData.originalAmount 
+          ? parseFloat(formData.originalAmount) : null,
+        outstanding_balance: formData.pricingType === 'finance' && formData.outstandingBalance 
+          ? parseFloat(formData.outstandingBalance) : null,
+        monthly_payment: formData.pricingType === 'finance' && formData.monthlyPayment 
+          ? parseFloat(formData.monthlyPayment) : null,
+        remaining_term: formData.pricingType === 'finance' ? formData.remainingTerm : null,
+        early_settlement: formData.pricingType === 'finance' ? formData.earlySettlement : null,
+        asking_price: formData.pricingType === 'finance' && formData.askingPrice 
+          ? parseFloat(formData.askingPrice) : null,
+        // Promotion flags
+        is_featured: false,
+        is_top_spot: false,
+        is_boosted: false,
+        is_urgent: false
+      }
+
+      console.log('Submitting listing data:', listingData)
+
+      const { data, error } = await supabase
+        .from('listings')
+        .insert([listingData])
+        .select()
+      
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
+      }
+      
+      console.log('Listing created successfully:', data)
       
       localStorage.removeItem('vehiclePostDraft')
       router.push('/post/paid-features?new=true')
-    } catch (error) {
-      alert('Error posting vehicle. Please try again.')
-      console.error(error)
+    } catch (error: any) {
+      console.error('Error posting vehicle:', error)
+      
+      // Provide more specific error messages
+      let errorMessage = 'Error posting vehicle. Please try again.'
+      
+      if (error?.message) {
+        if (error.message.includes('user_id')) {
+          errorMessage = 'Please log in to post a listing'
+        } else if (error.message.includes('duplicate')) {
+          errorMessage = 'A similar listing already exists'
+        } else if (error.message.includes('violates')) {
+          errorMessage = 'Please check all required fields are filled correctly'
+        } else {
+          errorMessage = `Error: ${error.message}`
+        }
+      }
+      
+      alert(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -746,9 +855,9 @@ export default function EnhancedPostVehiclePage() {
                   <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
                     <Camera className="w-5 h-5 text-blue-600" />
                   </div>
-                  Photos
+                  Photos <span className="text-red-500">*</span>
                 </h2>
-                <p className="text-gray-500 text-sm">Upload high-quality images of your vehicle</p>
+                <p className="text-gray-500 text-sm">Upload high-quality images of your vehicle (at least 1 photo required)</p>
               </div>
               
               <div>
@@ -783,7 +892,7 @@ export default function EnhancedPostVehiclePage() {
                     </button>
                   </p>
                   <p className="text-sm text-gray-500">
-                    Maximum 15 photos, up to 5MB each. JPG, PNG formats.
+                    At least 1 photo required. Maximum 15 photos, up to 5MB each. JPG, PNG formats.
                   </p>
                 </div>
                 {errors.images && <p className="text-red-600 text-sm mt-1">{errors.images}</p>}
@@ -962,7 +1071,13 @@ export default function EnhancedPostVehiclePage() {
                 <div className="space-y-2 text-sm text-gray-600">
                   <p><strong className="text-gray-900">Title:</strong> {formData.title || 'Not set'}</p>
                   <p><strong className="text-gray-900">Vehicle:</strong> {formData.year} {formData.make} {formData.model}</p>
-                  <p><strong className="text-gray-900">Price:</strong> Rs. {formData.price ? parseFloat(formData.price).toLocaleString() : '0'}</p>
+                  <p><strong className="text-gray-900">
+                    {formData.pricingType === 'finance' ? 'Asking Price:' : 'Price:'}
+                  </strong> Rs. {
+                    formData.pricingType === 'finance' 
+                      ? (formData.askingPrice ? parseFloat(formData.askingPrice).toLocaleString() : '0')
+                      : (formData.price ? parseFloat(formData.price).toLocaleString() : '0')
+                  }</p>
                   <p><strong className="text-gray-900">Location:</strong> {formData.city}, {formData.district}</p>
                   <p><strong className="text-gray-900">Photos:</strong> {formData.images.length + formData.imageUrls.length} uploaded</p>
                   <p><strong className="text-gray-900">Features:</strong> {formData.features?.length || 0} selected</p>

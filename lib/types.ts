@@ -103,7 +103,7 @@ export interface WantedRequest {
   phone?: string
   whatsapp?: string
   email?: string
-  urgency: 'low' | 'medium' | 'high'
+  urgency?: 'high'
   is_active: boolean
   expires_at?: string
   created_at: string

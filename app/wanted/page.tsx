@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useInView } from 'react-intersection-observer'
 import debounce from 'lodash/debounce'
 import LocationFilter from '@/app/components/LocationFilter'
+import ContactModal from '@/app/components/modals/ContactModal'
 
 interface WantedRequest {
   id: string
@@ -19,10 +20,12 @@ interface WantedRequest {
   max_year?: number
   location: string
   phone: string
+  whatsapp?: string
+  email?: string
   fuel_type?: string
   transmission?: string
   max_mileage?: number
-  urgency?: 'high' | 'medium' | 'low'
+  urgency?: 'high'
   created_at: string
   user_name?: string
   user_avatar?: string
@@ -32,8 +35,8 @@ interface WantedRequest {
 
 interface FilterState {
   locations: string[]
-  makes: string[]
-  models: string[]
+  make: string
+  model: string
   minBudget: string
   maxBudget: string
   yearFrom: string
@@ -45,18 +48,20 @@ const MAKES = [
   'Mitsubishi', 'Hyundai', 'Kia', 'BMW', 'Mercedes-Benz'
 ]
 
-const MODELS = [
-  'Prius', 'Camry', 'Corolla', 'Vitz', 'Aqua', 'CHR', 'Highlander', 'Land Cruiser', 'Hiace', 'Hilux',
-  'Civic', 'Accord', 'Fit', 'Vezel', 'CR-V', 'Insight', 'City', 'Jazz', 'Pilot', 'Ridgeline',
-  'March', 'Tiida', 'Sylphy', 'Teana', 'X-Trail', 'Murano', 'Navara', 'Juke', 'Qashqai', 'Leaf',
-  'Demio', 'Axela', 'Atenza', 'CX-3', 'CX-5', 'CX-9', 'BT-50', 'Premacy', 'Biante', 'Roadster',
-  'Alto', 'Swift', 'Wagon R', 'Baleno', 'Vitara', 'Jimny', 'Ertiga', 'S-Cross', 'Ignis', 'Ciaz',
-  'Lancer', 'Outlander', 'Pajero', 'Montero', 'ASX', 'Mirage', 'Triton', 'Galant', 'Colt', 'Eclipse',
-  'Elantra', 'Sonata', 'Tucson', 'Santa Fe', 'i10', 'i20', 'i30', 'Accent', 'Genesis', 'Kona',
-  'Cerato', 'Optima', 'Sportage', 'Sorento', 'Picanto', 'Rio', 'Soul', 'Stinger', 'Carnival', 'Seltos',
-  '3 Series', '5 Series', '7 Series', 'X1', 'X3', 'X5', 'X7', 'Z4', 'i3', 'i8',
-  'C-Class', 'E-Class', 'S-Class', 'A-Class', 'GLA', 'GLC', 'GLE', 'GLS', 'CLA', 'CLS'
-].sort()
+const MAKE_MODELS = {
+  'Toyota': ['Prius', 'Camry', 'Corolla', 'Vitz', 'Aqua', 'CHR', 'Highlander', 'Land Cruiser', 'Hiace', 'Hilux'],
+  'Honda': ['Civic', 'Accord', 'Fit', 'Vezel', 'CR-V', 'Insight', 'City', 'Jazz', 'Pilot', 'Ridgeline'],
+  'Nissan': ['March', 'Tiida', 'Sylphy', 'Teana', 'X-Trail', 'Murano', 'Navara', 'Juke', 'Qashqai', 'Leaf'],
+  'Mazda': ['Demio', 'Axela', 'Atenza', 'CX-3', 'CX-5', 'CX-9', 'BT-50', 'Premacy', 'Biante', 'Roadster'],
+  'Suzuki': ['Alto', 'Swift', 'Wagon R', 'Baleno', 'Vitara', 'Jimny', 'Ertiga', 'S-Cross', 'Ignis', 'Ciaz'],
+  'Mitsubishi': ['Lancer', 'Outlander', 'Pajero', 'Montero', 'ASX', 'Mirage', 'Triton', 'Galant', 'Colt', 'Eclipse'],
+  'Hyundai': ['Elantra', 'Sonata', 'Tucson', 'Santa Fe', 'i10', 'i20', 'i30', 'Accent', 'Genesis', 'Kona'],
+  'Kia': ['Cerato', 'Optima', 'Sportage', 'Sorento', 'Picanto', 'Rio', 'Soul', 'Stinger', 'Carnival', 'Seltos'],
+  'BMW': ['3 Series', '5 Series', '7 Series', 'X1', 'X3', 'X5', 'X7', 'Z4', 'i3', 'i8'],
+  'Mercedes-Benz': ['C-Class', 'E-Class', 'S-Class', 'A-Class', 'GLA', 'GLC', 'GLE', 'GLS', 'CLA', 'CLS']
+}
+
+const ALL_MODELS = Object.values(MAKE_MODELS).flat().sort()
 
 // Format budget to nearest 0.5M increment with K/M suffix
 const formatBudget = (value: number | null | undefined): string => {
@@ -85,9 +90,9 @@ export default function WantedRequestsPage() {
   const [sortBy, setSortBy] = useState('recent')
   const [highPriorityOnly, setHighPriorityOnly] = useState(false)
   const [filters, setFilters] = useState<FilterState>({
-    locations: [],
-    makes: [],
-    models: [],
+    locations: ['All of Sri Lanka'],
+    make: 'All Makes',
+    model: 'All Models',
     minBudget: '',
     maxBudget: '',
     yearFrom: '',
@@ -99,10 +104,19 @@ export default function WantedRequestsPage() {
     model: true,
     mobile: false
   })
+  const [makeSearchTerm, setMakeSearchTerm] = useState('')
+  const [modelSearchTerm, setModelSearchTerm] = useState('')
+  // Temporary states for budget and year inputs
+  const [tempMinBudget, setTempMinBudget] = useState('')
+  const [tempMaxBudget, setTempMaxBudget] = useState('')
+  const [tempYearFrom, setTempYearFrom] = useState('')
+  const [tempYearTo, setTempYearTo] = useState('')
   const [savedRequests, setSavedRequests] = useState<Set<string>>(new Set())
   const [displayCount, setDisplayCount] = useState(6)
   const [hasMore, setHasMore] = useState(true)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const [showContactModal, setShowContactModal] = useState(false)
+  const [selectedRequest, setSelectedRequest] = useState<WantedRequest | null>(null)
   
   const { ref: loadMoreRef, inView } = useInView({
     threshold: 0,
@@ -113,6 +127,14 @@ export default function WantedRequestsPage() {
   useEffect(() => {
     fetchRequests()
     loadSavedRequests()
+  }, [])
+
+  // Initialize temporary values
+  useEffect(() => {
+    setTempMinBudget(filters.minBudget)
+    setTempMaxBudget(filters.maxBudget)
+    setTempYearFrom(filters.yearFrom)
+    setTempYearTo(filters.yearTo)
   }, [])
 
   // Apply filters whenever they change
@@ -130,8 +152,15 @@ export default function WantedRequestsPage() {
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (openMenuId && !(event.target as Element).closest('.relative')) {
-        setOpenMenuId(null)
+      if (openMenuId) {
+        const target = event.target as Element
+        // Don't close if clicking on the menu button or the dropdown menu
+        const menuButton = target.closest('button[data-menu-button]')
+        const dropdown = target.closest('[data-menu-dropdown]')
+        
+        if (!menuButton && !dropdown) {
+          setOpenMenuId(null)
+        }
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -142,19 +171,20 @@ export default function WantedRequestsPage() {
     try {
       const { data, error } = await supabase
         .from('wanted_requests')
-        .select('*')
+        .select('*, phone, whatsapp, email')
         .eq('is_active', true)
         .order('created_at', { ascending: false })
 
       if (error) throw error
 
-      // Add mock urgency levels and user info for demo
+      // Add mock user info for demo, but preserve real urgency from database
       const enhancedRequests = (data || []).map((req, index) => ({
         ...req,
-        urgency: ['high', 'medium', 'low'][index % 3] as 'high' | 'medium' | 'low',
+        // Keep the actual urgency from database (don't override with mock data)
         user_name: req.user_name || `User ${req.id.slice(0, 4)}`,
         user_avatar: req.user_name?.slice(0, 2).toUpperCase() || 'U'
       }))
+
 
       setRequests(enhancedRequests)
       setFilteredRequests(enhancedRequests.slice(0, displayCount))
@@ -166,13 +196,18 @@ export default function WantedRequestsPage() {
   }
 
   const loadSavedRequests = () => {
-    const saved = localStorage.getItem('savedWantedRequests')
-    if (saved) {
-      setSavedRequests(new Set(JSON.parse(saved)))
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('savedWantedRequests')
+      if (saved) {
+        setSavedRequests(new Set(JSON.parse(saved)))
+      }
     }
   }
 
-  const toggleSave = (requestId: string) => {
+  const toggleSave = (requestId: string, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation()
+    }
     const newSaved = new Set(savedRequests)
     if (newSaved.has(requestId)) {
       newSaved.delete(requestId)
@@ -181,10 +216,45 @@ export default function WantedRequestsPage() {
     }
     setSavedRequests(newSaved)
     localStorage.setItem('savedWantedRequests', JSON.stringify(Array.from(newSaved)))
-    setOpenMenuId(null)
+    
+    // Save full request data for profile page (similar to listings page)
+    if (newSaved.has(requestId) && !savedRequests.has(requestId)) {
+      const request = [...requests, ...filteredRequests].find(r => r.id === requestId)
+      if (request) {
+        const existingData = localStorage.getItem('favoriteWantedRequestsData')
+        const currentData = existingData ? JSON.parse(existingData) : []
+        const newData = [...currentData, {
+          id: request.id,
+          title: request.title,
+          description: request.description,
+          price: request.max_budget || request.min_budget || 0, // Use max budget as main price
+          location: request.location,
+          postedDate: request.created_at,
+          minBudget: request.min_budget,
+          maxBudget: request.max_budget,
+          make: request.make,
+          model: request.model,
+          user_name: request.user_name
+        }]
+        localStorage.setItem('favoriteWantedRequestsData', JSON.stringify(newData))
+      }
+    } else if (!newSaved.has(requestId)) {
+      // Remove from full data when unsaved
+      const existingData = localStorage.getItem('favoriteWantedRequestsData')
+      if (existingData) {
+        const currentData = JSON.parse(existingData)
+        const updatedData = currentData.filter((item: any) => item.id !== requestId)
+        localStorage.setItem('favoriteWantedRequestsData', JSON.stringify(updatedData))
+      }
+    }
+    
+    // Don't close menu immediately - let user see the result
   }
 
-  const handleShare = (request: WantedRequest) => {
+  const handleShare = (request: WantedRequest, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation()
+    }
     if (navigator.share) {
       navigator.share({
         title: request.title,
@@ -195,17 +265,33 @@ export default function WantedRequestsPage() {
       navigator.clipboard.writeText(window.location.href)
       alert('Link copied to clipboard!')
     }
+    // Close menu after share action
     setOpenMenuId(null)
   }
 
-  const handleReport = (requestId: string) => {
+  const handleReport = (requestId: string, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation()
+    }
     // TODO: Implement report functionality
     alert('Report functionality coming soon!')
+    // Close menu after report action
     setOpenMenuId(null)
   }
 
-  const toggleMenu = (requestId: string) => {
+  const toggleMenu = (requestId: string, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation()
+    }
     setOpenMenuId(openMenuId === requestId ? null : requestId)
+  }
+
+  const handleContactBuyer = (request: WantedRequest, event?: React.MouseEvent) => {
+    if (event) {
+      event.preventDefault()
+    }
+    setSelectedRequest(request)
+    setShowContactModal(true)
   }
 
   const applyFilters = useCallback(() => {
@@ -227,7 +313,7 @@ export default function WantedRequestsPage() {
     }
 
     // Location filter
-    if (filters.locations.length > 0) {
+    if (filters.locations.length > 0 && !filters.locations.includes('All of Sri Lanka')) {
       filtered = filtered.filter(req => 
         filters.locations.some(loc => 
           req.location.toLowerCase().includes(loc.toLowerCase())
@@ -236,16 +322,16 @@ export default function WantedRequestsPage() {
     }
 
     // Make filter
-    if (filters.makes.length > 0) {
+    if (filters.make && filters.make !== 'All Makes') {
       filtered = filtered.filter(req => 
-        req.make && filters.makes.includes(req.make)
+        req.make === filters.make
       )
     }
 
     // Model filter
-    if (filters.models.length > 0) {
+    if (filters.model && filters.model !== 'All Models') {
       filtered = filtered.filter(req => 
-        req.model && filters.models.includes(req.model)
+        req.model === filters.model
       )
     }
 
@@ -282,6 +368,7 @@ export default function WantedRequestsPage() {
       filtered = filtered.filter(req => req.urgency === 'high')
     }
 
+
     // Sorting
     filtered.sort((a, b) => {
       switch (sortBy) {
@@ -290,8 +377,10 @@ export default function WantedRequestsPage() {
         case 'budget-low':
           return (a.min_budget || 0) - (b.min_budget || 0)
         case 'urgency':
-          const urgencyOrder = { high: 0, medium: 1, low: 2 }
-          return urgencyOrder[a.urgency || 'low'] - urgencyOrder[b.urgency || 'low']
+          // High priority first, then others
+          const aUrgency = a.urgency === 'high' ? 0 : 1
+          const bUrgency = b.urgency === 'high' ? 0 : 1
+          return aUrgency - bUrgency
         case 'location':
           return a.location.localeCompare(b.location)
         default: // recent
@@ -299,9 +388,11 @@ export default function WantedRequestsPage() {
       }
     })
 
-    setFilteredRequests(filtered.slice(0, displayCount))
+    const slicedResults = filtered.slice(0, displayCount)
+    setFilteredRequests(slicedResults)
     setHasMore(filtered.length > displayCount)
-  }, [requests, searchTerm, filters, sortBy, displayCount])
+    
+  }, [requests, searchTerm, filters, sortBy, displayCount, highPriorityOnly])
 
   const loadMore = () => {
     setDisplayCount(prev => prev + 6)
@@ -309,16 +400,36 @@ export default function WantedRequestsPage() {
 
   const clearFilters = () => {
     setFilters({
-      locations: [],
-      makes: [],
-      models: [],
+      locations: ['All of Sri Lanka'],
+      make: 'All Makes',
+      model: 'All Models',
       minBudget: '',
       maxBudget: '',
       yearFrom: '',
       yearTo: ''
     })
+    setTempMinBudget('')
+    setTempMaxBudget('')
+    setTempYearFrom('')
+    setTempYearTo('')
     setSearchTerm('')
     setHighPriorityOnly(false)
+  }
+
+  const applyBudgetRange = () => {
+    setFilters(prev => ({
+      ...prev,
+      minBudget: tempMinBudget,
+      maxBudget: tempMaxBudget
+    }))
+  }
+
+  const applyYearRange = () => {
+    setFilters(prev => ({
+      ...prev,
+      yearFrom: tempYearFrom,
+      yearTo: tempYearTo
+    }))
   }
 
   const toggleFilterExpand = (filterType: keyof typeof expandedFilters) => {
@@ -336,21 +447,46 @@ export default function WantedRequestsPage() {
   }
 
   const handleMakeToggle = (make: string) => {
-    setFilters(prev => ({
-      ...prev,
-      makes: prev.makes.includes(make)
-        ? prev.makes.filter(m => m !== make)
-        : [...prev.makes, make]
-    }))
+    setFilters(prev => {
+      const newMake = prev.make === make ? 'All Makes' : make
+      const availableModels = newMake === 'All Makes' ? ALL_MODELS : (MAKE_MODELS[newMake as keyof typeof MAKE_MODELS] || [])
+      const currentModelStillAvailable = prev.model === 'All Models' || availableModels.includes(prev.model)
+      
+      return {
+        ...prev,
+        make: newMake,
+        model: currentModelStillAvailable ? prev.model : 'All Models'
+      }
+    })
   }
 
   const handleModelToggle = (model: string) => {
     setFilters(prev => ({
       ...prev,
-      models: prev.models.includes(model)
-        ? prev.models.filter(m => m !== model)
-        : [...prev.models, model]
+      model: prev.model === model ? 'All Models' : model
     }))
+  }
+
+  const getAvailableModels = () => {
+    if (filters.make === 'All Makes' || !filters.make) {
+      return ALL_MODELS
+    }
+    return MAKE_MODELS[filters.make as keyof typeof MAKE_MODELS] || []
+  }
+
+  const getFilteredMakes = () => {
+    if (!makeSearchTerm) return MAKES
+    return MAKES.filter(make => 
+      make.toLowerCase().includes(makeSearchTerm.toLowerCase())
+    )
+  }
+
+  const getFilteredModels = () => {
+    const availableModels = getAvailableModels()
+    if (!modelSearchTerm) return availableModels
+    return availableModels.filter(model => 
+      model.toLowerCase().includes(modelSearchTerm.toLowerCase())
+    )
   }
 
 
@@ -425,22 +561,53 @@ export default function WantedRequestsPage() {
           </span>
         </div>
         <div className={`mt-3 space-y-2 overflow-hidden transition-all ${expandedFilters.make ? 'max-h-64' : 'max-h-0'}`}>
-          <input 
-            type="text" 
-            placeholder="Search makes..."
-            className="w-full px-3 py-2 border rounded-md text-sm mb-2"
-          />
+          <div className="relative mb-2">
+            <input 
+              type="text" 
+              placeholder="Search makes..."
+              value={makeSearchTerm}
+              onChange={(e) => setMakeSearchTerm(e.target.value)}
+              className="w-full px-3 py-2 pr-8 border rounded-md text-sm"
+            />
+            {makeSearchTerm && (
+              <button
+                type="button"
+                onClick={() => setMakeSearchTerm('')}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                aria-label="Clear search"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
           <div className="max-h-48 overflow-y-auto border rounded-md p-2 bg-gray-50">
-            {MAKES.map(make => (
+            {/* All Makes Option */}
+            <label 
+              className={`block py-1 px-2 rounded cursor-pointer hover:bg-blue-50 text-xs border-b border-gray-200 mb-1 ${
+                filters.make === 'All Makes' ? 'bg-yellow-50 font-semibold text-yellow-700' : ''
+              }`}
+            >
+              <input
+                type="radio"
+                checked={filters.make === 'All Makes'}
+                onChange={() => handleMakeToggle('All Makes')}
+                className="sr-only"
+              />
+              🚗 All Makes
+            </label>
+            
+            {getFilteredMakes().map(make => (
               <label 
                 key={make}
                 className={`block py-1 px-2 rounded cursor-pointer hover:bg-blue-50 text-xs ${
-                  filters.makes.includes(make) ? 'bg-yellow-50 font-semibold text-yellow-700' : ''
+                  filters.make === make ? 'bg-yellow-50 font-semibold text-yellow-700' : ''
                 }`}
               >
                 <input
-                  type="checkbox"
-                  checked={filters.makes.includes(make)}
+                  type="radio"
+                  checked={filters.make === make}
                   onChange={() => handleMakeToggle(make)}
                   className="sr-only"
                 />
@@ -463,22 +630,53 @@ export default function WantedRequestsPage() {
             </span>
           </div>
           <div className={`mt-2 space-y-1.5 overflow-hidden transition-all ${expandedFilters.model ? 'max-h-48' : 'max-h-0'}`}>
-            <input 
-              type="text" 
-              placeholder="Search models..."
-              className="w-full px-2 py-1.5 border rounded-md text-xs mb-2"
-            />
+            <div className="relative mb-2">
+              <input 
+                type="text" 
+                placeholder="Search models..."
+                value={modelSearchTerm}
+                onChange={(e) => setModelSearchTerm(e.target.value)}
+                className="w-full px-2 py-1.5 pr-8 border rounded-md text-xs"
+              />
+              {modelSearchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setModelSearchTerm('')}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  aria-label="Clear search"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
             <div className="max-h-40 overflow-y-auto border rounded-md p-2 bg-gray-50">
-              {MODELS.map(model => (
+              {/* All Models Option */}
+              <label 
+                className={`block py-1 px-2 rounded cursor-pointer hover:bg-blue-50 text-xs border-b border-gray-200 mb-1 ${
+                  filters.model === 'All Models' ? 'bg-yellow-50 font-semibold text-yellow-700' : ''
+                }`}
+              >
+                <input
+                  type="radio"
+                  checked={filters.model === 'All Models'}
+                  onChange={() => handleModelToggle('All Models')}
+                  className="sr-only"
+                />
+                🚗 All Models
+              </label>
+              
+              {getFilteredModels().map(model => (
                 <label 
                   key={model}
                   className={`block py-1 px-2 rounded cursor-pointer hover:bg-blue-50 text-xs ${
-                    filters.models.includes(model) ? 'bg-yellow-50 font-semibold text-yellow-700' : ''
+                    filters.model === model ? 'bg-yellow-50 font-semibold text-yellow-700' : ''
                   }`}
                 >
                   <input
-                    type="checkbox"
-                    checked={filters.models.includes(model)}
+                    type="radio"
+                    checked={filters.model === model}
                     onChange={() => handleModelToggle(model)}
                     className="sr-only"
                   />
@@ -492,43 +690,69 @@ export default function WantedRequestsPage() {
       {/* Budget Range */}
       <div className="mb-4">
         <label className="font-semibold text-gray-700 block mb-2 text-sm">Budget Range</label>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2 mb-2">
           <input
             type="number"
             placeholder="Min (LKR)"
-            value={filters.minBudget}
-            onChange={(e) => setFilters(prev => ({ ...prev, minBudget: e.target.value }))}
+            value={tempMinBudget}
+            onChange={(e) => setTempMinBudget(e.target.value)}
             className="px-2 py-1.5 border rounded-md text-xs"
           />
           <input
             type="number"
             placeholder="Max (LKR)"
-            value={filters.maxBudget}
-            onChange={(e) => setFilters(prev => ({ ...prev, maxBudget: e.target.value }))}
+            value={tempMaxBudget}
+            onChange={(e) => setTempMaxBudget(e.target.value)}
             className="px-2 py-1.5 border rounded-md text-xs"
           />
         </div>
+        <button
+          onClick={applyBudgetRange}
+          className="w-full px-3 py-1.5 bg-gray-100 text-gray-700 border border-gray-400 rounded-md text-xs font-medium hover:bg-gray-200 transition-colors"
+        >
+          Apply Budget Range
+        </button>
+        {(filters.minBudget || filters.maxBudget) && (
+          <div className="mt-2 text-xs text-gray-600">
+            Active: {filters.minBudget && `Min: Rs. ${parseInt(filters.minBudget).toLocaleString()}`} 
+            {filters.minBudget && filters.maxBudget && ' - '}
+            {filters.maxBudget && `Max: Rs. ${parseInt(filters.maxBudget).toLocaleString()}`}
+          </div>
+        )}
       </div>
 
       {/* Year Range */}
       <div className="mb-4">
         <label className="font-semibold text-gray-700 block mb-2 text-sm">Year Range</label>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2 mb-2">
           <input
             type="number"
             placeholder="From year"
-            value={filters.yearFrom}
-            onChange={(e) => setFilters(prev => ({ ...prev, yearFrom: e.target.value }))}
+            value={tempYearFrom}
+            onChange={(e) => setTempYearFrom(e.target.value)}
             className="px-2 py-1.5 border rounded-md text-xs"
           />
           <input
             type="number"
             placeholder="To year"
-            value={filters.yearTo}
-            onChange={(e) => setFilters(prev => ({ ...prev, yearTo: e.target.value }))}
+            value={tempYearTo}
+            onChange={(e) => setTempYearTo(e.target.value)}
             className="px-2 py-1.5 border rounded-md text-xs"
           />
         </div>
+        <button
+          onClick={applyYearRange}
+          className="w-full px-3 py-1.5 bg-gray-100 text-gray-700 border border-gray-400 rounded-md text-xs font-medium hover:bg-gray-200 transition-colors"
+        >
+          Apply Year Range
+        </button>
+        {(filters.yearFrom || filters.yearTo) && (
+          <div className="mt-2 text-xs text-gray-600">
+            Active: {filters.yearFrom && `From: ${filters.yearFrom}`} 
+            {filters.yearFrom && filters.yearTo && ' - '}
+            {filters.yearTo && `To: ${filters.yearTo}`}
+          </div>
+        )}
       </div>
 
     </>
@@ -548,12 +772,10 @@ export default function WantedRequestsPage() {
   }
 
   const getUrgencyClass = (urgency?: string) => {
-    switch (urgency) {
-      case 'high': return 'bg-red-100 text-red-700'
-      case 'medium': return 'bg-orange-100 text-orange-700'
-      case 'low': return 'bg-green-100 text-green-700'
-      default: return 'bg-gray-100 text-gray-700'
+    if (urgency === 'high') {
+      return 'bg-red-100 text-red-700'
     }
+    return 'bg-gray-100 text-gray-700'
   }
 
   const debouncedSearch = useCallback(
@@ -623,7 +845,7 @@ export default function WantedRequestsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Filters Sidebar */}
           <div className="hidden lg:block lg:col-span-1">
-            <div className="bg-white rounded-lg shadow p-3 sticky top-4">
+            <div className="bg-white rounded-lg shadow p-3">
               <div className="flex justify-between items-center mb-4 pb-3 border-b">
                 <h3 className="text-base font-bold text-gray-900">Filters</h3>
                 <button 
@@ -651,10 +873,11 @@ export default function WantedRequestsPage() {
                   {filteredRequests.map((request) => (
                     <div key={request.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
                       <div className="relative bg-gradient-to-r from-gray-50 to-gray-100 p-5 rounded-t-lg border-b">
-                        <span className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold ${getUrgencyClass(request.urgency)}`}>
-                          {request.urgency === 'high' ? 'High Priority' : 
-                           request.urgency === 'medium' ? 'Medium Priority' : 'Low Priority'}
-                        </span>
+                        {request.urgency === 'high' && (
+                          <span className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold ${getUrgencyClass(request.urgency)}`}>
+                            High Priority
+                          </span>
+                        )}
                         <h3 className="text-xl font-semibold text-gray-900 pr-24 mb-2">
                           {request.title.replace(/^looking for:\s*/i, '')}
                         </h3>
@@ -717,37 +940,38 @@ export default function WantedRequestsPage() {
                         )}
 
                         <div className="flex gap-3 pt-4 border-t">
-                          <a 
-                            href={`tel:${request.phone}`}
+                          <button
+                            onClick={(e) => handleContactBuyer(request, e)}
                             className="flex-1 bg-blue-600 text-white text-center py-2.5 rounded-md hover:bg-blue-700 transition font-semibold"
                           >
                             Contact Buyer
-                          </a>
+                          </button>
                           <div className="relative">
                             <button
-                              onClick={() => toggleMenu(request.id)}
+                              onClick={(e) => toggleMenu(request.id, e)}
+                              data-menu-button="true"
                               className="px-4 py-2.5 rounded-md border bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200 transition"
                             >
                               <i className="fas fa-ellipsis-h"></i>
                             </button>
                             {openMenuId === request.id && (
-                              <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 min-w-[120px]">
+                              <div data-menu-dropdown="true" className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 min-w-[120px]">
                                 <button
-                                  onClick={() => toggleSave(request.id)}
+                                  onClick={(e) => toggleSave(request.id, e)}
                                   className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
                                 >
                                   <i className={`fas ${savedRequests.has(request.id) ? 'fa-heart text-red-500' : 'fa-heart'}`}></i>
                                   {savedRequests.has(request.id) ? 'Unsave' : 'Save'}
                                 </button>
                                 <button
-                                  onClick={() => handleShare(request)}
+                                  onClick={(e) => handleShare(request, e)}
                                   className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
                                 >
                                   <i className="fas fa-share"></i>
                                   Share
                                 </button>
                                 <button
-                                  onClick={() => handleReport(request.id)}
+                                  onClick={(e) => handleReport(request.id, e)}
                                   className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 text-red-600"
                                 >
                                   <i className="fas fa-flag"></i>
@@ -839,6 +1063,28 @@ export default function WantedRequestsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Contact Modal */}
+      {selectedRequest && (
+        <ContactModal
+          isOpen={showContactModal}
+          onClose={() => {
+            setShowContactModal(false)
+            setSelectedRequest(null)
+          }}
+          listing={{
+            id: selectedRequest.id,
+            title: selectedRequest.title,
+            phone: selectedRequest.phone,
+            whatsapp: selectedRequest.whatsapp,
+            price: selectedRequest.max_budget || selectedRequest.min_budget || 0,
+            location: selectedRequest.location,
+            make: selectedRequest.make,
+            model: selectedRequest.model,
+            year: selectedRequest.max_year || selectedRequest.min_year
+          }}
+        />
       )}
     </div>
   )

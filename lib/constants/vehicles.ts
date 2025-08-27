@@ -28,4 +28,4 @@ export const SRI_LANKA_LOCATIONS = [
   
   export const FUEL_TYPES = ['Petrol', 'Diesel', 'Hybrid', 'Electric'] as const
   export const TRANSMISSION_TYPES = ['Automatic', 'Manual'] as const
-  export const URGENCY_LEVELS = ['high', 'medium', 'low'] as const
+  export const URGENCY_LEVELS = ['high'] as const

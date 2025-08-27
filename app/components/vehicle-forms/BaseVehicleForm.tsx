@@ -399,10 +399,11 @@ export default function BaseVehicleForm({
             <label className="block text-sm font-medium text-gray-700 mb-2">Fuel Type</label>
             <select
               name="fuelType"
-              value={formData.fuelType || 'Petrol'}
+              value={formData.fuelType || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, fuelType: e.target.value }))}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
             >
+              <option value="">Select fuel type</option>
               {FUEL_TYPES.map(fuel => (
                 <option key={fuel} value={fuel}>{fuel}</option>
               ))}
@@ -418,12 +419,13 @@ export default function BaseVehicleForm({
             </label>
             <select
               name="transmission"
-              value={formData.transmission || 'Manual'}
+              value={formData.transmission || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, transmission: e.target.value }))}
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
                 errors.transmission ? 'border-red-300' : 'border-gray-300'
               }`}
             >
+              <option value="">Select transmission</option>
               {TRANSMISSION_TYPES.map(trans => (
                 <option key={trans} value={trans}>{trans}</option>
               ))}

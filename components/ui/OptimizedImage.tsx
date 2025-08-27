@@ -55,12 +55,9 @@ export default function OptimizedImage({
 
     // Check if it's a Supabase storage URL
     if (url.includes('supabase.co/storage/v1/object/public/')) {
-      // Add transformation parameters for Supabase
-      const urlObj = new URL(url)
-      if (width) urlObj.searchParams.set('width', width.toString())
-      if (quality) urlObj.searchParams.set('quality', quality.toString())
-      urlObj.searchParams.set('format', 'webp') // Use WebP for better compression
-      return urlObj.toString()
+      // Supabase Storage doesn't support URL-based transformations
+      // Return the original URL as-is
+      return url
     }
 
     // For Cloudinary URLs (if using Cloudinary)

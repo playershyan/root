@@ -13,7 +13,7 @@ export interface WantedRequest {
     fuel_type?: 'Petrol' | 'Diesel' | 'Hybrid' | 'Electric'
     transmission?: 'Automatic' | 'Manual'
     max_mileage?: number
-    urgency?: 'high' | 'medium' | 'low'
+    urgency?: 'high'
     created_at: string
     updated_at?: string
     user_id?: string

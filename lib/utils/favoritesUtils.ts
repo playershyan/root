@@ -21,7 +21,7 @@ export interface FavoriteWantedData {
   location: string
   postedDate: string
   responses?: number
-  urgency?: 'low' | 'medium' | 'high'
+  urgency?: 'high'
 }
 
 export function formatPrice(price: number): string {
@@ -62,27 +62,19 @@ export function truncateDescription(description: string, maxLength: number = 100
   return description.substring(0, maxLength) + '...'
 }
 
-export function getUrgencyColor(urgency?: 'low' | 'medium' | 'high'): string {
+export function getUrgencyColor(urgency?: 'high'): string {
   switch (urgency) {
     case 'high':
       return 'bg-red-100 text-red-800'
-    case 'medium':
-      return 'bg-yellow-100 text-yellow-800'
-    case 'low':
-      return 'bg-green-100 text-green-800'
     default:
       return 'bg-gray-100 text-gray-800'
   }
 }
 
-export function getUrgencyLabel(urgency?: 'low' | 'medium' | 'high'): string {
+export function getUrgencyLabel(urgency?: 'high'): string {
   switch (urgency) {
     case 'high':
-      return 'Urgent'
-    case 'medium':
-      return 'Moderate'
-    case 'low':
-      return 'Flexible'
+      return 'High Priority'
     default:
       return ''
   }

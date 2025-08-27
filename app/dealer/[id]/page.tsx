@@ -12,6 +12,7 @@ import {
   ExternalLink
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { formatPhoneDisplay, formatPhoneForWhatsApp, formatPhoneForTel } from '@/lib/utils/phoneFormatter'
 
 interface DealerProfileProps {
   params: {
@@ -46,14 +47,6 @@ export default async function DealerProfilePage({ params }: DealerProfileProps) 
     .order('created_at', { ascending: false })
     .limit(12)
 
-  const formatPhoneNumber = (phone: string) => {
-    return phone.replace(/\D/g, '').replace(/^94/, '+94')
-  }
-
-  const getWhatsAppLink = (phone: string) => {
-    const cleanPhone = phone.replace(/\D/g, '')
-    return `https://wa.me/${cleanPhone.startsWith('94') ? cleanPhone : '94' + cleanPhone}`
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -216,7 +209,7 @@ export default async function DealerProfilePage({ params }: DealerProfileProps) 
                     <Phone className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
                     <div>
                       <p className="text-sm font-medium text-gray-900">Phone</p>
-                      <p className="text-sm text-gray-600">{formatPhoneNumber(businessProfile.phone)}</p>
+                      <p className="text-sm text-gray-600">{formatPhoneDisplay(businessProfile.phone)}</p>
                     </div>
                   </div>
                 )}
@@ -256,7 +249,7 @@ export default async function DealerProfilePage({ params }: DealerProfileProps) 
                   <>
                     {/* Call Button */}
                     <a
-                      href={`tel:${formatPhoneNumber(businessProfile.phone)}`}
+                      href={formatPhoneForTel(businessProfile.phone)}
                       className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
                     >
                       <Phone className="w-4 h-4" />
@@ -265,7 +258,7 @@ export default async function DealerProfilePage({ params }: DealerProfileProps) 
 
                     {/* WhatsApp Button */}
                     <a
-                      href={getWhatsAppLink(businessProfile.phone)}
+                      href={`https://wa.me/${formatPhoneForWhatsApp(businessProfile.phone)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
