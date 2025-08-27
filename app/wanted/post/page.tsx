@@ -11,37 +11,22 @@ import {
   getCitiesByDistrictId,
   getDistrictByName 
 } from '@/lib/constants/locations'
-
-// Import constants - if you created separate files, use these imports:
-// import { SRI_LANKA_LOCATIONS, VEHICLE_MAKES, MAKE_MODEL_MAP, FUEL_TYPES, TRANSMISSION_TYPES } from '@/lib/constants/vehicles'
-
-
-const VEHICLE_MAKES = [
-  'Toyota', 'Honda', 'Nissan', 'Mazda', 'Suzuki', 
-  'Mitsubishi', 'Hyundai', 'Kia', 'BMW', 'Mercedes-Benz',
-  'Audi', 'Volkswagen', 'Ford', 'Chevrolet', 'Isuzu',
-  'Daihatsu', 'Subaru', 'Lexus', 'Peugeot', 'Land Rover'
-]
-
-const MAKE_MODEL_MAP: Record<string, string[]> = {
-  toyota: ['Prius', 'Camry', 'Corolla', 'Vitz', 'Aqua', 'CHR', 'Highlander', 'Land Cruiser', 'Land Cruiser Prado', 'Hiace', 'Hilux', 'RAV4', 'Fortuner'],
-  honda: ['Civic', 'Accord', 'Fit', 'Vezel', 'CR-V', 'Insight', 'City', 'Jazz', 'Pilot', 'HR-V', 'BR-V', 'Freed'],
-  nissan: ['March', 'Tiida', 'Sylphy', 'Teana', 'X-Trail', 'Murano', 'Navara', 'Juke', 'Qashqai', 'Leaf', 'Note', 'Serena'],
-  mazda: ['Demio', 'Axela', 'Atenza', 'CX-3', 'CX-5', 'CX-9', 'BT-50', 'Premacy', 'Biante', 'Roadster'],
-  suzuki: ['Alto', 'Swift', 'Wagon R', 'Baleno', 'Vitara', 'Jimny', 'Ertiga', 'S-Cross', 'Ignis', 'Ciaz'],
-  mitsubishi: ['Lancer', 'Outlander', 'Pajero', 'Montero', 'ASX', 'Mirage', 'Triton', 'Galant', 'Colt', 'Eclipse'],
-  hyundai: ['Elantra', 'Sonata', 'Tucson', 'Santa Fe', 'i10', 'i20', 'i30', 'Accent', 'Genesis', 'Kona'],
-  kia: ['Cerato', 'Optima', 'Sportage', 'Sorento', 'Picanto', 'Rio', 'Soul', 'Stinger', 'Carnival', 'Seltos'],
-  bmw: ['3 Series', '5 Series', '7 Series', 'X1', 'X3', 'X5', 'X7', 'Z4', 'i3', 'i8'],
-  'mercedes-benz': ['C-Class', 'E-Class', 'S-Class', 'A-Class', 'GLA', 'GLC', 'GLE', 'GLS', 'CLA', 'CLS']
-}
+import {
+  VehicleType,
+  getVehicleCategories,
+  getMakesByCategory,
+  getModelsByMake
+} from '@/lib/constants/vehicleData'
 
 interface FormData {
   description: string
+  vehicleType: VehicleType | ''
   min_budget: string
   max_budget: string
   make: string
+  customMake: string
   model: string
+  customModel: string
   min_year: string
   max_year: string
   location: string
@@ -64,7 +49,6 @@ export default function PostWantedPage() {
   const [step, setStep] = useState(1) // Multi-step form
   const [showPreview, setShowPreview] = useState(true)
   const [errors, setErrors] = useState<FormErrors>({})
-  const [availableModels, setAvailableModels] = useState<string[]>([])
   const [selectedDistrict, setSelectedDistrict] = useState<string>('')
   const [availableCities, setAvailableCities] = useState<string[]>([])
   
@@ -102,10 +86,13 @@ export default function PostWantedPage() {
   }
   const [formData, setFormData] = useState<FormData>({
     description: '',
+    vehicleType: '',
     min_budget: '',
     max_budget: '',
     make: '',
+    customMake: '',
     model: '',
+    customModel: '',
     min_year: '',
     max_year: '',
     location: '',
@@ -115,25 +102,34 @@ export default function PostWantedPage() {
     max_mileage: ''
   })
 
-  // Update available models when make changes
+  // Helper functions to get makes and models based on vehicle type
+  const getMakeOptions = () => {
+    if (!formData.vehicleType) return []
+    return getMakesByCategory(formData.vehicleType)
+  }
+
+  const getModelOptions = () => {
+    if (!formData.make || !formData.vehicleType) return []
+    const makeId = formData.make.toLowerCase().replace(/[\s-]/g, '-')
+    return getModelsByMake(formData.vehicleType, makeId)
+  }
+
+  // Clear model when make or vehicle type changes if it's no longer valid
   useEffect(() => {
-    if (formData.make) {
-      const makeKey = formData.make.toLowerCase().replace('-', '')
-      setAvailableModels(MAKE_MODEL_MAP[makeKey] || [])
-      // Clear model if it's not in the new make's models
-      if (formData.model && !MAKE_MODEL_MAP[makeKey]?.includes(formData.model)) {
-        setFormData(prev => ({ ...prev, model: '' }))
-      }
-    } else {
-      setAvailableModels([])
+    const models = getModelOptions()
+    // Clear model if it's not in the new make's models
+    if (formData.model && formData.model !== 'Other' && !models.includes(formData.model)) {
+      setFormData(prev => ({ ...prev, model: '', customModel: '' }))
     }
-  }, [formData.make])
+  }, [formData.make, formData.vehicleType])
 
   // Generate title from make and model
   const generateTitle = () => {
     if (!formData.make) return ''
     
-    const makeModel = [formData.make, formData.model].filter(Boolean).join(' ')
+    const actualMake = formData.make === 'Other' ? formData.customMake : formData.make
+    const actualModel = formData.model === 'Other' ? formData.customModel : formData.model
+    const makeModel = [actualMake, actualModel].filter(Boolean).join(' ')
     const yearRange = formData.min_year && formData.max_year 
       ? ` ${formData.min_year}-${formData.max_year}` 
       : formData.min_year 
@@ -164,11 +160,18 @@ export default function PostWantedPage() {
 
     switch (stepNumber) {
       case 1:
+        if (!formData.vehicleType) {
+          newErrors.vehicleType = 'Please select a vehicle type'
+        }
         if (!formData.make) {
           newErrors.make = 'Please select a vehicle make'
+        } else if (formData.make === 'Other' && !formData.customMake) {
+          newErrors.make = 'Please enter custom make name'
         }
         if (!formData.model) {
           newErrors.model = 'Please select a vehicle model'
+        } else if (formData.model === 'Other' && !formData.customModel) {
+          newErrors.model = 'Please enter custom model name'
         }
         if (!formData.min_budget) {
           newErrors.min_budget = 'Please enter minimum budget'
@@ -283,8 +286,8 @@ export default function PostWantedPage() {
           description: formData.description.trim() || null,
           min_budget: formData.min_budget ? parseFloat(formData.min_budget) : null,
           max_budget: formData.max_budget ? parseFloat(formData.max_budget) : null,
-          make: formData.make || null,
-          model: formData.model || null,
+          make: formData.make === 'Other' ? (formData.customMake || 'Other') : (formData.make || null),
+          model: formData.model === 'Other' ? (formData.customModel || 'Other') : (formData.model || null),
           min_year: formData.min_year ? parseInt(formData.min_year) : null,
           max_year: formData.max_year ? parseInt(formData.max_year) : null,
           location: locationString,
@@ -371,28 +374,90 @@ export default function PostWantedPage() {
             <div className="space-y-6">
               <h2 className="text-xl font-semibold mb-6">What vehicle are you looking for?</h2>
               
+              {/* Vehicle Type Selection */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Vehicle Type <span className="text-red-500">*</span>
+                </label>
+                <select
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                    errors.vehicleType ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  value={formData.vehicleType}
+                  onChange={(e) => {
+                    setFormData({ 
+                      ...formData, 
+                      vehicleType: e.target.value as VehicleType | '',
+                      make: '',
+                      customMake: '',
+                      model: '',
+                      customModel: ''
+                    })
+                    if (errors.vehicleType) setErrors({ ...errors, vehicleType: '' })
+                  }}
+                  required
+                >
+                  <option value="">Select Vehicle Type</option>
+                  {getVehicleCategories().map(category => (
+                    <option key={category.value} value={category.value}>
+                      {category.label}
+                    </option>
+                  ))}
+                </select>
+                {errors.vehicleType && <p className="text-red-500 text-sm mt-1">{errors.vehicleType}</p>}
+              </div>
+              
               {/* Make and Model */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">
                     Vehicle Make <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
-                      errors.make ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    value={formData.make}
-                    onChange={(e) => {
-                      setFormData({ ...formData, make: e.target.value })
-                      if (errors.make) setErrors({ ...errors, make: '' })
-                    }}
-                    required
-                  >
-                    <option value="">Select Make</option>
-                    {VEHICLE_MAKES.map(make => (
-                      <option key={make} value={make}>{make}</option>
-                    ))}
-                  </select>
+                  {formData.make === 'Other' ? (
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        placeholder="Enter custom make name"
+                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                          errors.make ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                        value={formData.customMake}
+                        onChange={(e) => {
+                          setFormData({ ...formData, customMake: e.target.value })
+                          if (errors.make) setErrors({ ...errors, make: '' })
+                        }}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData({ ...formData, make: '', customMake: '', model: '', customModel: '' })
+                        }}
+                        className="text-sm text-blue-600 hover:text-blue-800"
+                      >
+                        ← Back to make selection
+                      </button>
+                    </div>
+                  ) : (
+                    <select
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                        errors.make ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      value={formData.make}
+                      onChange={(e) => {
+                        setFormData({ ...formData, make: e.target.value, model: '', customModel: '' })
+                        if (errors.make) setErrors({ ...errors, make: '' })
+                      }}
+                      disabled={!formData.vehicleType}
+                      required
+                    >
+                      <option value="">Select Make</option>
+                      {getMakeOptions().map(make => (
+                        <option key={make.id} value={make.name}>{make.name}</option>
+                      ))}
+                      <option value="Other">Other (Custom)</option>
+                    </select>
+                  )}
                   {errors.make && <p className="text-red-500 text-sm mt-1">{errors.make}</p>}
                 </div>
 
@@ -400,23 +465,57 @@ export default function PostWantedPage() {
                   <label className="block text-sm font-medium mb-2">
                     Vehicle Model <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
-                      errors.model ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    value={formData.model}
-                    onChange={(e) => {
-                      setFormData({ ...formData, model: e.target.value })
-                      if (errors.model) setErrors({ ...errors, model: '' })
-                    }}
-                    disabled={!formData.make || availableModels.length === 0}
-                    required
-                  >
-                    <option value="">Select Model</option>
-                    {availableModels.map(model => (
-                      <option key={model} value={model}>{model}</option>
-                    ))}
-                  </select>
+                  {formData.model === 'Other' ? (
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        placeholder="Enter custom model name"
+                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                          errors.model ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                        value={formData.customModel}
+                        onChange={(e) => {
+                          setFormData({ ...formData, customModel: e.target.value })
+                          if (errors.model) setErrors({ ...errors, model: '' })
+                        }}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData({ ...formData, model: '', customModel: '' })
+                        }}
+                        className="text-sm text-blue-600 hover:text-blue-800"
+                      >
+                        ← Back to model selection
+                      </button>
+                    </div>
+                  ) : (
+                    <select
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                        errors.model ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      value={formData.model}
+                      onChange={(e) => {
+                        setFormData({ ...formData, model: e.target.value, customModel: '' })
+                        if (errors.model) setErrors({ ...errors, model: '' })
+                      }}
+                      disabled={!formData.make || !formData.vehicleType}
+                      required
+                    >
+                      <option value="">Select Model</option>
+                      {formData.make === 'Other' ? (
+                        <option value="Other">Other (Custom)</option>
+                      ) : (
+                        <>
+                          {getModelOptions().map(model => (
+                            <option key={model} value={model}>{model}</option>
+                          ))}
+                          <option value="Other">Other (Custom)</option>
+                        </>
+                      )}
+                    </select>
+                  )}
                   {errors.model && <p className="text-red-500 text-sm mt-1">{errors.model}</p>}
                 </div>
               </div>
@@ -724,13 +823,13 @@ export default function PostWantedPage() {
                       {formData.make && (
                         <div className="flex justify-between">
                           <span className="text-gray-600">Make:</span>
-                          <span className="font-medium">{formData.make}</span>
+                          <span className="font-medium">{formData.make === 'Other' ? formData.customMake : formData.make}</span>
                         </div>
                       )}
                       {formData.model && (
                         <div className="flex justify-between">
                           <span className="text-gray-600">Model:</span>
-                          <span className="font-medium">{formData.model}</span>
+                          <span className="font-medium">{formData.model === 'Other' ? formData.customModel : formData.model}</span>
                         </div>
                       )}
                       <div className="flex justify-between">

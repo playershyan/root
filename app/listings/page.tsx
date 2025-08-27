@@ -29,6 +29,8 @@ type Listing = {
   image_url: string | null
   image_urls: string[] | null
   is_featured: boolean
+  is_urgent?: boolean
+  urgent_until?: string
   created_at: string
   pricing_type?: 'cash' | 'finance'
   monthly_payment?: number
@@ -42,9 +44,9 @@ type Listing = {
 
 // Animated placeholder texts
 const PLACEHOLDER_TEXTS = [
-  "Prius 2019",
-  "Honda Civic in Kandy",
-  "Alto 2015 Colombo"
+  "Toyota Prius 2019",
+  "Honda Civic Kandy",
+  "Suzuki Alto 2015"
 ]
 
 export default function AdvancedListingsPage() {
@@ -271,21 +273,20 @@ export default function AdvancedListingsPage() {
       )
     }
 
-    // Urgent filter
+    // Urgent filter - check for paid urgent promotion
     if (urgentOnly) {
       filtered = filtered.filter(listing => 
-        listing.title.toLowerCase().includes('urgent') || 
-        listing.description?.toLowerCase().includes('urgent')
+        listing.is_urgent === true
       )
     }
 
     // Search term filter
     if (searchTerm) {
       filtered = filtered.filter(listing => 
-        listing.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         listing.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
         listing.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        listing.location.toLowerCase().includes(searchTerm.toLowerCase())
+        listing.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        listing.year.toString().includes(searchTerm.toLowerCase())
       )
     }
 

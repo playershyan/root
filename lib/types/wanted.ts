@@ -37,4 +37,4 @@ export interface WantedRequest {
     urgencyLevels: string[]
   }
   
-  export type SortOption = 'recent' | 'budget-high' | 'budget-low' | 'urgency' | 'location'
+  export type SortOption = 'recent' | 'budget-high' | 'budget-low' | 'urgency'

@@ -87,6 +87,7 @@ export default function WantedRequestsPage() {
   const [filteredRequests, setFilteredRequests] = useState<WantedRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [searchInput, setSearchInput] = useState('')
   const [sortBy, setSortBy] = useState('recent')
   const [highPriorityOnly, setHighPriorityOnly] = useState(false)
   const [filters, setFilters] = useState<FilterState>({
@@ -302,12 +303,11 @@ export default function WantedRequestsPage() {
       filtered = filtered.filter(req => {
         const searchLower = searchTerm.toLowerCase()
         return (
-          req.title.toLowerCase().includes(searchLower) ||
-          req.description?.toLowerCase().includes(searchLower) ||
-          req.user_name?.toLowerCase().includes(searchLower) ||
           req.make?.toLowerCase().includes(searchLower) ||
           req.model?.toLowerCase().includes(searchLower) ||
-          req.location.toLowerCase().includes(searchLower)
+          req.location.toLowerCase().includes(searchLower) ||
+          (req.min_year && req.min_year.toString().includes(searchLower)) ||
+          (req.max_year && req.max_year.toString().includes(searchLower))
         )
       })
     }
@@ -381,8 +381,6 @@ export default function WantedRequestsPage() {
           const aUrgency = a.urgency === 'high' ? 0 : 1
           const bUrgency = b.urgency === 'high' ? 0 : 1
           return aUrgency - bUrgency
-        case 'location':
-          return a.location.localeCompare(b.location)
         default: // recent
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       }
@@ -413,6 +411,7 @@ export default function WantedRequestsPage() {
     setTempYearFrom('')
     setTempYearTo('')
     setSearchTerm('')
+    setSearchInput('')
     setHighPriorityOnly(false)
   }
 
@@ -507,7 +506,6 @@ export default function WantedRequestsPage() {
           <option value="budget-high">Budget: High to Low</option>
           <option value="budget-low">Budget: Low to High</option>
           <option value="urgency">Most Urgent</option>
-          <option value="location">Location</option>
         </select>
       </div>
 
@@ -778,10 +776,15 @@ export default function WantedRequestsPage() {
     return 'bg-gray-100 text-gray-700'
   }
 
-  const debouncedSearch = useCallback(
-    debounce((value: string) => setSearchTerm(value), 300),
-    []
-  )
+  const handleSearch = useCallback(() => {
+    setSearchTerm(searchInput.trim())
+  }, [searchInput])
+
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch()
+    }
+  }, [handleSearch])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -822,11 +825,16 @@ export default function WantedRequestsPage() {
               <div className="relative flex-1">
                 <input
                   type="text"
-                  placeholder="Search by make, model, or location"
+                  placeholder="Search by make, model, year, or location"
                   className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm"
-                  onChange={(e) => debouncedSearch(e.target.value)}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
                 />
-                <button className="absolute right-1 top-1 p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                <button 
+                  onClick={handleSearch}
+                  className="absolute right-1 top-1 p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                >
                   <i className="fas fa-search text-sm"></i>
                 </button>
               </div>
