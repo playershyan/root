@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Heart, Share2, Phone, MessageCircle, MessageSquare, MapPin, Calendar, Eye, Check, ChevronLeft, ChevronRight, Star, Calculator } from 'lucide-react'
+import { Share2, Phone, MessageCircle, MessageSquare, MapPin, Calendar, Eye, Check, ChevronLeft, ChevronRight, Star, Calculator } from 'lucide-react'
 import ContactProfile from '../../components/ContactProfile'
 import PriceDisplay from '../../components/PriceDisplay'
+import FavoriteButton from '@/app/components/FavoriteButton'
+import OfferModal from '@/app/components/messaging/OfferModal'
+import { useAuth } from '@/app/contexts/AuthContext'
 
 type Listing = {
   id: string
@@ -19,6 +22,11 @@ type Listing = {
   mileage: number | null
   fuel_type: string | null
   transmission: string | null
+  engine_capacity?: number | null
+  body_type?: string | null
+  color?: string | null
+  condition?: string | null
+  features?: string[] | null
   location: string
   phone: string
   whatsapp: string | null
@@ -62,11 +70,11 @@ type Features = {
   performance: string[]
 }
 
-
 interface ListingDetailClientProps {
   listing: Listing
   images: string[]
   dealer: Dealer
+  sellerData: any // Enhanced seller data from profile
   features: Features
   specifications: Record<string, string | number>
   similarListings: Listing[]
@@ -76,18 +84,20 @@ export default function ListingDetailClient({
   listing,
   images,
   dealer,
+  sellerData,
   features,
   specifications,
   similarListings
 }: ListingDetailClientProps) {
+  const { user } = useAuth()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [isFavorite, setIsFavorite] = useState(false)
+  const [showOfferModal, setShowOfferModal] = useState(false)
   
   // Finance Calculator States
   const [loanAmount, setLoanAmount] = useState(listing.price)
-  const [downPayment, setDownPayment] = useState(Math.round(listing.price * 0.2))
+  const [downPayment, setDownPayment] = useState(0)
   const [loanTerm, setLoanTerm] = useState(5)
-  const [interestRate, setInterestRate] = useState(12)
+  const [interestRate, setInterestRate] = useState(0)
 
   // Calculate monthly payment
   const calculateMonthlyPayment = () => {
@@ -105,25 +115,54 @@ export default function ListingDetailClient({
 
   const monthlyPayment = calculateMonthlyPayment()
 
-  // Load favorite status from localStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]')
-      setIsFavorite(favorites.includes(listing.id))
+  // Offer handling
+  const handleSendOffer = async (amount: number, message?: string) => {
+    if (!user || !listing.user_id) {
+      throw new Error('Authentication required')
     }
-  }, [listing.id])
 
-  const toggleFavorite = () => {
-    if (typeof window !== 'undefined') {
-      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]')
-      if (isFavorite) {
-        const newFavorites = favorites.filter((id: string) => id !== listing.id)
-        localStorage.setItem('favorites', JSON.stringify(newFavorites))
-      } else {
-        localStorage.setItem('favorites', JSON.stringify([...favorites, listing.id]))
+    try {
+      const response = await fetch('/api/messaging/send-offer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          listingId: listing.id,
+          sellerId: listing.user_id,
+          amount,
+          message,
+          listingTitle: listing.title
+        })
+      })
+
+      const result = await response.json()
+      
+      if (!response.ok) {
+        console.error('API Error Response:', result)
+        throw new Error(result.message || result.error || 'Failed to send offer')
       }
-      setIsFavorite(!isFavorite)
+
+      console.log('Offer sent successfully:', result)
+    } catch (error) {
+      console.error('Error sending offer:', error)
+      throw error
     }
+  }
+
+  const handleMakeOffer = () => {
+    if (!user) {
+      // Redirect to login or show auth modal
+      alert('Please log in to make an offer')
+      return
+    }
+
+    if (user.id === listing.user_id) {
+      alert('You cannot make an offer on your own listing')
+      return
+    }
+
+    setShowOfferModal(true)
   }
 
   const handleShare = async () => {
@@ -259,13 +298,11 @@ export default function ListingDetailClient({
                 </p>
               </div>
               <div className="flex gap-2">
-                <button
-                  onClick={toggleFavorite}
-                  className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-                  aria-label="Add to favorites"
-                >
-                  <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
-                </button>
+                <FavoriteButton 
+                  listingId={listing.id}
+                  size="medium"
+                  className="rounded-full hover:bg-gray-100 transition-colors"
+                />
                 <button
                   onClick={handleShare}
                   className="p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -321,7 +358,10 @@ export default function ListingDetailClient({
             </div>
 
             {/* Make Offer Button */}
-            <button className="btn-secondary btn-full">
+            <button 
+              onClick={handleMakeOffer}
+              className="btn-secondary btn-full"
+            >
               Make Offer
             </button>
 
@@ -339,27 +379,6 @@ export default function ListingDetailClient({
             <p className="text-gray-700 whitespace-pre-line mb-6">
               {listing.description || listing.ai_generated_description || 'No description available.'}
             </p>
-            
-            {/* Key Features List */}
-            <h3 className="text-lg font-semibold mb-3">Key Features</h3>
-            <ul className="space-y-2">
-              <li className="flex items-start gap-2">
-                <Check className="w-5 h-5 text-green-500 mt-0.5" />
-                <span>Well-maintained vehicle with complete service history</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="w-5 h-5 text-green-500 mt-0.5" />
-                <span>Single owner, accident-free</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="w-5 h-5 text-green-500 mt-0.5" />
-                <span>All documents up to date</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="w-5 h-5 text-green-500 mt-0.5" />
-                <span>Genuine mileage with service records</span>
-              </li>
-            </ul>
           </div>
 
           {/* Specifications Section */}
@@ -375,27 +394,31 @@ export default function ListingDetailClient({
             </div>
           </div>
 
-          {/* Features Section */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-xl font-semibold mb-4">Features & Equipment</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {Object.entries(features).map(([category, items]) => (
-                <div key={category}>
-                  <h3 className="text-lg font-semibold mb-3 text-blue-600 capitalize">
-                    {category}
-                  </h3>
-                  <ul className="space-y-2">
-                    {items.map((item) => (
-                      <li key={item} className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-green-500" />
-                        <span className="text-gray-700">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+          {/* Features Section - Only show if there are features */}
+          {Object.values(features).some(items => items.length > 0) && (
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h2 className="text-xl font-semibold mb-4">Features & Equipment</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {Object.entries(features)
+                  .filter(([_, items]) => items.length > 0)
+                  .map(([category, items]) => (
+                    <div key={category}>
+                      <h3 className="text-lg font-semibold mb-3 text-blue-600 capitalize">
+                        {category === 'other' ? 'Additional Features' : category}
+                      </h3>
+                      <ul className="space-y-2">
+                        {items.map((item) => (
+                          <li key={item} className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            <span className="text-gray-700">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Sidebar */}
@@ -403,6 +426,7 @@ export default function ListingDetailClient({
           {/* Contact Profile - Dynamic based on seller type */}
           <ContactProfile 
             listing={listing} 
+            sellerData={sellerData}
             dealer={dealer}
           />
 
@@ -450,9 +474,10 @@ export default function ListingDetailClient({
                 <label className="text-sm text-gray-600 mb-1 block">Down Payment</label>
                 <input
                   type="number"
-                  value={downPayment}
+                  value={downPayment || ''}
                   onChange={(e) => setDownPayment(Number(e.target.value))}
                   className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="Enter amount"
                 />
               </div>
               
@@ -473,10 +498,11 @@ export default function ListingDetailClient({
                 <label className="text-sm text-gray-600 mb-1 block">Interest Rate (%)</label>
                 <input
                   type="number"
-                  value={interestRate}
+                  value={interestRate || ''}
                   step="0.1"
                   onChange={(e) => setInterestRate(Number(e.target.value))}
                   className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="Enter rate"
                 />
               </div>
             </div>
@@ -548,6 +574,15 @@ export default function ListingDetailClient({
           </div>
         </div>
       )}
+
+      {/* Offer Modal */}
+      <OfferModal
+        isOpen={showOfferModal}
+        onClose={() => setShowOfferModal(false)}
+        onSendOffer={handleSendOffer}
+        listingTitle={listing.title}
+        listingPrice={listing.price}
+      />
     </>
   )
 }

@@ -88,9 +88,7 @@ export const validateRequired = (value: any, fieldName: string) => {
 
 export const validateEmail = (email: string) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailRegex.test(email)) {
-    throw new Error('Please enter a valid email address')
-  }
+  return emailRegex.test(email)
 }
 
 export const validatePhone = (phone: string) => {

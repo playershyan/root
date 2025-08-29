@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Heart, MapPin, Calendar, Eye } from 'lucide-react'
+import { MapPin, Calendar, Eye } from 'lucide-react'
 import PromotionBadges from './PromotionBadges'
 import OptimizedImage from '@/components/ui/OptimizedImage'
+import FavoriteButton from '@/app/components/FavoriteButton'
 
 interface ListingCardProps {
   listing: {
@@ -30,7 +31,6 @@ interface ListingCardProps {
 }
 
 export default function ListingCard({ listing }: ListingCardProps) {
-  const [isFavorite, setIsFavorite] = useState(false)
   const [imageError, setImageError] = useState(false)
 
   const formatPrice = (price: number) => {
@@ -61,114 +61,113 @@ export default function ListingCard({ listing }: ListingCardProps) {
   const imageCount = listing.image_urls?.length || 0
 
   return (
-    <Link href={`/listings/${listing.id}`}>
-      <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group">
+    <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group relative">
+      {/* Clickable Link Area */}
+      <Link href={`/listings/${listing.id}`} className="block">
         {/* Image Section */}
         <div className="relative h-48 bg-gray-100">
-          {!imageError && primaryImage ? (
-            <OptimizedImage
-              src={primaryImage}
-              alt={listing.title}
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
-              onError={() => setImageError(true)}
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              quality={80}
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-              <i className="fas fa-car text-gray-400 text-3xl"></i>
-            </div>
-          )}
-
-          {/* Promotion Badges */}
-          <div className="absolute top-2 left-2">
-            <PromotionBadges listing={listing} size="small" />
+        {!imageError && primaryImage ? (
+          <OptimizedImage
+            src={primaryImage}
+            alt={listing.title}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            onError={() => setImageError(true)}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            quality={80}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+            <i className="fas fa-car text-gray-400 text-3xl"></i>
           </div>
+        )}
 
-          {/* Image count */}
-          {imageCount > 1 && (
-            <div className="absolute top-2 right-2 bg-black/60 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
-              <i className="fas fa-camera"></i>
-              <span>{imageCount}</span>
-            </div>
-          )}
-
-          {/* Urgent overlay */}
-          {listing.is_urgent && (
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-red-600/90 to-transparent h-16 flex items-end">
-              <span className="text-white font-bold text-xs px-2 pb-2">
-                URGENT SALE
-              </span>
-            </div>
-          )}
-
-          {/* Favorite button */}
-          <button
-            onClick={(e) => {
-              e.preventDefault()
-              setIsFavorite(!isFavorite)
-            }}
-            className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm p-2 rounded-full hover:bg-white transition-colors"
-          >
-            <Heart className={`w-4 h-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
-          </button>
+        {/* Promotion Badges */}
+        <div className="absolute top-2 left-2">
+          <PromotionBadges listing={listing} size="small" />
         </div>
 
-        {/* Content Section */}
-        <div className="p-4">
-          {/* Title */}
-          <h3 className="font-semibold text-gray-900 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
-            {listing.title}
-          </h3>
+        {/* Image count */}
+        {imageCount > 1 && (
+          <div className="absolute top-2 right-2 bg-black/60 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
+            <i className="fas fa-camera"></i>
+            <span>{imageCount}</span>
+          </div>
+        )}
 
-          {/* Vehicle Details */}
-          <div className="flex flex-wrap gap-3 text-xs text-gray-600 mb-3">
-            <span className="flex items-center gap-1">
-              <i className="fas fa-calendar text-gray-400"></i>
-              {listing.year}
+        {/* Urgent overlay */}
+        {listing.is_urgent && (
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-red-600/90 to-transparent h-16 flex items-end">
+            <span className="text-white font-bold text-xs px-2 pb-2">
+              URGENT SALE
             </span>
-            {listing.mileage && (
-              <span className="flex items-center gap-1">
-                <i className="fas fa-tachometer-alt text-gray-400"></i>
-                {formatMileage(listing.mileage)}
-              </span>
-            )}
-            {listing.fuel_type && (
-              <span className="flex items-center gap-1">
-                <i className="fas fa-gas-pump text-gray-400"></i>
-                {listing.fuel_type}
-              </span>
-            )}
           </div>
+        )}
+      </div>
 
-          {/* Location */}
-          <div className="flex items-center gap-1 text-gray-600 mb-3">
-            <MapPin className="w-3 h-3" />
-            <span className="text-xs truncate">{listing.location}</span>
+      {/* Content Section */}
+      <div className="p-4">
+        {/* Title */}
+        <h3 className="font-semibold text-gray-900 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
+          {listing.title}
+        </h3>
+
+        {/* Vehicle Details */}
+        <div className="flex flex-wrap gap-3 text-xs text-gray-600 mb-3">
+          <span className="flex items-center gap-1">
+            <i className="fas fa-calendar text-gray-400"></i>
+            {listing.year}
+          </span>
+          {listing.mileage && (
+            <span className="flex items-center gap-1">
+              <i className="fas fa-tachometer-alt text-gray-400"></i>
+              {formatMileage(listing.mileage)}
+            </span>
+          )}
+          {listing.fuel_type && (
+            <span className="flex items-center gap-1">
+              <i className="fas fa-gas-pump text-gray-400"></i>
+              {listing.fuel_type}
+            </span>
+          )}
+        </div>
+
+        {/* Location */}
+        <div className="flex items-center gap-1 text-gray-600 mb-3">
+          <MapPin className="w-3 h-3" />
+          <span className="text-xs truncate">{listing.location}</span>
+        </div>
+
+        {/* Price and Stats */}
+        <div className="flex items-end justify-between">
+          <div>
+            <div className={`font-bold text-xl ${listing.is_urgent ? 'text-red-600' : 'text-blue-600'}`}>
+              {formatPrice(listing.price)}
+            </div>
           </div>
-
-          {/* Price and Stats */}
-          <div className="flex items-end justify-between">
-            <div>
-              <div className={`font-bold text-xl ${listing.is_urgent ? 'text-red-600' : 'text-blue-600'}`}>
-                {formatPrice(listing.price)}
-              </div>
-            </div>
-            
-            <div className="flex gap-3 text-xs text-gray-500">
-              <span className="flex items-center gap-1">
-                <Eye className="w-3 h-3" />
-                {listing.views || 0}
-              </span>
-              <span className="flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
-                {getTimeAgo(listing.created_at)}
-              </span>
-            </div>
+          
+          <div className="flex gap-3 text-xs text-gray-500">
+            <span className="flex items-center gap-1">
+              <Eye className="w-3 h-3" />
+              {listing.views || 0}
+            </span>
+            <span className="flex items-center gap-1">
+              <Calendar className="w-3 h-3" />
+              {getTimeAgo(listing.created_at)}
+            </span>
           </div>
         </div>
       </div>
-    </Link>
+      </Link>
+
+      {/* Favorite Button - Outside Link to prevent event conflicts */}
+      <div className="absolute top-2 right-10 z-10">
+        <FavoriteButton 
+          listingId={listing.id}
+          size="small"
+          className="bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
+        />
+      </div>
+    </div>
   )
 }

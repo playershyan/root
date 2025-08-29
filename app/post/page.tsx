@@ -97,6 +97,7 @@ export default function EnhancedPostVehiclePage() {
   const [availableCities, setAvailableCities] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const { selectedCountry, setSelectedCountry } = useCountrySelector('LK')
+  const { selectedCountry: selectedWhatsAppCountry, setSelectedCountry: setSelectedWhatsAppCountry } = useCountrySelector('LK')
   const [aiLoading, setAiLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [dragActive, setDragActive] = useState(false)
@@ -162,8 +163,9 @@ export default function EnhancedPostVehiclePage() {
   useEffect(() => {
     if (formData.whatsappSameAsPhone) {
       setFormData(prev => ({ ...prev, whatsapp: prev.phone }))
+      setSelectedWhatsAppCountry(selectedCountry) // Sync country code too
     }
-  }, [formData.phone, formData.whatsappSameAsPhone])
+  }, [formData.phone, formData.whatsappSameAsPhone, selectedCountry])
   
   // Clear make and model when vehicle type changes
   useEffect(() => {
@@ -453,10 +455,10 @@ export default function EnhancedPostVehiclePage() {
         model: formData.model === 'Other' ? (formData.customModel || 'Other') : (formData.model || ''),
         year: parseInt(formData.year || ''),
         mileage: parseInt(formData.mileage || '') || null,
-        fuel_type: formData.fuelType,
-        transmission: formData.transmission,
-        body_type: formData.vehicleType,
-        vehicle_type: formData.vehicleType,
+        fuel_type: formData.fuelType || null,
+        transmission: formData.transmission || null,
+        body_type: formData.vehicleType || null,
+        vehicle_type: formData.vehicleType || null,
         color: formData.color || null,
         engine_capacity: formData.engineCapacity ? parseInt(formData.engineCapacity) : null,
         location: `${formData.city}, ${formData.district}`,
@@ -466,8 +468,8 @@ export default function EnhancedPostVehiclePage() {
         primary_image_url: imageUrls[0] || null,
         status: 'pending', // New listings start as pending
         // Contact information
-        phone: formatPhoneForStorage(formData.phone, selectedCountry.dial_code),
-        whatsapp: formatPhoneForStorage(formData.whatsapp || formData.phone, selectedCountry.dial_code),
+        phone: formatPhoneDisplay(formData.phone, selectedCountry.dialCode),
+        whatsapp: formatPhoneDisplay(formData.whatsapp || formData.phone, formData.whatsappSameAsPhone ? selectedCountry.dialCode : selectedWhatsAppCountry.dialCode),
         email: formData.email,
         // Finance information
         pricing_type: formData.pricingType,
@@ -492,13 +494,34 @@ export default function EnhancedPostVehiclePage() {
 
       console.log('Submitting listing data:', listingData)
 
+      // Validate required fields before submitting
+      const requiredFields = {
+        user_id: listingData.user_id,
+        title: listingData.title,
+        price: listingData.price
+      }
+
+      console.log('Required fields check:', requiredFields)
+      
+      // Check for any undefined or null values that could cause constraint violations
+      Object.entries(listingData).forEach(([key, value]) => {
+        if (value === undefined) {
+          console.warn(`Field ${key} is undefined - this may cause database issues`)
+        }
+      })
+
       const { data, error } = await supabase
         .from('listings')
         .insert([listingData])
         .select()
       
       if (error) {
-        console.error('Supabase error:', error)
+        console.error('Supabase error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        })
         throw error
       }
       
@@ -1029,7 +1052,7 @@ export default function EnhancedPostVehiclePage() {
                         name="phone"
                         value={formData.phone}
                         onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                        placeholder={selectedCountry.code === 'LK' ? 'e.g., 771234567' : 'Phone number'}
+                        placeholder="Enter phone number"
                         className={`flex-1 px-4 py-3 h-[50px] border border-l-0 rounded-r-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 focus:outline-none ${
                           errors.phone ? 'border-red-300' : 'border-gray-300'
                         }`}
@@ -1049,17 +1072,25 @@ export default function EnhancedPostVehiclePage() {
                       />
                       <span className="text-sm text-gray-700">Same as phone number</span>
                     </label>
-                    <input
-                      type="tel"
-                      name="whatsapp"
-                      value={formData.whatsapp}
-                      onChange={(e) => setFormData(prev => ({ ...prev, whatsapp: e.target.value }))}
-                      placeholder="e.g., 0771234567"
-                      disabled={formData.whatsappSameAsPhone}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
-                        formData.whatsappSameAsPhone ? 'bg-gray-50' : ''
-                      } ${errors.whatsapp ? 'border-red-300' : 'border-gray-300'}`}
-                    />
+                    <div className="flex">
+                      <CountrySelector
+                        selectedCountry={selectedWhatsAppCountry}
+                        onCountrySelect={setSelectedWhatsAppCountry}
+                        className="w-32"
+                        disabled={formData.whatsappSameAsPhone}
+                      />
+                      <input
+                        type="tel"
+                        name="whatsapp"
+                        value={formData.whatsapp}
+                        onChange={(e) => setFormData(prev => ({ ...prev, whatsapp: e.target.value }))}
+                        placeholder="Enter WhatsApp number"
+                        disabled={formData.whatsappSameAsPhone}
+                        className={`flex-1 px-4 py-3 h-[50px] border border-l-0 rounded-r-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 focus:outline-none ${
+                          formData.whatsappSameAsPhone ? 'bg-gray-50' : ''
+                        } ${errors.whatsapp ? 'border-red-300' : 'border-gray-300'}`}
+                      />
+                    </div>
                     {errors.whatsapp && <p className="text-red-600 text-sm mt-1">{errors.whatsapp}</p>}
                   </div>
                 </div>

@@ -56,7 +56,9 @@ interface Report {
 }
 
 export default function AdminDashboard() {
-  const { user } = useAuth()
+  console.log('Admin dashboard - Component initializing...')
+  
+  const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('overview')
   const [loading, setLoading] = useState(true)
@@ -74,22 +76,41 @@ export default function AdminDashboard() {
   const [reportsPage, setReportsPage] = useState(1)
 
   useEffect(() => {
+    console.log('Admin dashboard - useEffect triggered, user:', user?.email, 'authLoading:', authLoading)
+    
+    // Don't do anything while auth is still loading
+    if (authLoading) {
+      console.log('Admin dashboard - Auth still loading, waiting...')
+      return
+    }
+    
+    // After auth loading is complete, check if user exists
     if (!user) {
+      console.log('Admin dashboard - Auth loaded but no user found, redirecting to /login')
       router.push('/login')
       return
     }
     
+    console.log('Admin dashboard - User found, calling checkAdminAccess and loadDashboardData')
     checkAdminAccess()
     loadDashboardData()
-  }, [user])
+  }, [user, authLoading])
 
   const checkAdminAccess = async () => {
     try {
+      console.log('Admin access check - Making request to /api/admin/listings')
       const response = await fetch('/api/admin/listings?limit=1')
+      console.log('Admin access check - Response status:', response.status)
+      
       if (response.status === 403 || response.status === 401) {
+        console.log('Admin access check - Access denied, redirecting to /')
+        const responseText = await response.text()
+        console.log('Admin access check - Response body:', responseText)
         router.push('/')
         return
       }
+      
+      console.log('Admin access check - Success!')
     } catch (error) {
       console.error('Admin access check failed:', error)
       router.push('/')
@@ -98,19 +119,26 @@ export default function AdminDashboard() {
 
   const loadDashboardData = async () => {
     try {
+      console.log('Admin dashboard - Loading dashboard data...')
       setLoading(true)
       
       // Load stats, listings, and reports in parallel
+      console.log('Admin dashboard - Starting parallel data load')
       const [statsRes, listingsRes, reportsRes] = await Promise.all([
         loadStats(),
         loadListings('pending'),
         loadReports('pending')
       ])
+      
+      console.log('Admin dashboard - Data loaded successfully')
 
     } catch (error) {
       console.error('Error loading dashboard data:', error)
+      console.log('Admin dashboard - Error occurred, redirecting to /')
+      router.push('/')
     } finally {
       setLoading(false)
+      console.log('Admin dashboard - Loading complete, setLoading(false)')
     }
   }
 
@@ -146,18 +174,28 @@ export default function AdminDashboard() {
 
   const loadReports = async (status: string = 'pending', page: number = 1) => {
     try {
+      console.log('Admin dashboard - Loading reports...')
       const response = await fetch(`/api/admin/reports?status=${status}&page=${page}`)
+      console.log('Admin dashboard - Reports API response status:', response.status)
+      
       if (response.ok) {
         const data = await response.json()
+        console.log('Admin dashboard - Reports data loaded:', data)
         setReports(data.reports || [])
         
         // Update stats
         if (status === 'pending') {
           setStats(prev => ({ ...prev, pendingReports: data.totalCount || 0 }))
         }
+      } else {
+        console.log('Admin dashboard - Reports API failed with status:', response.status)
+        // Don't throw error for reports, just continue
+        setReports([])
       }
     } catch (error) {
       console.error('Error loading reports:', error)
+      // Don't throw error for reports, just continue
+      setReports([])
     }
   }
 
@@ -230,7 +268,7 @@ export default function AdminDashboard() {
     return reasons[reason] || reason
   }
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -357,15 +395,9 @@ export default function AdminDashboard() {
                               {formatCurrency(listing.price)}
                             </p>
                             <div className="text-sm text-gray-600 mt-2">
-                              <p>Posted by: {listing.user?.name || 'Unknown'}</p>
-                              <p>Email: {listing.user?.email}</p>
-                              <p>Phone: {listing.user?.phone}</p>
+                              <p>Posted by: {listing.email || 'Unknown'}</p>
                               <p>Date: {formatDate(listing.created_at)}</p>
-                              {listing.report_count > 0 && (
-                                <p className="text-red-600 font-medium">
-                                  ⚠️ {listing.report_count} report(s)
-                                </p>
-                              )}
+                              <p>User ID: {listing.user_id}</p>
                             </div>
                           </div>
                           <div className="flex gap-2 ml-4">

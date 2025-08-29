@@ -175,9 +175,13 @@ export default function PostWantedPage() {
         }
         if (!formData.min_budget) {
           newErrors.min_budget = 'Please enter minimum budget'
+        } else if (parseFloat(formData.min_budget) < 0) {
+          newErrors.min_budget = 'Budget cannot be negative'
         }
         if (!formData.max_budget) {
           newErrors.max_budget = 'Please enter maximum budget'
+        } else if (parseFloat(formData.max_budget) < 0) {
+          newErrors.max_budget = 'Budget cannot be negative'
         }
         if (formData.min_budget && formData.max_budget && 
             parseFloat(formData.min_budget) > parseFloat(formData.max_budget)) {
@@ -214,8 +218,6 @@ export default function PostWantedPage() {
       case 2:
         if (!formData.phone) {
           newErrors.phone = 'Phone number is required'
-        } else if (!/^0\d{9}$/.test(formData.phone)) {
-          newErrors.phone = 'Please enter a valid Sri Lankan phone number (e.g., 0771234567)'
         }
         break
     }
@@ -248,6 +250,35 @@ export default function PostWantedPage() {
     setStep(step - 1)
   }
 
+  // Format phone number based on country
+  const formatPhoneNumber = (phone: string, countryCode: string): string => {
+    // Remove any non-digit characters
+    const cleanPhone = phone.replace(/\D/g, '')
+    
+    if (countryCode === 'LK') {
+      // For Sri Lankan numbers
+      let formattedPhone = cleanPhone
+      
+      // If number starts with 0, remove it
+      if (formattedPhone.startsWith('0')) {
+        formattedPhone = formattedPhone.substring(1)
+      }
+      
+      // Format as +94 XX XXX XXXX
+      if (formattedPhone.length >= 9) {
+        const areaCode = formattedPhone.substring(0, 2)
+        const firstPart = formattedPhone.substring(2, 5)
+        const secondPart = formattedPhone.substring(5, 9)
+        return `+94 ${areaCode} ${firstPart} ${secondPart}`
+      }
+      
+      return `+94 ${formattedPhone}`
+    } else {
+      // For other countries, just combine country code with the number
+      return `+${selectedCountry.dialCode} ${cleanPhone}`
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -270,7 +301,8 @@ export default function PostWantedPage() {
 
     setLoading(true)
 
-
+    // Format phone number
+    const formattedPhone = formatPhoneNumber(formData.phone, selectedCountry.code)
 
     // Combine city and district for location
     const locationString = formData.location && selectedDistrict
@@ -291,7 +323,7 @@ export default function PostWantedPage() {
           min_year: formData.min_year ? parseInt(formData.min_year) : null,
           max_year: formData.max_year ? parseInt(formData.max_year) : null,
           location: locationString,
-          phone: formData.phone,
+          phone: formattedPhone,
           fuel_type: formData.fuel_type || null,
           transmission: formData.transmission || null,
           max_mileage: formData.max_mileage ? parseInt(formData.max_mileage) : null,
@@ -529,14 +561,19 @@ export default function PostWantedPage() {
                   <div>
                     <input
                       type="number"
+                      min="0"
                       placeholder="Minimum"
                       className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
                         errors.min_budget ? 'border-red-500' : 'border-gray-300'
                       }`}
                       value={formData.min_budget}
                       onChange={(e) => {
-                        setFormData({ ...formData, min_budget: e.target.value })
-                        if (errors.min_budget) setErrors({ ...errors, min_budget: '' })
+                        const value = e.target.value
+                        // Only allow positive numbers or empty string
+                        if (value === '' || parseFloat(value) >= 0) {
+                          setFormData({ ...formData, min_budget: value })
+                          if (errors.min_budget) setErrors({ ...errors, min_budget: '' })
+                        }
                       }}
                       required
                     />
@@ -545,14 +582,19 @@ export default function PostWantedPage() {
                   <div>
                     <input
                       type="number"
+                      min="0"
                       placeholder="Maximum"
                       className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
                         errors.max_budget ? 'border-red-500' : 'border-gray-300'
                       }`}
                       value={formData.max_budget}
                       onChange={(e) => {
-                        setFormData({ ...formData, max_budget: e.target.value })
-                        if (errors.max_budget) setErrors({ ...errors, max_budget: '' })
+                        const value = e.target.value
+                        // Only allow positive numbers or empty string
+                        if (value === '' || parseFloat(value) >= 0) {
+                          setFormData({ ...formData, max_budget: value })
+                          if (errors.max_budget) setErrors({ ...errors, max_budget: '' })
+                        }
                       }}
                       required
                     />
@@ -671,12 +713,18 @@ export default function PostWantedPage() {
                 <label className="block text-sm font-medium mb-2">Maximum Mileage (km)</label>
                 <input
                   type="number"
+                  min="0"
                   placeholder="e.g., 80000"
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   value={formData.max_mileage}
-                  onChange={(e) => setFormData({ ...formData, max_mileage: e.target.value })}
+                  onChange={(e) => {
+                    const value = e.target.value
+                    // Only allow positive numbers or empty string
+                    if (value === '' || parseFloat(value) >= 0) {
+                      setFormData({ ...formData, max_mileage: value })
+                    }
+                  }}
                 />
-                <p className="text-sm text-gray-600 mt-1">Leave empty if mileage doesn't matter</p>
               </div>
 
               {/* Additional Requirements */}
@@ -721,7 +769,7 @@ export default function PostWantedPage() {
                 {/* District Select */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Preferred District <span className="text-gray-500">(optional)</span>
+                    Preferred District
                   </label>
                   <select
                     value={selectedDistrict}
@@ -743,7 +791,7 @@ export default function PostWantedPage() {
                 {/* City Select - Only show if district is selected */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Preferred City/Area <span className="text-gray-500">(optional)</span>
+                    Preferred City/Area
                   </label>
                   {selectedDistrict ? (
                     <select
@@ -784,7 +832,7 @@ export default function PostWantedPage() {
                   <input
                     type="tel"
                     required
-                    placeholder={selectedCountry.code === 'LK' ? 'e.g., 771234567' : 'Phone number'}
+                    placeholder="Enter phone number"
                     className={`flex-1 px-4 py-3 h-[50px] border border-l-0 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${
                       errors.phone ? 'border-red-500' : 'border-gray-300'
                     }`}
@@ -796,7 +844,6 @@ export default function PostWantedPage() {
                   />
                 </div>
                 {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
-                <p className="text-sm text-gray-600 mt-1">Sellers will contact you on this number</p>
               </div>
 
               {/* Preview Section */}

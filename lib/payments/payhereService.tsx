@@ -1,3 +1,4 @@
+import React from 'react'
 import crypto from 'crypto'
 import { PromotionService, PromotionType } from '@/lib/services/promotionService'
 

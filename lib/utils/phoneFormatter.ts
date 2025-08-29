@@ -1,7 +1,9 @@
 /**
- * Formats phone numbers to the standard format: [country code] & [phone number excluding the zero]
- * Example: "0771234567" becomes "94 & 771234567" (for Sri Lanka)
- * Example: "+94771234567" becomes "94 & 771234567"
+ * Formats phone numbers for display
+ * For Sri Lankan numbers: "+94 XX XXX XXXX" format
+ * For other countries: "+[code] [number]"
+ * Example: "0771234567" becomes "+94 77 123 4567" (for Sri Lanka)
+ * Example: "+94771234567" becomes "+94 77 123 4567"
  */
 
 export function formatPhoneDisplay(phone: string, countryCode: string = '94'): string {
@@ -10,16 +12,31 @@ export function formatPhoneDisplay(phone: string, countryCode: string = '94'): s
   // Remove all non-numeric characters
   const cleanPhone = phone.replace(/\D/g, '')
   
-  // If phone already starts with country code, extract it
+  // Extract the phone number without country code
+  let phoneWithoutCode: string
+  
   if (cleanPhone.startsWith(countryCode)) {
-    const numberWithoutCode = cleanPhone.substring(countryCode.length)
-    return `${countryCode} & ${numberWithoutCode}`
+    phoneWithoutCode = cleanPhone.substring(countryCode.length)
+  } else if (cleanPhone.startsWith('0')) {
+    phoneWithoutCode = cleanPhone.substring(1)
+  } else {
+    phoneWithoutCode = cleanPhone
   }
   
-  // If phone starts with 0, remove it
-  const phoneWithoutZero = cleanPhone.startsWith('0') ? cleanPhone.substring(1) : cleanPhone
-  
-  return `${countryCode} & ${phoneWithoutZero}`
+  // Format based on country
+  if (countryCode === '94') {
+    // Sri Lankan formatting: +94 XX XXX XXXX
+    if (phoneWithoutCode.length >= 9) {
+      const areaCode = phoneWithoutCode.substring(0, 2)
+      const firstPart = phoneWithoutCode.substring(2, 5)
+      const secondPart = phoneWithoutCode.substring(5, 9)
+      return `+94 ${areaCode} ${firstPart} ${secondPart}`
+    }
+    return `+94 ${phoneWithoutCode}`
+  } else {
+    // Other countries: just combine with space
+    return `+${countryCode} ${phoneWithoutCode}`
+  }
 }
 
 /**

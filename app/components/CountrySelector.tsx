@@ -154,15 +154,24 @@ export const useCountrySelector = (fallbackCountryCode?: string) => {
       return countries.find(c => c.code === 'LK') || countries[0]
     }
     
-    // On client side, try to get saved country from localStorage
+    // If a fallback country code is provided, always use it as default
+    if (fallbackCountryCode) {
+      const country = countries.find(c => c.code === fallbackCountryCode)
+      if (country) return country
+    }
+    
+    // Otherwise, try to get saved country from localStorage
     return getSavedCountry()
   })
 
-  // Hydrate with saved country after component mounts (only once)
+  // Don't override with localStorage if a fallback was provided
   useEffect(() => {
-    const savedCountry = getSavedCountry()
-    if (savedCountry.code !== selectedCountry.code) {
-      setSelectedCountry(savedCountry)
+    // Only hydrate from localStorage if no fallback was provided
+    if (!fallbackCountryCode) {
+      const savedCountry = getSavedCountry()
+      if (savedCountry.code !== selectedCountry.code) {
+        setSelectedCountry(savedCountry)
+      }
     }
   }, [])
 

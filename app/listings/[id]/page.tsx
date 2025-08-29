@@ -41,6 +41,18 @@ export default async function ListingDetailPage({
     notFound()
   }
 
+  // Fetch seller's profile information
+  const { data: sellerProfile } = await supabase
+    .from('profiles')
+    .select(`
+      *,
+      business_profiles (*)
+    `)
+    .eq('id', listing.user_id)
+    .single()
+
+  console.log('Seller profile data:', sellerProfile)
+
   // Log finance fields for debugging
   console.log('Listing finance data:', {
     id: listing.id,
@@ -87,78 +99,109 @@ export default async function ListingDetailPage({
     images_length: images?.length || 0
   })
 
-  // Mock dealer data (in production, this would come from a dealers table)
-  // The dealer object is only used if listing.seller_type is 'dealer' or undefined (backward compatibility)
-  const dealer = {
-    name: "Premium Auto Dealers",
-    rating: 4.5,
-    reviewCount: 127,
-    location: listing.location,
-    phone: listing.phone,
-    whatsapp: listing.whatsapp || listing.phone,
-    avatar: null
+  // Prepare seller data based on profile type
+  let sellerData = null
+  if (sellerProfile) {
+    if (sellerProfile.account_type === 'business' && sellerProfile.business_profiles?.length > 0) {
+      const businessProfile = sellerProfile.business_profiles[0]
+      sellerData = {
+        type: 'business',
+        name: businessProfile.business_name,
+        description: businessProfile.description,
+        businessType: businessProfile.business_type,
+        website: businessProfile.website,
+        address: businessProfile.address,
+        businessPhone: businessProfile.phone,
+        operatingHours: businessProfile.operating_hours,
+        isVerified: businessProfile.is_verified,
+        logoUrl: businessProfile.logo_url,
+        // Use listing contact info as primary contact
+        location: listing.location,
+        phone: listing.phone,
+        whatsapp: listing.whatsapp || listing.phone,
+        email: listing.email,
+        avatar: sellerProfile.avatar_url,
+        rating: 4.5, // TODO: Implement actual rating system
+        reviewCount: 127 // TODO: Implement actual review system
+      }
+    } else {
+      sellerData = {
+        type: 'individual',
+        name: sellerProfile.name || 'Private Seller',
+        location: listing.location,
+        phone: listing.phone,
+        whatsapp: listing.whatsapp || listing.phone,
+        email: listing.email,
+        avatar: sellerProfile.avatar_url,
+        bio: sellerProfile.bio
+      }
+    }
   }
 
-  // For demonstration: if listing doesn't have seller_type, assume it's a dealer (backward compatibility)
-  // In production, you would set listing.seller_type and listing.seller_name based on your database
-  // Example logic:
-  // if (!listing.seller_type) {
-  //   listing.seller_type = 'dealer' // or 'private' based on your business logic
-  // }
-  // if (!listing.seller_name) {
-  //   listing.seller_name = listing.seller_type === 'dealer' ? dealer.name : 'John Doe'
-  // }
+  // Legacy dealer object for backward compatibility with ContactProfile component
+  const dealer = sellerData?.type === 'business' ? {
+    name: sellerData.name,
+    rating: sellerData.rating,
+    reviewCount: sellerData.reviewCount,
+    location: sellerData.location,
+    phone: sellerData.phone,
+    whatsapp: sellerData.whatsapp,
+    avatar: sellerData.avatar
+  } : null
 
-  // Prepare features list (mock data - in production, this would be in the database)
+  // Update listing with seller information from profile
+  if (sellerData) {
+    listing.seller_type = sellerData.type === 'business' ? 'dealer' : 'private'
+    listing.seller_name = sellerData.name
+  }
+
+  // Import feature categories for proper grouping
+  const SAFETY_FEATURES = [
+    'Multiple Airbags', 'ABS Brakes', 'Stability Control', 
+    'Traction Control', 'Lane Departure Warning', 'Blind Spot Detection',
+    'Rear Cross Traffic Alert', 'Emergency Braking'
+  ]
+  
+  const TECH_FEATURES = [
+    'Touch Display', 'Bluetooth', 'USB Ports', 'Backup Camera',
+    'Parking Sensors', 'Wireless Charging', 'Premium Audio',
+    'Apple CarPlay', 'Android Auto', 'Navigation System'
+  ]
+  
+  const COMFORT_FEATURES = [
+    'Climate Control', 'Power Windows', 'Power Mirrors', 
+    'Keyless Entry', 'Push Start', 'Cruise Control',
+    'Leather Seats', 'Sunroof', 'Power Seats'
+  ]
+
+  // Prepare features list from database
+  const listingFeatures = listing.features || []
   const features = {
-    safety: [
-      'Dual Airbags',
-      'ABS',
-      'Electronic Stability Control',
-      'Hill Start Assist',
-      'Reverse Camera',
-      'Parking Sensors'
-    ],
-    technology: [
-      '7" Touch Display',
-      'Bluetooth Connectivity',
-      'USB Ports',
-      'Apple CarPlay',
-      'Android Auto',
-      'Wireless Charging'
-    ],
-    comfort: [
-      'Automatic Climate Control',
-      'Power Windows',
-      'Power Mirrors',
-      'Keyless Entry',
-      'Push Start',
-      'Cruise Control'
-    ],
-    performance: [
-      'Hybrid Engine',
-      'CVT Transmission',
-      'Eco Mode',
-      'Sport Mode',
-      'Regenerative Braking'
-    ]
+    safety: listingFeatures.filter(f => SAFETY_FEATURES.includes(f)),
+    technology: listingFeatures.filter(f => TECH_FEATURES.includes(f)),
+    comfort: listingFeatures.filter(f => COMFORT_FEATURES.includes(f)),
+    // Any features not in the above categories go to "other"
+    other: listingFeatures.filter(f => 
+      !SAFETY_FEATURES.includes(f) && 
+      !TECH_FEATURES.includes(f) && 
+      !COMFORT_FEATURES.includes(f)
+    )
   }
 
-  // Prepare specifications
-  const specifications = {
+  // Prepare specifications - only show fields that have values
+  const specifications: Record<string, string | number> = {
     'Make': listing.make,
     'Model': listing.model,
     'Year': listing.year,
     'Mileage': listing.mileage ? `${listing.mileage.toLocaleString()} km` : 'N/A',
     'Fuel Type': listing.fuel_type || 'N/A',
     'Transmission': listing.transmission || 'N/A',
-    'Engine Capacity': '1800cc', // Mock data
-    'Body Type': 'Sedan', // Mock data
-    'Color': 'Pearl White', // Mock data
-    'Seating Capacity': '5 Seats', // Mock data
-    'Drive Type': 'Front Wheel Drive', // Mock data
-    'Number of Owners': '1st Owner', // Mock data
   }
+  
+  // Add optional fields if they exist
+  if (listing.engine_capacity) specifications['Engine Capacity'] = `${listing.engine_capacity}cc`
+  if (listing.color) specifications['Color'] = listing.color
+  if (listing.condition) specifications['Condition'] = listing.condition
 
 
   return (
@@ -188,6 +231,7 @@ export default async function ListingDetailPage({
           listing={listing}
           images={images}
           dealer={dealer}
+          sellerData={sellerData}
           features={features}
           specifications={specifications}
           similarListings={similarListings || []}

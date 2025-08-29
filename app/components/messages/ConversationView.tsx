@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { ArrowLeft, User, Car, Send } from 'lucide-react'
 import { ConversationData, MessageData, formatMessageDate, formatPrice, getOtherUser, shouldShowDateSeparator, getDateSeparatorText } from '@/lib/utils/messageUtils'
+import OfferCard from '@/app/components/messaging/OfferCard'
 
 interface ConversationViewProps {
   conversation: ConversationData
@@ -166,15 +167,31 @@ export default function ConversationView({
                     
                     {/* Message Content */}
                     <div className={`flex flex-col ${isCurrentUser ? 'items-end' : 'items-start'}`}>
-                      <div 
-                        className={`rounded-2xl px-4 py-2 max-w-full break-words ${
-                          isCurrentUser 
-                            ? 'bg-blue-600 text-white rounded-br-md' 
-                            : 'bg-white text-gray-900 border rounded-bl-md shadow-sm'
-                        }`}
-                      >
-                        <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
-                      </div>
+                      {message.message_type === 'offer' && message.offer_data ? (
+                        <OfferCard
+                          offerId={message.offer_data.offerId}
+                          amount={message.offer_data.amount}
+                          message={message.offer_data.message}
+                          senderName={message.sender.profiles?.name || 'User'}
+                          timestamp={message.created_at}
+                          isOwner={conversation.seller_id === currentUserId}
+                          onReaction={async (action) => {
+                            // TODO: Implement offer response
+                            console.log('Offer response:', action)
+                          }}
+                          listingTitle={message.offer_data.listingTitle}
+                        />
+                      ) : (
+                        <div 
+                          className={`rounded-2xl px-4 py-2 max-w-full break-words ${
+                            isCurrentUser 
+                              ? 'bg-blue-600 text-white rounded-br-md' 
+                              : 'bg-white text-gray-900 border rounded-bl-md shadow-sm'
+                          }`}
+                        >
+                          <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
+                        </div>
+                      )}
                       
                       {/* Message timestamp and read status */}
                       <div className={`flex items-center gap-1 mt-1 text-xs text-gray-500 ${

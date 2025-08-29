@@ -5,6 +5,14 @@ export interface MessageData {
   content: string
   is_read: boolean
   created_at: string
+  message_type?: 'text' | 'offer' | 'image' | 'file'
+  offer_data?: {
+    type: string
+    offerId: string
+    amount: number
+    message?: string
+    listingTitle?: string
+  }
   sender: {
     id: string
     email: string

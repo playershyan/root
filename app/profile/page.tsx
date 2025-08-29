@@ -28,15 +28,20 @@ import WantedRequestStatusMessage from '@/app/components/wantedRequests/WantedRe
 import MessagesTab from '@/app/components/messages/MessagesTab'
 import { ConversationData, MessageData } from '@/lib/utils/messageUtils'
 import FavoritesTab from '@/app/components/favorites/FavoritesTab'
+import BusinessProfileManagement from '@/app/components/profile/BusinessProfileManagement'
+import CreateBusinessProfile from '@/app/components/profile/CreateBusinessProfile'
+import BusinessPageTab from '@/app/components/profile/BusinessPageTab'
+import { BusinessProfile, CreateBusinessProfileData, UpdateBusinessProfileData } from '@/lib/types/businessProfile'
 import BinTab from '@/app/components/bin/BinTab'
 import SecurityTab from '@/app/components/security/SecurityTab'
 import NotificationsTab from '@/app/components/notifications/NotificationsTab'
+import CountrySelector from '@/app/components/CountrySelector'
+import { countries, Country } from '@/lib/data/countries'
 
 // Types
 interface UserProfile {
   id: string
-  firstName: string
-  lastName: string
+  fullName: string
   phone: string
   phoneVerified?: boolean
   phoneVerifiedAt?: string
@@ -44,6 +49,7 @@ interface UserProfile {
   membershipType: 'basic' | 'gold' | 'platinum'
   accountType: 'individual' | 'business'
   avatar?: string
+  country: string
 }
 
 interface BusinessProfile {
@@ -126,10 +132,20 @@ export default function ProfilePage() {
     }
   }, [])
   
-  const [activeTab, setActiveTab] = useState('profile')
+  // Initialize activeTab from URL parameter
+  const getInitialTab = () => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      return params.get('tab') || 'profile'
+    }
+    return 'profile'
+  }
+  
+  const [activeTab, setActiveTab] = useState(getInitialTab())
   const [showActionMenu, setShowActionMenu] = useState<string | null>(null)
   const [selectedItems, setSelectedItems] = useState<string[]>([])
   const [profileLoading, setProfileLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [emailVerified, setEmailVerified] = useState(true)
   const [newEmail, setNewEmail] = useState('')
   const [confirmEmail, setConfirmEmail] = useState('')
@@ -183,16 +199,25 @@ export default function ProfilePage() {
   }
 
   
-  // Business profile toggle
-  const [isBusinessProfile, setIsBusinessProfile] = useState(false)
+  // Business profile state
+  const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null)
+  const [businessLoading, setBusinessLoading] = useState(false)
+  const [showCreateProfile, setShowCreateProfile] = useState(false)
   
   // Tab configurations - dynamic based on business profile state
   const tabs = [
     { 
       id: 'profile', 
-      label: isBusinessProfile ? 'Business Profile' : 'My Profile', 
-      icon: isBusinessProfile ? Building2 : User 
+      label: 'My Profile', 
+      icon: User 
     },
+    // Show business page tab only if business profile exists
+    ...(businessProfile && !businessProfile.deleted_at ? [{ 
+      id: 'business', 
+      label: 'Business Page', 
+      icon: Building2,
+      disabled: businessProfile.is_paused
+    }] : []),
     { id: 'listings', label: 'My Listings', icon: Car },
     { id: 'favorites', label: 'Favorites', icon: Heart },
     { id: 'wanted', label: 'My Wanted Requests', icon: Search },
@@ -206,29 +231,14 @@ export default function ProfilePage() {
   // Form states
   const [profile, setProfile] = useState<UserProfile>({
     id: '',
-    firstName: '',
-    lastName: '',
+    fullName: '',
     phone: '',
     phoneVerified: false,
     membershipType: 'basic',
-    accountType: 'individual'
+    accountType: 'individual',
+    country: 'LK' // Default to Sri Lanka
   })
 
-  const [businessProfile, setBusinessProfile] = useState<BusinessProfile>({
-    id: '',
-    businessName: '',
-    businessType: 'Auto Dealer',
-    description: '',
-    logoUrl: '',
-    website: '',
-    address: '',
-    phone: '',
-    operatingHours: '',
-    isVerified: false
-  })
-
-  const [hasBusinessProfile, setHasBusinessProfile] = useState(false)
-  const [businessLoading, setBusinessLoading] = useState(false)
 
   // Listings data
   const [listings, setListings] = useState<Listing[]>([])
@@ -411,6 +421,13 @@ export default function ProfilePage() {
     }
   }, [])
 
+  // Load business profile on mount
+  useEffect(() => {
+    if (user) {
+      fetchBusinessProfile()
+    }
+  }, [user])
+
   // Function to handle tab navigation with URL update
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId)
@@ -549,77 +566,34 @@ export default function ProfilePage() {
     }
   }, [user, loading])
 
-  // Load user favorites (sample data for now)
+  // Load user favorites from database
   useEffect(() => {
     const loadFavorites = async () => {
       if (!user) return
       
       try {
-        // Sample favorited ads
-        const sampleFavoritedAds: Favorite[] = [
-          {
-            id: '1',
-            title: 'Toyota Prius 2018 - Hybrid',
-            description: 'Well-maintained Prius with low mileage. Single owner, full service history.',
-            price: 3200000,
-            image: '/api/placeholder/400/300',
-            location: 'Colombo',
-            postedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-            seller: 'AutoMax Motors'
-          },
-          {
-            id: '2', 
-            title: 'Honda Vezel 2019 - Hybrid',
-            description: 'Perfect condition Honda Vezel with all original parts and accessories.',
-            price: 4800000,
-            image: '/api/placeholder/400/300',
-            location: 'Kandy',
-            postedDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-            seller: 'Private Seller'
-          }
-        ]
-        
-        // Sample favorited wanted requests
-        const sampleFavoritedWantedRequests: Favorite[] = [
-          {
-            id: '1',
-            title: 'Looking for Suzuki Alto K10 - 2015 onwards',
-            description: 'Searching for well-maintained Alto K10, any color, preferably under 2M budget.',
-            price: 2000000,
-            location: 'Galle',
-            postedDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-            seller: 'Kasun Perera'
-          }
-        ]
-        
-        // Load favorites from localStorage
-        const favoriteListingsData = localStorage.getItem('favoriteListingsData')
-        if (favoriteListingsData) {
-          const parsedData = JSON.parse(favoriteListingsData)
-          const formattedAds: Favorite[] = parsedData.map((item: any) => ({
-            id: item.id,
-            title: item.title,
-            price: item.price,
-            location: item.location,
-            image: item.image || '/api/placeholder/400/300',
-            postedDate: item.postedDate ? new Date(item.postedDate).toLocaleDateString() : new Date().toLocaleDateString(),
-            seller: item.seller || 'Private Seller',
-            description: item.description || ''
+        // Fetch favorited listings from API
+        const response = await fetch('/api/favorites/listings')
+        if (response.ok) {
+          const data = await response.json()
+          const formattedAds: Favorite[] = data.listings.map((listing: any) => ({
+            id: listing.id,
+            title: listing.title,
+            description: '',
+            price: listing.price,
+            image: listing.image_urls?.[0] || listing.image_url || '/api/placeholder/400/300',
+            location: listing.location,
+            postedDate: new Date(listing.created_at).toLocaleDateString(),
+            seller: 'View Details'
           }))
           setFavoritedAds(formattedAds)
         } else {
-          // Use sample data as fallback
-          setFavoritedAds(sampleFavoritedAds)
+          // Fallback to empty array if API fails
+          setFavoritedAds([])
         }
         
-        // Load favorited wanted requests from localStorage (if implemented)
-        const favoriteWantedData = localStorage.getItem('favoriteWantedRequestsData')
-        if (favoriteWantedData) {
-          const parsedWanted = JSON.parse(favoriteWantedData)
-          setFavoritedWantedRequests(parsedWanted)
-        } else {
-          setFavoritedWantedRequests(sampleFavoritedWantedRequests)
-        }
+        // For now, set wanted requests to empty (can be implemented later)
+        setFavoritedWantedRequests([])
       } catch (error) {
         console.error('Error loading favorites:', error)
       } finally {
@@ -658,14 +632,14 @@ export default function ProfilePage() {
         if (profileData) {
           setProfile({
             id: user.id,
-            firstName: profileData.name?.split(' ')[0] || '',
-            lastName: profileData.name?.split(' ').slice(1).join(' ') || '',
+            fullName: profileData.name || '',
             phone: profileData.phone || user.phone || '',
             phoneVerified: profileData.phone_verified || false,
             phoneVerifiedAt: profileData.phone_verified_at,
             tempPhone: profileData.temp_phone,
             membershipType: profileData.membership_type || 'basic',
-            accountType: profileData.account_type || 'individual'
+            accountType: profileData.account_type || 'individual',
+            country: profileData.location || 'LK'
           })
           setOriginalPhone(profileData.phone || user.phone || '')
           
@@ -674,7 +648,6 @@ export default function ProfilePage() {
 
           // Check if user has business profile
           if (profileData.business_profile) {
-            setHasBusinessProfile(true)
             setBusinessProfile({
               id: profileData.business_profile.id,
               businessName: profileData.business_profile.business_name || '',
@@ -885,7 +858,9 @@ export default function ProfilePage() {
           sender_id,
           content,
           is_read,
-          created_at
+          created_at,
+          message_type,
+          offer_data
         `)
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true })
@@ -909,6 +884,8 @@ export default function ProfilePage() {
           content: msg.content,
           is_read: msg.is_read,
           created_at: msg.created_at,
+          message_type: msg.message_type,
+          offer_data: msg.offer_data,
           sender: {
             id: msg.sender_id,
             email: '', // Not needed for display
@@ -934,6 +911,173 @@ export default function ProfilePage() {
     } catch (error) {
       console.error('Error loading messages:', error)
       setMessages([])
+    }
+  }
+
+  // Business Profile Functions
+  const fetchBusinessProfile = async () => {
+    try {
+      const response = await fetch('/api/business-profile')
+      if (response.ok) {
+        const { profile } = await response.json()
+        setBusinessProfile(profile)
+      }
+    } catch (error) {
+      console.error('Error fetching business profile:', error)
+    }
+  }
+
+  const handleCreateBusinessProfile = async (data: CreateBusinessProfileData) => {
+    setBusinessLoading(true)
+    try {
+      const response = await fetch('/api/business-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create business profile')
+      }
+
+      const { profile } = await response.json()
+      setBusinessProfile(profile)
+      setShowCreateProfile(false)
+      alert('Business profile created successfully!')
+    } catch (error) {
+      console.error('Error creating business profile:', error)
+      alert(`Error: ${error instanceof Error ? error.message : 'Failed to create business profile'}`)
+    } finally {
+      setBusinessLoading(false)
+    }
+  }
+
+  const handleUpdateBusinessProfile = async (data: UpdateBusinessProfileData) => {
+    setBusinessLoading(true)
+    try {
+      const response = await fetch('/api/business-profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update business profile')
+      }
+
+      const { profile } = await response.json()
+      setBusinessProfile(profile)
+      alert('Business profile updated successfully!')
+    } catch (error) {
+      console.error('Error updating business profile:', error)
+      alert(`Error: ${error instanceof Error ? error.message : 'Failed to update business profile'}`)
+    } finally {
+      setBusinessLoading(false)
+    }
+  }
+
+  const handlePauseBusinessProfile = async () => {
+    setBusinessLoading(true)
+    try {
+      const response = await fetch('/api/business-profile/pause', {
+        method: 'POST'
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to pause business profile')
+      }
+
+      const { profile } = await response.json()
+      setBusinessProfile(profile)
+      alert('Business profile paused successfully!')
+    } catch (error) {
+      console.error('Error pausing business profile:', error)
+      alert(`Error: ${error instanceof Error ? error.message : 'Failed to pause business profile'}`)
+    } finally {
+      setBusinessLoading(false)
+    }
+  }
+
+  const handleResumeBusinessProfile = async () => {
+    setBusinessLoading(true)
+    try {
+      const response = await fetch('/api/business-profile/resume', {
+        method: 'POST'
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to resume business profile')
+      }
+
+      const { profile } = await response.json()
+      setBusinessProfile(profile)
+      alert('Business profile resumed successfully!')
+    } catch (error) {
+      console.error('Error resuming business profile:', error)
+      alert(`Error: ${error instanceof Error ? error.message : 'Failed to resume business profile'}`)
+    } finally {
+      setBusinessLoading(false)
+    }
+  }
+
+  const handleDeleteBusinessProfile = async () => {
+    setBusinessLoading(true)
+    try {
+      const response = await fetch('/api/business-profile', {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete business profile')
+      }
+
+      setBusinessProfile(null)
+      alert('Business profile deleted successfully!')
+    } catch (error) {
+      console.error('Error deleting business profile:', error)
+      alert(`Error: ${error instanceof Error ? error.message : 'Failed to delete business profile'}`)
+    } finally {
+      setBusinessLoading(false)
+    }
+  }
+
+  const handleProfileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    
+    try {
+      const response = await fetch('/api/profiles', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: profile.fullName,
+          phone: profile.phone,
+          location: profile.country,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update profile')
+      }
+
+      const result = await response.json()
+      if (result.success) {
+        alert('Profile updated successfully!')
+      } else {
+        throw new Error(result.error || 'Failed to update profile')
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error)
+      alert('Failed to update profile. Please try again.')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -1530,22 +1674,49 @@ export default function ProfilePage() {
   }
 
   // Favorites action handlers
-  const handleRemoveFromFavorites = (itemId: string, type: 'ad' | 'wanted') => {
+  const handleRemoveFromFavorites = async (itemId: string, type: 'ad' | 'wanted') => {
     if (confirm('Remove this item from your favorites?')) {
       if (type === 'ad') {
-        setFavoritedAds(prevAds => {
-          const filtered = prevAds.filter(ad => ad.id !== itemId)
-          // Update localStorage
-          const favoriteListings = JSON.parse(localStorage.getItem('favoriteListings') || '[]')
-          const updatedListings = favoriteListings.filter((id: string) => id !== itemId)
-          localStorage.setItem('favoriteListings', JSON.stringify(updatedListings))
+        // Optimistically update UI
+        setFavoritedAds(prevAds => prevAds.filter(ad => ad.id !== itemId))
+        
+        try {
+          // Call API to remove from database
+          const response = await fetch('/api/favorites', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              listingId: itemId,
+              action: 'remove'
+            })
+          })
           
-          const favoriteListingsData = JSON.parse(localStorage.getItem('favoriteListingsData') || '[]')
-          const updatedData = favoriteListingsData.filter((item: any) => item.id !== itemId)
-          localStorage.setItem('favoriteListingsData', JSON.stringify(updatedData))
-          
-          return filtered
-        })
+          if (!response.ok) {
+            // Revert on error
+            const loadFavorites = async () => {
+              const res = await fetch('/api/favorites/listings')
+              if (res.ok) {
+                const data = await res.json()
+                const formattedAds: Favorite[] = data.listings.map((listing: any) => ({
+                  id: listing.id,
+                  title: listing.title,
+                  description: '',
+                  price: listing.price,
+                  image: listing.image_urls?.[0] || listing.image_url || '/api/placeholder/400/300',
+                  location: listing.location,
+                  postedDate: new Date(listing.created_at).toLocaleDateString(),
+                  seller: 'View Details'
+                }))
+                setFavoritedAds(formattedAds)
+              }
+            }
+            loadFavorites()
+            alert('Failed to remove from favorites')
+          }
+        } catch (error) {
+          console.error('Error removing favorite:', error)
+          alert('Failed to remove from favorites')
+        }
       } else {
         setFavoritedWantedRequests(prevRequests => prevRequests.filter(request => request.id !== itemId))
       }
@@ -1666,76 +1837,6 @@ export default function ProfilePage() {
     }
   }
 
-  const handleCreateBusinessProfile = async () => {
-    if (!businessProfile.businessName.trim()) {
-      alert('Please enter a business name')
-      return
-    }
-
-    setBusinessLoading(true)
-    try {
-      const { error } = await supabase
-        .from('business_profiles')
-        .insert({
-          id: user!.id,
-          business_name: businessProfile.businessName,
-          business_type: businessProfile.businessType,
-          description: businessProfile.description,
-          website: businessProfile.website,
-          address: businessProfile.address,
-          phone: formatPhoneForStorage(businessProfile.phone),
-          operating_hours: businessProfile.operatingHours
-        })
-
-      if (error) throw error
-
-      // Update account type to business
-      await supabase
-        .from('profiles')
-        .update({ account_type: 'business' })
-        .eq('id', user!.id)
-
-      setHasBusinessProfile(true)
-      setProfile({ ...profile, accountType: 'business' })
-      alert('Business profile created successfully!')
-    } catch (error) {
-      console.error('Error creating business profile:', error)
-      alert('Failed to create business profile')
-    } finally {
-      setBusinessLoading(false)
-    }
-  }
-
-  const handleUpdateBusinessProfile = async () => {
-    if (!businessProfile.businessName.trim()) {
-      alert('Please enter a business name')
-      return
-    }
-
-    setBusinessLoading(true)
-    try {
-      const { error } = await supabase
-        .from('business_profiles')
-        .update({
-          business_name: businessProfile.businessName,
-          business_type: businessProfile.businessType,
-          description: businessProfile.description,
-          website: businessProfile.website,
-          address: businessProfile.address,
-          phone: formatPhoneForStorage(businessProfile.phone),
-          operating_hours: businessProfile.operatingHours
-        })
-        .eq('id', user!.id)
-
-      if (error) throw error
-      alert('Business profile updated successfully!')
-    } catch (error) {
-      console.error('Error updating business profile:', error)
-      alert('Failed to update business profile')
-    } finally {
-      setBusinessLoading(false)
-    }
-  }
 
   // Phone verification functions
   const handlePhoneChange = (newPhone: string) => {
@@ -1896,443 +1997,100 @@ export default function ProfilePage() {
               {activeTab === 'profile' && (
                 <>
                   <div className="p-6 border-b">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <h1 className="text-2xl font-semibold">
-                          {isBusinessProfile ? 'Business Profile' : 'Profile Information'}
-                        </h1>
-                        <p className="text-gray-600 mt-1">
-                          {isBusinessProfile 
-                            ? 'Manage your dealership or business information'
-                            : 'Manage your personal information and preferences'
-                          }
-                        </p>
-                      </div>
-                      {isBusinessProfile && (
-                        <div className="flex items-center gap-2">
-                          {businessProfile.isVerified && (
-                            <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
-                              <CheckCircle className="w-3 h-3" />
-                              Verified
-                            </div>
-                          )}
-                          <a
-                            href={`/dealer/${user?.id}`}
-                            target="_blank"
-                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2 text-sm"
-                          >
-                            <Eye className="w-4 h-4" />
-                            View Public Profile
-                          </a>
-                        </div>
-                      )}
-                    </div>
+                    <h1 className="text-2xl font-semibold">My Profile</h1>
                   </div>
                   <div className="p-6">
-                    {/* Profile Type Toggle */}
-                    <div className="mb-8 p-4 bg-gray-50 rounded-lg border-2 border-black">
-                      {/* Mobile Layout - Simple */}
-                      <div className="block sm:hidden space-y-2">
-                        <h3 className="text-sm font-medium text-gray-700">Account Type</h3>
-                        <div className="flex items-center justify-start gap-2">
-                          <span className="text-xs text-gray-500">Personal</span>
-                          <button
-                            type="button"
-                            onClick={() => setIsBusinessProfile(!isBusinessProfile)}
-                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                              isBusinessProfile ? 'bg-blue-600' : 'bg-gray-300'
-                            }`}
-                          >
-                            <span
-                              className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                                isBusinessProfile ? 'translate-x-5' : 'translate-x-1'
-                              }`}
-                            />
-                          </button>
-                          <span className="text-xs text-gray-500">Business</span>
-                        </div>
-                      </div>
-
-                      {/* Desktop Layout - Side by Side */}
-                      <div className="hidden sm:flex items-center justify-between">
-                        <div>
-                          <h3 className="font-medium text-gray-900">Profile Type</h3>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {isBusinessProfile 
-                              ? 'Managing business profile for dealership or company'
-                              : 'Switch to business profile to access dealer features'
+                    {/* Personal Profile Form */}
+                    <form onSubmit={handleProfileSubmit} className="space-y-6">
+                      <div className="flex items-center justify-center mb-8">
+                        <div className="relative">
+                          <div className="w-24 h-24 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
+                            {user?.user_metadata?.full_name 
+                              ? user.user_metadata.full_name.split(' ').map(n => n[0]).join('').toUpperCase()
+                              : profile.fullName 
+                                ? profile.fullName.split(' ').map(n => n[0]).join('').toUpperCase()
+                                : 'U'
                             }
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className={`text-sm font-medium ${!isBusinessProfile ? 'text-blue-600' : 'text-gray-500'}`}>
-                            Personal
-                          </span>
+                          </div>
                           <button
                             type="button"
-                            onClick={() => setIsBusinessProfile(!isBusinessProfile)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                              isBusinessProfile ? 'bg-blue-600' : 'bg-gray-200'
-                            }`}
+                            className="absolute bottom-0 right-0 bg-white border-2 border-gray-300 rounded-full p-1 hover:bg-gray-50"
                           >
-                            <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                isBusinessProfile ? 'translate-x-6' : 'translate-x-1'
-                              }`}
-                            />
+                            <Camera className="w-4 h-4 text-gray-600" />
                           </button>
-                          <span className={`text-sm font-medium ${isBusinessProfile ? 'text-blue-600' : 'text-gray-500'}`}>
-                            Business
-                          </span>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Dynamic Form Content */}
-                    {!isBusinessProfile ? (
-                      /* Personal Profile Form */
-                      <form className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              First Name
-                            </label>
-                            <input
-                              type="text"
-                              value={profile.firstName}
-                              onChange={(e) => setProfile({...profile, firstName: e.target.value})}
-                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Last Name
-                            </label>
-                            <input
-                              type="text"
-                              value={profile.lastName}
-                              onChange={(e) => setProfile({...profile, lastName: e.target.value})}
-                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Phone Number
-                            </label>
-                            <div className="relative">
-                              <input
-                                id="phone-input"
-                                type="tel"
-                                value={profile.phone}
-                                onChange={(e) => handlePhoneChange(e.target.value)}
-                                className="w-full px-4 py-2 pr-20 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="771234567"
-                              />
-                              {profile.phone && (
-                                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                                  {profile.phoneVerified ? (
-                                    <div className="flex items-center gap-1 text-green-600">
-                                      <CheckCircle size={16} />
-                                      <span className="text-xs font-medium">Verified</span>
-                                    </div>
-                                  ) : (
-                                    <button
-                                      type="button"
-                                      onClick={handleVerifyPhoneClick}
-                                      className="flex items-center gap-1 text-orange-600 hover:text-orange-700 transition-colors"
-                                    >
-                                      <AlertTriangle size={16} />
-                                      <span className="text-xs font-medium">Unverified</span>
-                                    </button>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                            {!profile.phoneVerified && profile.phone && (
-                              <button
-                                type="button"
-                                onClick={handleVerifyPhoneClick}
-                                className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
-                              >
-                                Unverified. Click here to verify
-                              </button>
-                            )}
-                          </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Full Name <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={profile.fullName}
+                            onChange={(e) => setProfile({...profile, fullName: e.target.value})}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            required
+                          />
                         </div>
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
-                          <p className="text-sm text-blue-800">
-                            To change your email address or password,{' '}
-                            <button
-                              type="button"
-                              onClick={() => handleTabChange('security')}
-                              className="text-blue-600 hover:text-blue-700 font-medium underline"
-                            >
-                              click here
-                            </button>
-                            {' '}to go to Security Settings.
-                          </p>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Email
+                          </label>
+                          <input
+                            type="email"
+                            value={user?.email || ''}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                            disabled
+                          />
                         </div>
-                        <div className="flex gap-3">
-                          <button
-                            type="submit"
-                            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium"
-                          >
-                            Save Changes
-                          </button>
-                          <button
-                            type="button"
-                            className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 font-medium"
-                          >
-                            Cancel
-                          </button>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Phone Number
+                          </label>
+                          <input
+                            type="tel"
+                            value={profile.phone}
+                            onChange={(e) => setProfile({...profile, phone: e.target.value})}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
                         </div>
-                      </form>
-                    ) : (
-                      /* Business Profile Form */
-                      !hasBusinessProfile ? (
-                        <div className="text-center py-12">
-                          <Building2 className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                          <h3 className="text-xl font-semibold text-gray-900 mb-2">Create Your Business Profile</h3>
-                          <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                            Set up your dealership profile to showcase your business, build trust with customers, 
-                            and access advanced selling tools.
-                          </p>
-                          
-                          <div className="max-w-2xl mx-auto">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                              <div className="bg-blue-50 p-6 rounded-lg">
-                                <Star className="w-8 h-8 text-blue-600 mb-3" />
-                                <h4 className="font-semibold text-blue-900 mb-2">Build Trust</h4>
-                                <p className="text-sm text-blue-700">Verified business profile with contact information and operating hours</p>
-                              </div>
-                              <div className="bg-green-50 p-6 rounded-lg">
-                                <Globe className="w-8 h-8 text-green-600 mb-3" />
-                                <h4 className="font-semibold text-green-900 mb-2">Professional Presence</h4>
-                                <p className="text-sm text-green-700">Dedicated dealer page with your branding and vehicle inventory</p>
-                              </div>
-                            </div>
-                            
-                            <div className="bg-gray-50 rounded-lg p-8">
-                              <h4 className="text-lg font-semibold mb-6">Business Information</h4>
-                              <form className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                  <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                      Business Name <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                      type="text"
-                                      value={businessProfile.businessName}
-                                      onChange={(e) => setBusinessProfile({...businessProfile, businessName: e.target.value})}
-                                      placeholder="e.g., City Motors, Premium Auto Sales"
-                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                      required
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                      Business Type
-                                    </label>
-                                    <select
-                                      value={businessProfile.businessType}
-                                      onChange={(e) => setBusinessProfile({...businessProfile, businessType: e.target.value})}
-                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    >
-                                      <option value="Auto Dealer">Auto Dealer</option>
-                                      <option value="Car Showroom">Car Showroom</option>
-                                      <option value="Vehicle Importer">Vehicle Importer</option>
-                                      <option value="Auto Parts">Auto Parts</option>
-                                      <option value="Service Center">Service Center</option>
-                                      <option value="Other">Other</option>
-                                    </select>
-                                  </div>
-                                  <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                      Website
-                                    </label>
-                                    <input
-                                      type="url"
-                                      value={businessProfile.website || ''}
-                                      onChange={(e) => setBusinessProfile({...businessProfile, website: e.target.value})}
-                                      placeholder="https://yourbusiness.com"
-                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                      Business Phone
-                                    </label>
-                                    <input
-                                      type="tel"
-                                      value={businessProfile.phone || ''}
-                                      onChange={(e) => setBusinessProfile({...businessProfile, phone: e.target.value})}
-                                      placeholder="+94 11 123 4567"
-                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                                  </div>
-                                </div>
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Business Address
-                                  </label>
-                                  <textarea
-                                    value={businessProfile.address || ''}
-                                    onChange={(e) => setBusinessProfile({...businessProfile, address: e.target.value})}
-                                    placeholder="Street address, city, postal code"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    rows={3}
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Business Description
-                                  </label>
-                                  <textarea
-                                    value={businessProfile.description}
-                                    onChange={(e) => setBusinessProfile({...businessProfile, description: e.target.value})}
-                                    placeholder="Tell customers about your business, services, and what makes you special..."
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    rows={4}
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Operating Hours
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={businessProfile.operatingHours || ''}
-                                    onChange={(e) => setBusinessProfile({...businessProfile, operatingHours: e.target.value})}
-                                    placeholder="e.g., Mon-Fri 9AM-6PM, Sat 9AM-4PM"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  />
-                                </div>
-                                <div className="flex gap-3">
-                                  <button
-                                    type="submit"
-                                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium"
-                                  >
-                                    Create Business Profile
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 font-medium"
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              </form>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        /* Existing Business Profile Form */
-                        <form className="space-y-6">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Business Name <span className="text-red-500">*</span>
-                              </label>
-                              <input
-                                type="text"
-                                value={businessProfile.businessName}
-                                onChange={(e) => setBusinessProfile({...businessProfile, businessName: e.target.value})}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                required
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Business Type
-                              </label>
-                              <select
-                                value={businessProfile.businessType}
-                                onChange={(e) => setBusinessProfile({...businessProfile, businessType: e.target.value})}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              >
-                                <option value="Auto Dealer">Auto Dealer</option>
-                                <option value="Car Showroom">Car Showroom</option>
-                                <option value="Vehicle Importer">Vehicle Importer</option>
-                                <option value="Auto Parts">Auto Parts</option>
-                                <option value="Service Center">Service Center</option>
-                                <option value="Other">Other</option>
-                              </select>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Website
-                              </label>
-                              <input
-                                type="url"
-                                value={businessProfile.website || ''}
-                                onChange={(e) => setBusinessProfile({...businessProfile, website: e.target.value})}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Business Phone
-                              </label>
-                              <input
-                                type="tel"
-                                value={businessProfile.phone || ''}
-                                onChange={(e) => setBusinessProfile({...businessProfile, phone: e.target.value})}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Business Address
-                            </label>
-                            <textarea
-                              value={businessProfile.address || ''}
-                              onChange={(e) => setBusinessProfile({...businessProfile, address: e.target.value})}
-                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              rows={3}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Business Description
-                            </label>
-                            <textarea
-                              value={businessProfile.description}
-                              onChange={(e) => setBusinessProfile({...businessProfile, description: e.target.value})}
-                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              rows={4}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Operating Hours
-                            </label>
-                            <input
-                              type="text"
-                              value={businessProfile.operatingHours || ''}
-                              onChange={(e) => setBusinessProfile({...businessProfile, operatingHours: e.target.value})}
-                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            />
-                          </div>
-                          <div className="flex gap-3">
-                            <button
-                              type="submit"
-                              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium"
-                            >
-                              Save Changes
-                            </button>
-                            <button
-                              type="button"
-                              className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 font-medium"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </form>
-                      )
-                    )}
+                        <CountrySelector
+                          selectedCountry={countries.find(c => c.code === profile.country) || countries.find(c => c.code === 'LK')!}
+                          onCountrySelect={(country) => setProfile({...profile, country: country.code})}
+                        />
+                      </div>
+                      <div className="flex gap-3">
+                        <button
+                          type="submit"
+                          disabled={isLoading}
+                          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50"
+                        >
+                          {isLoading ? 'Saving...' : 'Save Changes'}
+                        </button>
+                      </div>
+                    </form>
+
+                    {/* Business Profile Management Section */}
+                    <div className="mt-12 border-t pt-8">
+                      <h3 className="text-lg font-semibold mb-4">Business Profile</h3>
+                      <BusinessProfileManagement
+                        businessProfile={businessProfile}
+                        onCreateProfile={handleCreateBusinessProfile}
+                        onPauseProfile={handlePauseBusinessProfile}
+                        onResumeProfile={handleResumeBusinessProfile}
+                        onDeleteProfile={handleDeleteBusinessProfile}
+                        loading={isLoading}
+                      />
+                    </div>
                   </div>
                 </>
+              )}
+
+              {/* Business Page Tab */}
+              {businessProfile && activeTab === 'business' && (
+                <BusinessPageTab businessProfile={businessProfile} />
               )}
 
               {/* Membership Tab */}

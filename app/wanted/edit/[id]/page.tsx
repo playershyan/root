@@ -174,6 +174,13 @@ export default function EditWantedRequestPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
+    
+    // Prevent negative values for budget and mileage fields
+    if ((name === 'min_budget' || name === 'max_budget' || name === 'max_mileage') && 
+        value !== '' && parseFloat(value) < 0) {
+      return // Don't update if value is negative
+    }
+    
     setFormData(prev => ({ ...prev, [name]: value }))
     
     // Clear error when user starts typing
@@ -195,10 +202,14 @@ export default function EditWantedRequestPage() {
 
     if (!formData.min_budget) {
       newErrors.min_budget = 'Minimum budget is required'
+    } else if (parseInt(formData.min_budget) < 0) {
+      newErrors.min_budget = 'Budget cannot be negative'
     }
 
     if (!formData.max_budget) {
       newErrors.max_budget = 'Maximum budget is required'
+    } else if (parseInt(formData.max_budget) < 0) {
+      newErrors.max_budget = 'Budget cannot be negative'
     }
 
     if (formData.min_budget && formData.max_budget && 
@@ -358,6 +369,7 @@ export default function EditWantedRequestPage() {
                   </label>
                   <input
                     type="number"
+                    min="0"
                     name="min_budget"
                     value={formData.min_budget}
                     onChange={handleInputChange}
@@ -375,6 +387,7 @@ export default function EditWantedRequestPage() {
                   </label>
                   <input
                     type="number"
+                    min="0"
                     name="max_budget"
                     value={formData.max_budget}
                     onChange={handleInputChange}
@@ -516,6 +529,7 @@ export default function EditWantedRequestPage() {
                 </label>
                 <input
                   type="number"
+                  min="0"
                   name="max_mileage"
                   value={formData.max_mileage}
                   onChange={handleInputChange}

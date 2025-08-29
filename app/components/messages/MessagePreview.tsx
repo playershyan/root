@@ -38,9 +38,9 @@ export default function MessagePreview({
 
   return (
     <div className="relative">
-      <button
+      <div
         onClick={handlePreviewClick}
-        className="block w-full hover:bg-gray-50 transition-colors text-left relative"
+        className="block w-full hover:bg-gray-50 transition-colors cursor-pointer relative"
       >
         <div className="px-3 md:px-6 py-3 md:py-4">
           <div className="flex items-start gap-3 md:gap-4">
@@ -74,13 +74,11 @@ export default function MessagePreview({
                         {conversation.unread_count > 99 ? '99+' : conversation.unread_count}
                       </span>
                     )}
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      conversation.current_user_role === 'buyer' 
-                        ? 'bg-blue-100 text-blue-700' 
-                        : 'bg-green-100 text-green-700'
-                    }`}>
-                      {conversation.current_user_role === 'buyer' ? 'Buying' : 'Selling'}
-                    </span>
+                    {conversation.current_user_role === 'seller' && (
+                      <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
+                        Buyer
+                      </span>
+                    )}
                   </div>
                   
                   <p className="text-xs md:text-sm text-gray-600 truncate font-medium">
@@ -164,7 +162,7 @@ export default function MessagePreview({
             </div>
           </div>
         </div>
-      </button>
+      </div>
       
       {/* Click overlay to show menu on hover */}
       <style jsx>{`

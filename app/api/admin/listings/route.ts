@@ -4,15 +4,30 @@ import { cookies } from 'next/headers'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
 
 export async function GET(request: NextRequest) {
+  console.log('Admin listings API - Starting request')
+  
   // Verify admin access
   const authResult = await verifyAdminAccess(request)
+  console.log('Admin listings API - Auth result:', authResult instanceof NextResponse ? 'Error response' : 'Success')
+  
   if (authResult instanceof NextResponse) {
+    console.log('Admin listings API - Returning auth error response')
     return authResult
   }
 
-  if (!authResult.hasPermission('view_dashboard')) {
-    return NextResponse.json({ error: 'Permission denied' }, { status: 403 })
+  console.log('Admin listings API - User:', authResult.user.email)
+  console.log('Admin listings API - Admin user role:', authResult.adminUser.role)
+  console.log('Admin listings API - Admin permissions:', authResult.adminUser.permissions)
+  
+  const hasPermission = authResult.hasPermission('view_dashboard')
+  console.log('Admin listings API - Has view_dashboard permission:', hasPermission)
+  
+  if (!hasPermission) {
+    console.log('Admin listings API - Permission denied')
+    return NextResponse.json({ error: 'Permission denied - view_dashboard required' }, { status: 403 })
   }
+  
+  console.log('Admin listings API - Permission check passed, proceeding with listings fetch')
 
   try {
     const supabase = createRouteHandlerClient({ cookies })
@@ -22,14 +37,10 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20')
     const offset = (page - 1) * limit
 
-    // Get listings with user profiles
+    // Get listings with simplified query first (we can add joins back later)
     const { data: listings, error: listingsError } = await supabase
       .from('listings')
-      .select(`
-        *,
-        user:profiles!listings_user_id_fkey(name, email, phone),
-        reports:reports!reports_listing_id_fkey(id, reason, description, created_at, reporter:profiles!reports_reporter_id_fkey(name))
-      `)
+      .select('*')
       .eq('status', status)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
