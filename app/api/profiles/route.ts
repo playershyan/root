@@ -1,14 +1,15 @@
-import { NextRequest } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
-import { handleAPIResponse, APIError } from '@/lib/errorHandling'
+import { NextRequest, NextResponse } from 'next/server'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 
 export async function GET() {
   try {
-    const supabase = createClient()
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     if (userError || !user) {
-      throw new APIError('Authentication required', 401)
+      return NextResponse.json({ error: 'Authentication required', success: false }, { status: 401 })
     }
 
     const { data: profile, error } = await supabase
@@ -18,34 +19,29 @@ export async function GET() {
       .single()
 
     if (error) {
-      throw new APIError('Profile not found', 404)
+      return NextResponse.json({ error: 'Profile not found', success: false }, { status: 404 })
     }
 
-    return Response.json({ data: profile, success: true })
+    return NextResponse.json({ data: profile, success: true })
   } catch (error) {
-    if (error instanceof APIError) {
-      return Response.json(
-        { error: error.message, success: false },
-        { status: error.status }
-      )
-    }
-    return Response.json(
-      { error: 'Internal server error', success: false },
-      { status: 500 }
-    )
+    console.error('Error in GET /api/profiles:', error)
+    return NextResponse.json({ error: 'Internal server error', success: false }, { status: 500 })
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = createClient()
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     if (userError || !user) {
-      throw new APIError('Authentication required', 401)
+      return NextResponse.json({ error: 'Authentication required', success: false }, { status: 401 })
     }
 
     const body = await request.json()
+    console.log('PUT /api/profiles - Received data:', body)
+    
     const { name, phone, location, bio, avatar_url, language } = body
 
     const { data: profile, error } = await supabase
@@ -64,20 +60,14 @@ export async function PUT(request: NextRequest) {
       .single()
 
     if (error) {
-      throw new APIError('Failed to update profile', 500, error)
+      console.error('Database error:', error)
+      return NextResponse.json({ error: 'Failed to update profile', success: false, details: error }, { status: 500 })
     }
 
-    return Response.json({ data: profile, success: true })
+    console.log('Profile updated successfully:', profile)
+    return NextResponse.json({ data: profile, success: true })
   } catch (error) {
-    if (error instanceof APIError) {
-      return Response.json(
-        { error: error.message, success: false },
-        { status: error.status }
-      )
-    }
-    return Response.json(
-      { error: 'Internal server error', success: false },
-      { status: 500 }
-    )
+    console.error('Error in PUT /api/profiles:', error)
+    return NextResponse.json({ error: 'Internal server error', success: false }, { status: 500 })
   }
 }

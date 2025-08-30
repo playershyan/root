@@ -201,7 +201,7 @@ export default function ProfilePage() {
   
   // Business profile state
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null)
-  const [businessLoading, setBusinessLoading] = useState(false)
+  const [businessLoading, setBusinessLoading] = useState(true)
   const [showCreateProfile, setShowCreateProfile] = useState(false)
   
   // Tab configurations - dynamic based on business profile state
@@ -607,8 +607,7 @@ export default function ProfilePage() {
   }, [user, loading])
 
   // Load user profile data
-  useEffect(() => {
-    const loadProfile = async () => {
+  const loadProfile = async () => {
       console.log('Profile page - User state:', user)
       console.log('Profile page - Loading state:', loading)
       
@@ -677,6 +676,7 @@ export default function ProfilePage() {
       }
     }
 
+  useEffect(() => {
     if (!loading) {
       loadProfile()
     }
@@ -917,6 +917,7 @@ export default function ProfilePage() {
   // Business Profile Functions
   const fetchBusinessProfile = async () => {
     try {
+      setBusinessLoading(true)
       const response = await fetch('/api/business-profile')
       if (response.ok) {
         const { profile } = await response.json()
@@ -924,10 +925,13 @@ export default function ProfilePage() {
       }
     } catch (error) {
       console.error('Error fetching business profile:', error)
+    } finally {
+      setBusinessLoading(false)
     }
   }
 
   const handleCreateBusinessProfile = async (data: CreateBusinessProfileData) => {
+    console.log('Creating business profile with data:', data)
     setBusinessLoading(true)
     try {
       const response = await fetch('/api/business-profile', {
@@ -938,7 +942,8 @@ export default function ProfilePage() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to create business profile')
+        console.error('API error response:', errorData)
+        throw new Error(errorData.details || errorData.error || 'Failed to create business profile')
       }
 
       const { profile } = await response.json()
@@ -1048,6 +1053,11 @@ export default function ProfilePage() {
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('Form submitted with data:', {
+      name: profile.fullName,
+      phone: profile.phone,
+      location: profile.country,
+    })
     setIsLoading(true)
     
     try {
@@ -1063,19 +1073,27 @@ export default function ProfilePage() {
         }),
       })
 
+      console.log('Response status:', response.status)
+      console.log('Response ok:', response.ok)
+
       if (!response.ok) {
-        throw new Error('Failed to update profile')
+        const errorData = await response.json()
+        console.error('API Error:', errorData)
+        throw new Error(errorData.error || 'Failed to update profile')
       }
 
       const result = await response.json()
+      console.log('API Result:', result)
       if (result.success) {
         alert('Profile updated successfully!')
+        // Refresh the profile data
+        await loadProfile()
       } else {
         throw new Error(result.error || 'Failed to update profile')
       }
     } catch (error) {
       console.error('Error updating profile:', error)
-      alert('Failed to update profile. Please try again.')
+      alert(`Failed to update profile: ${error instanceof Error ? error.message : 'Please try again.'}`)
     } finally {
       setIsLoading(false)
     }
@@ -1956,10 +1974,10 @@ export default function ProfilePage() {
               <div className="p-6 text-center border-b">
                 <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl font-bold text-white">
-                    {profile.firstName[0]}{profile.lastName[0]}
+                    {profile.fullName ? profile.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
                   </span>
                 </div>
-                <h3 className="font-semibold text-gray-900">{profile.firstName} {profile.lastName}</h3>
+                <h3 className="font-semibold text-gray-900">{profile.fullName}</h3>
                 <p className="text-sm text-gray-600">{profile.phone}</p>
               </div>
 
@@ -2056,10 +2074,15 @@ export default function ProfilePage() {
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           />
                         </div>
-                        <CountrySelector
-                          selectedCountry={countries.find(c => c.code === profile.country) || countries.find(c => c.code === 'LK')!}
-                          onCountrySelect={(country) => setProfile({...profile, country: country.code})}
-                        />
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Country
+                          </label>
+                          <CountrySelector
+                            selectedCountry={countries.find(c => c.code === profile.country) || countries.find(c => c.code === 'LK')!}
+                            onCountrySelect={(country) => setProfile({...profile, country: country.code})}
+                          />
+                        </div>
                       </div>
                       <div className="flex gap-3">
                         <button
@@ -2077,20 +2100,37 @@ export default function ProfilePage() {
                       <h3 className="text-lg font-semibold mb-4">Business Profile</h3>
                       <BusinessProfileManagement
                         businessProfile={businessProfile}
-                        onCreateProfile={handleCreateBusinessProfile}
+                        onCreateProfile={() => setShowCreateProfile(true)}
                         onPauseProfile={handlePauseBusinessProfile}
                         onResumeProfile={handleResumeBusinessProfile}
                         onDeleteProfile={handleDeleteBusinessProfile}
                         loading={isLoading}
                       />
                     </div>
+
+                    {/* Create Business Profile Modal */}
+                    {showCreateProfile && (
+                      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                          <CreateBusinessProfile
+                            onSubmit={handleCreateBusinessProfile}
+                            onCancel={() => setShowCreateProfile(false)}
+                            loading={businessLoading}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </>
               )}
 
               {/* Business Page Tab */}
               {businessProfile && activeTab === 'business' && (
-                <BusinessPageTab businessProfile={businessProfile} />
+                <BusinessPageTab 
+                  businessProfile={businessProfile} 
+                  onUpdate={handleUpdateBusinessProfile}
+                  loading={businessLoading}
+                />
               )}
 
               {/* Membership Tab */}

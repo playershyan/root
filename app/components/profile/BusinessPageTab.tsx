@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Building2, Globe, Phone, Clock, MapPin, CheckCircle, Edit2, Save, X } from 'lucide-react'
+import Link from 'next/link'
+import { Building2, Globe, Phone, Clock, MapPin, CheckCircle, Edit2, Save, X, Camera, Upload, Eye, ExternalLink, MessageCircle } from 'lucide-react'
 import { BusinessProfile, UpdateBusinessProfileData } from '@/lib/types/businessProfile'
 
 interface BusinessPageTabProps {
@@ -15,15 +16,58 @@ export default function BusinessPageTab({
   onUpdate,
   loading = false
 }: BusinessPageTabProps) {
+  
+  // Show loading state while business profile is being fetched
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="animate-pulse">
+          {/* Banner Skeleton */}
+          <div className="bg-gray-300 h-64 rounded-t-lg"></div>
+          
+          {/* Profile Section Skeleton */}
+          <div className="bg-white rounded-b-lg border-x border-b p-6">
+            <div className="flex items-end gap-4 -mt-16">
+              {/* Profile Image Skeleton */}
+              <div className="w-32 h-32 bg-gray-300 rounded-full border-4 border-white"></div>
+              
+              {/* Business Info Skeleton */}
+              <div className="flex-1 pb-4">
+                <div className="h-8 bg-gray-300 rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+              </div>
+            </div>
+            
+            {/* Contact Info Skeleton */}
+            <div className="mt-6 pt-6 border-t border-gray-100">
+              <div className="h-6 bg-gray-300 rounded w-1/4 mb-4"></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="h-4 bg-gray-300 rounded"></div>
+                <div className="h-4 bg-gray-300 rounded"></div>
+                <div className="h-4 bg-gray-300 rounded"></div>
+                <div className="h-4 bg-gray-300 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
   const [isEditing, setIsEditing] = useState(false)
+  const [sameAsPhone, setSameAsPhone] = useState(
+    businessProfile.whatsapp === businessProfile.phone || (!businessProfile.whatsapp && !!businessProfile.phone)
+  )
   const [formData, setFormData] = useState<UpdateBusinessProfileData>({
     business_name: businessProfile.business_name,
-    business_type: businessProfile.business_type,
     description: businessProfile.description,
     website: businessProfile.website,
     address: businessProfile.address,
     phone: businessProfile.phone,
-    operating_hours: businessProfile.operating_hours
+    whatsapp: businessProfile.whatsapp,
+    operating_hours: businessProfile.operating_hours,
+    logo_url: businessProfile.logo_url,
+    banner_url: businessProfile.banner_url,
+    profile_image_url: businessProfile.profile_image_url
   })
 
   const handleSave = async () => {
@@ -34,14 +78,64 @@ export default function BusinessPageTab({
   const handleCancel = () => {
     setFormData({
       business_name: businessProfile.business_name,
-      business_type: businessProfile.business_type,
       description: businessProfile.description,
       website: businessProfile.website,
       address: businessProfile.address,
       phone: businessProfile.phone,
-      operating_hours: businessProfile.operating_hours
+      whatsapp: businessProfile.whatsapp,
+      operating_hours: businessProfile.operating_hours,
+      logo_url: businessProfile.logo_url,
+      banner_url: businessProfile.banner_url,
+      profile_image_url: businessProfile.profile_image_url
     })
+    setSameAsPhone(
+      businessProfile.whatsapp === businessProfile.phone || (!businessProfile.whatsapp && !!businessProfile.phone)
+    )
     setIsEditing(false)
+  }
+
+  const handleImageUpload = (field: 'banner_url' | 'profile_image_url') => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/*'
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0]
+      if (file) {
+        // TODO: Upload file to storage and get URL
+        // For now, just show placeholder
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const result = e.target?.result as string
+          setFormData({...formData, [field]: result})
+        }
+        reader.readAsDataURL(file)
+      }
+    }
+    input.click()
+  }
+
+  const handlePhoneChange = (phone: string) => {
+    setFormData({...formData, phone})
+    // If "same as phone" is checked, update WhatsApp too
+    if (sameAsPhone) {
+      setFormData(prev => ({...prev, phone, whatsapp: phone}))
+    }
+  }
+
+  const handleSameAsPhoneChange = (checked: boolean) => {
+    setSameAsPhone(checked)
+    if (checked) {
+      // Set WhatsApp to be the same as phone
+      setFormData(prev => ({...prev, whatsapp: prev.phone}))
+    }
+  }
+
+  const handleWhatsAppChange = (whatsapp: string) => {
+    setFormData({...formData, whatsapp})
+    // If user manually changes WhatsApp and it's different from phone, uncheck the checkbox
+    if (sameAsPhone && whatsapp !== formData.phone) {
+      setSameAsPhone(false)
+    }
   }
 
   if (businessProfile.is_paused) {
@@ -61,244 +155,334 @@ export default function BusinessPageTab({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-white rounded-lg border p-6">
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-semibold mb-2">Business Profile</h1>
-            <p className="text-gray-600">Manage your business information and public profile</p>
-          </div>
-          {!isEditing ? (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Edit2 className="w-4 h-4" />
-              Edit Profile
-            </button>
-          ) : (
-            <div className="flex gap-2">
-              <button
-                onClick={handleSave}
-                disabled={loading}
-                className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Save className="w-4 h-4" />
-                Save Changes
-              </button>
-              <button
-                onClick={handleCancel}
-                disabled={loading}
-                className="flex items-center gap-2 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <X className="w-4 h-4" />
-                Cancel
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Verification Status */}
-        <div className="flex items-center gap-2 mb-4">
-          {businessProfile.is_verified ? (
-            <>
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <span className="text-green-600 font-medium">Verified Business</span>
-            </>
-          ) : (
-            <>
-              <div className="w-5 h-5 border-2 border-yellow-600 rounded-full" />
-              <span className="text-yellow-600 font-medium">Pending Verification</span>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Business Information */}
-      <div className="bg-white rounded-lg border p-6">
-        <h2 className="text-lg font-semibold mb-4">Business Information</h2>
-        
-        {!isEditing ? (
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">Business Name</h3>
-              <p className="text-gray-900">{businessProfile.business_name}</p>
-            </div>
-            
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">Business Type</h3>
-              <p className="text-gray-900">{businessProfile.business_type}</p>
-            </div>
-            
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">Description</h3>
-              <p className="text-gray-900 whitespace-pre-wrap">{businessProfile.description}</p>
-            </div>
-            
-            {businessProfile.website && (
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-1">Website</h3>
-                <a href={businessProfile.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
-                  <Globe className="w-4 h-4" />
-                  {businessProfile.website}
-                </a>
-              </div>
-            )}
-            
-            {businessProfile.phone && (
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-1">Phone</h3>
-                <p className="text-gray-900 flex items-center gap-1">
-                  <Phone className="w-4 h-4" />
-                  {businessProfile.phone}
-                </p>
-              </div>
-            )}
-            
-            {businessProfile.address && (
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-1">Address</h3>
-                <p className="text-gray-900 flex items-start gap-1">
-                  <MapPin className="w-4 h-4 mt-0.5" />
-                  {businessProfile.address}
-                </p>
-              </div>
-            )}
-            
-            {businessProfile.operating_hours && (
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-1">Operating Hours</h3>
-                <p className="text-gray-900 flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  {businessProfile.operating_hours}
-                </p>
-              </div>
-            )}
-          </div>
+    <div className="max-w-4xl mx-auto">
+      {/* Facebook-style Business Page Layout */}
+      
+      {/* Banner Section */}
+      <div className="relative bg-gradient-to-r from-blue-600 to-blue-800 h-64 rounded-t-lg overflow-hidden">
+        {businessProfile.banner_url ? (
+          <img 
+            src={businessProfile.banner_url} 
+            alt="Business Banner"
+            className="w-full h-full object-cover"
+          />
         ) : (
-          <form className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Business Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.business_name}
-                onChange={(e) => setFormData({...formData, business_name: e.target.value})}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                disabled={loading}
-              />
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="text-center text-white">
+              <Building2 className="w-16 h-16 mx-auto mb-2 opacity-50" />
+              <p className="text-lg opacity-75">Add a banner image</p>
             </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Business Type
-              </label>
-              <select
-                value={formData.business_type}
-                onChange={(e) => setFormData({...formData, business_type: e.target.value})}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                disabled={loading}
-              >
-                <option value="Auto Dealer">Auto Dealer</option>
-                <option value="Car Showroom">Car Showroom</option>
-                <option value="Vehicle Importer">Vehicle Importer</option>
-                <option value="Auto Parts">Auto Parts</option>
-                <option value="Service Center">Service Center</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                rows={4}
-                disabled={loading}
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Website
-                </label>
-                <input
-                  type="url"
-                  value={formData.website || ''}
-                  onChange={(e) => setFormData({...formData, website: e.target.value})}
-                  placeholder="https://yourbusiness.com"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  disabled={loading}
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone
-                </label>
-                <input
-                  type="tel"
-                  value={formData.phone || ''}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  placeholder="+94 11 123 4567"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  disabled={loading}
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Address
-              </label>
-              <textarea
-                value={formData.address || ''}
-                onChange={(e) => setFormData({...formData, address: e.target.value})}
-                placeholder="Street address, city, postal code"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                rows={2}
-                disabled={loading}
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Operating Hours
-              </label>
-              <input
-                type="text"
-                value={formData.operating_hours || ''}
-                onChange={(e) => setFormData({...formData, operating_hours: e.target.value})}
-                placeholder="e.g., Mon-Fri 9AM-6PM, Sat 9AM-4PM"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                disabled={loading}
-              />
-            </div>
-          </form>
+          </div>
+        )}
+        
+        {/* Banner Edit Button */}
+        {isEditing && (
+          <button
+            onClick={() => handleImageUpload('banner_url')}
+            className="absolute top-4 right-4 bg-white bg-opacity-90 hover:bg-opacity-100 text-gray-700 p-2 rounded-lg transition-colors"
+          >
+            <Camera className="w-5 h-5" />
+          </button>
         )}
       </div>
 
+      {/* Profile Info Section */}
+      <div className="bg-white rounded-b-lg border-x border-b">
+        {/* Profile Image and Basic Info */}
+        <div className="px-6 pt-6 pb-4">
+          <div className="flex items-end gap-4 -mt-16">
+            {/* Profile Image */}
+            <div className="relative">
+              <div className="w-32 h-32 bg-white rounded-full border-4 border-white overflow-hidden shadow-lg">
+                {businessProfile.profile_image_url ? (
+                  <img 
+                    src={businessProfile.profile_image_url} 
+                    alt="Business Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                    <Building2 className="w-12 h-12 text-gray-400" />
+                  </div>
+                )}
+              </div>
+              
+              {/* Profile Image Edit Button */}
+              {isEditing && (
+                <button
+                  onClick={() => handleImageUpload('profile_image_url')}
+                  className="absolute bottom-2 right-2 bg-white hover:bg-gray-50 border text-gray-700 p-2 rounded-full shadow-md transition-colors"
+                >
+                  <Camera className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Business Info */}
+            <div className="flex-1 pb-4">
+              <div className="flex items-center gap-3 mb-2">
+                {!isEditing ? (
+                  <h1 className="text-3xl font-bold text-gray-900">{businessProfile.business_name}</h1>
+                ) : (
+                  <input
+                    type="text"
+                    value={formData.business_name}
+                    onChange={(e) => setFormData({...formData, business_name: e.target.value})}
+                    placeholder="enter business name"
+                    className="text-3xl font-bold bg-transparent border-b-2 border-gray-300 focus:border-blue-500 outline-none"
+                    disabled={loading}
+                  />
+                )}
+                
+                {/* Verification Badge - Only show when data is loaded */}
+                {businessProfile.is_verified !== undefined && (
+                  businessProfile.is_verified ? (
+                    <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
+                      <CheckCircle className="w-4 h-4" />
+                      Verified
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1 bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-medium">
+                      <Clock className="w-4 h-4" />
+                      Pending Verification
+                    </div>
+                  )
+                )}
+              </div>
+              
+              {!isEditing && (
+                <p className="text-gray-700">{businessProfile.description}</p>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            {!isEditing && (
+              <div className="mb-4 flex gap-2">
+                <Link
+                  href={`/business/${businessProfile.id}`}
+                  target="_blank"
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  <Eye className="w-4 h-4" />
+                  View Page
+                  <ExternalLink className="w-3 h-3" />
+                </Link>
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  Edit Profile
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Contact Information & Edit Form */}
+        <div className="px-6 pb-6 border-t border-gray-100 pt-6">
+          {!isEditing ? (
+            <>
+              <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {businessProfile.website && (
+                <div className="flex items-center gap-3">
+                  <Globe className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <p className="text-sm text-gray-500">Website</p>
+                    <a href={businessProfile.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                      {businessProfile.website}
+                    </a>
+                  </div>
+                </div>
+              )}
+              
+              {businessProfile.phone && (
+                <div className="flex items-center gap-3">
+                  <Phone className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <p className="text-sm text-gray-500">Phone</p>
+                    <p className="text-gray-900">{businessProfile.phone}</p>
+                  </div>
+                </div>
+              )}
+
+              {businessProfile.whatsapp && (
+                <div className="flex items-center gap-3">
+                  <MessageCircle className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <p className="text-sm text-gray-500">WhatsApp</p>
+                    <p className="text-gray-900">{businessProfile.whatsapp}</p>
+                  </div>
+                </div>
+              )}
+              
+              {businessProfile.address && (
+                <div className="flex items-start gap-3">
+                  <MapPin className="w-5 h-5 text-gray-400 mt-1" />
+                  <div>
+                    <p className="text-sm text-gray-500">Address</p>
+                    <p className="text-gray-900">{businessProfile.address}</p>
+                  </div>
+                </div>
+              )}
+              
+              {businessProfile.operating_hours && (
+                <div className="flex items-center gap-3">
+                  <Clock className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <p className="text-sm text-gray-500">Operating Hours</p>
+                    <p className="text-gray-900">{businessProfile.operating_hours}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            </>
+          ) : (
+            <>
+              <h3 className="text-lg font-semibold mb-4">Edit Business Information</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                    rows={3}
+                    disabled={loading}
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Website
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.website || ''}
+                      onChange={(e) => setFormData({...formData, website: e.target.value})}
+                      placeholder="https://yourbusiness.com"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      disabled={loading}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Phone <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      value={formData.phone || ''}
+                      onChange={(e) => handlePhoneChange(e.target.value)}
+                      placeholder="+94 11 123 4567"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      disabled={loading}
+                      required
+                    />
+                  </div>
+                </div>
+                
+                {/* WhatsApp Field */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    WhatsApp Number
+                  </label>
+                  <div className="space-y-3">
+                    <input
+                      type="tel"
+                      value={formData.whatsapp || ''}
+                      onChange={(e) => handleWhatsAppChange(e.target.value)}
+                      placeholder="+94 11 123 4567"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      disabled={loading || sameAsPhone}
+                    />
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="same-as-phone"
+                        checked={sameAsPhone}
+                        onChange={(e) => handleSameAsPhoneChange(e.target.checked)}
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        disabled={loading}
+                      />
+                      <label htmlFor="same-as-phone" className="ml-2 text-sm text-gray-600">
+                        Same as phone number
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Operating Hours
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.operating_hours || ''}
+                      onChange={(e) => setFormData({...formData, operating_hours: e.target.value})}
+                      placeholder="e.g., Mon-Fri 9AM-6PM"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      disabled={loading}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Address
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.address || ''}
+                      onChange={(e) => setFormData({...formData, address: e.target.value})}
+                      placeholder="Business address"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      disabled={loading}
+                    />
+                  </div>
+                </div>
+                
+                {/* Save/Cancel Buttons */}
+                <div className="flex gap-2 pt-4 border-t">
+                  <button
+                    onClick={handleSave}
+                    disabled={loading}
+                    className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  >
+                    <Save className="w-4 h-4" />
+                    Save Changes
+                  </button>
+                  <button
+                    onClick={handleCancel}
+                    disabled={loading}
+                    className="flex items-center gap-2 bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
       {/* Business Statistics */}
-      <div className="bg-white rounded-lg border p-6">
+      <div className="bg-white rounded-lg border mt-6 p-6">
         <h2 className="text-lg font-semibold mb-4">Business Statistics</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center">
+          <div className="text-center p-4 bg-blue-50 rounded-lg">
             <p className="text-3xl font-bold text-blue-600">0</p>
             <p className="text-sm text-gray-600 mt-1">Active Listings</p>
           </div>
-          <div className="text-center">
+          <div className="text-center p-4 bg-green-50 rounded-lg">
             <p className="text-3xl font-bold text-green-600">0</p>
             <p className="text-sm text-gray-600 mt-1">Total Views</p>
           </div>
-          <div className="text-center">
+          <div className="text-center p-4 bg-purple-50 rounded-lg">
             <p className="text-3xl font-bold text-purple-600">0</p>
-            <p className="text-sm text-gray-600 mt-1">Inquiries</p>
+            <p className="text-sm text-gray-600 mt-1">Customer Inquiries</p>
           </div>
         </div>
       </div>

@@ -47,54 +47,108 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { 
       business_name, 
-      business_type, 
       description, 
       website, 
       address, 
       phone, 
+      whatsapp,
       operating_hours,
-      logo_url 
+      logo_url,
+      banner_url,
+      profile_image_url 
     } = body
 
     // Validate required fields
-    if (!business_name || !business_type || !description) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    if (!business_name || !description || !phone) {
+      return NextResponse.json({ error: 'Missing required fields: business name, description, and phone are required' }, { status: 400 })
     }
 
-    // Check if profile already exists
+    // Check if any profile exists (active or deleted)
     const { data: existingProfile } = await supabase
       .from('business_profiles')
-      .select('id')
+      .select('id, is_active')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
 
-    if (existingProfile) {
+    if (existingProfile?.is_active) {
       return NextResponse.json({ error: 'Business profile already exists' }, { status: 400 })
     }
 
-    // Create the profile
-    const { data: profile, error } = await supabase
-      .from('business_profiles')
-      .insert({
+    let profile, error
+
+    if (existingProfile) {
+      // Reactivate soft-deleted profile with new data
+      const { data: updatedProfile, error: updateError } = await supabase
+        .from('business_profiles')
+        .update({
+          business_name,
+          description,
+          website,
+          address,
+          phone,
+          whatsapp,
+          operating_hours,
+          logo_url,
+          banner_url,
+          profile_image_url,
+          is_active: true,
+          is_paused: false,
+          is_verified: false,
+          deleted_at: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existingProfile.id)
+        .select()
+        .single()
+      
+      profile = updatedProfile
+      error = updateError
+    } else {
+      // Create new profile
+      const { data: newProfile, error: insertError } = await supabase
+        .from('business_profiles')
+        .insert({
+          id: user.id,
+          user_id: user.id,
+          business_name,
+          description,
+          website,
+          address,
+          phone,
+          whatsapp,
+          operating_hours,
+          logo_url,
+          banner_url,
+          profile_image_url,
+          is_active: true,
+          is_paused: false,
+          is_verified: false
+        })
+        .select()
+        .single()
+      
+      profile = newProfile
+      error = insertError
+    }
+
+    if (error) {
+      console.error('Error creating business profile:', error)
+      console.error('Error details:', JSON.stringify(error, null, 2))
+      console.error('Insert data:', JSON.stringify({
+        id: user.id,
         user_id: user.id,
         business_name,
-        business_type,
         description,
         website,
         address,
         phone,
         operating_hours,
-        logo_url,
-        is_active: true,
-        is_paused: false,
-        is_verified: false
-      })
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error creating business profile:', error)
-      return NextResponse.json({ error: 'Failed to create business profile' }, { status: 500 })
+        logo_url
+      }, null, 2))
+      return NextResponse.json({ 
+        error: 'Failed to create business profile', 
+        details: error.message || error 
+      }, { status: 500 })
     }
 
     return NextResponse.json({ profile })
@@ -122,13 +176,15 @@ export async function PATCH(request: NextRequest) {
     // Only include fields that are provided
     const allowedFields = [
       'business_name', 
-      'business_type', 
       'description', 
       'website', 
       'address', 
       'phone', 
+      'whatsapp',
       'operating_hours',
       'logo_url',
+      'banner_url',
+      'profile_image_url',
       'is_paused'
     ]
 

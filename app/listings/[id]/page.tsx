@@ -52,6 +52,8 @@ export default async function ListingDetailPage({
     .single()
 
   console.log('Seller profile data:', sellerProfile)
+  console.log('Business profile exists:', sellerProfile?.business_profiles)
+  console.log('Account type:', sellerProfile?.account_type)
 
   // Log finance fields for debugging
   console.log('Listing finance data:', {
@@ -102,10 +104,11 @@ export default async function ListingDetailPage({
   // Prepare seller data based on profile type
   let sellerData = null
   if (sellerProfile) {
-    if (sellerProfile.account_type === 'business' && sellerProfile.business_profiles?.length > 0) {
-      const businessProfile = sellerProfile.business_profiles[0]
+    if (sellerProfile.account_type === 'business' && sellerProfile.business_profiles) {
+      const businessProfile = sellerProfile.business_profiles
       sellerData = {
         type: 'business',
+        businessId: businessProfile.id,
         name: businessProfile.business_name,
         description: businessProfile.description,
         businessType: businessProfile.business_type,
@@ -115,6 +118,8 @@ export default async function ListingDetailPage({
         operatingHours: businessProfile.operating_hours,
         isVerified: businessProfile.is_verified,
         logoUrl: businessProfile.logo_url,
+        bannerUrl: businessProfile.banner_url,
+        profileImageUrl: businessProfile.profile_image_url,
         // Use listing contact info as primary contact
         location: listing.location,
         phone: listing.phone,

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Phone, MessageSquare, MessageCircle, User, Building2 } from 'lucide-react'
+import { Phone, MessageSquare, MessageCircle, User, Building2, CheckCircle } from 'lucide-react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
@@ -20,6 +20,7 @@ type Listing = {
 
 type BusinessSellerData = {
   type: 'business'
+  businessId: string
   name: string
   description?: string
   businessType?: string
@@ -29,6 +30,8 @@ type BusinessSellerData = {
   operatingHours?: string
   isVerified?: boolean
   logoUrl?: string
+  bannerUrl?: string
+  profileImageUrl?: string
   location: string
   phone: string
   whatsapp: string
@@ -66,39 +69,60 @@ function BusinessProfile({ seller, listing }: {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false)
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6">
-      <h2 className="text-lg font-semibold mb-4">Contact Dealer</h2>
+    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      {/* Banner Image */}
+      {seller.bannerUrl && (
+        <div className="h-24 bg-gradient-to-r from-blue-600 to-blue-800">
+          <img 
+            src={seller.bannerUrl} 
+            alt={`${seller.name} banner`}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
       
-      {/* Business Profile */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center">
-          {seller.logoUrl ? (
-            <img 
-              src={seller.logoUrl} 
-              alt={seller.name}
-              className="w-full h-full object-cover rounded-xl"
-            />
-          ) : (
-            <div className="w-full h-full bg-gray-50 border border-blue-200 rounded-xl flex items-center justify-center">
-              <Building2 className="w-6 h-6 text-blue-600" />
-            </div>
-          )}
+      <div className="p-6">
+        <h2 className="text-lg font-semibold mb-4">Contact Dealer</h2>
+        
+        {/* Business Profile */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-16 h-16 rounded-xl flex items-center justify-center border-2 border-white shadow-md">
+            {seller.profileImageUrl || seller.logoUrl ? (
+              <img 
+                src={seller.profileImageUrl || seller.logoUrl} 
+                alt={seller.name}
+                className="w-full h-full object-cover rounded-xl"
+              />
+            ) : (
+              <div className="w-full h-full bg-gray-50 border border-blue-200 rounded-xl flex items-center justify-center">
+                <Building2 className="w-8 h-8 text-blue-600" />
+              </div>
+            )}
+          </div>
+          <div className="flex-1">
+            <Link 
+              href={`/business/${seller.businessId}`}
+              className="font-bold text-gray-900 text-lg hover:text-blue-600 transition-colors flex items-center gap-2"
+            >
+              {seller.name}
+              {seller.isVerified && (
+                <CheckCircle className="w-5 h-5 text-blue-600" title="Verified Business" />
+              )}
+            </Link>
+          </div>
         </div>
-        <div className="flex-1">
-          <p className="font-bold text-gray-900 text-lg">{seller.name}</p>
-        </div>
-      </div>
 
-      {/* Contact Actions */}
-      <div className="space-y-3">
-        <button
-          onClick={() => setIsContactModalOpen(true)}
-          className="btn-call btn-full btn-icon"
-        >
-          <Phone className="w-4 h-4" />
-          Contact
-        </button>
-        <MessageButton listing={listing} />
+        {/* Contact Actions */}
+        <div className="space-y-3">
+          <button
+            onClick={() => setIsContactModalOpen(true)}
+            className="btn-call btn-full btn-icon"
+          >
+            <Phone className="w-4 h-4" />
+            Contact
+          </button>
+          <MessageButton listing={listing} />
+        </div>
       </div>
 
       <ContactModal
@@ -254,6 +278,7 @@ export default function ContactProfile({ listing, sellerData, dealer }: ContactP
   if (dealer) {
     const legacyBusinessSeller: BusinessSellerData = {
       type: 'business',
+      businessId: '', // No ID for legacy dealers
       name: dealer.name,
       location: dealer.location,
       phone: dealer.phone,

@@ -17,12 +17,14 @@ export default function CreateBusinessProfile({
 }: CreateBusinessProfileProps) {
   const [formData, setFormData] = useState<CreateBusinessProfileData>({
     business_name: '',
-    business_type: 'Auto Dealer',
     description: '',
     website: '',
     address: '',
     phone: '',
-    operating_hours: ''
+    operating_hours: '',
+    logo_url: '',
+    banner_url: '',
+    profile_image_url: ''
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -118,24 +120,6 @@ export default function CreateBusinessProfile({
                 )}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Business Type
-                </label>
-                <select
-                  value={formData.business_type}
-                  onChange={(e) => setFormData({...formData, business_type: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  disabled={loading}
-                >
-                  <option value="Auto Dealer">Auto Dealer</option>
-                  <option value="Car Showroom">Car Showroom</option>
-                  <option value="Vehicle Importer">Vehicle Importer</option>
-                  <option value="Auto Parts">Auto Parts</option>
-                  <option value="Service Center">Service Center</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
