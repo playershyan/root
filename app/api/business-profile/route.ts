@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
       .from('business_profiles')
       .select('*')
       .eq('user_id', user.id)
+      .eq('is_active', true)
       .single()
 
     if (error && error.code !== 'PGRST116') {
@@ -198,6 +199,7 @@ export async function PATCH(request: NextRequest) {
       .from('business_profiles')
       .update(updates)
       .eq('user_id', user.id)
+      .eq('is_active', true)
       .select()
       .single()
 

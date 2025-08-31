@@ -1,6 +1,14 @@
 import * as Sentry from "@sentry/nextjs"
 import { AppError } from './errorHandling'
 
+// MCP Integration
+interface MCPContext {
+  toolName?: string
+  operation?: string
+  modelRequest?: boolean
+  sessionId?: string
+}
+
 // Initialize Sentry (add your DSN from Sentry dashboard)
 export const initSentry = () => {
   if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_SENTRY_DSN) {
@@ -16,12 +24,13 @@ export const initSentry = () => {
   }
 }
 
-// Enhanced error reporting with context
+// Enhanced error reporting with context (including MCP context)
 export const reportError = (error: AppError | Error, context?: {
   userId?: string
   listingId?: string
   action?: string
   extra?: Record<string, any>
+  mcp?: MCPContext
 }) => {
   if (process.env.NODE_ENV === 'production') {
     Sentry.withScope((scope) => {
@@ -37,6 +46,17 @@ export const reportError = (error: AppError | Error, context?: {
       
       if (context?.action) {
         scope.setTag('action', context.action)
+      }
+      
+      // Add MCP context
+      if (context?.mcp) {
+        scope.setTag('mcp.toolName', context.mcp.toolName || 'unknown')
+        scope.setTag('mcp.operation', context.mcp.operation || 'unknown')
+        scope.setTag('mcp.modelRequest', context.mcp.modelRequest || false)
+        if (context.mcp.sessionId) {
+          scope.setTag('mcp.sessionId', context.mcp.sessionId)
+        }
+        scope.setContext('mcp', context.mcp)
       }
       
       // Add extra context
@@ -76,4 +96,46 @@ export const trackUserAction = (action: string, properties?: Record<string, any>
       data: properties
     })
   }
+}
+
+// MCP-specific tracking functions
+export const trackMCPOperation = (operation: string, toolName?: string, properties?: Record<string, any>) => {
+  if (process.env.NODE_ENV === 'production') {
+    Sentry.addBreadcrumb({
+      message: `MCP Operation: ${operation}`,
+      level: 'info',
+      category: 'mcp',
+      data: {
+        toolName,
+        operation,
+        ...properties
+      }
+    })
+  }
+}
+
+export const reportMCPError = (error: Error, toolName: string, operation: string, sessionId?: string) => {
+  reportError(error, {
+    action: `mcp_${operation}`,
+    mcp: {
+      toolName,
+      operation,
+      modelRequest: true,
+      sessionId
+    }
+  })
+}
+
+// Performance monitoring for MCP operations
+export const createMCPTransaction = (name: string, operation: string) => {
+  if (process.env.NODE_ENV === 'production') {
+    return Sentry.startTransaction({
+      name: `MCP: ${name}`,
+      op: operation,
+      tags: {
+        'mcp.operation': operation
+      }
+    })
+  }
+  return null
 }

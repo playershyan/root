@@ -11,15 +11,18 @@ import EmailSecurityCard from './EmailSecurityCard'
 import PasswordSecurityCard from './PasswordSecurityCard'
 import TwoFactorCard from './TwoFactorCard'
 import SessionsCard from './SessionsCard'
+import DeleteAccountCard from './DeleteAccountCard'
 
 interface SecurityTabProps {
   emailData?: EmailUpdateData
   twoFactorData?: TwoFactorAuthData
   sessions?: SecuritySession[]
+  userEmail?: string
   onEmailUpdate?: (data: any) => Promise<void>
   onPasswordUpdate?: (data: any) => Promise<void>
   onTwoFactorUpdate?: (data: any) => Promise<void>
   onSessionUpdate?: (data: any) => Promise<void>
+  onAccountDelete?: () => Promise<void>
   loading?: boolean
 }
 
@@ -27,10 +30,12 @@ export default function SecurityTab({
   emailData,
   twoFactorData,
   sessions,
+  userEmail,
   onEmailUpdate,
   onPasswordUpdate,
   onTwoFactorUpdate,
   onSessionUpdate,
+  onAccountDelete,
   loading = false
 }: SecurityTabProps) {
   const [updateSuccess, setUpdateSuccess] = useState<string | null>(null)
@@ -173,6 +178,16 @@ export default function SecurityTab({
                 loading={loading}
               />
             )}
+
+            {/* Delete Account - Danger Zone */}
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold text-red-600 mb-4">Danger Zone</h3>
+              <DeleteAccountCard
+                userEmail={userEmail}
+                onDelete={onAccountDelete}
+                loading={loading}
+              />
+            </div>
           </div>
 
           {/* Security Tips */}

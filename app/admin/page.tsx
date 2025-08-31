@@ -5,9 +5,12 @@ import { useRouter } from 'next/navigation'
 import { 
   Users, Car, AlertTriangle, CheckCircle, XCircle, 
   Eye, MessageSquare, Clock, TrendingUp, Shield,
-  FileText, Flag, Settings, LogOut, Building2
+  FileText, Flag, Settings, LogOut, Building2, Database
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import CleanupMonitoringWidget from '../components/admin/CleanupMonitoringWidget'
+import AlertsWidget from '../components/admin/AlertsWidget'
+import SystemHealthWidget from '../components/admin/SystemHealthWidget'
 
 interface AdminStats {
   pendingListings: number
@@ -441,7 +444,8 @@ export default function AdminDashboard() {
                 { id: 'listings', label: 'Pending Listings', icon: Car },
                 { id: 'business-profiles', label: 'Business Profiles', icon: Building2 },
                 { id: 'reports', label: 'Reports', icon: Flag },
-                { id: 'approved', label: 'Approved Listings', icon: CheckCircle }
+                { id: 'approved', label: 'Approved Listings', icon: CheckCircle },
+                { id: 'monitoring', label: 'Cleanup Monitoring', icon: Database }
               ].map((tab) => {
                 const IconComponent = tab.icon
                 return (
@@ -688,6 +692,26 @@ export default function AdminDashboard() {
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+
+            {activeTab === 'monitoring' && (
+              <div className="space-y-6">
+                <h2 className="text-lg font-semibold text-gray-800">Cleanup Monitoring & Data Management</h2>
+                
+                {/* Grid layout for widgets */}
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                  {/* Main cleanup monitoring widget spans 2 columns */}
+                  <div className="xl:col-span-2">
+                    <CleanupMonitoringWidget className="h-full" />
+                  </div>
+                  
+                  {/* Sidebar widgets */}
+                  <div className="xl:col-span-1 space-y-6">
+                    <SystemHealthWidget />
+                    <AlertsWidget />
+                  </div>
+                </div>
               </div>
             )}
           </div>

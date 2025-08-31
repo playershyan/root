@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
       .from('business_profiles')
       .update({ is_paused: true })
       .eq('user_id', user.id)
+      .eq('is_active', true)
       .select()
       .single()
 

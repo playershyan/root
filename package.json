@@ -1,20 +1,26 @@
 {
-    "name": "autotrader-lk",
+    "name": "vera-lk",
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "dev": "next dev",
+        "dev": "node server.js",
+        "dev:next-only": "next dev",
         "build": "next build",
-        "start": "next start",
-        "lint": "next lint"
+        "start": "NODE_ENV=production node server.js",
+        "start:next-only": "next start",
+        "lint": "next lint",
+        "mcp:server": "node mcp-sentry.config.js"
     },
     "dependencies": {
         "@google/generative-ai": "^0.16.0",
+        "@sentry/mcp-server": "^0.17.1",
         "@sentry/nextjs": "^10.3.0",
         "@supabase/auth-helpers-nextjs": "^0.10.0",
         "@supabase/ssr": "^0.6.1",
         "@supabase/supabase-js": "^2.45.0",
         "@types/jsonwebtoken": "^9.0.10",
+        "cloudinary": "^2.7.0",
+        "dotenv": "^17.2.1",
         "google-auth-library": "^10.2.1",
         "jsonwebtoken": "^9.0.2",
         "lodash": "^4.17.21",

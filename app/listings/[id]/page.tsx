@@ -73,11 +73,25 @@ export default async function ListingDetailPage({
   listing.seller_name = 'Premium Motors'
 }*/
 
-  // Increment view count
-  await supabase
-    .from('listings')
-    .update({ views: (listing.views || 0) + 1 })
-    .eq('id', params.id)
+  // Increment view count (server-side with rate limiting)
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (user?.id !== listing.user_id) {
+    try {
+      // Use the enhanced function with rate limiting
+      await supabase.rpc('increment_listing_views_enhanced', { 
+        listing_id: params.id,
+        viewer_ip: null, // IP tracking handled by API route if needed
+        viewer_user_id: user?.id || null
+      })
+    } catch (error) {
+      // Fallback to simple increment if enhanced function fails
+      console.warn('Enhanced view tracking failed, using fallback:', error)
+      await supabase.rpc('increment_listing_views_simple', { 
+        listing_id: params.id 
+      })
+    }
+  }
 
   // Fetch similar vehicles
   const { data: similarListings } = await supabase

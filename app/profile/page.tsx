@@ -37,6 +37,7 @@ import SecurityTab from '@/app/components/security/SecurityTab'
 import NotificationsTab from '@/app/components/notifications/NotificationsTab'
 import CountrySelector from '@/app/components/CountrySelector'
 import { countries, Country } from '@/lib/data/countries'
+import BusinessProfileRecovery from '@/app/components/profile/BusinessProfileRecovery'
 
 // Types
 interface UserProfile {
@@ -623,7 +624,7 @@ export default function ProfilePage() {
           .from('profiles')
           .select(`
             *,
-            business_profile:business_profiles(*)
+            business_profile:business_profiles!left(*)
           `)
           .eq('id', user.id)
           .single()
@@ -645,8 +646,8 @@ export default function ProfilePage() {
           // Check email verification status
           setEmailVerified(profileData.email_verified !== false)
 
-          // Check if user has business profile
-          if (profileData.business_profile) {
+          // Check if user has active business profile
+          if (profileData.business_profile && profileData.business_profile.is_active) {
             setBusinessProfile({
               id: profileData.business_profile.id,
               businessName: profileData.business_profile.business_name || '',
@@ -2131,6 +2132,42 @@ export default function ProfilePage() {
                   onUpdate={handleUpdateBusinessProfile}
                   loading={businessLoading}
                 />
+              )}
+
+              {/* Business Profile Recovery - Show when no business profile but recovery is possible */}
+              {!businessProfile && activeTab === 'business' && (
+                <div className="p-6">
+                  <h1 className="text-2xl font-semibold mb-6">Business Profile</h1>
+                  
+                  {/* Business Profile Recovery Component */}
+                  <BusinessProfileRecovery 
+                    onRecovered={(businessName) => {
+                      console.log(`Business profile "${businessName}" recovered`)
+                      // Refresh business profile data
+                      fetchBusinessProfile()
+                    }}
+                    className="mb-6"
+                  />
+                  
+                  {/* Existing Create Business Profile Section */}
+                  <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <div className="text-center">
+                      <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Building2 className="w-10 h-10 text-gray-400" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">Create Business Profile</h3>
+                      <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                        Set up your business profile to showcase your dealership, manage your listings, and build trust with customers.
+                      </p>
+                      <button
+                        onClick={() => setShowCreateProfile(true)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                      >
+                        Create Business Profile
+                      </button>
+                    </div>
+                  </div>
+                </div>
               )}
 
               {/* Membership Tab */}

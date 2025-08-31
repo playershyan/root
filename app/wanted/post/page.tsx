@@ -17,6 +17,7 @@ import {
   getMakesByCategory,
   getModelsByMake
 } from '@/lib/constants/vehicleData'
+import { useUserProfile } from '@/lib/hooks/useUserProfile'
 
 interface FormData {
   description: string
@@ -44,6 +45,7 @@ export default function PostWantedPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, loading: authLoading } = useAuth()
+  const { profile, loading: profileLoading, getPhoneNumber } = useUserProfile()
   const { selectedCountry, setSelectedCountry } = useCountrySelector('LK')
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState(1) // Multi-step form
@@ -59,6 +61,20 @@ export default function PostWantedPage() {
       router.push('/?auth=true&redirect=/wanted/post')
     }
   }, [user, authLoading, router])
+
+  // Auto-populate phone number from user profile
+  useEffect(() => {
+    if (!profileLoading && profile && !formData.phone) {
+      const phoneNumber = getPhoneNumber()
+      
+      if (phoneNumber) {
+        setFormData(prev => ({
+          ...prev,
+          phone: phoneNumber
+        }))
+      }
+    }
+  }, [profile, profileLoading, getPhoneNumber])
   
   const currentYear = new Date().getFullYear()
   const minYear = 1990

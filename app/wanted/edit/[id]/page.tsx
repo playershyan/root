@@ -10,6 +10,7 @@ import {
   getDistrictByName 
 } from '@/lib/constants/locations'
 import { useAuth } from '@/app/contexts/AuthContext'
+import { useUserProfile } from '@/lib/hooks/useUserProfile'
 
 const VEHICLE_MAKES = [
   'Toyota', 'Honda', 'Nissan', 'Mazda', 'Suzuki', 
@@ -55,6 +56,7 @@ export default function EditWantedRequestPage() {
   const router = useRouter()
   const params = useParams()
   const { user } = useAuth()
+  const { profile, loading: profileLoading, getPhoneNumber } = useUserProfile()
   const requestId = params?.id as string
   
   const [loading, setLoading] = useState(false)
@@ -106,6 +108,9 @@ export default function EditWantedRequestPage() {
 
         if (data) {
           setOriginalStatus(data.status)
+          // Auto-populate phone from profile if not set
+          const phoneFromProfile = !data.phone && profile ? getPhoneNumber() : data.phone
+          
           setFormData({
             title: data.title || '',
             description: data.description || '',
@@ -116,7 +121,7 @@ export default function EditWantedRequestPage() {
             min_year: data.min_year?.toString() || '',
             max_year: data.max_year?.toString() || '',
             location: data.location || '',
-            phone: data.phone || '',
+            phone: phoneFromProfile || '',
             fuel_type: data.fuel_type || '',
             transmission: data.transmission || '',
             max_mileage: data.max_mileage?.toString() || ''
@@ -142,7 +147,7 @@ export default function EditWantedRequestPage() {
     }
 
     loadWantedRequest()
-  }, [user, requestId, router])
+  }, [user, requestId, router, profile, getPhoneNumber])
 
   // Update available models when make changes
   useEffect(() => {

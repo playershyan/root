@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { X, CreditCard, Smartphone } from 'lucide-react'
-import { useStripePayment } from '@/lib/payments/stripeService'
 import { PayHerePaymentForm } from '@/lib/payments/payhereService'
 import { PromotionType } from '@/lib/services/promotionService'
 
@@ -23,7 +22,7 @@ export default function PaymentModal({
   totalAmount,
   onSuccess
 }: PaymentModalProps) {
-  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'payhere'>('payhere')
+  const [paymentMethod] = useState<'payhere'>('payhere')
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
     email: '',
@@ -32,7 +31,6 @@ export default function PaymentModal({
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const { initiatePayment } = useStripePayment()
 
   if (!isOpen) return null
 
@@ -57,29 +55,6 @@ export default function PaymentModal({
     return Object.keys(newErrors).length === 0
   }
 
-  const handleStripePayment = async () => {
-    if (!validateForm()) return
-
-    setLoading(true)
-    try {
-      const result = await initiatePayment({
-        listingId,
-        promotionTypes: selectedFeatures,
-        customerEmail: customerInfo.email,
-        customerName: customerInfo.name
-      })
-
-      // Redirect to Stripe Checkout or handle client secret
-      if (result.clientSecret) {
-        // Implement Stripe Elements or redirect to checkout
-        console.log('Stripe payment initiated:', result.clientSecret)
-      }
-    } catch (error) {
-      console.error('Payment error:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handlePayHereSubmit = () => {
     if (!validateForm()) return
@@ -184,8 +159,8 @@ export default function PaymentModal({
                   type="radio"
                   name="paymentMethod"
                   value="payhere"
-                  checked={paymentMethod === 'payhere'}
-                  onChange={(e) => setPaymentMethod(e.target.value as 'payhere')}
+                  checked={true}
+                  readOnly
                   className="mr-3"
                 />
                 <Smartphone className="w-5 h-5 mr-3 text-green-600" />
@@ -195,21 +170,6 @@ export default function PaymentModal({
                 </div>
               </label>
 
-              <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="stripe"
-                  checked={paymentMethod === 'stripe'}
-                  onChange={(e) => setPaymentMethod(e.target.value as 'stripe')}
-                  className="mr-3"
-                />
-                <CreditCard className="w-5 h-5 mr-3 text-blue-600" />
-                <div>
-                  <div className="font-medium">Credit/Debit Card</div>
-                  <div className="text-sm text-gray-500">Visa, Mastercard, American Express</div>
-                </div>
-              </label>
             </div>
           </div>
 
@@ -229,16 +189,6 @@ export default function PaymentModal({
               />
             )}
 
-            {paymentMethod === 'stripe' && (
-              <button
-                onClick={handleStripePayment}
-                disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
-              >
-                <CreditCard className="w-5 h-5" />
-                {loading ? 'Processing...' : `Pay Rs. ${totalAmount.toLocaleString()}`}
-              </button>
-            )}
 
             <button
               onClick={onClose}

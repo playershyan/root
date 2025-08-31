@@ -24,6 +24,7 @@ import {
 } from '@/lib/constants/vehicleData'
 import VehicleFormFactory from '@/app/components/vehicle-forms/VehicleFormFactory'
 import { BaseVehicleFormData } from '@/app/components/vehicle-forms/types'
+import { useUserProfile } from '@/lib/hooks/useUserProfile'
 
 // Vehicle makes and models are now loaded from vehicleData.ts
 // Form constants are now in the vehicle-forms types
@@ -88,6 +89,7 @@ export default function EnhancedPostVehiclePage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, loading: authLoading } = useAuth()
+  const { profile, loading: profileLoading, getPhoneNumber, getWhatsAppNumber } = useUserProfile()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const vehicleDropdownRef = useRef<HTMLDivElement>(null)
   
@@ -117,6 +119,23 @@ export default function EnhancedPostVehiclePage() {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Auto-populate phone numbers from user profile
+  useEffect(() => {
+    if (!profileLoading && profile && !formData.phone && !formData.whatsapp) {
+      const phoneNumber = getPhoneNumber()
+      const whatsappNumber = getWhatsAppNumber()
+      
+      if (phoneNumber || whatsappNumber) {
+        setFormData(prev => ({
+          ...prev,
+          phone: phoneNumber,
+          whatsapp: whatsappNumber,
+          email: profile.email || prev.email
+        }))
+      }
+    }
+  }, [profile, profileLoading, getPhoneNumber, getWhatsAppNumber])
   
   // Close dropdown when clicking outside
   useEffect(() => {

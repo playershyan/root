@@ -1,11 +1,6 @@
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 
-const SentryTestButton = dynamic(() => import('./components/SentryTestButton'), {
-  ssr: false,
-  loading: () => <p>Loading...</p>
-})
-
 const AboutSection = dynamic(() => import('./components/AboutSection'), {
   ssr: false
 })
@@ -93,10 +88,6 @@ export default async function HomePage() {
 
       {/* About Section */}
       <AboutSection />
-      
-      <div className="hidden md:block">
-        <SentryTestButton />
-      </div>
     </div>
   )
 }
