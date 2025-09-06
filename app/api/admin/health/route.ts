@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
       try {
         const { error } = await supabase.from(tableName).select('*').limit(0)
         if (!error) {
-          healthChecks[tableName] = true
+          (healthChecks as any)[tableName] = true
         } else if (error.code === 'PGRST116' || error.message?.includes('relation') || error.message?.includes('does not exist')) {
           issues.push(`Table '${tableName}' does not exist`)
         } else {
@@ -99,11 +99,11 @@ export async function GET(request: NextRequest) {
         }
         
         if (!testResult.error) {
-          healthChecks.functions[funcName] = true
+          (healthChecks.functions as any)[funcName] = true
         } else if (testResult.error.code === '42883' || testResult.error.message?.includes('function') || testResult.error.message?.includes('does not exist')) {
           issues.push(`Function '${funcName}' does not exist`)
         } else {
-          healthChecks.functions[funcName] = true // Function exists but may have returned an error for other reasons
+          (healthChecks.functions as any)[funcName] = true // Function exists but may have returned an error for other reasons
         }
       } catch (err) {
         issues.push(`Function '${funcName}' check failed: ${err}`)

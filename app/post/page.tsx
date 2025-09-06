@@ -547,7 +547,8 @@ export default function EnhancedPostVehiclePage() {
       console.log('Listing created successfully:', data)
       
       localStorage.removeItem('vehiclePostDraft')
-      router.push('/post/paid-features?new=true')
+      // Skip paid features for now - redirect to listing
+      router.push(`/listings/${data.id}?success=true`)
     } catch (error: any) {
       console.error('Error posting vehicle:', error)
       

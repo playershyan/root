@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
         const { data, error } = await supabase
           .rpc('get_recent_alerts', { days_back: daysBack })
         
-        recentAlerts = data
+        recentAlerts = data || []
         alertsError = error
       } catch (funcError) {
         console.log('Function not available, trying direct table query:', funcError)
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
           .gte('triggered_at', cutoffDate.toISOString())
           .order('triggered_at', { ascending: false })
         
-        recentAlerts = data
+        recentAlerts = data || []
         alertsError = error
       }
 

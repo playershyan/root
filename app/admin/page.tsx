@@ -177,7 +177,9 @@ export default function AdminDashboard() {
       totalUsers: 0,
       pendingReports: 0,
       todayListings: 0,
-      todayReports: 0
+      todayReports: 0,
+      pendingBusinessProfiles: 0,
+      verifiedBusinessProfiles: 0
     })
   }
 
@@ -490,9 +492,9 @@ export default function AdminDashboard() {
                               {formatCurrency(listing.price)}
                             </p>
                             <div className="text-sm text-gray-600 mt-2">
-                              <p>Posted by: {listing.email || 'Unknown'}</p>
+                              <p>Posted by: {(listing as any).phone || 'Unknown'}</p>
                               <p>Date: {formatDate(listing.created_at)}</p>
-                              <p>User ID: {listing.user_id}</p>
+                              <p>User ID: {(listing as any).user_id}</p>
                             </div>
                           </div>
                           <div className="flex gap-2 ml-4">

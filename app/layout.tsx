@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import { Suspense } from 'react'
 import './globals.css'
 import Header from './components/header'
 import Footer from './components/Footer'
@@ -31,13 +32,15 @@ export default function RootLayout({
           <AuthProvider>
             <NotificationProvider>
               <GoogleOneTapProvider />
-              <AuthWrapper>
-                <Header />
-                <main className="min-h-screen">
-                  {children}
-                </main>
-                <Footer />
-              </AuthWrapper>
+              <Suspense fallback={<div className="min-h-screen" />}>
+                <AuthWrapper>
+                  <Header />
+                  <main className="min-h-screen">
+                    {children}
+                  </main>
+                  <Footer />
+                </AuthWrapper>
+              </Suspense>
             </NotificationProvider>
           </AuthProvider>
         </ErrorBoundary>

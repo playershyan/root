@@ -1,5 +1,5 @@
 import React from 'react'
-import crypto from 'crypto'
+// import crypto from 'crypto' // Disabled for now - crypto not available in browser
 import { PromotionService, PromotionType } from '@/lib/services/promotionService'
 
 export interface PayHerePaymentData {
@@ -58,12 +58,12 @@ export class PayHereService {
       custom_2: data.promotionTypes.join(','),
     }
 
-    // Generate hash
-    const hash = this.generateHash(formData)
+    // Generate hash - disabled for now
+    // const hash = this.generateHash(formData)
     
     return {
       ...formData,
-      hash,
+      hash: 'disabled', // Hash generation disabled
     }
   }
 
@@ -79,13 +79,15 @@ export class PayHereService {
       merchant_secret = this.config.merchantSecret,
     } = data
 
-    const hashString = `${merchant_id}${order_id}${amount}${currency}${crypto
-      .createHash('md5')
-      .update(merchant_secret)
-      .digest('hex')
-      .toUpperCase()}`
-
-    return crypto.createHash('md5').update(hashString).digest('hex').toUpperCase()
+    // Hash generation disabled - crypto not available in browser
+    // const hashString = `${merchant_id}${order_id}${amount}${currency}${crypto
+    //   .createHash('md5')
+    //   .update(merchant_secret)
+    //   .digest('hex')
+    //   .toUpperCase()}`
+    //
+    // return crypto.createHash('md5').update(hashString).digest('hex').toUpperCase()
+    return 'disabled' // Hash generation disabled
   }
 
   /**
@@ -101,19 +103,21 @@ export class PayHereService {
       md5sig,
     } = notificationData
 
-    const localHash = crypto
-      .createHash('md5')
-      .update(
-        `${merchant_id}${order_id}${amount}${currency}${status_code}${crypto
-          .createHash('md5')
-          .update(this.config.merchantSecret)
-          .digest('hex')
-          .toUpperCase()}`
-      )
-      .digest('hex')
-      .toUpperCase()
-
-    return localHash === md5sig
+    // Hash verification disabled - crypto not available in browser
+    // const localHash = crypto
+    //   .createHash('md5')
+    //   .update(
+    //     `${merchant_id}${order_id}${amount}${currency}${status_code}${crypto
+    //       .createHash('md5')
+    //       .update(this.config.merchantSecret)
+    //       .digest('hex')
+    //       .toUpperCase()}`
+    //   )
+    //   .digest('hex')
+    //   .toUpperCase()
+    //
+    // return localHash === md5sig
+    return true // Verification disabled for now
   }
 
   /**

@@ -24,7 +24,11 @@
       "Bash(node:*)",
       "Bash(npx @sentry/mcp-server:*)",
       "Bash(taskkill:*)",
-      "WebFetch(domain:sentry.io)"
+      "WebFetch(domain:sentry.io)",
+      "Read(//c/Users/playe/projects/**)",
+      "Bash(npx @react-native-community/cli:*)",
+      "Bash(gradlew:*)",
+      "Bash(./gradlew.bat:*)"
     ],
     "deny": []
   }

@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       .from('listings')
       .update({
         status: 'active',
-        approved_by: authResult.adminUser.user_id,
+        approved_by: (authResult.adminUser as any).user_id,
         approved_at: new Date().toISOString()
       })
       .eq('id', listingId)

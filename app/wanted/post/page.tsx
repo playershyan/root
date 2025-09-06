@@ -349,7 +349,8 @@ export default function PostWantedPage() {
 
       if (error) throw error
 
-      router.push('/wanted/post/boost?new=true')
+      // Skip boost for now - redirect to wanted page
+      router.push('/wanted?success=true')
     } catch (error) {
       alert('Error posting request. Please try again.')
       console.error(error)
