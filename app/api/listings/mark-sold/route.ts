@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log the action
-    await supabase
+    const { error: logError } = await supabase
       .from('listing_actions')
       .insert({
         listing_id: listingId,
@@ -90,7 +90,10 @@ export async function POST(request: NextRequest) {
         action: 'marked_as_sold',
         created_at: now.toISOString()
       })
-      .catch(err => console.error('Failed to log mark as sold action:', err))
+    
+    if (logError) {
+      console.error('Failed to log mark as sold action:', logError)
+    }
 
     return NextResponse.json({
       success: true,

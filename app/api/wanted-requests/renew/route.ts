@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log the renewal action
-    await supabase
+    const { error: logError } = await supabase
       .from('wanted_request_actions')
       .insert({
         wanted_request_id: requestId,
@@ -99,7 +99,10 @@ export async function POST(request: NextRequest) {
         action: 'renewed',
         created_at: now.toISOString()
       })
-      .catch(err => console.error('Failed to log renewal action:', err))
+    
+    if (logError) {
+      console.error('Failed to log renewal action:', logError)
+    }
 
     return NextResponse.json({
       success: true,

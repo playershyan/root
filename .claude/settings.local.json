@@ -28,7 +28,13 @@
       "Read(//c/Users/playe/projects/**)",
       "Bash(npx @react-native-community/cli:*)",
       "Bash(gradlew:*)",
-      "Bash(./gradlew.bat:*)"
+      "Bash(./gradlew.bat:*)",
+      "Bash(mv:*)",
+      "Bash(for file in C:Usersplayeprojectsrootappapiwanted-requestsrenewroute.ts C:Usersplayeprojectsrootappapiwanted-requestsupdateroute.ts)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(done)",
+      "mcp__supabase__list_extensions",
+      "mcp__supabase__list_migrations"
     ],
     "deny": []
   }

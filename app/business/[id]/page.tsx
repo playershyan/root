@@ -112,7 +112,7 @@ export default async function BusinessPage({
                     <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 flex items-center gap-3">
                       {businessProfile.business_name}
                       {businessProfile.is_verified && (
-                        <CheckCircle className="w-7 h-7 text-blue-600" title="Verified Business" />
+                        <CheckCircle className="w-7 h-7 text-blue-600" aria-label="Verified Business" />
                       )}
                     </h1>
                     <p className="text-gray-600 mt-2 text-lg">
