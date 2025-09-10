@@ -21,7 +21,7 @@ export default function TermsConditionsPage() {
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">1. Acceptance of Terms</h2>
               <p className="text-gray-700 mb-4">
-                By accessing and using AutoTrader.lk ("the Platform"), you accept and agree to be bound by these Terms & Conditions. 
+                By accessing and using vera.lk ("the Platform"), you accept and agree to be bound by these Terms & Conditions. 
                 If you do not agree to these terms, please do not use our services.
               </p>
             </section>
@@ -29,7 +29,7 @@ export default function TermsConditionsPage() {
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">2. Platform Services</h2>
               <p className="text-gray-700 mb-4">
-                AutoTrader.lk provides an online marketplace for buying and selling vehicles in Sri Lanka. Our services include:
+                vera.lk provides an online marketplace for buying and selling vehicles in Sri Lanka. Our services include:
               </p>
               <ul className="list-disc pl-6 text-gray-700 mb-4">
                 <li>Vehicle listing and browsing capabilities</li>
@@ -89,7 +89,7 @@ export default function TermsConditionsPage() {
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">6. Transactions and Payments</h2>
               <p className="text-gray-700 mb-4">
-                AutoTrader.lk facilitates connections between buyers and sellers but is not party to the actual transactions. 
+                vera.lk facilitates connections between buyers and sellers but is not party to the actual transactions. 
                 All sales are conducted directly between users. We recommend:
               </p>
               <ul className="list-disc pl-6 text-gray-700 mb-4">
@@ -111,7 +111,7 @@ export default function TermsConditionsPage() {
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">8. Intellectual Property</h2>
               <p className="text-gray-700 mb-4">
-                The Platform's content, features, and functionality are owned by AutoTrader.lk and protected by copyright, 
+                The Platform's content, features, and functionality are owned by vera.lk and protected by copyright, 
                 trademark, and other intellectual property laws. You retain ownership of content you post but grant us 
                 necessary licenses to operate the Platform.
               </p>
@@ -144,7 +144,7 @@ export default function TermsConditionsPage() {
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">11. Limitation of Liability</h2>
               <p className="text-gray-700 mb-4">
-                AutoTrader.lk shall not be liable for any indirect, incidental, special, or consequential damages 
+                vera.lk shall not be liable for any indirect, incidental, special, or consequential damages 
                 arising from your use of the Platform. Our total liability is limited to the amount you paid for our services.
               </p>
             </section>
@@ -179,10 +179,10 @@ export default function TermsConditionsPage() {
               </p>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-gray-700 mb-2">
-                  <strong>Email:</strong> legal@autotrader.lk
+                  <strong>Email:</strong> legal@vera.lk
                 </p>
                 <p className="text-gray-700 mb-2">
-                  <strong>Address:</strong> AutoTrader.lk, Colombo, Sri Lanka
+                  <strong>Address:</strong> vera.lk, Colombo, Sri Lanka
                 </p>
                 <p className="text-gray-700">
                   <strong>Business Hours:</strong> Monday - Friday, 9:00 AM - 6:00 PM (IST)

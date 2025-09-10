@@ -179,13 +179,19 @@ export default function AdvancedListingsPage() {
     setImageLoading(initialLoadingState)
   }, [listings])
 
-  // Generate AI guide when search changes
+  // Generate AI guide when search changes with debouncing
   useEffect(() => {
-    if (searchTerm && (selectedMake !== 'All Makes' || searchTerm.length > 3)) {
-      generateAIGuide()
-    } else {
-      setShowAIGuide(false)
-    }
+    // Debounce the AI guide generation to avoid too many API calls
+    const debounceTimer = setTimeout(() => {
+      if (searchTerm && (selectedMake !== 'All Makes' || searchTerm.length > 3)) {
+        generateAIGuide()
+      } else {
+        setShowAIGuide(false)
+      }
+    }, 500) // Wait 500ms after user stops typing
+    
+    // Cleanup function to cancel the timer if dependencies change
+    return () => clearTimeout(debounceTimer)
   }, [searchTerm, selectedMake])
 
   const loadPromotedAds = async () => {

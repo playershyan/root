@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
   }
 
   return {
-    title: `${listing.title} - Rs. ${listing.price.toLocaleString()} | AutoTrader.lk`,
+    title: `${listing.title} - Rs. ${listing.price.toLocaleString()} | vera.lk`,
     description: listing.description || listing.ai_generated_description || `${listing.make} ${listing.model} ${listing.year} for sale in ${listing.location}`,
   }
 }

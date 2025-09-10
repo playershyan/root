@@ -1,6 +1,6 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-  siteUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://autotrader.lk',
+  siteUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://vera.lk',
   generateRobotsTxt: true,
   sitemapSize: 7000,
   changefreq: 'daily',
@@ -46,7 +46,7 @@ module.exports = {
       }
     ],
     additionalSitemaps: [
-      'https://autotrader.lk/server-sitemap.xml', // For dynamic routes
+      'https://vera.lk/server-sitemap.xml', // For dynamic routes
     ]
   },
   transform: async (config, path) => {

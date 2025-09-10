@@ -81,13 +81,13 @@ export async function generateMetadata({
   
   if (!dealer) {
     return {
-      title: 'Dealer Not Found | AutoTrader.lk',
+      title: 'Dealer Not Found | vera.lk',
     }
   }
 
   return {
-    title: `${dealer.name} - Dealer Profile | AutoTrader.lk`,
-    description: dealer.description || `View ${dealer.name}'s profile, ratings, and current vehicle listings on AutoTrader.lk`,
+    title: `${dealer.name} - Dealer Profile | vera.lk`,
+    description: dealer.description || `View ${dealer.name}'s profile, ratings, and current vehicle listings on vera.lk`,
   }
 }
 

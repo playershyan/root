@@ -13,17 +13,17 @@ interface MetaTagsProps {
 }
 
 export default function MetaTags({
-  title = 'AutoTrader.lk - Buy & Sell Cars in Sri Lanka',
-  description = 'Find the perfect car or sell your vehicle on AutoTrader.lk. Sri Lanka\'s premier automotive marketplace with thousands of listings.',
+  title = 'vera.lk - Buy & Sell Cars in Sri Lanka',
+  description = 'Find the perfect car or sell your vehicle on vera.lk. Sri Lanka\'s premier automotive marketplace with thousands of listings.',
   image = '/og-image.png',
-  url = 'https://autotrader.lk',
+  url = 'https://vera.lk',
   type = 'website',
   keywords = 'cars, vehicles, buy cars, sell cars, Sri Lanka, automotive, marketplace, used cars',
-  author = 'AutoTrader.lk',
+  author = 'vera.lk',
   publishedTime,
   modifiedTime
 }: MetaTagsProps) {
-  const fullTitle = title.includes('AutoTrader.lk') ? title : `${title} | AutoTrader.lk`
+  const fullTitle = title.includes('vera.lk') ? title : `${title} | vera.lk`
 
   return (
     <Head>
@@ -38,7 +38,7 @@ export default function MetaTags({
 
       {/* Open Graph Meta Tags */}
       <meta property="og:type" content={type} />
-      <meta property="og:site_name" content="AutoTrader.lk" />
+      <meta property="og:site_name" content="vera.lk" />
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={image} />
@@ -81,12 +81,12 @@ export default function MetaTags({
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": type === 'product' ? 'Product' : 'WebSite',
-            "name": "AutoTrader.lk",
-            "url": "https://autotrader.lk",
+            "name": "vera.lk",
+            "url": "https://vera.lk",
             "description": "Sri Lanka's premier automotive marketplace for buying and selling cars",
             "potentialAction": {
               "@type": "SearchAction",
-              "target": "https://autotrader.lk/search?q={search_term_string}",
+              "target": "https://vera.lk/search?q={search_term_string}",
               "query-input": "required name=search_term_string"
             }
           })

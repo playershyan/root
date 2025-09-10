@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Auto Dealers Directory | AutoTrader.lk',
+  title: 'Auto Dealers Directory | vera.lk',
   description: 'Browse verified auto dealers in Sri Lanka. Find trusted car dealerships with ratings, reviews, and current inventory.',
 }
 

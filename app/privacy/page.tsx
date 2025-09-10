@@ -21,7 +21,7 @@ export default function PrivacyPolicyPage() {
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">1. Information We Collect</h2>
               <p className="text-gray-700 mb-4">
-                At AutoTrader.lk, we collect information to provide better services to our users. We collect information in the following ways:
+                At vera.lk, we collect information to provide better services to our users. We collect information in the following ways:
               </p>
               <ul className="list-disc pl-6 text-gray-700 mb-4">
                 <li><strong>Account Information:</strong> When you create an account, we collect your username, email address, and phone number.</li>
@@ -124,10 +124,10 @@ export default function PrivacyPolicyPage() {
               </p>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-gray-700 mb-2">
-                  <strong>Email:</strong> privacy@autotrader.lk
+                  <strong>Email:</strong> privacy@vera.lk
                 </p>
                 <p className="text-gray-700 mb-2">
-                  <strong>Address:</strong> AutoTrader.lk, Colombo, Sri Lanka
+                  <strong>Address:</strong> vera.lk, Colombo, Sri Lanka
                 </p>
                 <p className="text-gray-700">
                   <strong>Response Time:</strong> We aim to respond to privacy inquiries within 7 business days

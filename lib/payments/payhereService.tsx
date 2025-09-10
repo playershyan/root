@@ -43,7 +43,7 @@ export class PayHereService {
       cancel_url: data.cancelUrl || `${baseUrl}/payment/cancel`,
       notify_url: data.notifyUrl || `${baseUrl}/api/payments/payhere/notify`,
       order_id: orderId,
-      items: `AutoTrader.lk Promotion - ${data.promotionTypes.join(', ')}`,
+      items: `vera.lk Promotion - ${data.promotionTypes.join(', ')}`,
       currency: this.config.currency,
       amount: amount.toString(),
       first_name: data.customerName.split(' ')[0] || data.customerName,

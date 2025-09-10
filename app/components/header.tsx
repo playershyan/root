@@ -87,7 +87,7 @@ export default function Header() {
             
             {/* Logo */}
             <Link href="/" className="flex items-center">
-              <span className="text-xl sm:text-2xl font-bold text-blue-600">AutoTrader.lk</span>
+              <span className="text-xl sm:text-2xl font-bold text-blue-600">vera.lk</span>
             </Link>
             
             {/* Mobile Action Buttons */}
@@ -286,7 +286,7 @@ export default function Header() {
             {/* Mobile Menu Header */}
             <div className="flex items-center justify-between mb-6">
               <Link href="/" className="text-2xl font-bold text-blue-600" onClick={() => setMobileMenuOpen(false)}>
-                AutoTrader.lk
+                vera.lk
               </Link>
               <button
                 onClick={() => setMobileMenuOpen(false)}

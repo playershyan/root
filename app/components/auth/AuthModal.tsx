@@ -103,8 +103,8 @@ export default function AuthModal({
           </h2>
           <p className="text-gray-600">
             {authType === 'register' 
-              ? 'Join AutoTrader.lk to buy and sell vehicles' 
-              : 'Sign in to your AutoTrader.lk account'
+              ? 'Join vera.lk to buy and sell vehicles' 
+              : 'Sign in to your vera.lk account'
             }
           </p>
         </div>

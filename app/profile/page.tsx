@@ -224,7 +224,7 @@ export default function ProfilePage() {
     { id: 'wanted', label: 'My Wanted Requests', icon: Search },
     { id: 'messages', label: 'Messages', icon: MessageSquare },
     { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'membership', label: 'AutoTrader Membership', icon: Crown, special: true },
+    { id: 'membership', label: 'VERA Membership', icon: Crown, special: true },
     { id: 'security', label: 'Security', icon: Shield },
     { id: 'bin', label: 'Bin', icon: Trash2 }
   ]
@@ -2174,7 +2174,7 @@ export default function ProfilePage() {
               {activeTab === 'membership' && (
                 <>
                   <div className="p-6 border-b">
-                    <h1 className="text-2xl font-semibold">AutoTrader Membership</h1>
+                    <h1 className="text-2xl font-semibold">VERA Membership</h1>
                   </div>
                   <div className="p-6">
                     <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg p-6 mb-6">

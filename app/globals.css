@@ -35,7 +35,7 @@
   animation: shimmer 2s linear infinite;
 }
 
-/* Custom styles for AutoTrader.lk */
+/* Custom styles for vera.lk */
 @layer base {
   body {
     @apply text-gray-900;

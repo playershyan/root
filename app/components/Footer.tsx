@@ -11,9 +11,9 @@ export default function Footer() {
         <div className="py-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             
-            {/* From Autotrader.lk Section */}
+            {/* From vera.lk Section */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">From Autotrader.lk</h3>
+              <h3 className="text-lg font-semibold mb-4">From vera.lk</h3>
               <ul className="space-y-3">
                 <li>
                   <Link href="/sell" className="text-gray-300 hover:text-white transition-colors">
@@ -60,9 +60,9 @@ export default function Footer() {
               </ul>
             </div>
 
-            {/* About Autotrader.lk Section */}
+            {/* About vera.lk Section */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">About Autotrader.lk</h3>
+              <h3 className="text-lg font-semibold mb-4">About vera.lk</h3>
               <ul className="space-y-3">
                 <li>
                   <Link href="/about" className="text-gray-300 hover:text-white transition-colors">
@@ -180,17 +180,17 @@ export default function Footer() {
                     <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
                   </svg>
                 </div>
-                <span className="text-xl font-bold">Autotrader.lk</span>
+                <span className="text-xl font-bold">vera.lk</span>
               </div>
               <div className="hidden md:block text-gray-400 text-sm">
-                © {new Date().getFullYear()} Autotrader.lk. All rights reserved.
+                © {new Date().getFullYear()} vera.lk. All rights reserved.
               </div>
             </div>
 
             {/* Additional Info */}
             <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6 text-sm text-gray-400">
               <div className="md:hidden">
-                © {new Date().getFullYear()} Autotrader.lk. All rights reserved.
+                © {new Date().getFullYear()} vera.lk. All rights reserved.
               </div>
               <div className="flex items-center space-x-1">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">

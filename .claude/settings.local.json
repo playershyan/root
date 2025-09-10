@@ -34,7 +34,8 @@
       "Bash(do echo \"=== $file ===\")",
       "Bash(done)",
       "mcp__supabase__list_extensions",
-      "mcp__supabase__list_migrations"
+      "mcp__supabase__list_migrations",
+      "mcp__supabase__search_docs"
     ],
     "deny": []
   }

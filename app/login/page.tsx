@@ -43,7 +43,7 @@ export default function LoginPage() {
       {/* Main content area */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Welcome Back to AutoTrader.lk</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Welcome Back to vera.lk</h1>
           <p className="text-gray-600 mb-8">Sign in to manage your listings, save favorites, and connect with buyers and sellers.</p>
         </div>
       </div>

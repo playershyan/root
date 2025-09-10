@@ -205,11 +205,25 @@ export async function signInWithGoogle(): Promise<{ success: boolean; error?: Au
     const pendingRedirect = localStorage.getItem('pendingRedirect')
     const redirectPath = pendingRedirect || '/profile'
     
+    // Determine the site URL for the final redirect after OAuth
+    // In production, this should be https://vera.lk
+    // In development, this will be http://localhost:3000
+    let redirectTo: string
+    
+    if (typeof window !== 'undefined') {
+      // Client-side: use current origin for development, or production URL
+      const isProduction = window.location.hostname !== 'localhost'
+      redirectTo = isProduction ? 'https://vera.lk' : window.location.origin
+    } else {
+      // Server-side fallback
+      redirectTo = process.env.NEXT_PUBLIC_SITE_URL || 'https://vera.lk'
+    }
+    
     // Use Supabase OAuth flow as recommended in documentation
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/api/auth/callback?redirectTo=${encodeURIComponent(redirectPath)}`,
+        redirectTo: `${redirectTo}/api/auth/callback?redirectTo=${encodeURIComponent(redirectPath)}`,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',
