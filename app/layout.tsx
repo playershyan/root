@@ -13,7 +13,7 @@ import AuthWrapper from './components/AuthWrapper'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'VERA.lk - Buy & Sell Vehicles in Sri Lanka',
+  title: 'VERA - Buy & Sell Vehicles in Sri Lanka',
   description: 'Find your perfect vehicle or sell your car with AI-powered descriptions',
 }
 

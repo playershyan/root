@@ -9,11 +9,11 @@ export default function AboutSection() {
     <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold mb-6 text-center">About vera.lk</h2>
+          <h2 className="text-3xl font-bold mb-6 text-center">About VERA</h2>
           
           <div className="prose prose-lg mx-auto text-gray-600">
             <p className="text-lg leading-relaxed mb-4">
-              vera.lk is Sri Lanka's premier online vehicle marketplace, connecting buyers and sellers across the island. 
+              VERA is Sri Lanka's premier online vehicle marketplace, connecting buyers and sellers across the island. 
               Our platform makes it easy to find your dream vehicle or sell your current one with confidence.
             </p>
             
@@ -25,7 +25,7 @@ export default function AboutSection() {
 
             <div className={`transition-all duration-300 overflow-hidden ${isExpanded ? 'max-h-96' : 'max-h-0'}`}>
               <p className="text-lg leading-relaxed mb-4">
-                Founded with a mission to simplify vehicle transactions, vera.lk brings transparency and trust 
+                Founded with a mission to simplify vehicle transactions, VERA brings transparency and trust 
                 to the automotive marketplace. We verify all listings to ensure authenticity and provide detailed 
                 information about each vehicle, including specifications, ownership history, and condition reports.
               </p>
@@ -33,7 +33,7 @@ export default function AboutSection() {
               <p className="text-lg leading-relaxed mb-4">
                 Our innovative wanted requests feature allows buyers to post their requirements and receive offers 
                 from sellers directly, saving time and effort in finding the perfect match. Whether you're looking 
-                for a family car, a commercial vehicle, or a luxury ride, vera.lk has you covered.
+                for a family car, a commercial vehicle, or a luxury ride, VERA has you covered.
               </p>
               
               <p className="text-lg leading-relaxed">

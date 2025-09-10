@@ -384,7 +384,7 @@ export default function AuthModal({ isOpen, onClose, initialAuthType = 'login', 
             <div className="space-y-4">
               <div>
                 <h2 className="text-2xl font-bold text-blue-600 mb-1">
-                  {authType === 'login' ? 'Hi there! Welcome back!' : 'Join vera.lk today!'}
+                  {authType === 'login' ? 'Hi there! Welcome back!' : 'Join VERA today!'}
                 </h2>
                 <p className="text-gray-600 text-sm">
                   {authType === 'login' ? 'Log in to manage your account' : 'Create your account and unlock these features'}
@@ -452,7 +452,7 @@ export default function AuthModal({ isOpen, onClose, initialAuthType = 'login', 
             {/* Mobile Value Proposition - At top for sign-up only */}
             {authType === 'register' && !showOtp && (
               <div className="md:hidden bg-blue-50 p-4 rounded-lg mb-6">
-                <h4 className="font-semibold text-blue-800 text-sm mb-3 text-center">Join vera.lk & unlock:</h4>
+                <h4 className="font-semibold text-blue-800 text-sm mb-3 text-center">Join VERA & unlock:</h4>
                 <ul className="space-y-2">
                   <li className="flex items-center gap-2 text-xs text-blue-700">
                     <div className="w-1.5 h-1.5 bg-blue-600 rounded-full flex-shrink-0"></div>

@@ -1,4 +1,10 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Terms & Conditions - VERA',
+  description: 'Terms and Conditions for using VERA - Sri Lanka\'s smartest vehicle marketplace. Read our terms of service and user agreements.',
+}
 
 export default function TermsConditionsPage() {
   return (
@@ -15,179 +21,132 @@ export default function TermsConditionsPage() {
 
         <div className="bg-white rounded-lg shadow-sm p-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Terms & Conditions</h1>
-          <p className="text-gray-600 mb-8">Last updated: {new Date().toLocaleDateString()}</p>
+          <p className="text-gray-600 mb-8">Last Updated: 10 September 2025</p>
 
           <div className="prose prose-lg max-w-none">
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">1. Acceptance of Terms</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">1. Acceptance</h2>
               <p className="text-gray-700 mb-4">
-                By accessing and using vera.lk ("the Platform"), you accept and agree to be bound by these Terms & Conditions. 
-                If you do not agree to these terms, please do not use our services.
+                By using the Platform, you consent to these Terms.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">2. Platform Services</h2>
-              <p className="text-gray-700 mb-4">
-                vera.lk provides an online marketplace for buying and selling vehicles in Sri Lanka. Our services include:
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">2. Services Provided</h2>
+              <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-2">
+                <li>Vehicle listing and browsing.</li>
+                <li>User accounts and profiles.</li>
+                <li>Messaging tools.</li>
+                <li>Wanted requests.</li>
+                <li>AI-powered descriptions and analytics.</li>
+              </ul>
+              <p className="text-gray-700">
+                VERA is not a broker, dealer, or contracting party to user transactions.
               </p>
-              <ul className="list-disc pl-6 text-gray-700 mb-4">
-                <li>Vehicle listing and browsing capabilities</li>
-                <li>User account management and profiles</li>
-                <li>Communication tools between buyers and sellers</li>
-                <li>Wanted requests functionality</li>
-                <li>AI-powered listing descriptions</li>
-                <li>Vehicle analytics and insights</li>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">3. Accounts</h2>
+              <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-2">
+                <li>Provide truthful registration information.</li>
+                <li>Maintain account security.</li>
+                <li>Operate only one account unless authorised.</li>
+                <li>Responsible for all activity on your account.</li>
               </ul>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">3. User Accounts and Registration</h2>
-              <p className="text-gray-700 mb-4">
-                To access certain features, you must create an account. You agree to:
-              </p>
-              <ul className="list-disc pl-6 text-gray-700 mb-4">
-                <li>Provide accurate and complete information during registration</li>
-                <li>Maintain the security of your account credentials</li>
-                <li>Notify us immediately of any unauthorized account access</li>
-                <li>Be responsible for all activities under your account</li>
-                <li>Use only one account per person</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">4. Listing Requirements and Guidelines</h2>
-              <p className="text-gray-700 mb-4">
-                When posting vehicle listings, you must:
-              </p>
-              <ul className="list-disc pl-6 text-gray-700 mb-4">
-                <li>Provide accurate vehicle information and descriptions</li>
-                <li>Use only genuine photographs of the actual vehicle</li>
-                <li>Set fair and reasonable pricing</li>
-                <li>Ensure you have legal authority to sell the vehicle</li>
-                <li>Update or remove listings promptly when vehicles are sold</li>
-                <li>Not post duplicate or spam listings</li>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">4. Listing Rules</h2>
+              <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-2">
+                <li>Accurate and truthful vehicle details.</li>
+                <li>Genuine photographs only.</li>
+                <li>Ensure legal authority to sell.</li>
+                <li>Remove or update listings once sold.</li>
+                <li>No duplicates or spam.</li>
               </ul>
             </section>
 
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">5. Prohibited Activities</h2>
-              <p className="text-gray-700 mb-4">
-                You agree not to use the Platform to:
-              </p>
-              <ul className="list-disc pl-6 text-gray-700 mb-4">
-                <li>Post false, misleading, or fraudulent listings</li>
-                <li>Sell stolen or illegally obtained vehicles</li>
-                <li>Engage in money laundering or other illegal activities</li>
-                <li>Harass, abuse, or spam other users</li>
-                <li>Circumvent our fee structure or payment systems</li>
-                <li>Use automated tools to scrape or harvest data</li>
-                <li>Impersonate other individuals or entities</li>
+              <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-2">
+                <li>Fraud, misrepresentation, or illegal activity.</li>
+                <li>Sale of stolen vehicles.</li>
+                <li>Money laundering.</li>
+                <li>Harassment or spamming.</li>
+                <li>Data scraping, bots, or harvesting.</li>
+                <li>Intellectual property violations.</li>
+                <li>Impersonation of individuals or entities.</li>
               </ul>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">6. Transactions and Payments</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">6. Transactions</h2>
               <p className="text-gray-700 mb-4">
-                vera.lk facilitates connections between buyers and sellers but is not party to the actual transactions. 
-                All sales are conducted directly between users. We recommend:
+                Transactions are exclusively between buyers and sellers. VERA does not verify authenticity, ownership, or condition. Users must conduct due diligence: meet in public, inspect vehicles, verify documentation, and use secure payment methods.
               </p>
-              <ul className="list-disc pl-6 text-gray-700 mb-4">
-                <li>Meeting in safe, public locations for vehicle inspections</li>
-                <li>Verifying vehicle documentation before purchase</li>
-                <li>Using secure payment methods</li>
-                <li>Conducting thorough inspections before finalizing purchases</li>
-              </ul>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">7. Platform Fees and Charges</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">7. Fees</h2>
               <p className="text-gray-700 mb-4">
-                Certain premium features may require payment. All fees are clearly displayed before purchase. 
-                We reserve the right to modify our fee structure with reasonable notice.
+                Premium services may require payment. Fees are displayed before purchase and subject to modification with notice.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">8. Intellectual Property</h2>
               <p className="text-gray-700 mb-4">
-                The Platform's content, features, and functionality are owned by vera.lk and protected by copyright, 
-                trademark, and other intellectual property laws. You retain ownership of content you post but grant us 
-                necessary licenses to operate the Platform.
+                VERA owns all rights in the Platform's content and branding. Users retain ownership of their content but grant VERA a licence to host and display it.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">9. Privacy and Data Protection</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">9. Privacy</h2>
               <p className="text-gray-700 mb-4">
-                Your privacy is important to us. Please review our{' '}
-                <Link href="/privacy" className="text-blue-600 hover:text-blue-700 underline">
-                  Privacy Policy
-                </Link>{' '}
-                to understand how we collect, use, and protect your information.
+                Use is subject to the <Link href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</Link>.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">10. Disclaimer of Warranties</h2>
               <p className="text-gray-700 mb-4">
-                The Platform is provided "as is" without warranties of any kind. We do not guarantee:
+                Platform provided "as is." No warranty of uninterrupted operation, accuracy, or security.
               </p>
-              <ul className="list-disc pl-6 text-gray-700 mb-4">
-                <li>Accuracy of user-posted information</li>
-                <li>Successful completion of transactions</li>
-                <li>Uninterrupted platform availability</li>
-                <li>Freedom from errors or security vulnerabilities</li>
-              </ul>
             </section>
 
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">11. Limitation of Liability</h2>
               <p className="text-gray-700 mb-4">
-                vera.lk shall not be liable for any indirect, incidental, special, or consequential damages 
-                arising from your use of the Platform. Our total liability is limited to the amount you paid for our services.
+                VERA's liability is limited to the total amount you paid to VERA for services within the preceding twelve months.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">12. Termination</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">12. Indemnification</h2>
               <p className="text-gray-700 mb-4">
-                We may terminate or suspend your account immediately for violations of these terms. 
-                You may terminate your account at any time by contacting us.
+                You indemnify VERA and its affiliates against claims arising from your breach of these Terms or misuse of the Platform.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">13. Governing Law</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">13. Termination</h2>
               <p className="text-gray-700 mb-4">
-                These terms are governed by the laws of Sri Lanka. Any disputes will be resolved in the courts of Sri Lanka.
+                VERA may suspend or terminate accounts immediately for violations. Users may request account closure. Certain obligations survive termination.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">14. Changes to Terms</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">14. Governing Law</h2>
               <p className="text-gray-700 mb-4">
-                We may update these Terms & Conditions from time to time. Continued use of the Platform 
-                after changes constitutes acceptance of the new terms.
+                These Terms are governed by and construed in accordance with the laws of the <strong>Democratic Socialist Republic of Sri Lanka</strong>. Jurisdiction lies exclusively with the courts of Colombo, <strong>Democratic Socialist Republic of Sri Lanka</strong>.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">15. Contact Information</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">15. Changes</h2>
               <p className="text-gray-700 mb-4">
-                For questions about these Terms & Conditions, please contact us:
+                We may amend these Terms. Continued use constitutes acceptance.
               </p>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-700 mb-2">
-                  <strong>Email:</strong> legal@vera.lk
-                </p>
-                <p className="text-gray-700 mb-2">
-                  <strong>Address:</strong> vera.lk, Colombo, Sri Lanka
-                </p>
-                <p className="text-gray-700">
-                  <strong>Business Hours:</strong> Monday - Friday, 9:00 AM - 6:00 PM (IST)
-                </p>
-              </div>
             </section>
           </div>
         </div>

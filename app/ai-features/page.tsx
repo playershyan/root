@@ -3,8 +3,8 @@ import { Sparkles, BookOpen, PenTool, Rocket, Zap, Brain, TrendingUp, ArrowRight
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'AI Features - VERA.lk',
-  description: 'Discover the intelligent features that make VERA.lk the smartest vehicle marketplace in Sri Lanka. Get AI-powered buying guides and intelligent listing descriptions.',
+  title: 'AI Features - VERA',
+  description: 'Discover the intelligent features that make VERA the smartest vehicle marketplace in Sri Lanka. Get AI-powered buying guides and intelligent listing descriptions.',
 }
 
 export default function AIFeaturesPage() {

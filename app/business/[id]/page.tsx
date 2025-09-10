@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
   }
 
   return {
-    title: `${business.business_name} | vera.lk`,
+    title: `${business.business_name} | VERA`,
     description: business.description,
   }
 }

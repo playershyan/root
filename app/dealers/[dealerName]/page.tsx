@@ -81,13 +81,13 @@ export async function generateMetadata({
   
   if (!dealer) {
     return {
-      title: 'Dealer Not Found | vera.lk',
+      title: 'Dealer Not Found | VERA',
     }
   }
 
   return {
-    title: `${dealer.name} - Dealer Profile | vera.lk`,
-    description: dealer.description || `View ${dealer.name}'s profile, ratings, and current vehicle listings on vera.lk`,
+    title: `${dealer.name} - Dealer Profile | VERA`,
+    description: dealer.description || `View ${dealer.name}'s profile, ratings, and current vehicle listings on VERA`,
   }
 }
 

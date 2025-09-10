@@ -5,12 +5,12 @@ export default function SafetyPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-12 sm:py-16">
+      <div className="bg-white border-b border-gray-200 py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <Shield className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4" />
-            <h1 className="text-3xl sm:text-4xl font-bold mb-4">Safety & Fraud Detection</h1>
-            <p className="text-lg sm:text-xl max-w-3xl mx-auto">
+            <Shield className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-blue-600" />
+            <h1 className="text-3xl sm:text-4xl font-bold mb-4 text-black">Safety & Fraud Detection</h1>
+            <p className="text-lg sm:text-xl max-w-3xl mx-auto text-gray-600">
               Your Security is Our Priority
             </p>
           </div>
@@ -51,8 +51,8 @@ export default function SafetyPage() {
 
           <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow duration-300">
             <div className="flex items-start gap-4">
-              <div className="bg-green-100 p-3 rounded-lg">
-                <AlertCircle className="w-6 h-6 text-green-600" />
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <AlertCircle className="w-6 h-6 text-black" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-2">Report Ad Feature</h3>
@@ -67,8 +67,8 @@ export default function SafetyPage() {
 
           <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow duration-300">
             <div className="flex items-start gap-4">
-              <div className="bg-red-100 p-3 rounded-lg">
-                <Ban className="w-6 h-6 text-red-600" />
+              <div className="bg-blue-100 p-3 rounded-lg">
+                <Ban className="w-6 h-6 text-blue-600" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-2">Repeat Offender Prevention</h3>
@@ -83,8 +83,8 @@ export default function SafetyPage() {
 
           <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow duration-300">
             <div className="flex items-start gap-4">
-              <div className="bg-purple-100 p-3 rounded-lg">
-                <UserCheck className="w-6 h-6 text-purple-600" />
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <UserCheck className="w-6 h-6 text-black" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-2">Identity Verification</h3>
@@ -110,23 +110,23 @@ export default function SafetyPage() {
               <h3 className="text-lg sm:text-xl font-semibold mb-4 text-blue-600">Before You Buy</h3>
               <ul className="space-y-2 sm:space-y-3">
                 <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mt-1 flex-shrink-0" />
+                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 mt-1 flex-shrink-0" />
                   <span className="text-sm sm:text-base text-gray-700"><strong>Always inspect the vehicle in person</strong> during daylight hours at a safe, public location</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700"><strong>Verify the seller's identity</strong> and match it with official documentation</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700"><strong>Check vehicle history reports</strong> using the VIN number</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700"><strong>Confirm ownership documents</strong> are legitimate and match the seller's identity</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700"><strong>Research market prices</strong> to ensure the asking price is realistic</span>
                 </li>
               </ul>
@@ -137,46 +137,46 @@ export default function SafetyPage() {
               <h3 className="text-xl font-semibold mb-4 text-blue-600">During the Transaction</h3>
               <ul className="space-y-3">
                 <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700"><strong>Meet in safe, public locations</strong> such as bank parking lots or police station visitor areas</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700"><strong>Bring a knowledgeable friend</strong> or consider hiring a qualified mechanic for inspection</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700"><strong>Test drive thoroughly</strong> and check all vehicle systems</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700"><strong>Exchange payment and title simultaneously</strong> - never pay before receiving proper documentation</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700"><strong>Use secure payment methods</strong> such as cashier's checks or bank transfers for large amounts</span>
                 </li>
               </ul>
             </div>
 
             {/* Payment Security */}
-            <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow duration-300">
-              <h3 className="text-xl font-semibold mb-4 text-blue-600">Payment Security</h3>
+            <div className="bg-red-50 border border-red-200 rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow duration-300">
+              <h3 className="text-xl font-semibold mb-4 text-red-700">Payment Security</h3>
               <ul className="space-y-3">
                 <li className="flex items-start gap-2">
-                  <AlertTriangle className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
+                  <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700"><strong>Avoid cash transactions</strong> for high-value vehicles</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <AlertTriangle className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
+                  <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700"><strong>Never wire money</strong> to unknown parties</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <AlertTriangle className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
+                  <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700"><strong>Don't provide financial information</strong> until you've verified the seller and vehicle</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <AlertTriangle className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
+                  <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700"><strong>Use escrow services</strong> for expensive vehicles when possible</span>
                 </li>
               </ul>
@@ -193,7 +193,7 @@ export default function SafetyPage() {
           {/* Suspicious Listing Behaviors */}
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 sm:p-6">
             <h3 className="text-lg sm:text-xl font-semibold mb-4 text-red-700">
-              <AlertTriangle className="inline-block w-5 h-5 sm:w-6 sm:h-6 mr-2" />
+              <AlertTriangle className="inline-block w-5 h-5 sm:w-6 sm:h-6 mr-2 text-red-600" />
               Suspicious Listing Behaviors
             </h3>
             <ul className="space-y-1 sm:space-y-2 text-sm sm:text-base text-gray-700">
@@ -209,7 +209,7 @@ export default function SafetyPage() {
           {/* Common Vehicle Scams */}
           <div className="bg-red-50 border border-red-200 rounded-lg p-6">
             <h3 className="text-xl font-semibold mb-4 text-red-700">
-              <AlertTriangle className="inline-block w-6 h-6 mr-2" />
+              <AlertTriangle className="inline-block w-6 h-6 mr-2 text-red-600" />
               Common Vehicle Scams
             </h3>
             <ul className="space-y-2 text-gray-700">
@@ -239,7 +239,7 @@ export default function SafetyPage() {
             </div>
 
             <div className="bg-white rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow duration-300">
-              <Database className="w-10 h-10 text-green-600 mb-4" />
+              <Database className="w-10 h-10 text-black mb-4" />
               <h3 className="text-lg font-semibold mb-2">Pattern Recognition</h3>
               <p className="text-gray-600">
                 We track user behavior across our platform, identifying suspicious patterns such as multiple accounts, 
@@ -248,7 +248,7 @@ export default function SafetyPage() {
             </div>
 
             <div className="bg-white rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow duration-300">
-              <Users className="w-10 h-10 text-purple-600 mb-4" />
+              <Users className="w-10 h-10 text-blue-600 mb-4" />
               <h3 className="text-lg font-semibold mb-2">Database Cross-Referencing</h3>
               <p className="text-gray-600">
                 We maintain connections with law enforcement databases and industry fraud prevention services to 
@@ -266,7 +266,7 @@ export default function SafetyPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Immediate Actions */}
           <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow duration-300">
-            <h3 className="text-xl font-semibold mb-4 text-red-600">Immediate Actions</h3>
+            <h3 className="text-xl font-semibold mb-4 text-red-700">Immediate Actions</h3>
             <ol className="space-y-3">
               <li className="flex gap-3">
                 <span className="bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">1</span>
@@ -324,8 +324,8 @@ export default function SafetyPage() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* For Sellers */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-            <h3 className="text-xl font-semibold mb-4 text-green-700">For Sellers</h3>
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+            <h3 className="text-xl font-semibold mb-4 text-gray-900">For Sellers</h3>
             <ul className="space-y-2 text-gray-700">
               <li>• <strong>Price your vehicle realistically</strong> based on market research</li>
               <li>• <strong>Provide complete, accurate descriptions</strong> and high-quality photos</li>
@@ -336,8 +336,8 @@ export default function SafetyPage() {
           </div>
 
           {/* For Buyers */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-            <h3 className="text-xl font-semibold mb-4 text-blue-700">For Buyers</h3>
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+            <h3 className="text-xl font-semibold mb-4 text-gray-900">For Buyers</h3>
             <ul className="space-y-2 text-gray-700">
               <li>• <strong>Research extensively</strong> before making any commitment</li>
               <li>• <strong>Arrange independent inspections</strong> for valuable vehicles</li>
@@ -358,19 +358,19 @@ export default function SafetyPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 max-w-3xl mx-auto">
               <div className="bg-gray-800 rounded-lg p-4 sm:p-6 hover:bg-gray-700 transition-colors duration-300">
-                <Phone className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 sm:mb-3 text-blue-400" />
+                <Phone className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 sm:mb-3 text-blue-600" />
                 <h3 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">Safety Hotline</h3>
                 <p className="text-gray-300 text-sm sm:text-base">+94 11 234 5678</p>
               </div>
               
               <div className="bg-gray-800 rounded-lg p-4 sm:p-6 hover:bg-gray-700 transition-colors duration-300">
-                <Mail className="w-8 h-8 mx-auto mb-3 text-green-400" />
+                <Mail className="w-8 h-8 mx-auto mb-3 text-blue-600" />
                 <h3 className="font-semibold mb-2">Email</h3>
                 <p className="text-gray-300">safety@vera.lk</p>
               </div>
               
               <div className="bg-gray-800 rounded-lg p-4 sm:p-6 hover:bg-gray-700 transition-colors duration-300">
-                <Clock className="w-8 h-8 mx-auto mb-3 text-yellow-400" />
+                <Clock className="w-8 h-8 mx-auto mb-3 text-black" />
                 <h3 className="font-semibold mb-2">Hours</h3>
                 <p className="text-gray-300 text-sm">Mon-Fri 8AM-8PM<br/>Weekend Emergency Support</p>
               </div>

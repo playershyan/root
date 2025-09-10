@@ -13,17 +13,17 @@ interface MetaTagsProps {
 }
 
 export default function MetaTags({
-  title = 'vera.lk - Buy & Sell Cars in Sri Lanka',
-  description = 'Find the perfect car or sell your vehicle on vera.lk. Sri Lanka\'s premier automotive marketplace with thousands of listings.',
+  title = 'VERA - Buy & Sell Cars in Sri Lanka',
+  description = 'Find the perfect car or sell your vehicle on VERA. Sri Lanka\'s premier automotive marketplace with thousands of listings.',
   image = '/og-image.png',
   url = 'https://vera.lk',
   type = 'website',
   keywords = 'cars, vehicles, buy cars, sell cars, Sri Lanka, automotive, marketplace, used cars',
-  author = 'vera.lk',
+  author = 'VERA',
   publishedTime,
   modifiedTime
 }: MetaTagsProps) {
-  const fullTitle = title.includes('vera.lk') ? title : `${title} | vera.lk`
+  const fullTitle = title.includes('VERA') ? title : `${title} | VERA`
 
   return (
     <Head>
@@ -38,7 +38,7 @@ export default function MetaTags({
 
       {/* Open Graph Meta Tags */}
       <meta property="og:type" content={type} />
-      <meta property="og:site_name" content="vera.lk" />
+      <meta property="og:site_name" content="VERA" />
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={image} />
@@ -81,7 +81,7 @@ export default function MetaTags({
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": type === 'product' ? 'Product' : 'WebSite',
-            "name": "vera.lk",
+            "name": "VERA",
             "url": "https://vera.lk",
             "description": "Sri Lanka's premier automotive marketplace for buying and selling cars",
             "potentialAction": {

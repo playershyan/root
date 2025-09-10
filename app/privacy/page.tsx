@@ -1,4 +1,10 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy - VERA',
+  description: 'Privacy Policy for VERA - Learn how we collect, use, and protect your information on Sri Lanka\'s smartest vehicle marketplace.',
+}
 
 export default function PrivacyPolicyPage() {
   return (
@@ -15,122 +21,107 @@ export default function PrivacyPolicyPage() {
 
         <div className="bg-white rounded-lg shadow-sm p-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Privacy Policy</h1>
-          <p className="text-gray-600 mb-8">Last updated: {new Date().toLocaleDateString()}</p>
+          <p className="text-gray-600 mb-8">Last Updated: 10 September 2025</p>
 
           <div className="prose prose-lg max-w-none">
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">1. Information We Collect</h2>
-              <p className="text-gray-700 mb-4">
-                At vera.lk, we collect information to provide better services to our users. We collect information in the following ways:
-              </p>
-              <ul className="list-disc pl-6 text-gray-700 mb-4">
-                <li><strong>Account Information:</strong> When you create an account, we collect your username, email address, and phone number.</li>
-                <li><strong>Profile Information:</strong> You may choose to provide additional information such as your location and bio.</li>
-                <li><strong>Listing Information:</strong> Vehicle details, photos, and descriptions you post on our platform.</li>
-                <li><strong>Communication Data:</strong> Messages sent through our platform for vehicle inquiries.</li>
-                <li><strong>Usage Information:</strong> How you interact with our services, including search queries and page views.</li>
+              <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-2">
+                <li><strong>Account Information:</strong> username, email address, phone number, password.</li>
+                <li><strong>Profile Information:</strong> optional details such as location and bio.</li>
+                <li><strong>Listing Information:</strong> vehicle details, photographs, pricing, and descriptions.</li>
+                <li><strong>Communication Data:</strong> messages exchanged between users.</li>
+                <li><strong>Usage Information:</strong> log data, IP addresses, search queries, device data, browser information.</li>
+                <li><strong>Verification Data:</strong> identity documents where required for fraud prevention or regulatory compliance.</li>
               </ul>
             </section>
 
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">2. How We Use Your Information</h2>
-              <p className="text-gray-700 mb-4">We use the information we collect for:</p>
-              <ul className="list-disc pl-6 text-gray-700 mb-4">
-                <li>Providing and maintaining our vehicle marketplace services</li>
-                <li>Processing and managing your vehicle listings</li>
-                <li>Facilitating communication between buyers and sellers</li>
-                <li>Sending OTP verification codes for account security</li>
-                <li>Improving our services and user experience</li>
-                <li>Preventing fraud and ensuring platform security</li>
-                <li>Complying with legal obligations</li>
+              <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-2">
+                <li>Operating, maintaining, and improving the Platform.</li>
+                <li>Processing listings and managing user accounts.</li>
+                <li>Facilitating communication between buyers and sellers.</li>
+                <li>Account verification, authentication, and security.</li>
+                <li>Detecting and preventing fraud or illegal activities.</li>
+                <li>Personalising experience and recommending listings.</li>
+                <li>Sending service updates, legal notices, and security alerts.</li>
+                <li>Complying with obligations imposed by the laws of the <strong>Democratic Socialist Republic of Sri Lanka</strong>.</li>
               </ul>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">3. Information Sharing and Disclosure</h2>
-              <p className="text-gray-700 mb-4">
-                We do not sell, trade, or otherwise transfer your personal information to third parties except in the following circumstances:
-              </p>
-              <ul className="list-disc pl-6 text-gray-700 mb-4">
-                <li><strong>Public Listings:</strong> Vehicle listings you post are publicly visible on our platform</li>
-                <li><strong>Communication:</strong> Contact information may be shared with interested buyers/sellers</li>
-                <li><strong>Service Providers:</strong> Trusted third parties who assist us in operating our platform</li>
-                <li><strong>Legal Requirements:</strong> When required by law or to protect our rights and safety</li>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">3. Information Sharing</h2>
+              <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-2">
+                <li><strong>Public Listings:</strong> all listing content is publicly visible.</li>
+                <li><strong>User Communication:</strong> limited details may be disclosed between transacting users.</li>
+                <li><strong>Service Providers:</strong> third parties assisting in hosting, analytics, or payments.</li>
+                <li><strong>Legal Requirements:</strong> courts, regulators, or law enforcement of the <strong>Democratic Socialist Republic of Sri Lanka</strong>.</li>
+                <li><strong>Business Transfers:</strong> transfer of data if ownership of the Platform changes.</li>
               </ul>
             </section>
 
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">4. Data Security</h2>
-              <p className="text-gray-700 mb-4">
-                We implement appropriate security measures to protect your personal information against unauthorized access, 
-                alteration, disclosure, or destruction. This includes:
-              </p>
-              <ul className="list-disc pl-6 text-gray-700 mb-4">
-                <li>Secure data transmission using SSL encryption</li>
-                <li>Regular security audits and updates</li>
-                <li>Access controls and authentication measures</li>
-                <li>Secure data storage with reputable cloud providers</li>
+              <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-2">
+                <li>SSL/TLS encryption.</li>
+                <li>Restricted and authenticated access.</li>
+                <li>Regular security audits.</li>
+                <li>Secure hosting with reputable providers.</li>
               </ul>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">5. Your Rights and Choices</h2>
-              <p className="text-gray-700 mb-4">You have the following rights regarding your personal information:</p>
-              <ul className="list-disc pl-6 text-gray-700 mb-4">
-                <li><strong>Access:</strong> Request access to your personal data we hold</li>
-                <li><strong>Correction:</strong> Update or correct inaccurate information</li>
-                <li><strong>Deletion:</strong> Request deletion of your account and associated data</li>
-                <li><strong>Data Portability:</strong> Request a copy of your data in a portable format</li>
-                <li><strong>Opt-out:</strong> Unsubscribe from marketing communications</li>
-              </ul>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">5. User Rights</h2>
+              <p className="text-gray-700 mb-4">
+                Access, correction, deletion, portability, and restriction subject to the laws of the <strong>Democratic Socialist Republic of Sri Lanka</strong>.
+              </p>
+              <p className="text-gray-700">
+                Requests: <a href="mailto:support@vera.lk" className="text-blue-600 hover:underline">support@vera.lk</a>
+              </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">6. Cookies and Tracking</h2>
               <p className="text-gray-700 mb-4">
-                We use cookies and similar tracking technologies to enhance your experience on our platform. 
-                This includes session cookies for authentication and analytics cookies to understand user behavior.
+                Cookies are used for authentication, analytics, and improving performance.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">7. Third-Party Services</h2>
               <p className="text-gray-700 mb-4">
-                Our platform may contain links to third-party websites or integrate with external services. 
-                We are not responsible for the privacy practices of these third parties.
+                Not responsible for external sites or integrations.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">8. Data Retention</h2>
               <p className="text-gray-700 mb-4">
-                We retain your personal information for as long as necessary to provide our services and comply with legal obligations. 
-                You can request deletion of your account and associated data at any time.
+                Data retained as long as necessary for business and legal compliance.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">9. Changes to This Policy</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">9. International Transfers</h2>
               <p className="text-gray-700 mb-4">
-                We may update this Privacy Policy from time to time. We will notify you of any material changes by 
-                posting the updated policy on our website and updating the "Last updated" date.
+                Data may be processed outside the <strong>Democratic Socialist Republic of Sri Lanka</strong>, subject to safeguards.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">10. Contact Us</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">10. Changes</h2>
               <p className="text-gray-700 mb-4">
-                If you have any questions about this Privacy Policy or our privacy practices, please contact us:
+                We may update this Privacy Policy. Continued use means acceptance.
               </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">11. Contact</h2>
               <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-700 mb-2">
-                  <strong>Email:</strong> privacy@vera.lk
-                </p>
-                <p className="text-gray-700 mb-2">
-                  <strong>Address:</strong> vera.lk, Colombo, Sri Lanka
-                </p>
                 <p className="text-gray-700">
-                  <strong>Response Time:</strong> We aim to respond to privacy inquiries within 7 business days
+                  <strong>Email:</strong> <a href="mailto:support@vera.lk" className="text-blue-600 hover:underline">support@vera.lk</a><br />
+                  We usually respond within 24-48 hours during business days.
                 </p>
               </div>
             </section>
