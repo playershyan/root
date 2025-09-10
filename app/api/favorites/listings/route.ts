@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 
+export const runtime = 'nodejs'
+
 // GET favorited listings with full details for profile page
 export async function GET(request: NextRequest) {
   try {

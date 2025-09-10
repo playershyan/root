@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { uptimeMonitor } from '@/lib/monitoring/uptime'
 import { performanceMonitor } from '@/lib/monitoring/metrics'
 
+export const runtime = 'nodejs'
+
 export async function GET() {
   const startTime = Date.now()
 

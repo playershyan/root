@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 
+export const runtime = 'nodejs'
+
 export async function GET() {
   try {
     const cookieStore = cookies()

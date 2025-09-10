@@ -16,6 +16,7 @@ const EmailVerificationAlert = dynamic(() => import('./components/EmailVerificat
 import FeaturedListingsSSR from './components/homepage/FeaturedListingsSSR'
 
 export const revalidate = 60 // Refresh every minute
+export const dynamic = 'force-dynamic'
 
 export default async function HomePage() {
 
