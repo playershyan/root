@@ -1,15 +1,15 @@
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
+import dynamicImport from 'next/dynamic'
 
-const AboutSection = dynamic(() => import('./components/AboutSection'), {
+const AboutSection = dynamicImport(() => import('./components/AboutSection'), {
   ssr: false
 })
 
-const GoogleOneTap = dynamic(() => import('./components/GoogleOneTap'), {
+const GoogleOneTap = dynamicImport(() => import('./components/GoogleOneTap'), {
   ssr: false
 })
 
-const EmailVerificationAlert = dynamic(() => import('./components/EmailVerificationAlert'), {
+const EmailVerificationAlert = dynamicImport(() => import('./components/EmailVerificationAlert'), {
   ssr: false
 })
 
