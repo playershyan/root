@@ -815,10 +815,10 @@ export default function WantedRequestsPage() {
               {/* Mobile Filter Button */}
               <button
                 onClick={() => setExpandedFilters(prev => ({ ...prev, mobile: true }))}
-                className="lg:hidden px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center gap-2 text-sm"
+                className="lg:hidden px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center justify-center"
+                aria-label="Open filters"
               >
                 <i className="fas fa-filter"></i>
-                Filters
               </button>
               
               {/* Search Input */}

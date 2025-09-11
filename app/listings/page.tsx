@@ -1053,22 +1053,34 @@ export default function AdvancedListingsPage() {
             
             {/* Quick search section */}
             <div className="w-full lg:w-96">
-              <div className="relative">
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder={placeholderText}
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                />
+              <div className="flex gap-2">
+                {/* Mobile Filter Button */}
                 <button
-                  onClick={handleSearch}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  onClick={() => setExpandedFilters(prev => ({ ...prev, mobile: true }))}
+                  className="lg:hidden px-3 py-3 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center justify-center"
+                  aria-label="Open filters"
                 >
-                  <i className="fas fa-search text-sm"></i>
+                  <i className="fas fa-filter"></i>
                 </button>
+                
+                {/* Search Input */}
+                <div className="relative flex-1">
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder={placeholderText}
+                    className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  />
+                  <button
+                    onClick={handleSearch}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  >
+                    <i className="fas fa-search text-sm"></i>
+                  </button>
+                </div>
               </div>
               
               {/* Quick clear filters button */}
@@ -1091,8 +1103,8 @@ export default function AdvancedListingsPage() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar Filters */}
-          <div className="lg:col-span-1">
+          {/* Sidebar Filters - Desktop Only */}
+          <div className="hidden lg:block lg:col-span-1">
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <h2 className="text-lg font-semibold mb-4">Filters</h2>
               {renderFilterContent()}
@@ -1100,7 +1112,7 @@ export default function AdvancedListingsPage() {
           </div>
           
           {/* Listings Content */}
-          <div className="lg:col-span-3">
+          <div className="col-span-1 lg:col-span-3">
             {/* AI Guide Section */}
             {showAIGuide && (
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mb-6">
@@ -1357,6 +1369,52 @@ export default function AdvancedListingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Filter Panel */}
+      {expandedFilters.mobile && (
+        <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50">
+          <div className="absolute right-0 top-0 h-full w-full max-w-sm bg-white shadow-xl overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Filters</h3>
+              <button
+                onClick={() => setExpandedFilters(prev => ({ ...prev, mobile: false }))}
+                className="p-2 text-gray-500 hover:text-gray-700"
+              >
+                <i className="fas fa-times text-xl"></i>
+              </button>
+            </div>
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-sm text-gray-600">
+                  {(() => {
+                    const activeFilters = [
+                      selectedVehicleCategory,
+                      selectedLocation,
+                      selectedMake !== 'All Makes' ? selectedMake : '',
+                      selectedModel !== 'All Models' ? selectedModel : '',
+                      minPrice,
+                      maxPrice,
+                      minYear,
+                      maxYear,
+                      fuelTypes.length > 0 ? 'fuel' : '',
+                      transmissionTypes.length > 0 ? 'transmission' : '',
+                      urgentOnly ? 'urgent' : ''
+                    ].filter(f => f && f !== '').length;
+                    return `${activeFilters} filters applied`;
+                  })()}
+                </span>
+                <button 
+                  onClick={clearAllFilters}
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                >
+                  Clear all
+                </button>
+              </div>
+              {renderFilterContent()}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
