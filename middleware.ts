@@ -2,6 +2,7 @@ import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { withRateLimit, rateLimiters } from './lib/middleware/rateLimiter'
+import { VEHICLE_DATA } from './lib/constants/vehicleData'
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
@@ -56,6 +57,19 @@ export async function middleware(req: NextRequest) {
 
   const path = req.nextUrl.pathname
 
+  // Map internal search queries like /listings?q=toyota+prius to clean landing pages
+  if (path === '/listings') {
+    const q = req.nextUrl.searchParams.get('q')
+    const intent = req.nextUrl.searchParams.get('intent')
+    if (q && intent !== 'refine') {
+      const mapped = tryMapQueryToMakeModel(q)
+      if (mapped) {
+        const url = new URL(`/lk/cars/${mapped.makeId}/${mapped.modelSlug}`, req.url)
+        return NextResponse.redirect(url, 301)
+      }
+    }
+  }
+
   // Remove console.log statements in production
   if (process.env.NODE_ENV !== 'production') {
     console.log('Middleware - Path:', path)
@@ -90,4 +104,31 @@ export const config = {
     '/login', 
     '/register'
   ]
+}
+
+function tryMapQueryToMakeModel(raw: string): { makeId: string; modelSlug: string } | null {
+  const carCat = VEHICLE_DATA?.categories?.['car']
+  if (!carCat) return null
+
+  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9\s-]/g, ' ').replace(/\s+/g, ' ').trim()
+  const slugify = (s: string) => s.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+
+  const q = normalize(raw)
+
+  for (const make of carCat.makes) {
+    const makeNames = [make.id.toLowerCase(), make.name.toLowerCase()]
+    const hasMake = makeNames.some((m) => q.includes(m))
+    if (!hasMake) continue
+
+    // find model token within query
+    for (const model of make.models) {
+      const modelNorm = model.toLowerCase()
+      const modelSlug = slugify(model)
+      if (q.includes(modelNorm) || q.includes(modelSlug.replace(/-/g, ' '))) {
+        return { makeId: make.id, modelSlug }
+      }
+    }
+  }
+
+  return null
 }

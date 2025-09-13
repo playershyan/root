@@ -112,6 +112,20 @@ export default function SitemapPage() {
           </div>
         </div>
 
+        {/* Popular Searches (SEO landing links) */}
+        <div className="mt-10">
+          <h2 className="text-xl font-semibold text-black mb-3">Popular Searches in Sri Lanka</h2>
+          <p className="text-gray-600 mb-4">Direct links to common make/model searches:</p>
+          <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+            <li><Link href="/lk/cars/toyota/prius" className="text-blue-600 hover:underline">Toyota Prius for sale in Sri Lanka</Link></li>
+            <li><Link href="/lk/cars/toyota/corolla" className="text-blue-600 hover:underline">Toyota Corolla for sale in Sri Lanka</Link></li>
+            <li><Link href="/lk/cars/honda/civic" className="text-blue-600 hover:underline">Honda Civic for sale in Sri Lanka</Link></li>
+            <li><Link href="/lk/cars/honda/vezel" className="text-blue-600 hover:underline">Honda Vezel for sale in Sri Lanka</Link></li>
+            <li><Link href="/lk/cars/suzuki/alto" className="text-blue-600 hover:underline">Suzuki Alto for sale in Sri Lanka</Link></li>
+            <li><Link href="/lk/cars/nissan/leaf" className="text-blue-600 hover:underline">Nissan Leaf for sale in Sri Lanka</Link></li>
+          </ul>
+        </div>
+
         {/* Additional Notes */}
         <div className="mt-8 bg-blue-50 rounded-lg p-6">
           <h2 className="text-sm font-semibold text-gray-700 mb-3">Notes:</h2>

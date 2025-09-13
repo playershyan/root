@@ -26,6 +26,22 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <script src="https://kit.fontawesome.com/5a82e6e998.js" crossOrigin="anonymous"></script>
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebSite',
+              url: process.env.NEXT_PUBLIC_APP_URL || 'https://vera.lk',
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: (process.env.NEXT_PUBLIC_APP_URL || 'https://vera.lk') + '/listings?q={search_term_string}',
+                'query-input': 'required name=search_term_string',
+              },
+            }),
+          }}
+        />
       </head>
       <body className={inter.className}>
         <ErrorBoundary>

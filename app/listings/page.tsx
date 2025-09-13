@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import LocationFilter from '@/app/components/LocationFilter'
@@ -53,6 +54,7 @@ const PLACEHOLDER_TEXTS = [
 export default function AdvancedListingsPage() {
   // Hooks
   const { getAIToken } = useRecaptcha()
+  const searchParams = useSearchParams()
   
   // State management
   const [listings, setListings] = useState<Listing[]>([])
@@ -123,6 +125,7 @@ export default function AdvancedListingsPage() {
 
   // Search input ref for focus
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const initializedFromQueryRef = useRef(false)
 
   // Animated placeholder effect
   useEffect(() => {
@@ -135,6 +138,17 @@ export default function AdvancedListingsPage() {
   useEffect(() => {
     setPlaceholderText(PLACEHOLDER_TEXTS[placeholderIndex])
   }, [placeholderIndex])
+
+  // Initialize from URL query param q
+  useEffect(() => {
+    if (initializedFromQueryRef.current) return
+    const q = searchParams?.get('q')
+    if (q && typeof q === 'string' && q.trim()) {
+      setSearchInput(q)
+      setSearchTerm(q)
+      initializedFromQueryRef.current = true
+    }
+  }, [searchParams])
 
   // Fetch listings
   useEffect(() => {
