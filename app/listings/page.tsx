@@ -11,6 +11,7 @@ import PromotionBadges from '@/app/components/listings/PromotionBadges'
 import { getVehicleCategories, getMakesByCategory, getModelsByMake, getCategoryInfo } from '@/lib/constants/vehicleData'
 import { RotationService } from '@/lib/services/rotationService'
 import { PromotionService, PromotedListing } from '@/lib/services/promotionService'
+import { useRecaptcha } from '@/lib/hooks/useRecaptcha'
 
 // Types
 type Listing = {
@@ -50,6 +51,9 @@ const PLACEHOLDER_TEXTS = [
 ]
 
 export default function AdvancedListingsPage() {
+  // Hooks
+  const { getAIToken } = useRecaptcha()
+  
   // State management
   const [listings, setListings] = useState<Listing[]>([])
   const [filteredListings, setFilteredListings] = useState<Listing[]>([])
@@ -381,13 +385,17 @@ export default function AdvancedListingsPage() {
         selectedLocation && `in ${selectedLocation}`
       ].filter(Boolean).join(' ') || 'vehicles'
 
+      // Get reCAPTCHA token before making the request
+      const recaptchaToken = await getAIToken()
+
       const response = await fetch('/api/generate-ai-guide', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          searchContext: searchContext
+          searchContext: searchContext,
+          recaptchaToken
         })
       })
 

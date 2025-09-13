@@ -34,6 +34,13 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Supabase signInWithIdToken error:', error)
+      if (typeof error.message === 'string' && error.message.toLowerCase().includes('provider is not enabled')) {
+        return NextResponse.json({
+          success: false,
+          error: 'Supabase Google provider not enabled. Enable Google in Supabase Dashboard > Authentication > Providers and configure Client ID/Secret.',
+          code: 'provider_not_enabled'
+        }, { status: 400 })
+      }
       
       // If signInWithIdToken doesn't work, fallback to checking if user exists
       // and prompt them to use OAuth flow

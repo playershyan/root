@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRecaptcha } from '@/lib/hooks/useRecaptcha'
 import { X, AlertTriangle, Shield, Copy, Tag, Zap } from 'lucide-react'
 
 interface ReportModalProps {
@@ -63,6 +64,7 @@ export default function ReportModal({
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+  const { getToken, isEnabled } = useRecaptcha()
 
   const handleSubmit = async () => {
     if (!selectedReason) {
@@ -74,6 +76,11 @@ export default function ReportModal({
     setError('')
 
     try {
+      let recaptchaToken: string | null = null
+      if (isEnabled) {
+        recaptchaToken = await getToken('report')
+      }
+
       const response = await fetch('/api/reports/create', {
         method: 'POST',
         headers: {
@@ -83,7 +90,8 @@ export default function ReportModal({
           listingId,
           wantedRequestId,
           reason: selectedReason,
-          description
+          description,
+          recaptchaToken
         }),
       })
 

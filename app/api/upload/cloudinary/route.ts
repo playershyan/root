@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { CloudinaryService } from '@/lib/cloudinary'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { verifyRecaptcha } from '@/lib/security/recaptcha'
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,7 +38,29 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ User authenticated:', user.id)
 
+    // Optional reCAPTCHA for uploads
+    const forwarded = request.headers.get('x-forwarded-for')
+    const ipHeader = forwarded ? forwarded.split(',')[0].trim() : request.headers.get('x-real-ip') || undefined
+    const headerToken = request.headers.get('x-recaptcha-token')
     const formData = await request.formData()
+    const formToken = formData.get('recaptchaToken') as string | null
+    const uploadCaptchaRequired = (process.env.RECAPTCHA_UPLOAD_REQUIRED || '').toLowerCase() === 'true'
+    const candidateToken = headerToken || formToken || undefined
+    if (uploadCaptchaRequired) {
+      const captcha = await verifyRecaptcha(candidateToken, ipHeader)
+      if (!captcha.success || (typeof captcha.score === 'number' && captcha.score < 0.1)) {
+        const { incr } = await import('@/lib/security/metrics')
+        incr('uploads.captcha_blocked')
+        return NextResponse.json({ error: 'Upload blocked by reCAPTCHA' }, { status: 400 })
+      }
+    } else if (candidateToken) {
+      const captcha = await verifyRecaptcha(candidateToken, ipHeader)
+      if (!captcha.success) {
+        const { incr } = await import('@/lib/security/metrics')
+        incr('uploads.captcha_blocked')
+        return NextResponse.json({ error: 'Invalid reCAPTCHA' }, { status: 400 })
+      }
+    }
     const files = formData.getAll('images') as File[]
     const listingId = formData.get('listingId') as string
     

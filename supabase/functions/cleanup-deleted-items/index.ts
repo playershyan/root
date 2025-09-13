@@ -27,8 +27,8 @@ serve(async (req) => {
     // Check for authorization (can be a secret key or cron job token)
     const authHeader = req.headers.get('Authorization')
     const expectedToken = Deno.env.get('CLEANUP_CRON_SECRET')
-    
-    if (expectedToken && authHeader !== `Bearer ${expectedToken}`) {
+    // Require the secret; do not allow public invocation
+    if (!expectedToken || authHeader !== `Bearer ${expectedToken}`) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { 

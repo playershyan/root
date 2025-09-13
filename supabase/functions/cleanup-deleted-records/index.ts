@@ -13,6 +13,16 @@ serve(async (req: Request) => {
   }
 
   try {
+    // Require secret token for authorization
+    const authHeader = req.headers.get('authorization') || req.headers.get('Authorization')
+    const expectedToken = Deno.env.get('CLEANUP_CRON_SECRET')
+    if (!expectedToken || authHeader !== `Bearer ${expectedToken}`) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // Create Supabase client with service role key for admin access
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',

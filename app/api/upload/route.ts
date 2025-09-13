@@ -1,6 +1,7 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { APIError } from '@/lib/errorHandling'
+import { verifyRecaptcha } from '@/lib/security/recaptcha'
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
@@ -14,7 +15,30 @@ export async function POST(request: NextRequest) {
       throw new APIError('Authentication required', 401)
     }
 
+    // Optional reCAPTCHA check for uploads; enforce via RECAPTCHA_UPLOAD_REQUIRED=true
+    const forwarded = request.headers.get('x-forwarded-for')
+    const ipHeader = forwarded ? forwarded.split(',')[0].trim() : request.headers.get('x-real-ip') || undefined
+    const headerToken = request.headers.get('x-recaptcha-token')
     const formData = await request.formData()
+    const formToken = formData.get('recaptchaToken') as string | null
+    const uploadCaptchaRequired = (process.env.RECAPTCHA_UPLOAD_REQUIRED || '').toLowerCase() === 'true'
+    const candidateToken = headerToken || formToken || undefined
+    if (uploadCaptchaRequired) {
+      const captcha = await verifyRecaptcha(candidateToken, ipHeader)
+      if (!captcha.success || (typeof captcha.score === 'number' && captcha.score < 0.1)) {
+        const { incr } = await import('@/lib/security/metrics')
+        incr('uploads.captcha_blocked')
+        return NextResponse.json({ error: 'Upload blocked by reCAPTCHA' }, { status: 400 })
+      }
+    } else if (candidateToken) {
+      // If token is provided, verify and reject only if explicitly invalid
+      const captcha = await verifyRecaptcha(candidateToken, ipHeader)
+      if (!captcha.success) {
+        const { incr } = await import('@/lib/security/metrics')
+        incr('uploads.captcha_blocked')
+        return NextResponse.json({ error: 'Invalid reCAPTCHA' }, { status: 400 })
+      }
+    }
     const file = formData.get('file') as File
     const bucket = formData.get('bucket') as string || 'listings'
 

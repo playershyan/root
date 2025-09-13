@@ -84,6 +84,10 @@ export default function GoogleOneTapProvider({
   const initializeGoogleOneTap = useCallback(() => {
     if (!window.google || user || initialized) return
     if (!authConfig.google.enabled || !authConfig.features.oneClickSignIn) return
+    if (!authConfig.google.clientId) {
+      console.warn('Google One Tap clientId missing (NEXT_PUBLIC_GOOGLE_CLIENT_ID). Skipping initialization.')
+      return
+    }
 
     try {
       window.google.accounts.id.initialize({

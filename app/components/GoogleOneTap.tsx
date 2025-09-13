@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useCallback } from 'react'
+import { authConfig } from '@/lib/config/auth.config'
 import { useAuth } from '../contexts/AuthContext'
 import Script from 'next/script'
 
@@ -69,8 +70,12 @@ export default function GoogleOneTap() {
     if (!window.google || user) return
 
     try {
+      if (!authConfig.google?.clientId) {
+        console.warn('Google One Tap clientId missing (NEXT_PUBLIC_GOOGLE_CLIENT_ID). Skipping initialization.')
+        return
+      }
       window.google.accounts.id.initialize({
-        client_id: '20310748886-utpvg105jq237vuv10vcn0mh5dvsfum5.apps.googleusercontent.com',
+        client_id: authConfig.google.clientId!,
         callback: handleCredentialResponse,
         auto_select: false,
         cancel_on_tap_outside: true,

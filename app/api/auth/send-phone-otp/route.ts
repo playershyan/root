@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { verifyRecaptcha, captchaGuardFailJson } from '@/lib/security/recaptcha'
 
 // Simple OTP generation function
 function generateOTP(): string {
@@ -40,10 +41,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { phoneNumber } = await request.json()
-    
+    const { phoneNumber, recaptchaToken } = await request.json()
+
     if (!phoneNumber) {
       return NextResponse.json({ error: 'Phone number is required' }, { status: 400 })
+    }
+
+    // Verify reCAPTCHA to prevent OTP abuse (if enabled)
+    const forwarded = request.headers.get('x-forwarded-for')
+    const ipHeader = forwarded ? forwarded.split(',')[0].trim() : request.headers.get('x-real-ip') || undefined
+    const captcha = await verifyRecaptcha(recaptchaToken, ipHeader)
+    if (!captcha.success || (typeof captcha.score === 'number' && captcha.score < 0.3)) {
+      return captchaGuardFailJson(0.3)
     }
 
     // Validate phone number format (basic validation)

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { verifyRecaptcha, captchaGuardFailJson } from '@/lib/security/recaptcha'
 
 const VALID_REASONS = [
   'inappropriate_content',
@@ -21,7 +22,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { listingId, wantedRequestId, reason, description } = await request.json()
+    const { listingId, wantedRequestId, reason, description, recaptchaToken } = await request.json()
+
+    // reCAPTCHA verification for abuse-prone reporting
+    const forwarded = request.headers.get('x-forwarded-for')
+    const ipHeader = forwarded ? forwarded.split(',')[0].trim() : request.headers.get('x-real-ip') || undefined
+    const captcha = await verifyRecaptcha(recaptchaToken, ipHeader)
+    if (!captcha.success || (typeof captcha.score === 'number' && captcha.score < 0.3)) {
+      return captchaGuardFailJson(0.3)
+    }
 
     // Validate input
     if (!listingId && !wantedRequestId) {

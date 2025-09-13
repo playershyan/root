@@ -11,6 +11,7 @@ import { useAuth } from '../contexts/AuthContext'
 import CleanupMonitoringWidget from '../components/admin/CleanupMonitoringWidget'
 import AlertsWidget from '../components/admin/AlertsWidget'
 import SystemHealthWidget from '../components/admin/SystemHealthWidget'
+import SecurityStatusWidget from '../components/admin/SecurityStatusWidget'
 
 interface AdminStats {
   pendingListings: number
@@ -447,7 +448,8 @@ export default function AdminDashboard() {
                 { id: 'business-profiles', label: 'Business Profiles', icon: Building2 },
                 { id: 'reports', label: 'Reports', icon: Flag },
                 { id: 'approved', label: 'Approved Listings', icon: CheckCircle },
-                { id: 'monitoring', label: 'Cleanup Monitoring', icon: Database }
+                { id: 'monitoring', label: 'Cleanup Monitoring', icon: Database },
+                { id: 'security', label: 'Security', icon: Shield },
               ].map((tab) => {
                 const IconComponent = tab.icon
                 return (
@@ -709,6 +711,21 @@ export default function AdminDashboard() {
                   </div>
                   
                   {/* Sidebar widgets */}
+                  <div className="xl:col-span-1 space-y-6">
+                    <SystemHealthWidget />
+                    <AlertsWidget />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'security' && (
+              <div className="space-y-6">
+                <h2 className="text-lg font-semibold text-gray-800">Security & Abuse Protection</h2>
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                  <div className="xl:col-span-2 space-y-6">
+                    <SecurityStatusWidget />
+                  </div>
                   <div className="xl:col-span-1 space-y-6">
                     <SystemHealthWidget />
                     <AlertsWidget />

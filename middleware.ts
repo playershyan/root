@@ -8,7 +8,7 @@ export async function middleware(req: NextRequest) {
   const supabase = createMiddlewareClient({ req, res })
   
   // Apply rate limiting to API routes
-  if (req.nextUrl.pathname.startsWith('/api')) {
+    if (req.nextUrl.pathname.startsWith('/api')) {
     // Determine which rate limiter to use based on the path
     let rateLimiter = rateLimiters.api // Default API rate limit
     
@@ -34,6 +34,15 @@ export async function middleware(req: NextRequest) {
     const rateLimitResponse = await withRateLimit(req, rateLimiter)
     if (rateLimitResponse) {
       return rateLimitResponse
+    }
+
+    // Additional daily cap for AI endpoints to prevent abuse
+    if (req.nextUrl.pathname.startsWith('/api/ai-') ||
+        req.nextUrl.pathname.startsWith('/api/generate-ai')) {
+      const dailyCapResponse = await withRateLimit(req, rateLimiters.aiDaily)
+      if (dailyCapResponse) {
+        return dailyCapResponse
+      }
     }
   }
 

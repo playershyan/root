@@ -25,6 +25,7 @@ import {
 import VehicleFormFactory from '@/app/components/vehicle-forms/VehicleFormFactory'
 import { BaseVehicleFormData } from '@/app/components/vehicle-forms/types'
 import { useUserProfile } from '@/lib/hooks/useUserProfile'
+import { useRecaptcha } from '@/lib/hooks/useRecaptcha'
 
 // Vehicle makes and models are now loaded from vehicleData.ts
 // Form constants are now in the vehicle-forms types
@@ -90,6 +91,7 @@ export default function EnhancedPostVehiclePage() {
   const searchParams = useSearchParams()
   const { user, loading: authLoading } = useAuth()
   const { profile, loading: profileLoading, getPhoneNumber, getWhatsAppNumber } = useUserProfile()
+  const { getAIToken } = useRecaptcha()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const vehicleDropdownRef = useRef<HTMLDivElement>(null)
   
@@ -381,6 +383,9 @@ export default function EnhancedPostVehiclePage() {
     
     setAiLoading(true)
     try {
+      // Get reCAPTCHA token before making the request
+      const recaptchaToken = await getAIToken()
+      
       const response = await fetch('/api/ai-description', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -393,7 +398,8 @@ export default function EnhancedPostVehiclePage() {
           transmission: formData.transmission,
           condition: formData.condition,
           features: formData.features,
-          style: formData.aiStyle
+          style: formData.aiStyle,
+          recaptchaToken
         }),
       })
       

@@ -20,12 +20,14 @@
     },
     "dependencies": {
         "@google/generative-ai": "^0.16.0",
-        "@sentry/mcp-server": "^0.17.1",
+        "@sentry/mcp-server": "^0.16.0",
         "@sentry/nextjs": "^10.3.0",
         "@supabase/auth-helpers-nextjs": "^0.10.0",
         "@supabase/ssr": "^0.6.1",
         "@supabase/supabase-js": "^2.45.0",
         "@types/jsonwebtoken": "^9.0.10",
+        "@upstash/ratelimit": "^2.0.6",
+        "@upstash/redis": "^1.35.3",
         "cloudinary": "^2.7.0",
         "dotenv": "^17.2.1",
         "google-auth-library": "^10.2.1",
@@ -58,6 +60,7 @@
         "node-fetch": "^2.7.0",
         "node-mocks-http": "^1.17.2",
         "postcss": "^8.4.39",
+        "supabase": "^2.40.7",
         "tailwindcss": "^3.4.6",
         "typescript": "^5.5.3"
     }

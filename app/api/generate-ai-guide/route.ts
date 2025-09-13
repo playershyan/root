@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { verifyRecaptcha, captchaGuardFailJson } from '@/lib/security/recaptcha'
+import { incr, incrTrend } from '@/lib/security/metrics'
 
 // Initialize Gemini with optimized settings
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
@@ -10,10 +12,24 @@ const CACHE_TTL = 3600000 // 1 hour
 
 export async function POST(request: Request) {
   try {
-    const { searchContext } = await request.json()
+    // Basic payload guard
+    const contentLength = Number(request.headers.get('content-length') || '0')
+    if (contentLength > 25_000) {
+      return NextResponse.json({ error: 'Payload too large' }, { status: 413 })
+    }
+
+    const { searchContext, recaptchaToken } = await request.json()
 
     if (!searchContext) {
       return NextResponse.json({ error: 'Search context is required' }, { status: 400 })
+    }
+
+    // Verify reCAPTCHA (enable via RECAPTCHA_ENABLED=true)
+    const forwarded = request.headers.get('x-forwarded-for')
+    const ipHeader = forwarded ? forwarded.split(',')[0].trim() : request.headers.get('x-real-ip') || undefined
+    const captcha = await verifyRecaptcha(recaptchaToken, ipHeader)
+    if (!captcha.success || (typeof captcha.score === 'number' && captcha.score < 0.3)) {
+      return captchaGuardFailJson(0.3)
     }
 
     // Check cache first for instant response
@@ -77,6 +93,7 @@ Keep total under 150 words. Be encouraging and practical.`
       compact: cleanedText,
       detailed: detailedContent
     }
+    incr('ai.guide.request')
 
     // Cache the result for future requests
     cache.set(cacheKey, {
@@ -99,6 +116,8 @@ Keep total under 150 words. Be encouraging and practical.`
     
   } catch (error) {
     console.error('AI Guide generation failed:', error)
+    incr('ai.guide.error')
+    await incrTrend('ai.guide.error')
     
     // Get searchContext from request body for fallback
     const { searchContext } = await request.json().catch(() => ({ searchContext: '' }))
