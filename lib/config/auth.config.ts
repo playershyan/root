@@ -12,7 +12,6 @@ export interface AuthProviderConfig {
 
 export interface AuthConfig {
   google: AuthProviderConfig;
-  facebook: AuthProviderConfig;
   email: AuthProviderConfig;
   phone: AuthProviderConfig;
   redirectUrls: {
@@ -38,11 +37,6 @@ export const authConfig: AuthConfig = {
       access_type: 'offline',
     }
   },
-  facebook: {
-    enabled: false, // Will enable when configured
-    clientId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID,
-    clientSecret: process.env.FACEBOOK_APP_SECRET,
-  },
   email: {
     enabled: true,
   },
@@ -66,10 +60,6 @@ export const validateAuthConfig = (): boolean => {
 
   if (authConfig.google.enabled && !authConfig.google.clientId) {
     errors.push('Google Client ID is required when Google auth is enabled');
-  }
-
-  if (authConfig.facebook.enabled && !authConfig.facebook.clientId) {
-    errors.push('Facebook App ID is required when Facebook auth is enabled');
   }
 
   if (errors.length > 0) {

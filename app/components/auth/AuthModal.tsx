@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { authConfig } from '@/lib/config/auth.config'
 import GoogleSignInButton from './GoogleSignInButton'
-import FacebookSignInButton from './FacebookSignInButton'
 import EmailAuthForm from './EmailAuthForm'
 import PhoneAuthForm from './PhoneAuthForm'
 import OTPVerification from './OTPVerification'
@@ -16,7 +15,7 @@ export default function AuthModal({
   isOpen,
   onClose,
   initialView = 'login',
-  allowedMethods = ['google', 'facebook', 'email', 'phone']
+  allowedMethods = ['google', 'email', 'phone']
 }: AuthModalProps) {
   const [currentView, setCurrentView] = useState<AuthView>('main')
   const [authType, setAuthType] = useState<'login' | 'register'>(initialView)
@@ -84,15 +83,11 @@ export default function AuthModal({
     const enabledMethods = allowedMethods.filter(method => {
       switch (method) {
         case 'google': return authConfig.google.enabled
-        case 'facebook': return authConfig.facebook.enabled
         case 'email': return authConfig.email.enabled
         case 'phone': return authConfig.phone.enabled
         default: return false
       }
     })
-
-    const socialMethods = enabledMethods.filter(method => ['google', 'facebook'].includes(method))
-    const credentialMethods = enabledMethods.filter(method => ['email', 'phone'].includes(method))
 
     return (
       <div className="space-y-6">
@@ -102,79 +97,55 @@ export default function AuthModal({
             {authType === 'register' ? 'Create Your Account' : 'Welcome Back'}
           </h2>
           <p className="text-gray-600">
-            {authType === 'register' 
-              ? 'Join VERA to buy and sell vehicles' 
+            {authType === 'register'
+              ? 'Join VERA to buy and sell vehicles'
               : 'Sign in to your VERA account'
             }
           </p>
         </div>
 
-        {/* Social Auth Buttons */}
-        {socialMethods.length > 0 && (
-          <div className="space-y-3">
-            {socialMethods.includes('google') && (
-              <GoogleSignInButton
-                onSuccess={handleAuthSuccess}
-                onError={handleAuthError}
-                loading={loading}
-                variant="outlined"
-                className="w-full"
-              />
-            )}
-            {socialMethods.includes('facebook') && (
-              <FacebookSignInButton
-                onSuccess={handleAuthSuccess}
-                onError={handleAuthError}
-                loading={loading}
-                variant="outlined"
-                className="w-full"
-              />
-            )}
-          </div>
-        )}
+        {/* All Auth Options - Phone first, then Google, then Email */}
+        <div className="space-y-3">
+          {/* Phone Auth - Primary */}
+          {enabledMethods.includes('phone') && (
+            <button
+              onClick={() => setCurrentView('phone')}
+              className="w-full flex items-center justify-center gap-3 p-3 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium"
+              disabled={loading}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+              </svg>
+              <span>{authType === 'register' ? 'Sign up with Phone' : 'Login with Phone'}</span>
+            </button>
+          )}
 
-        {/* Divider */}
-        {socialMethods.length > 0 && credentialMethods.length > 0 && (
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with</span>
-            </div>
-          </div>
-        )}
+          {/* Google Auth - Secondary */}
+          {enabledMethods.includes('google') && (
+            <GoogleSignInButton
+              onSuccess={handleAuthSuccess}
+              onError={handleAuthError}
+              loading={loading}
+              variant="outlined"
+              className="w-full"
+              text={authType === 'register' ? 'Sign up with Google' : 'Login with Google'}
+            />
+          )}
 
-        {/* Credential Auth Options */}
-        {credentialMethods.length > 0 && (
-          <div className="space-y-3">
-            {credentialMethods.includes('email') && (
-              <button
-                onClick={() => setCurrentView('email')}
-                className="w-full flex items-center justify-center gap-3 p-3 border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors"
-                disabled={loading}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                <span className="font-medium text-gray-700">Continue with Email</span>
-              </button>
-            )}
-            
-            {credentialMethods.includes('phone') && (
-              <button
-                onClick={() => setCurrentView('phone')}
-                className="w-full flex items-center justify-center gap-3 p-3 border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors"
-                disabled={loading}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                </svg>
-                <span className="font-medium text-gray-700">Continue with Phone</span>
-              </button>
-            )}
-          </div>
-        )}
+          {/* Email Auth - Last */}
+          {enabledMethods.includes('email') && (
+            <button
+              onClick={() => setCurrentView('email')}
+              className="w-full flex items-center justify-center gap-3 p-3 border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors"
+              disabled={loading}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <span className="font-medium text-gray-700">{authType === 'register' ? 'Sign up with Email' : 'Login with Email'}</span>
+            </button>
+          )}
+        </div>
 
         {/* Toggle between login/register */}
         <div className="text-center">

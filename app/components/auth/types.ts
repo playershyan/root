@@ -44,5 +44,5 @@ export interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialView?: 'login' | 'register';
-  allowedMethods?: Array<'google' | 'facebook' | 'email' | 'phone'>;
+  allowedMethods?: Array<'google' | 'email' | 'phone'>;
 }

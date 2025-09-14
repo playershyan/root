@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "plugins": [],
+    "baseUrl": ".",
+    "incremental": false,
+    "composite": false
+  },
+  "include": [
+    "next-env.d.ts",
+    "types/lib-stubs.d.ts",
+    "app/contexts/**/*.ts",
+    "app/contexts/**/*.tsx",
+    "app/api/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "app/components/**/*",
+    "lib/**/*",
+    "supabase/functions/**/*"
+  ]
+}

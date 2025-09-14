@@ -9,7 +9,6 @@ export { default as AuthModal } from './AuthModal'
 // Provider Components
 export { default as GoogleSignInButton } from './GoogleSignInButton'
 export { default as GoogleOneTapProvider } from './GoogleOneTapProvider'
-export { default as FacebookSignInButton } from './FacebookSignInButton'
 
 // Form Components
 export { default as EmailAuthForm } from './EmailAuthForm'

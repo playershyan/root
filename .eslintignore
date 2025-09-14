@@ -1,0 +1,10 @@
+node_modules/
+.next/
+.swc/
+dist/
+build/
+coverage/
+public/
+docs/
+supabase/migrations/
+.vercel/

@@ -262,41 +262,6 @@ export async function signInWithGoogle(): Promise<{ success: boolean; error?: Au
   }
 }
 
-export async function signInWithFacebook(): Promise<{ success: boolean; error?: AuthError }> {
-  try {
-    // Check for pending redirect
-    const pendingRedirect = localStorage.getItem('pendingRedirect')
-    const redirectPath = pendingRedirect || '/profile'
-    
-    // Use Supabase OAuth flow for Facebook
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'facebook',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectPath)}`,
-      }
-    })
-
-    if (error) {
-      if (error.message?.includes('provider is not enabled')) {
-        return { 
-          success: false, 
-          error: { 
-            message: 'Facebook sign-in requires enabling Facebook provider in Supabase Dashboard. Go to Authentication > Providers and enable Facebook.',
-            code: 'provider_not_enabled'
-          }
-        }
-      }
-      return { success: false, error: { message: error.message, code: error.code } }
-    }
-
-    return { success: true }
-  } catch (error: any) {
-    return { 
-      success: false, 
-      error: { message: 'Failed to sign in with Facebook. Please try again.' }
-    }
-  }
-}
 
 export async function signInWithPassword(email: string, password: string): Promise<{ success: boolean; error?: AuthError; user?: any }> {
   try {

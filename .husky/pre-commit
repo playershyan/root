@@ -1,0 +1,6 @@
+# Husky pre-commit hook
+. "$(dirname "$0")/_/husky.sh"
+
+# Add your pre-commit checks here
+# For now, we'll just run a basic lint check
+npm run lint
