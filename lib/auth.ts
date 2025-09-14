@@ -137,6 +137,11 @@ export async function signInWithEmail(email: string, password: string): Promise<
 
 export async function signUp(email: string, password: string, phone?: string, name?: string): Promise<{ success: boolean; error?: AuthError; user?: any }> {
   try {
+    // Get the current site URL for email redirect
+    const siteUrl = typeof window !== 'undefined'
+      ? window.location.origin
+      : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -144,7 +149,8 @@ export async function signUp(email: string, password: string, phone?: string, na
         data: {
           phone,
           name
-        }
+        },
+        emailRedirectTo: `${siteUrl}/api/auth/callback`
       }
     })
 
@@ -165,8 +171,8 @@ export async function signUp(email: string, password: string, phone?: string, na
 
     return { success: true, user: data.user }
   } catch (error) {
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: { message: 'Failed to create account. Please try again.' }
     }
   }

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { 
   Heart, User, Search, Menu, X, Bell, 
   Car, MessageSquare, Settings, LogOut,
@@ -24,6 +24,7 @@ interface User {
 
 export default function Header() {
   const router = useRouter()
+  const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
@@ -31,27 +32,26 @@ export default function Header() {
   const userMenuRef = useRef<HTMLDivElement>(null)
   const unreadMessages = useUnreadMessages()
 
-  // Check for showLogin flag in localStorage
-  useEffect(() => {
-    const checkForShowLogin = () => {
-      const shouldShowLogin = localStorage.getItem('showLoginModal')
-      console.log('Header: Checking localStorage showLoginModal:', shouldShowLogin)
-      if (shouldShowLogin === 'true') {
-        console.log('Header: Found showLoginModal=true, opening modal')
-        setAuthModalOpen(true)
-        setShowEmailLogin(true)
-        // Clean up localStorage flag
-        localStorage.removeItem('showLoginModal')
-      }
+  // Centralized function to check for showLogin flag
+  const checkForShowLogin = (source = 'mount') => {
+    const shouldShowLogin = localStorage.getItem('showLoginModal')
+    console.log(`Header: ${source} check - localStorage showLoginModal:`, shouldShowLogin)
+    if (shouldShowLogin === 'true') {
+      console.log(`Header: ${source} check - Found showLoginModal=true, opening modal`)
+      setAuthModalOpen(true)
+      setShowEmailLogin(true)
+      localStorage.removeItem('showLoginModal')
     }
+  }
 
-    // Check on mount
-    checkForShowLogin()
+  // Check on mount
+  useEffect(() => {
+    checkForShowLogin('mount')
 
-    // Also check after any localStorage changes
+    // Also check after any localStorage changes (different tabs)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'showLoginModal') {
-        checkForShowLogin()
+        checkForShowLogin('storage')
       }
     }
 
@@ -62,21 +62,15 @@ export default function Header() {
     }
   }, [])
 
-  // Also check when the component receives focus (when navigating back to the page)
+  // Check on route changes (KEY FIX for same-tab navigation)
   useEffect(() => {
-    const checkForShowLogin = () => {
-      const shouldShowLogin = localStorage.getItem('showLoginModal')
-      console.log('Header: Focus check - localStorage showLoginModal:', shouldShowLogin)
-      if (shouldShowLogin === 'true') {
-        console.log('Header: Focus check - Found showLoginModal=true, opening modal')
-        setAuthModalOpen(true)
-        setShowEmailLogin(true)
-        localStorage.removeItem('showLoginModal')
-      }
-    }
+    checkForShowLogin('route-change')
+  }, [pathname])
 
+  // Also check when the window receives focus
+  useEffect(() => {
     const handleFocus = () => {
-      setTimeout(checkForShowLogin, 100)
+      setTimeout(() => checkForShowLogin('focus'), 100)
     }
 
     window.addEventListener('focus', handleFocus)
@@ -339,7 +333,7 @@ export default function Header() {
           setAuthModalOpen(false)
           setShowEmailLogin(false)
         }}
-        showEmailLogin={showEmailLogin}
+        allowedMethods={showEmailLogin ? ['email'] : ['google', 'email', 'phone']}
       />
 
       {/* Full Screen Mobile Menu */}
