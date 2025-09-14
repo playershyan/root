@@ -7,9 +7,11 @@ import GoogleSignInButton from './GoogleSignInButton'
 import EmailAuthForm from './EmailAuthForm'
 import PhoneAuthForm from './PhoneAuthForm'
 import OTPVerification from './OTPVerification'
+import MultiStepEmailSignup from './MultiStepEmailSignup'
+import SimpleForgotPassword from './SimpleForgotPassword'
 import type { AuthModalProps, AuthResult } from './types'
 
-type AuthView = 'main' | 'email' | 'phone' | 'otp-verify'
+type AuthView = 'main' | 'email' | 'phone' | 'otp-verify' | 'email-signup' | 'forgot-password'
 
 export default function AuthModal({
   isOpen,
@@ -25,6 +27,7 @@ export default function AuthModal({
   }>({})
   const [loading, setLoading] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
+  const [resetEmail, setResetEmail] = useState('')
 
   // Reset state when modal closes
   useEffect(() => {
@@ -135,7 +138,7 @@ export default function AuthModal({
           {/* Email Auth - Last */}
           {enabledMethods.includes('email') && (
             <button
-              onClick={() => setCurrentView('email')}
+              onClick={() => setCurrentView(authType === 'register' ? 'email-signup' : 'email')}
               className="w-full flex items-center justify-center gap-3 p-3 border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors"
               disabled={loading}
             >
@@ -199,6 +202,10 @@ export default function AuthModal({
               type={authType}
               onSuccess={handleAuthSuccess}
               onError={handleAuthError}
+              onForgotPassword={() => {
+                // Store current email if available
+                setCurrentView('forgot-password')
+              }}
               loading={loading}
             />
           </div>
@@ -245,7 +252,29 @@ export default function AuthModal({
             />
           </div>
         )
-      
+
+      case 'email-signup':
+        return (
+          <MultiStepEmailSignup
+            onSuccess={handleAuthSuccess}
+            onError={handleAuthError}
+            onBack={() => setCurrentView('main')}
+            onSwitchToLogin={() => {
+              setAuthType('login')
+              setCurrentView('email')
+            }}
+            loading={loading}
+          />
+        )
+
+      case 'forgot-password':
+        return (
+          <SimpleForgotPassword
+            onBack={() => setCurrentView('email')}
+            initialEmail={resetEmail}
+          />
+        )
+
       default:
         return renderAuthOptions()
     }

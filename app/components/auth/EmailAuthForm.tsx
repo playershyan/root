@@ -10,6 +10,7 @@ import type { EmailAuthProps, AuthResult } from './types'
 
 interface EmailAuthFormProps extends EmailAuthProps {
   showToggle?: boolean;
+  onForgotPassword?: () => void;
 }
 
 export default function EmailAuthForm({
@@ -19,7 +20,8 @@ export default function EmailAuthForm({
   className = '',
   onSuccess,
   onError,
-  showToggle = true
+  showToggle = true,
+  onForgotPassword
 }: EmailAuthFormProps) {
   const [type, setType] = useState<'login' | 'register'>(initialType)
   const [email, setEmail] = useState('')
@@ -159,9 +161,21 @@ export default function EmailAuthForm({
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-            Password
-          </label>
+          <div className="flex justify-between items-center mb-1">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            {type === 'login' && onForgotPassword && (
+              <button
+                type="button"
+                onClick={onForgotPassword}
+                className="text-sm text-blue-600 hover:text-blue-700 focus:outline-none"
+                disabled={loading || externalLoading || disabled}
+              >
+                Forgot password?
+              </button>
+            )}
+          </div>
           <input
             id="password"
             type="password"

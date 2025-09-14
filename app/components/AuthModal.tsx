@@ -12,12 +12,13 @@ interface AuthModalProps {
   onClose: () => void
   initialAuthType?: 'login' | 'register'
   returnUrl?: string
+  showEmailLogin?: boolean
 }
 
-export default function AuthModal({ isOpen, onClose, initialAuthType = 'login', returnUrl }: AuthModalProps) {
+export default function AuthModal({ isOpen, onClose, initialAuthType = 'login', returnUrl, showEmailLogin = false }: AuthModalProps) {
   const router = useRouter()
   const { refreshUser } = useAuth()
-  const [mode, setMode] = useState<'phone' | 'email' | 'email-otp'>('phone')
+  const [mode, setMode] = useState<'phone' | 'email' | 'email-otp'>(showEmailLogin ? 'email' : 'phone')
   const [authType, setAuthType] = useState<'login' | 'register'>(initialAuthType)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -83,7 +84,7 @@ export default function AuthModal({ isOpen, onClose, initialAuthType = 'login', 
   }, [showOtp, isOpen])
 
   const resetForm = () => {
-    setMode('phone')
+    setMode(showEmailLogin ? 'email' : 'phone')
     setAuthType(initialAuthType)
     setName('')
     setPhone('')
@@ -805,7 +806,7 @@ export default function AuthModal({ isOpen, onClose, initialAuthType = 'login', 
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
-                    <span className="font-medium text-gray-700">Continue with Email</span>
+                    <span className="font-medium text-gray-700">Login with Email</span>
                   </button>
                 </div>
 

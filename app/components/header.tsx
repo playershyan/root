@@ -27,8 +27,64 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
+  const [showEmailLogin, setShowEmailLogin] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
   const unreadMessages = useUnreadMessages()
+
+  // Check for showLogin flag in localStorage
+  useEffect(() => {
+    const checkForShowLogin = () => {
+      const shouldShowLogin = localStorage.getItem('showLoginModal')
+      console.log('Header: Checking localStorage showLoginModal:', shouldShowLogin)
+      if (shouldShowLogin === 'true') {
+        console.log('Header: Found showLoginModal=true, opening modal')
+        setAuthModalOpen(true)
+        setShowEmailLogin(true)
+        // Clean up localStorage flag
+        localStorage.removeItem('showLoginModal')
+      }
+    }
+
+    // Check on mount
+    checkForShowLogin()
+
+    // Also check after any localStorage changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'showLoginModal') {
+        checkForShowLogin()
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+    }
+  }, [])
+
+  // Also check when the component receives focus (when navigating back to the page)
+  useEffect(() => {
+    const checkForShowLogin = () => {
+      const shouldShowLogin = localStorage.getItem('showLoginModal')
+      console.log('Header: Focus check - localStorage showLoginModal:', shouldShowLogin)
+      if (shouldShowLogin === 'true') {
+        console.log('Header: Focus check - Found showLoginModal=true, opening modal')
+        setAuthModalOpen(true)
+        setShowEmailLogin(true)
+        localStorage.removeItem('showLoginModal')
+      }
+    }
+
+    const handleFocus = () => {
+      setTimeout(checkForShowLogin, 100)
+    }
+
+    window.addEventListener('focus', handleFocus)
+
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+    }
+  }, [])
   
   // Get user from auth context
   const { user: authUser, signOut } = useAuth()
@@ -245,7 +301,10 @@ export default function Header() {
               <>
                 {/* Profile Icon to open Auth Modal - Hidden on mobile */}
                 <button
-                  onClick={() => setAuthModalOpen(true)}
+                  onClick={() => {
+                    setAuthModalOpen(true)
+                    setShowEmailLogin(false)
+                  }}
                   className="hidden md:block p-2 text-gray-600 hover:text-blue-600 transition-colors"
                   title="Sign In / Sign Up"
                 >
@@ -274,9 +333,13 @@ export default function Header() {
       </nav>
 
       {/* Auth Modal */}
-      <AuthModal 
-        isOpen={authModalOpen} 
-        onClose={() => setAuthModalOpen(false)} 
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => {
+          setAuthModalOpen(false)
+          setShowEmailLogin(false)
+        }}
+        showEmailLogin={showEmailLogin}
       />
 
       {/* Full Screen Mobile Menu */}
@@ -303,6 +366,7 @@ export default function Header() {
                   onClick={() => {
                     setMobileMenuOpen(false)
                     setAuthModalOpen(true)
+                    setShowEmailLogin(false)
                   }}
                   className="w-full py-4 px-4 bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 shadow-lg"
                 >
