@@ -48,7 +48,6 @@ interface UserProfile {
   phoneVerifiedAt?: string
   tempPhone?: string
   membershipType: 'basic' | 'gold' | 'platinum'
-  accountType: 'individual' | 'business'
   avatar?: string
   country: string
 }
@@ -638,7 +637,6 @@ export default function ProfilePage() {
             phoneVerifiedAt: profileData.phone_verified_at,
             tempPhone: profileData.temp_phone,
             membershipType: profileData.membership_type || 'basic',
-            accountType: profileData.account_type || 'individual',
             country: profileData.location || 'LK'
           })
           setOriginalPhone(profileData.phone || user.phone || '')

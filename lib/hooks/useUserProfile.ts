@@ -11,7 +11,6 @@ interface UserProfileData {
   tempPhone?: string
   email: string
   membershipType: 'basic' | 'gold' | 'platinum'
-  accountType: 'individual' | 'business'
   avatar?: string
   country: string
   businessProfile?: {
@@ -79,7 +78,6 @@ export function useUserProfile() {
               tempPhone: newProfileData.temp_phone,
               email: user.email || '',
               membershipType: newProfileData.membership_type || 'basic',
-              accountType: newProfileData.account_type || 'individual',
               country: newProfileData.location || 'LK',
               businessProfile: newProfileData.business_profile && newProfileData.business_profile.is_active ? {
                 id: newProfileData.business_profile.id,
@@ -103,7 +101,6 @@ export function useUserProfile() {
           tempPhone: profileData.temp_phone,
           email: user.email || '',
           membershipType: profileData.membership_type || 'basic',
-          accountType: profileData.account_type || 'individual',
           country: profileData.location || 'LK',
           businessProfile: profileData.business_profile && profileData.business_profile.is_active ? {
             id: profileData.business_profile.id,

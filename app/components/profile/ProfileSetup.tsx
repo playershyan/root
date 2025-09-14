@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-import { User, MapPin, Phone, Building2, ArrowRight, Check } from 'lucide-react'
+import { User, MapPin, Phone, ArrowRight, Check } from 'lucide-react'
 import CountrySelector from '../CountrySelector'
 import { countries, Country } from '@/lib/data/countries'
 import { formatPhoneForStorage } from '@/lib/utils/phoneFormatter'
@@ -21,7 +21,6 @@ interface ProfileData {
   name: string
   phone: string
   location: string
-  accountType: 'individual' | 'business'
   country: string
 }
 
@@ -33,7 +32,6 @@ export default function ProfileSetup({ initialData }: ProfileSetupProps) {
     name: initialData?.name || '',
     phone: initialData?.phone || '',
     location: '',
-    accountType: 'individual',
     country: 'LK' // Default to Sri Lanka
   })
 
@@ -42,8 +40,7 @@ export default function ProfileSetup({ initialData }: ProfileSetupProps) {
 
   const steps = [
     { number: 1, title: 'Basic Info', description: 'Tell us about yourself' },
-    { number: 2, title: 'Contact', description: 'How can people reach you?' },
-    { number: 3, title: 'Account Type', description: 'Choose your account type' }
+    { number: 2, title: 'Contact', description: 'How can people reach you?' }
   ]
 
   const validateStep = (step: number): boolean => {
@@ -63,9 +60,6 @@ export default function ProfileSetup({ initialData }: ProfileSetupProps) {
           newErrors.location = 'Location is required'
         }
         break
-      case 3:
-        // Account type is always valid since it has a default
-        break
     }
 
     setErrors(newErrors)
@@ -74,7 +68,7 @@ export default function ProfileSetup({ initialData }: ProfileSetupProps) {
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
-      if (currentStep < 3) {
+      if (currentStep < 2) {
         setCurrentStep(currentStep + 1)
       } else {
         handleSubmit()
@@ -105,7 +99,6 @@ export default function ProfileSetup({ initialData }: ProfileSetupProps) {
           name: profileData.name.trim(),
           phone: formatPhoneForStorage(profileData.phone.trim()),
           location: profileData.location.trim(),
-          account_type: profileData.accountType,
           country: profileData.country,
           membership_type: 'basic',
           language: 'en',
@@ -219,58 +212,6 @@ export default function ProfileSetup({ initialData }: ProfileSetupProps) {
           </div>
         )
 
-      case 3:
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Building2 className="w-8 h-8 text-purple-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Type</h2>
-              <p className="text-gray-600">Choose the type of account that suits you best</p>
-            </div>
-
-            <div className="space-y-4">
-              <div
-                className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                  profileData.accountType === 'individual'
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-                onClick={() => setProfileData({ ...profileData, accountType: 'individual' })}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium text-gray-900">Individual Account</h3>
-                    <p className="text-sm text-gray-600">For personal buying and selling</p>
-                  </div>
-                  {profileData.accountType === 'individual' && (
-                    <Check className="w-5 h-5 text-blue-600" />
-                  )}
-                </div>
-              </div>
-
-              <div
-                className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                  profileData.accountType === 'business'
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-                onClick={() => setProfileData({ ...profileData, accountType: 'business' })}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium text-gray-900">Business Account</h3>
-                    <p className="text-sm text-gray-600">For dealers and businesses</p>
-                  </div>
-                  {profileData.accountType === 'business' && (
-                    <Check className="w-5 h-5 text-blue-600" />
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )
 
       default:
         return null
@@ -344,8 +285,8 @@ export default function ProfileSetup({ initialData }: ProfileSetupProps) {
               </>
             ) : (
               <>
-                {currentStep === 3 ? 'Complete Setup' : 'Next'}
-                {currentStep < 3 && <ArrowRight className="w-4 h-4" />}
+                {currentStep === 2 ? 'Complete Setup' : 'Next'}
+                {currentStep < 2 && <ArrowRight className="w-4 h-4" />}
               </>
             )}
           </button>

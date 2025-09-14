@@ -18,7 +18,6 @@ export interface Profile {
   bio?: string
   avatar_url?: string
   membership_type: 'basic' | 'premium' | 'dealer'
-  account_type: 'individual' | 'business'
   created_at: string
   updated_at: string
 }

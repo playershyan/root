@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       if (type === 'email') {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('name, phone, account_type')
+          .select('name, phone')
           .eq('id', data.user.id)
           .single()
 
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
       // Check if user has completed profile setup
       const { data: profile } = await supabase
         .from('profiles')
-        .select('name, phone, account_type')
+        .select('name, phone')
         .eq('id', data.session.user.id)
         .single()
 

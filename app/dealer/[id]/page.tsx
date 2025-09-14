@@ -29,7 +29,6 @@ export default async function DealerProfilePage({ params }: DealerProfileProps) 
       business_profile:business_profiles(*)
     `)
     .eq('id', params.id)
-    .eq('account_type', 'business')
     .single()
 
   if (!dealer || !dealer.business_profile) {

@@ -53,7 +53,6 @@ export default async function ListingDetailPage({
 
   console.log('Seller profile data:', sellerProfile)
   console.log('Business profile exists:', sellerProfile?.business_profiles)
-  console.log('Account type:', sellerProfile?.account_type)
 
   // Log finance fields for debugging
   console.log('Listing finance data:', {
@@ -118,7 +117,7 @@ export default async function ListingDetailPage({
   // Prepare seller data based on profile type
   let sellerData = null
   if (sellerProfile) {
-    if (sellerProfile.account_type === 'business' && sellerProfile.business_profiles) {
+    if (sellerProfile.business_profiles) {
       const businessProfile = sellerProfile.business_profiles
       sellerData = {
         type: 'business',
