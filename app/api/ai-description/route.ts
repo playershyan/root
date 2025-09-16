@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { generateVehicleDescription } from '@/lib/gemini'
+import { generateVehicleDescriptionWithOpenAI } from '@/lib/openai'
 import { verifyRecaptcha, captchaGuardFailJson } from '@/lib/security/recaptcha'
 import { incr, incrTrend } from '@/lib/security/metrics'
 
@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { make, model, year, mileage, fuel_type, transmission, additionalInfo, recaptchaToken } = body
+    const { make, model, year, mileage, fuel_type, transmission, condition, style, recaptchaToken } = body
 
     // reCAPTCHA verification (enable via RECAPTCHA_ENABLED=true)
     const forwarded = request.headers.get('x-forwarded-for')
@@ -29,14 +29,15 @@ export async function POST(request: Request) {
       )
     }
 
-    const description = await generateVehicleDescription(
+    const description = await generateVehicleDescriptionWithOpenAI(
       make,
       model,
       year,
-      mileage || 0,
-      fuel_type || 'Unknown',
-      transmission || 'Unknown',
-      additionalInfo
+      mileage,
+      fuel_type,
+      transmission,
+      condition,
+      style || 'professional'
     )
 
     incr('ai.description.request')

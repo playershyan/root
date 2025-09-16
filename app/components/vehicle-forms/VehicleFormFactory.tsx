@@ -13,7 +13,7 @@ import PlantMachineryForm from './PlantMachineryForm'
 import TractorForm from './TractorForm'
 import BoatForm from './BoatForm'
 import PricingSection from './PricingSection'
-import FeaturesSection from './FeaturesSection'
+import AdditionalInformationSection from './AdditionalInformationSection'
 import { FileText } from 'lucide-react'
 
 interface VehicleFormFactoryProps {
@@ -86,13 +86,12 @@ export default function VehicleFormFactory(props: VehicleFormFactoryProps) {
         {getFormComponent()}
       </div>
 
-      {/* Features Section */}
-      {shouldShowFeatures() && (
-        <FeaturesSection 
-          formData={formData}
-          setFormData={setFormData}
-        />
-      )}
+      {/* Additional Information Section */}
+      <AdditionalInformationSection
+        formData={formData}
+        setFormData={setFormData}
+        errors={errors}
+      />
 
       {/* Pricing Section */}
       <PricingSection 

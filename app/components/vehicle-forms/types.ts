@@ -33,6 +33,13 @@ export interface BaseVehicleFormData {
   phone: string
   whatsapp: string
   email: string
+  // Additional Information fields
+  interiorColor?: string
+  registrationYear?: string
+  vehicleConditionDetails?: string
+  previousOwners?: string
+  includingFinanceCompanies?: boolean
+  serviceRecordsAvailable?: boolean
 }
 
 export interface VehicleFormProps {

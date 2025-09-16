@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import CountrySelector, { useCountrySelector } from '@/app/components/CountrySelector'
 import { formatPhoneForStorage, formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
+import DescriptionGenerator from '@/app/components/vehicle-forms/DescriptionGenerator'
 import { 
   DISTRICTS, 
   getCitiesByDistrictId,
@@ -41,6 +42,13 @@ interface FormData extends BaseVehicleFormData {
   whatsappSameAsPhone: boolean
   preferredContact: 'phone' | 'whatsapp' | 'email'
   bestTimeToCall: string
+  // Additional Information fields
+  interiorColor?: string
+  registrationYear?: string
+  vehicleConditionDetails?: string
+  previousOwners?: string
+  includingFinanceCompanies?: boolean
+  serviceRecordsAvailable?: boolean
 }
 
 const initialFormData: FormData = {
@@ -76,6 +84,13 @@ const initialFormData: FormData = {
   imageUrls: [],
   description: '',
   aiStyle: 'professional',
+  // Additional Information fields
+  interiorColor: '',
+  registrationYear: '',
+  vehicleConditionDetails: '',
+  previousOwners: '',
+  includingFinanceCompanies: false,
+  serviceRecordsAvailable: false,
   phone: '',
   whatsapp: '',
   whatsappSameAsPhone: true,
@@ -397,7 +412,6 @@ export default function EnhancedPostVehiclePage() {
           fuel_type: formData.fuelType,
           transmission: formData.transmission,
           condition: formData.condition,
-          features: formData.features,
           style: formData.aiStyle,
           recaptchaToken
         }),
@@ -508,8 +522,15 @@ export default function EnhancedPostVehiclePage() {
           ? parseFloat(formData.monthlyPayment) : null,
         remaining_term: formData.pricingType === 'finance' ? formData.remainingTerm : null,
         early_settlement: formData.pricingType === 'finance' ? formData.earlySettlement : null,
-        asking_price: formData.pricingType === 'finance' && formData.askingPrice 
+        asking_price: formData.pricingType === 'finance' && formData.askingPrice
           ? parseFloat(formData.askingPrice) : null,
+        // Additional information
+        interior_color: formData.interiorColor || null,
+        registration_year: formData.registrationYear ? parseInt(formData.registrationYear) : null,
+        vehicle_condition_details: formData.vehicleConditionDetails || null,
+        previous_owners: formData.previousOwners ? parseInt(formData.previousOwners) : null,
+        including_finance_companies: formData.includingFinanceCompanies || false,
+        service_records_available: formData.serviceRecordsAvailable || false,
         // Promotion flags
         is_featured: false,
         is_top_spot: false,
@@ -974,79 +995,15 @@ export default function EnhancedPostVehiclePage() {
                 )}
                 
               </div>
-              
-              <div className="border-t border-gray-200 pt-8">
-                <div className="mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-2 flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-center">
-                      <FileText className="w-5 h-5 text-blue-600" />
-                    </div>
-                    Description
-                  </h2>
-                  <p className="text-gray-500 text-sm">Create an attractive description for your listing</p>
-                </div>
-                
-                {/* AI Style Selection */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">AI Writing Style</label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {[
-                      { value: 'professional', label: 'Professional', icon: 'fas fa-briefcase' },
-                      { value: 'personal', label: 'Personal', icon: 'fas fa-handshake' },
-                      { value: 'detailed', label: 'Detailed', icon: 'fas fa-clipboard-list' },
-                      { value: 'urgent', label: 'Urgent Sale', icon: 'fas fa-bolt' }
-                    ].map(style => (
-                      <button
-                        key={style.value}
-                        type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, aiStyle: style.value as AIStyle }))}
-                        className={`p-3 rounded-lg border text-sm ${
-                          formData.aiStyle === style.value
-                            ? 'border-gray-900 bg-gray-50'
-                            : 'border-gray-200'
-                        }`}
-                      >
-                        <div className="text-xl mb-1"><i className={style.icon}></i></div>
-                        <div className="text-gray-700">{style.label}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="mb-3">
-                  <button
-                    type="button"
-                    onClick={generateAIDescription}
-                    disabled={aiLoading}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    {aiLoading ? 'Generating...' : 'Generate AI Description'}
-                  </button>
-                </div>
-                
-                <textarea
-                  rows={6}
-                  name="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Describe your vehicle in detail..."
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
-                    errors.description ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                />
-                <div className="flex justify-between mt-1">
-                  <span className="text-sm text-gray-500">
-                    {formData.description.length} characters
-                  </span>
-                  {formData.description && (
-                    <span className="text-sm text-green-600">
-                      ✓ Good description
-                    </span>
-                  )}
-                </div>
-                {errors.description && <p className="text-red-600 text-sm mt-1">{errors.description}</p>}
-              </div>
+
+              {/* Description Generator with breathing effect */}
+              <DescriptionGenerator
+                formData={formData}
+                setFormData={setFormData}
+                onGenerate={generateAIDescription}
+                aiLoading={aiLoading}
+                errors={errors}
+              />
             </div>
           )}
           
@@ -1137,7 +1094,12 @@ export default function EnhancedPostVehiclePage() {
                   }</p>
                   <p><strong className="text-gray-900">Location:</strong> {formData.city}, {formData.district}</p>
                   <p><strong className="text-gray-900">Photos:</strong> {formData.images.length + formData.imageUrls.length} uploaded</p>
-                  <p><strong className="text-gray-900">Features:</strong> {formData.features?.length || 0} selected</p>
+                  {formData.previousOwners && (
+                    <p><strong className="text-gray-900">Previous Owners:</strong> {formData.previousOwners}{formData.includingFinanceCompanies ? ' (including finance companies)' : ''}</p>
+                  )}
+                  {formData.serviceRecordsAvailable && (
+                    <p><strong className="text-gray-900">Service Records:</strong> Available</p>
+                  )}
                 </div>
               </div>
             </div>
