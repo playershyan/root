@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { generateVehicleDescriptionWithOpenAI } from '@/lib/openai'
+import { TemplateProcessor, FormDataForTemplate } from '@/lib/services/templateProcessor'
 import { verifyRecaptcha, captchaGuardFailJson } from '@/lib/security/recaptcha'
 import { incr, incrTrend } from '@/lib/security/metrics'
 
@@ -12,7 +12,21 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { make, model, year, mileage, fuel_type, transmission, condition, style, recaptchaToken } = body
+    const {
+      make,
+      model,
+      year,
+      mileage,
+      trim,
+      registrationYear,
+      previousOwners,
+      interiorColor,
+      vehicleConditionDetails,
+      serviceRecordsAvailable,
+      includingFinanceCompanies,
+      style,
+      recaptchaToken
+    } = body
 
     // reCAPTCHA verification (enable via RECAPTCHA_ENABLED=true)
     const forwarded = request.headers.get('x-forwarded-for')
@@ -29,19 +43,32 @@ export async function POST(request: Request) {
       )
     }
 
-    const description = await generateVehicleDescriptionWithOpenAI(
+    // Prepare form data for template processing
+    const formData: FormDataForTemplate = {
       make,
       model,
+      trim,
       year,
+      registrationYear,
+      previousOwners,
       mileage,
-      fuel_type,
-      transmission,
-      condition,
-      style || 'professional'
-    )
+      interiorColor,
+      vehicleConditionDetails,
+      serviceRecordsAvailable,
+      includingFinanceCompanies
+    }
+
+    // Generate description using template system
+    const result = await TemplateProcessor.generateDescription(formData)
 
     incr('ai.description.request')
-    return NextResponse.json({ description })
+    incr('template.usage.total')
+
+    return NextResponse.json({
+      description: result.content,
+      templateId: result.id,
+      usageCount: result.usageCount
+    })
   } catch (error) {
     console.error('AI Description Error:', error)
     incr('ai.description.error')

@@ -11,12 +11,6 @@ interface DescriptionGeneratorProps {
   errors?: Record<string, string>
 }
 
-const AI_STYLES = [
-  { value: 'professional', label: 'Professional', icon: 'fas fa-briefcase' },
-  { value: 'personal', label: 'Personal', icon: 'fas fa-handshake' },
-  { value: 'detailed', label: 'Detailed', icon: 'fas fa-clipboard-list' },
-  { value: 'urgent', label: 'Urgent Sale', icon: 'fas fa-bolt' }
-]
 
 export default function DescriptionGenerator({
   formData,
@@ -129,27 +123,6 @@ export default function DescriptionGenerator({
           }`}
         >
           <div className="px-4 pb-4 space-y-4">
-            {/* AI Style Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">AI Writing Style</label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {AI_STYLES.map(style => (
-                  <button
-                    key={style.value}
-                    type="button"
-                    onClick={() => setFormData((prev: any) => ({ ...prev, aiStyle: style.value }))}
-                    className={`p-3 rounded-lg border text-sm transition-all ${
-                      formData.aiStyle === style.value
-                        ? 'border-gray-900 bg-gray-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="text-xl mb-1"><i className={style.icon}></i></div>
-                    <div className="text-gray-700">{style.label}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
 
             {/* Generate Button (when expanded) */}
             <div className="flex justify-start">
@@ -160,7 +133,7 @@ export default function DescriptionGenerator({
                 className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 transition-all shadow-sm hover:shadow-md"
               >
                 <Sparkles className="w-4 h-4" />
-                {aiLoading ? 'Generating...' : 'Generate AI Description'}
+                {aiLoading ? 'Generating...' : 'Generate Description'}
               </button>
             </div>
 
@@ -198,7 +171,7 @@ export default function DescriptionGenerator({
                 {isGenerating && (
                   <span className="text-sm text-purple-600 flex items-center gap-1">
                     <Sparkles className="w-4 h-4 animate-spin" />
-                    AI is writing...
+                    Generating...
                   </span>
                 )}
               </div>
