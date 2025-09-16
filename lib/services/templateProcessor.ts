@@ -64,17 +64,17 @@ export class TemplateProcessor {
   private static processTemplate(template: string, data: FormDataForTemplate): string {
     let processed = template
 
-    // Define variable mappings
+    // Define variable mappings - use empty strings for missing values to trigger line removal
     const mappings: Record<string, any> = {
       'Make': data.make || 'Vehicle',
       'Model': data.model || '',
       'Grade': data.trim || '',
-      'YoM': data.year || 'N/A',
-      'YoR': data.registrationYear || data.year || 'N/A',
+      'YoM': data.year || '',
+      'YoR': data.registrationYear || data.year || '',
       'No. of previous owners': parseInt(data.previousOwners || '0') || 0,
-      'Mileage': data.mileage ? `${parseInt(data.mileage).toLocaleString()}` : 'N/A',
-      'Interior color': data.interiorColor || 'Standard',
-      'Vehicle condition': this.formatCondition(data.vehicleConditionDetails),
+      'Mileage': data.mileage ? `${parseInt(data.mileage).toLocaleString()}` : '',
+      'Interior color': data.interiorColor || '',
+      'Vehicle condition': data.vehicleConditionDetails ? this.formatCondition(data.vehicleConditionDetails) : '',
       'Service records available': data.serviceRecordsAvailable || false
     }
 
@@ -175,11 +175,47 @@ export class TemplateProcessor {
   }
 
   /**
-   * Clean up any unprocessed template variables
+   * Clean up any unprocessed template variables and remove empty lines
    */
   private static cleanupUnprocessedVariables(text: string): string {
     // Remove any remaining {{variable}} patterns
-    return text.replace(/{{[^}]+}}/g, '')
+    let cleaned = text.replace(/{{[^}]+}}/g, '')
+
+    // Remove lines that contain only empty values or "N/A"
+    // This handles cases like "Interior: " or "Interior: N/A" or "Interior: Standard"
+    const lines = cleaned.split('\n')
+    const filteredLines = lines.filter(line => {
+      const trimmed = line.trim()
+
+      // Skip empty lines
+      if (!trimmed) return false
+
+      // Special case: Remove "0 owner" lines (when no previous owners data)
+      if (trimmed.match(/^0 owner[s]?$/)) {
+        return false
+      }
+
+      // Check if line has a colon (indicating a field: value format)
+      if (trimmed.includes(':')) {
+        const parts = trimmed.split(':')
+        if (parts.length >= 2) {
+          const value = parts.slice(1).join(':').trim()
+
+          // Remove lines with empty, N/A, or default values
+          if (!value ||
+              value === 'N/A' ||
+              value === 'Standard' ||
+              value === 'Not specified' ||
+              value === '') {
+            return false
+          }
+        }
+      }
+
+      return true
+    })
+
+    return filteredLines.join('\n')
   }
 
   /**

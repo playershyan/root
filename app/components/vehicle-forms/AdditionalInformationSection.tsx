@@ -20,6 +20,21 @@ export default function AdditionalInformationSection({
   setFormData,
   errors
 }: AdditionalInformationSectionProps) {
+  // Clear vehicle condition details and service records when main condition is "New"
+  React.useEffect(() => {
+    if (formData.condition === 'New') {
+      const updates: any = {}
+      if (formData.vehicleConditionDetails) {
+        updates.vehicleConditionDetails = ''
+      }
+      if (formData.serviceRecordsAvailable) {
+        updates.serviceRecordsAvailable = false
+      }
+      if (Object.keys(updates).length > 0) {
+        setFormData(prev => ({ ...prev, ...updates }))
+      }
+    }
+  }, [formData.condition])
   return (
     <div className="border-t border-gray-200 pt-8">
       <div className="mb-6">
@@ -76,30 +91,32 @@ export default function AdditionalInformationSection({
             )}
           </div>
 
-          {/* Vehicle Condition */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Vehicle Condition
-            </label>
-            <select
-              name="vehicleConditionDetails"
-              value={formData.vehicleConditionDetails || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, vehicleConditionDetails: e.target.value }))}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
-                errors?.vehicleConditionDetails ? 'border-red-300' : 'border-gray-300'
-              }`}
-            >
-              <option value="">Select Condition</option>
-              {VEHICLE_CONDITIONS.map(condition => (
-                <option key={condition.value} value={condition.value}>
-                  {condition.label}
-                </option>
-              ))}
-            </select>
-            {errors?.vehicleConditionDetails && (
-              <p className="text-red-600 text-sm mt-1">{errors.vehicleConditionDetails}</p>
-            )}
-          </div>
+          {/* Vehicle Condition - Only show if main condition is not "new" */}
+          {formData.condition !== 'New' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Vehicle Condition
+              </label>
+              <select
+                name="vehicleConditionDetails"
+                value={formData.vehicleConditionDetails || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, vehicleConditionDetails: e.target.value }))}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
+                  errors?.vehicleConditionDetails ? 'border-red-300' : 'border-gray-300'
+                }`}
+              >
+                <option value="">Select Condition</option>
+                {VEHICLE_CONDITIONS.map(condition => (
+                  <option key={condition.value} value={condition.value}>
+                    {condition.label}
+                  </option>
+                ))}
+              </select>
+              {errors?.vehicleConditionDetails && (
+                <p className="text-red-600 text-sm mt-1">{errors.vehicleConditionDetails}</p>
+              )}
+            </div>
+          )}
 
           {/* Number of Previous Owners */}
           <div>
@@ -138,21 +155,23 @@ export default function AdditionalInformationSection({
           </div>
         </div>
 
-        {/* Service Records Available */}
-        <div>
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={formData.serviceRecordsAvailable || false}
-              onChange={(e) => setFormData(prev => ({
-                ...prev,
-                serviceRecordsAvailable: e.target.checked
-              }))}
-              className="mr-3 h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
-            />
-            <span className="text-sm font-medium text-gray-700">Service records available</span>
-          </label>
-        </div>
+        {/* Service Records Available - Only show if main condition is not "new" */}
+        {formData.condition !== 'New' && (
+          <div>
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={formData.serviceRecordsAvailable || false}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  serviceRecordsAvailable: e.target.checked
+                }))}
+                className="mr-3 h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+              />
+              <span className="text-sm font-medium text-gray-700">Service records available</span>
+            </label>
+          </div>
+        )}
       </div>
     </div>
   )
