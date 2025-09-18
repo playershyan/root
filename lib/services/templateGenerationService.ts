@@ -141,10 +141,10 @@ REQUIRED FORMAT for each template:
 Line 1: {{Make}} {{Model}} {{Grade}}
 Line 2: Y.O.M: {{YoM}} | Y.O.R: {{YoR}}
 Line 3: {{No. of previous owners}} owner{{#if (gt No. of previous owners 1)}}s{{/if}}
-Line 4: {{Mileage}} km (verified)
+Line 4: {{Mileage}} km 
 Line 5: Interior: {{Interior color}}
 Line 6: Condition: {{Vehicle condition}}
-Line 7: Service Records: {{#if Service records available}}Available{{else}}Not available{{/if}}
+Line 7: {{#if Service records available}}Service Records available{{/if}}
 Line 8: [Buyer filter - choose randomly from: "Genuine buyers only" / "Serious inquiries only" / "Only interested buyers"]
 
 RULES:

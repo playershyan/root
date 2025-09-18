@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/promotions?action=rotation",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/generate-templates",
+      "schedule": "0 2 30 * *"
     }
   ]
 }

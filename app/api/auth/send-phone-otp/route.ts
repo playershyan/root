@@ -2,32 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { verifyRecaptcha, captchaGuardFailJson } from '@/lib/security/recaptcha'
+import { textlkService } from '@/lib/services/textlkService'
 
 // Simple OTP generation function
 function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString()
-}
-
-// Simple SMS sending function (replace with actual SMS service like Twilio)
-async function sendSMS(phoneNumber: string, otp: string): Promise<boolean> {
-  try {
-    // For development, log the OTP instead of sending SMS
-    console.log(`SMS to ${phoneNumber}: Your verification code is ${otp}. Valid for 10 minutes.`)
-    
-    // TODO: Replace with actual SMS service integration
-    // Example with Twilio:
-    // const client = twilio(accountSid, authToken)
-    // await client.messages.create({
-    //   body: `Your verification code is ${otp}. Valid for 10 minutes.`,
-    //   from: '+1234567890',
-    //   to: phoneNumber
-    // })
-    
-    return true
-  } catch (error) {
-    console.error('SMS sending failed:', error)
-    return false
-  }
 }
 
 export async function POST(request: NextRequest) {
@@ -55,10 +34,12 @@ export async function POST(request: NextRequest) {
       return captchaGuardFailJson(0.3)
     }
 
-    // Validate phone number format (basic validation)
-    const phoneRegex = /^[+]?[\d\s\-\(\)]{7,15}$/
-    if (!phoneRegex.test(phoneNumber)) {
-      return NextResponse.json({ error: 'Invalid phone number format' }, { status: 400 })
+    // Validate phone number format using Text.lk service
+    const isValidPhone = textlkService.validatePhoneNumber(phoneNumber)
+    if (!isValidPhone) {
+      return NextResponse.json({
+        error: 'Invalid phone number format. Please use Sri Lankan format (e.g., 0771234567)'
+      }, { status: 400 })
     }
 
     // Check for rate limiting (max 3 OTPs per hour per user)
@@ -122,11 +103,22 @@ export async function POST(request: NextRequest) {
       console.error('Error updating profile:', profileError)
     }
 
-    // Send SMS
-    const smsSent = await sendSMS(phoneNumber, otp)
-    
-    if (!smsSent) {
-      return NextResponse.json({ error: 'Failed to send SMS' }, { status: 500 })
+    // Send SMS using Text.lk service
+    const smsResult = await textlkService.sendOTP(phoneNumber, otp)
+
+    if (!smsResult.success) {
+      // Log error but still return success in development mode
+      console.error('SMS sending failed:', smsResult.error)
+
+      // In production, return error
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json({
+          error: smsResult.error || 'Failed to send SMS'
+        }, { status: 500 })
+      }
+
+      // In development, continue (OTP is still stored in DB)
+      console.log(`📱 Development Mode - OTP: ${otp}`)
     }
 
     return NextResponse.json({ 

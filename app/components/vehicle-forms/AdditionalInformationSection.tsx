@@ -30,6 +30,12 @@ export default function AdditionalInformationSection({
       if (formData.serviceRecordsAvailable) {
         updates.serviceRecordsAvailable = false
       }
+      if (formData.previousOwners) {
+        updates.previousOwners = ''
+      }
+      if (formData.includingFinanceCompanies) {
+        updates.includingFinanceCompanies = false
+      }
       if (Object.keys(updates).length > 0) {
         setFormData(prev => ({ ...prev, ...updates }))
       }
@@ -118,46 +124,50 @@ export default function AdditionalInformationSection({
             </div>
           )}
 
-          {/* Number of Previous Owners */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Number of Previous Owners
-            </label>
-            <input
-              type="number"
-              name="previousOwners"
-              value={formData.previousOwners || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, previousOwners: e.target.value }))}
-              placeholder="e.g., 1, 2"
-              min="0"
-              max="20"
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
-                errors?.previousOwners ? 'border-red-300' : 'border-gray-300'
-              }`}
-            />
-            {errors?.previousOwners && (
-              <p className="text-red-600 text-sm mt-1">{errors.previousOwners}</p>
-            )}
-
-            {/* Including Finance Companies Checkbox */}
-            <label className="flex items-center mt-2">
+          {/* Number of Previous Owners - Only show if main condition is not "new" */}
+          {formData.condition !== 'New' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Number of Previous Owners
+              </label>
               <input
-                type="checkbox"
-                checked={formData.includingFinanceCompanies || false}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  includingFinanceCompanies: e.target.checked
-                }))}
-                className="mr-2 h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                type="number"
+                name="previousOwners"
+                value={formData.previousOwners || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, previousOwners: e.target.value }))}
+                placeholder="e.g., 1, 2"
+                min="0"
+                max="20"
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
+                  errors?.previousOwners ? 'border-red-300' : 'border-gray-300'
+                }`}
               />
-              <span className="text-sm text-gray-700">Including finance companies</span>
-            </label>
-          </div>
+              {errors?.previousOwners && (
+                <p className="text-red-600 text-sm mt-1">{errors.previousOwners}</p>
+              )}
+
+              {/* Including Finance Companies - Sub-checkbox with indentation */}
+              <div className="mt-2 pl-1">
+                <label className="flex items-center text-sm text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={formData.includingFinanceCompanies || false}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      includingFinanceCompanies: e.target.checked
+                    }))}
+                    className="mr-2 h-4 w-4 text-gray-500 focus:ring-gray-400 border-gray-300 rounded"
+                  />
+                  <span>Including finance companies</span>
+                </label>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Service Records Available - Only show if main condition is not "new" */}
+        {/* Service Records Available - Main data field, only show if main condition is not "new" */}
         {formData.condition !== 'New' && (
-          <div>
+          <div className="border-t border-gray-100 pt-6">
             <label className="flex items-center">
               <input
                 type="checkbox"
@@ -166,7 +176,7 @@ export default function AdditionalInformationSection({
                   ...prev,
                   serviceRecordsAvailable: e.target.checked
                 }))}
-                className="mr-3 h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                className="mr-3 h-5 w-5 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
               />
               <span className="text-sm font-medium text-gray-700">Service records available</span>
             </label>
