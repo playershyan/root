@@ -15,6 +15,8 @@ export async function POST(request: NextRequest) {
 
     const { phoneNumber, recaptchaToken, isRegistration } = await request.json()
 
+    console.log('Send OTP request:', { phoneNumber, isRegistration, hasRecaptchaToken: !!recaptchaToken })
+
     // For registration flow, create a temporary user record if needed
     let userId: string
 
@@ -36,13 +38,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Phone number is required' }, { status: 400 })
     }
 
-    // Verify reCAPTCHA to prevent OTP abuse (if enabled)
-    const forwarded = request.headers.get('x-forwarded-for')
-    const ipHeader = forwarded ? forwarded.split(',')[0].trim() : request.headers.get('x-real-ip') || undefined
-    const captcha = await verifyRecaptcha(recaptchaToken, ipHeader)
-    if (!captcha.success || (typeof captcha.score === 'number' && captcha.score < 0.3)) {
-      return captchaGuardFailJson(0.3)
+    // Verify reCAPTCHA to prevent OTP abuse (skip for registration if no token provided)
+    if (recaptchaToken) {
+      const forwarded = request.headers.get('x-forwarded-for')
+      const ipHeader = forwarded ? forwarded.split(',')[0].trim() : request.headers.get('x-real-ip') || undefined
+      const captcha = await verifyRecaptcha(recaptchaToken, ipHeader)
+
+      console.log('reCAPTCHA result:', captcha)
+
+      if (!captcha.success || (typeof captcha.score === 'number' && captcha.score < 0.3)) {
+        console.log('reCAPTCHA failed, returning error')
+        return captchaGuardFailJson(0.3)
+      }
+    } else if (!isRegistration) {
+      // Require reCAPTCHA for existing user flows
+      return NextResponse.json({ error: 'reCAPTCHA verification required' }, { status: 400 })
     }
+    // Skip reCAPTCHA for registration flows without token
 
     // Validate phone number format using Text.lk service
     const isValidPhone = textlkService.validatePhoneNumber(phoneNumber)
