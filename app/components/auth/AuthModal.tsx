@@ -9,9 +9,10 @@ import PhoneAuthForm from './PhoneAuthForm'
 import OTPVerification from './OTPVerification'
 import MultiStepEmailSignup from './MultiStepEmailSignup'
 import SimpleForgotPassword from './SimpleForgotPassword'
+import StreamlinedSignup from './StreamlinedSignup'
 import type { AuthModalProps, AuthResult } from './types'
 
-type AuthView = 'main' | 'email' | 'phone' | 'otp-verify' | 'email-signup' | 'forgot-password'
+type AuthView = 'main' | 'email' | 'phone' | 'otp-verify' | 'email-signup' | 'forgot-password' | 'streamlined-signup'
 
 export default function AuthModal({
   isOpen,
@@ -92,24 +93,82 @@ export default function AuthModal({
       }
     })
 
+    // For registration, use streamlined signup flow
+    if (authType === 'register') {
+      return (
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Create Your Account
+            </h2>
+            <p className="text-gray-600">
+              Join VERA to buy and sell vehicles in Sri Lanka
+            </p>
+          </div>
+
+          {/* Streamlined Registration Options */}
+          <div className="space-y-3">
+            {/* Phone Registration - Primary */}
+            {enabledMethods.includes('phone') && (
+              <button
+                onClick={() => setCurrentView('streamlined-signup')}
+                className="w-full flex items-center justify-center gap-3 p-4 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium"
+                disabled={loading}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+                <span>Continue with Phone</span>
+              </button>
+            )}
+
+            {/* Google Registration - Secondary */}
+            {enabledMethods.includes('google') && (
+              <GoogleSignInButton
+                onSuccess={handleAuthSuccess}
+                onError={handleAuthError}
+                loading={loading}
+                variant="outlined"
+                className="w-full"
+                text="Continue with Google"
+              />
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="text-center">
+            <p className="text-sm text-gray-500 mb-3">
+              By continuing, you agree to our Terms of Service and Privacy Policy
+            </p>
+            <button
+              onClick={() => setAuthType('login')}
+              className="text-sm text-blue-600 hover:text-blue-700 focus:outline-none"
+              disabled={loading}
+            >
+              Already have an account? Sign in
+            </button>
+          </div>
+        </div>
+      )
+    }
+
+    // Login flow remains the same
     return (
       <div className="space-y-6">
         {/* Header */}
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            {authType === 'register' ? 'Create Your Account' : 'Welcome Back'}
+            Welcome Back
           </h2>
           <p className="text-gray-600">
-            {authType === 'register'
-              ? 'Join VERA to buy and sell vehicles'
-              : 'Sign in to your VERA account'
-            }
+            Sign in to your VERA account
           </p>
         </div>
 
-        {/* All Auth Options - Phone first, then Google, then Email */}
+        {/* Login Options */}
         <div className="space-y-3">
-          {/* Phone Auth - Primary */}
+          {/* Phone Auth */}
           {enabledMethods.includes('phone') && (
             <button
               onClick={() => setCurrentView('phone')}
@@ -119,11 +178,11 @@ export default function AuthModal({
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
               </svg>
-              <span>{authType === 'register' ? 'Sign up with Phone' : 'Login with Phone'}</span>
+              <span>Login with Phone</span>
             </button>
           )}
 
-          {/* Google Auth - Secondary */}
+          {/* Google Auth */}
           {enabledMethods.includes('google') && (
             <GoogleSignInButton
               onSuccess={handleAuthSuccess}
@@ -131,36 +190,33 @@ export default function AuthModal({
               loading={loading}
               variant="outlined"
               className="w-full"
-              text={authType === 'register' ? 'Sign up with Google' : 'Login with Google'}
+              text="Login with Google"
             />
           )}
 
-          {/* Email Auth - Last */}
+          {/* Email Auth */}
           {enabledMethods.includes('email') && (
             <button
-              onClick={() => setCurrentView(authType === 'register' ? 'email-signup' : 'email')}
+              onClick={() => setCurrentView('email')}
               className="w-full flex items-center justify-center gap-3 p-3 border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors"
               disabled={loading}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
-              <span className="font-medium text-gray-700">{authType === 'register' ? 'Sign up with Email' : 'Login with Email'}</span>
+              <span className="font-medium text-gray-700">Login with Email</span>
             </button>
           )}
         </div>
 
-        {/* Toggle between login/register */}
+        {/* Toggle to register */}
         <div className="text-center">
           <button
-            onClick={() => setAuthType(authType === 'register' ? 'login' : 'register')}
+            onClick={() => setAuthType('register')}
             className="text-sm text-blue-600 hover:text-blue-700 focus:outline-none"
             disabled={loading}
           >
-            {authType === 'register' 
-              ? 'Already have an account? Sign in' 
-              : "Don't have an account? Create one"
-            }
+            Don't have an account? Create one
           </button>
         </div>
       </div>
@@ -272,6 +328,14 @@ export default function AuthModal({
           <SimpleForgotPassword
             onBack={() => setCurrentView('email')}
             initialEmail={resetEmail}
+          />
+        )
+
+      case 'streamlined-signup':
+        return (
+          <StreamlinedSignup
+            onBack={() => setCurrentView('main')}
+            onSuccess={handleAuthSuccess}
           />
         )
 

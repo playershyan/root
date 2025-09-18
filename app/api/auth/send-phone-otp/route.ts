@@ -12,15 +12,25 @@ function generateOTP(): string {
 export async function POST(request: NextRequest) {
   try {
     const supabase = createRouteHandlerClient({ cookies })
-    
-    // Get the current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
 
-    const { phoneNumber, recaptchaToken } = await request.json()
+    const { phoneNumber, recaptchaToken, isRegistration } = await request.json()
+
+    // For registration flow, create a temporary user record if needed
+    let userId: string
+
+    if (isRegistration) {
+      // Generate a temporary user ID for registration
+      userId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    } else {
+      // Original flow - require authentication
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+      if (authError || !user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+
+      userId = user.id
+    }
 
     if (!phoneNumber) {
       return NextResponse.json({ error: 'Phone number is required' }, { status: 400 })
@@ -42,13 +52,22 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Check for rate limiting (max 3 OTPs per hour per user)
+    // Check for rate limiting (max 3 OTPs per hour per user/phone)
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
-    const { data: recentOtps, error: countError } = await supabase
+    let rateLimitQuery = supabase
       .from('phone_verifications')
       .select('id')
-      .eq('user_id', user.id)
       .gte('created_at', oneHourAgo)
+
+    if (isRegistration) {
+      // For registration, limit by phone number
+      rateLimitQuery = rateLimitQuery.eq('phone_number', phoneNumber)
+    } else {
+      // For existing users, limit by user ID
+      rateLimitQuery = rateLimitQuery.eq('user_id', userId)
+    }
+
+    const { data: recentOtps, error: countError } = await rateLimitQuery
     
     if (countError) {
       console.error('Error checking OTP rate limit:', countError)
@@ -65,19 +84,27 @@ export async function POST(request: NextRequest) {
     const otp = generateOTP()
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes from now
 
-    // Delete any existing unverified OTPs for this user and phone
-    await supabase
-      .from('phone_verifications')
-      .delete()
-      .eq('user_id', user.id)
-      .eq('phone_number', phoneNumber)
-      .eq('verified', false)
+    // Delete any existing unverified OTPs for this user/phone
+    if (isRegistration) {
+      await supabase
+        .from('phone_verifications')
+        .delete()
+        .eq('phone_number', phoneNumber)
+        .eq('verified', false)
+    } else {
+      await supabase
+        .from('phone_verifications')
+        .delete()
+        .eq('user_id', userId)
+        .eq('phone_number', phoneNumber)
+        .eq('verified', false)
+    }
 
     // Store OTP in database
     const { error: insertError } = await supabase
       .from('phone_verifications')
       .insert({
-        user_id: user.id,
+        user_id: userId,
         phone_number: phoneNumber,
         otp_code: otp,
         expires_at: expiresAt.toISOString(),
@@ -90,17 +117,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to generate OTP' }, { status: 500 })
     }
 
-    // Update profile with temp phone number
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({
-        temp_phone: phoneNumber,
-        temp_phone_otp_sent_at: new Date().toISOString()
-      })
-      .eq('id', user.id)
+    // Update profile with temp phone number (only for existing users)
+    if (!isRegistration) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          temp_phone: phoneNumber,
+          temp_phone_otp_sent_at: new Date().toISOString()
+        })
+        .eq('id', userId)
 
-    if (profileError) {
-      console.error('Error updating profile:', profileError)
+      if (profileError) {
+        console.error('Error updating profile:', profileError)
+      }
     }
 
     // Send SMS using Text.lk service
