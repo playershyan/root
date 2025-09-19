@@ -4,8 +4,6 @@ import { cookies } from 'next/headers'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
 
 export async function GET(request: NextRequest) {
-  console.log('Admin stats API - Starting request')
-
   // Verify admin access
   const authResult = await verifyAdminAccess(request)
 
@@ -21,61 +19,76 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = createRouteHandlerClient({ cookies })
 
-    // Get all stats in parallel
+    // Try to use the new calculate_dashboard_metrics function
+    const { data: metrics, error: metricsError } = await supabase
+      .rpc('calculate_dashboard_metrics')
+
+    if (!metricsError && metrics) {
+      // Log admin activity
+      await supabase.rpc('log_admin_activity', {
+        p_admin_id: authResult.user.id,
+        p_action_type: 'view_stats',
+        p_details: { endpoint: '/api/admin/stats', method: 'function' }
+      })
+
+      return NextResponse.json({
+        totalUsers: metrics.total_users || 0,
+        activeListings: metrics.active_listings || 0,
+        pendingListings: metrics.pending_listings || 0,
+        pendingReports: metrics.pending_reports || 0,
+        todayListings: metrics.new_listings || 0,
+        todayUsers: metrics.new_users || 0,
+        pendingBusinessProfiles: metrics.pending_business || 0,
+        verifiedBusinessProfiles: metrics.verified_business || 0
+      })
+    }
+
+    // Fallback to manual calculation
     const [
       pendingListings,
-      approvedListings,
+      activeListings,
       totalUsers,
       pendingReports,
       todayListings,
-      todayReports,
+      todayUsers,
       pendingBusinessProfiles,
       verifiedBusinessProfiles
     ] = await Promise.all([
-      // Pending listings count
       supabase
         .from('listings')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending'),
 
-      // Approved/Active listings count
       supabase
         .from('listings')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'approved')
-        .eq('is_sold', false),
+        .eq('status', 'active'),
 
-      // Total users count
       supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true }),
 
-      // Pending reports count
       supabase
         .from('reports')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending'),
 
-      // Today's listings count
       supabase
         .from('listings')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
 
-      // Today's reports count
       supabase
-        .from('reports')
+        .from('profiles')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
 
-      // Pending business profiles count
       supabase
         .from('business_profiles')
         .select('*', { count: 'exact', head: true })
         .eq('is_verified', false)
         .eq('is_active', true),
 
-      // Verified business profiles count
       supabase
         .from('business_profiles')
         .select('*', { count: 'exact', head: true })
@@ -83,17 +96,22 @@ export async function GET(request: NextRequest) {
     ])
 
     const stats = {
-      pendingListings: pendingListings.count || 0,
-      activeListings: approvedListings.count || 0,
       totalUsers: totalUsers.count || 0,
+      activeListings: activeListings.count || 0,
+      pendingListings: pendingListings.count || 0,
       pendingReports: pendingReports.count || 0,
       todayListings: todayListings.count || 0,
-      todayReports: todayReports.count || 0,
+      todayUsers: todayUsers.count || 0,
       pendingBusinessProfiles: pendingBusinessProfiles.count || 0,
       verifiedBusinessProfiles: verifiedBusinessProfiles.count || 0
     }
 
-    console.log('Admin stats API - Stats:', stats)
+    // Log admin activity
+    await supabase.rpc('log_admin_activity', {
+      p_admin_id: authResult.user.id,
+      p_action_type: 'view_stats',
+      p_details: { endpoint: '/api/admin/stats', method: 'fallback' }
+    })
 
     return NextResponse.json(stats)
 
