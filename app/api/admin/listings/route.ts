@@ -38,11 +38,11 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * limit
 
     // Get listings with simplified query first (we can add joins back later)
-    // Note: The field is 'moderation_status', not 'status'
+    // Note: The field is 'status' in the database
     const { data: listings, error: listingsError } = await supabase
       .from('listings')
       .select('*')
-      .eq('moderation_status', status)
+      .eq('status', status)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     const { count, error: countError } = await supabase
       .from('listings')
       .select('*', { count: 'exact', head: true })
-      .eq('moderation_status', status)
+      .eq('status', status)
 
     if (countError) {
       console.error('Error counting listings:', countError)

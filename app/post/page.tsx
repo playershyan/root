@@ -507,9 +507,9 @@ export default function EnhancedPostVehiclePage() {
         location: `${formData.city}, ${formData.district}`,
         city: formData.city,
         district: formData.district,
-        image_urls: imageUrls, // Changed from 'images' to 'image_urls'
-        image_url: imageUrls[0] || null, // Changed from 'primary_image_url' to 'image_url'
-        moderation_status: 'pending', // Changed from 'status' to 'moderation_status'
+        image_urls: imageUrls, // This is the array of all images
+        image_url: imageUrls[0] || null, // This is the primary image
+        status: 'pending', // New listings start as pending
         // Contact information
         phone: formatPhoneDisplay(formData.phone, selectedCountry.dialCode),
         whatsapp: formatPhoneDisplay(formData.whatsapp || formData.phone, formData.whatsappSameAsPhone ? selectedCountry.dialCode : selectedWhatsAppCountry.dialCode),

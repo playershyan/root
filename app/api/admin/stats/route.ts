@@ -36,13 +36,13 @@ export async function GET(request: NextRequest) {
       supabase
         .from('listings')
         .select('*', { count: 'exact', head: true })
-        .eq('moderation_status', 'pending'),
+        .eq('status', 'pending'),
 
       // Approved/Active listings count
       supabase
         .from('listings')
         .select('*', { count: 'exact', head: true })
-        .eq('moderation_status', 'approved')
+        .eq('status', 'approved')
         .eq('is_sold', false),
 
       // Total users count
