@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import { useState } from 'react'
-import { CloudinaryService } from '@/lib/cloudinary'
+import { getOptimizedCloudinaryUrl } from '@/lib/cloudinary-client'
 
 interface OptimizedImageProps {
   src: string
@@ -63,35 +63,13 @@ export default function OptimizedImage({
       return url
     }
 
-    // For Cloudinary URLs - extract public ID and use CloudinaryService
+    // For Cloudinary URLs - use client-safe method
     if (url.includes('cloudinary.com')) {
-      // Try to extract public ID from URL
-      const match = url.match(/\/v\d+\/(.+?)\.[^.]+$/)
-      if (match && match[1]) {
-        const publicId = match[1]
-
-        // Use CloudinaryService to generate optimized URL with watermark
-        return CloudinaryService.getOptimizedUrl(publicId, {
-          width,
-          quality: quality ? quality.toString() : 'auto:good',
-          format: 'auto',
-          watermark
-        })
-      }
-
-      // Fallback: manual transformation injection
-      const transformations = []
-      if (width) transformations.push(`w_${width}`)
-      if (quality) transformations.push(`q_${quality}`)
-      transformations.push('f_auto') // Auto format selection
-      transformations.push('dpr_auto') // Auto device pixel ratio
-
-      // Add watermark transformation if requested
-      if (watermark) {
-        transformations.push('l_text:Arial_60_bold:VERA.lk,g_south_east,x_30,y_30,o_60,co_white')
-      }
-
-      return url.replace('/image/upload/', `/image/upload/${transformations.join(',')}/`)
+      return getOptimizedCloudinaryUrl(url, {
+        width,
+        quality,
+        watermark
+      })
     }
 
     return url
