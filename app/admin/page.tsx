@@ -170,18 +170,18 @@ export default function AdminDashboard() {
   }
 
   const loadStats = async () => {
-    // This would typically come from a dedicated stats API
-    // For now, we'll calculate from the data we fetch
-    setStats({
-      pendingListings: 0,
-      activeListings: 0,
-      totalUsers: 0,
-      pendingReports: 0,
-      todayListings: 0,
-      todayReports: 0,
-      pendingBusinessProfiles: 0,
-      verifiedBusinessProfiles: 0
-    })
+    try {
+      const response = await fetch('/api/admin/stats')
+      if (response.ok) {
+        const data = await response.json()
+        setStats(data)
+        console.log('Admin stats loaded:', data)
+      } else {
+        console.error('Failed to load stats:', response.status)
+      }
+    } catch (error) {
+      console.error('Error loading stats:', error)
+    }
   }
 
   const loadListings = async (status: string = 'pending', page: number = 1) => {
