@@ -15,13 +15,15 @@ type SignupStep = 'main' | 'phone-input' | 'otp-verify' | 'username-create'
 interface StreamlinedSignupProps {
   onBack: () => void
   onSuccess?: (result: AuthResult) => void
+  initialStep?: SignupStep
 }
 
 export default function StreamlinedSignup({
   onBack,
-  onSuccess
+  onSuccess,
+  initialStep = 'main'
 }: StreamlinedSignupProps) {
-  const [currentStep, setCurrentStep] = useState<SignupStep>('main')
+  const [currentStep, setCurrentStep] = useState<SignupStep>(initialStep)
   const [phoneNumber, setPhoneNumber] = useState('')
   const [loading, setLoading] = useState(false)
   const [verificationData, setVerificationData] = useState<{
@@ -35,12 +37,12 @@ export default function StreamlinedSignup({
   // Reset state when component unmounts
   useEffect(() => {
     return () => {
-      setCurrentStep('main')
+      setCurrentStep(initialStep)
       setPhoneNumber('')
       setVerificationData({})
       setLoading(false)
     }
-  }, [])
+  }, [initialStep])
 
   const handleGoogleSuccess = async (result: AuthResult) => {
     // Google auth should directly create account and go to profile

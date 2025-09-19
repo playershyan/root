@@ -336,6 +336,7 @@ export default function AuthModal({
           <StreamlinedSignup
             onBack={() => setCurrentView('main')}
             onSuccess={handleAuthSuccess}
+            initialStep="phone-input"
           />
         )
 

@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import { useState } from 'react'
+import { CloudinaryService } from '@/lib/cloudinary'
 
 interface OptimizedImageProps {
   src: string
@@ -14,6 +15,7 @@ interface OptimizedImageProps {
   placeholder?: 'blur' | 'empty'
   blurDataURL?: string
   onError?: () => void
+  watermark?: boolean // New prop to control watermark
 }
 
 export default function OptimizedImage({
@@ -28,7 +30,8 @@ export default function OptimizedImage({
   quality = 75,
   placeholder = 'empty',
   blurDataURL,
-  onError
+  onError,
+  watermark = true // Default to true for automatic watermarking
 }: OptimizedImageProps) {
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -49,8 +52,8 @@ export default function OptimizedImage({
     return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
   }
 
-  // CDN optimization for Supabase storage URLs
-  const optimizeCDNUrl = (url: string, width?: number, quality?: number) => {
+  // Enhanced CDN optimization with watermark support
+  const optimizeCDNUrl = (url: string, width?: number, quality?: number, watermark?: boolean) => {
     if (!url) return url
 
     // Check if it's a Supabase storage URL
@@ -60,21 +63,41 @@ export default function OptimizedImage({
       return url
     }
 
-    // For Cloudinary URLs (if using Cloudinary)
+    // For Cloudinary URLs - extract public ID and use CloudinaryService
     if (url.includes('cloudinary.com')) {
+      // Try to extract public ID from URL
+      const match = url.match(/\/v\d+\/(.+?)\.[^.]+$/)
+      if (match && match[1]) {
+        const publicId = match[1]
+
+        // Use CloudinaryService to generate optimized URL with watermark
+        return CloudinaryService.getOptimizedUrl(publicId, {
+          width,
+          quality: quality ? quality.toString() : 'auto:good',
+          format: 'auto',
+          watermark
+        })
+      }
+
+      // Fallback: manual transformation injection
       const transformations = []
       if (width) transformations.push(`w_${width}`)
       if (quality) transformations.push(`q_${quality}`)
       transformations.push('f_auto') // Auto format selection
       transformations.push('dpr_auto') // Auto device pixel ratio
-      
+
+      // Add watermark transformation if requested
+      if (watermark) {
+        transformations.push('l_text:Arial_60_bold:VERA.lk,g_south_east,x_30,y_30,o_60,co_white')
+      }
+
       return url.replace('/image/upload/', `/image/upload/${transformations.join(',')}/`)
     }
 
     return url
   }
 
-  const optimizedSrc = optimizeCDNUrl(src, width, quality)
+  const optimizedSrc = optimizeCDNUrl(src, width, quality, watermark)
   const defaultBlurDataURL = blurDataURL || (width && height ? generateBlurDataURL(width, height) : undefined)
 
   const handleError = () => {

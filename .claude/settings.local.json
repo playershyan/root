@@ -38,26 +38,9 @@
       "mcp__supabase__search_docs",
       "Bash(netstat:*)",
       "Bash(findstr:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(npx tsx:*)"
     ],
     "deny": []
-  }
-}
-
-{
-  "mcpServers": {
-    "supabase": {
-      "command": "cmd",
-      "args": [
-        "/c",
-        "npx",
-        "-y",
-        "@supabase/mcp-server-supabase",
-        "--project-ref=ahmynvxoxzhocuhxlcvo"
-      ],
-      "env": {
-        "SUPABASE_ACCESS_TOKEN": "sbp_898ba349dce27a966cc0cb5a7d50cba58b96bcf9"
-      }
-    }
   }
 }

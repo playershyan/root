@@ -277,7 +277,26 @@ export default function Header() {
                         <HelpCircle className="w-4 h-4" />
                         Help & Support
                       </Link>
-                      
+
+                      <hr className="my-2" />
+
+                      {/* Admin Section */}
+                      <Link
+                        href="/admin/setup"
+                        className="block px-4 py-2 text-blue-700 hover:bg-blue-50 flex items-center gap-3"
+                      >
+                        <Settings className="w-4 h-4" />
+                        Admin Setup
+                      </Link>
+
+                      <Link
+                        href="/admin"
+                        className="block px-4 py-2 text-blue-700 hover:bg-blue-50 flex items-center gap-3"
+                      >
+                        <Shield className="w-4 h-4" />
+                        Admin Dashboard
+                      </Link>
+
                       <hr className="my-2" />
                       
                       <button

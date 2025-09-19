@@ -171,7 +171,51 @@ export class CloudinaryService {
   }
 
   /**
-   * Generate optimized URL for existing image
+   * Check if watermarks are enabled globally
+   */
+  static isWatermarkEnabled(): boolean {
+    return process.env.CLOUDINARY_WATERMARK_ENABLED !== 'false'
+  }
+
+  /**
+   * Extract public ID from Cloudinary URL
+   */
+  static extractPublicIdFromUrl(url: string): string | null {
+    if (!url.includes('cloudinary.com')) return null
+
+    const match = url.match(/\/v\d+\/(.+?)\.[^.]+$/)
+    return match ? match[1] : null
+  }
+
+  /**
+   * Get watermark transformation configuration
+   */
+  static getWatermarkTransformation(): any {
+    return {
+      overlay: {
+        font_family: "Arial",
+        font_size: 60,
+        font_weight: "bold",
+        text: "VERA.lk"
+      },
+      gravity: "south_east",
+      x: 30,
+      y: 30,
+      opacity: 60,
+      color: "white"
+    }
+  }
+
+  /**
+   * Add watermark transformation to existing transformation chain
+   */
+  static addWatermarkToTransformation(transformation: any[]): any[] {
+    const watermarkTransform = this.getWatermarkTransformation()
+    return [...transformation, watermarkTransform]
+  }
+
+  /**
+   * Generate optimized URL for existing image with watermark
    */
   static getOptimizedUrl(
     publicId: string,
@@ -181,6 +225,7 @@ export class CloudinaryService {
       crop?: 'fill' | 'fit' | 'limit' | 'scale'
       quality?: 'auto' | 'auto:best' | 'auto:good' | 'auto:eco' | 'auto:low' | number | string
       format?: 'auto' | 'jpg' | 'png' | 'webp'
+      watermark?: boolean
     } = {}
   ): string {
     // Build transformation object
@@ -190,22 +235,30 @@ export class CloudinaryService {
       crop: options.crop || 'limit',
       quality: options.quality || 'auto:good',
     }
-    
+
     // Add format if specified (f_auto for automatic format selection)
     if (options.format) {
       transformation.fetch_format = options.format
     }
-    
+
+    // Build transformation chain
+    let transformationChain = [transformation]
+
+    // Add watermark by default (disable with watermark: false)
+    if (options.watermark !== false) {
+      transformationChain = this.addWatermarkToTransformation(transformationChain)
+    }
+
     return cloudinary.url(publicId, {
-      transformation: [transformation],
+      transformation: transformationChain,
       secure: true,
     })
   }
 
   /**
-   * Generate thumbnail URL for vera.lk listings
+   * Generate thumbnail URL for vera.lk listings with watermark
    */
-  static getThumbnailUrl(publicId: string, size: number = 400): string {
+  static getThumbnailUrl(publicId: string, size: number = 400, watermark: boolean = true): string {
     // Build transformation chain
     const transformation = {
       width: size,
@@ -214,17 +267,24 @@ export class CloudinaryService {
       quality: 'auto:low',
       fetch_format: 'auto'  // Use fetch_format for f_auto
     }
-    
+
+    let transformationChain = [transformation]
+
+    // Add watermark by default
+    if (watermark) {
+      transformationChain = this.addWatermarkToTransformation(transformationChain)
+    }
+
     return cloudinary.url(publicId, {
-      transformation: [transformation],
+      transformation: transformationChain,
       secure: true,
     })
   }
   
   /**
-   * Generate mobile-optimized URL
+   * Generate mobile-optimized URL with watermark
    */
-  static getMobileUrl(publicId: string): string {
+  static getMobileUrl(publicId: string, watermark: boolean = true): string {
     const transformation = {
       width: 800,
       height: 600,
@@ -232,17 +292,24 @@ export class CloudinaryService {
       quality: 'auto:eco',  // Lower quality for mobile data saving
       fetch_format: 'auto'
     }
-    
+
+    let transformationChain = [transformation]
+
+    // Add watermark by default
+    if (watermark) {
+      transformationChain = this.addWatermarkToTransformation(transformationChain)
+    }
+
     return cloudinary.url(publicId, {
-      transformation: [transformation],
+      transformation: transformationChain,
       secure: true,
     })
   }
-  
+
   /**
-   * Generate gallery URL for full-size viewing
+   * Generate gallery URL for full-size viewing with watermark
    */
-  static getGalleryUrl(publicId: string): string {
+  static getGalleryUrl(publicId: string, watermark: boolean = true): string {
     const transformation = {
       width: 1600,
       height: 1200,
@@ -250,9 +317,16 @@ export class CloudinaryService {
       quality: 'auto:best',
       fetch_format: 'auto'
     }
-    
+
+    let transformationChain = [transformation]
+
+    // Add watermark by default
+    if (watermark) {
+      transformationChain = this.addWatermarkToTransformation(transformationChain)
+    }
+
     return cloudinary.url(publicId, {
-      transformation: [transformation],
+      transformation: transformationChain,
       secure: true,
     })
   }
