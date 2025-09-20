@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const search = searchParams.get('search') || ''
     const reported = searchParams.get('reported') === 'true'
+    const pending = searchParams.get('pending') === 'true'
     const limit = 20
     const offset = (page - 1) * limit
 
@@ -42,6 +43,10 @@ export async function GET(request: NextRequest) {
     // Apply filters
     if (status !== 'all') {
       query = query.eq('status', status)
+    }
+
+    if (pending) {
+      query = query.is('approved_at', null)
     }
 
     if (reported) {
@@ -78,7 +83,7 @@ export async function GET(request: NextRequest) {
     const { error: logError } = await supabase.rpc('log_admin_activity', {
       p_admin_id: authResult.user.id,
       p_action_type: 'view_wanted_requests',
-      p_details: { status, page, search, reported }
+      p_details: { status, page, search, reported, pending }
     })
 
     if (logError) {

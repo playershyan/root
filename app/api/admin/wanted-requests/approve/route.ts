@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
       .from('wanted_requests')
       .update({
         status: 'active',
+        is_active: true,
         approved_by: (authResult.adminUser as any).user_id,
         approved_at: new Date().toISOString()
       })
