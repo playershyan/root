@@ -11,6 +11,8 @@ import GoldFeaturedWantedCard from '@/app/components/wantedRequests/GoldFeatured
 import UrgentWantedCard from '@/app/components/wantedRequests/UrgentWantedCard'
 import BoostedWantedCard from '@/app/components/wantedRequests/BoostedWantedCard'
 import RegularWantedCard from '@/app/components/wantedRequests/RegularWantedCard'
+import MatchNotificationBanner, { MultiMatchNotificationBanner } from './components/MatchNotificationBanner'
+import { useWantedNotifications } from '@/lib/hooks/useWantedNotifications'
 
 interface WantedRequest {
   id: string
@@ -128,6 +130,22 @@ export default function WantedRequestsPage() {
   const [searchInput, setSearchInput] = useState('')
   const [sortBy, setSortBy] = useState('recent')
   const [highPriorityOnly, setHighPriorityOnly] = useState(false)
+
+  // Wanted notifications hook
+  const {
+    notifications,
+    isLoading: notificationsLoading,
+    dismissNotification
+  } = useWantedNotifications()
+
+  // Dismiss all notifications
+  const handleDismissAll = async () => {
+    try {
+      await Promise.all(notifications.map(n => dismissNotification(n.id)))
+    } catch (error) {
+      console.error('Error dismissing all notifications:', error)
+    }
+  }
   const [filters, setFilters] = useState<FilterState>({
     locations: ['All of Sri Lanka'],
     make: 'All Makes',
@@ -939,6 +957,24 @@ export default function WantedRequestsPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        {/* Match Notification Banners */}
+        {notifications.length > 0 && (
+          <div className="mb-6">
+            {notifications.length === 1 ? (
+              <MatchNotificationBanner
+                notification={notifications[0]}
+                onDismiss={dismissNotification}
+              />
+            ) : (
+              <MultiMatchNotificationBanner
+                notifications={notifications}
+                onDismissAll={handleDismissAll}
+                onDismiss={dismissNotification}
+              />
+            )}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Filters Sidebar */}
           <div className="hidden lg:block lg:col-span-1">

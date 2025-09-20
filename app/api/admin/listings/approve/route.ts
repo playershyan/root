@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
+import { processWantedRequestMatching } from '@/lib/services/wantedMatching'
 
 export async function POST(request: NextRequest) {
   // Verify admin access
@@ -50,9 +51,18 @@ export async function POST(request: NextRequest) {
         listing_id: listingId
       })
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Listing approved successfully' 
+    // Process wanted request matching for the approved listing
+    try {
+      const matchingResult = await processWantedRequestMatching(listingId)
+      console.log(`Wanted request matching completed for listing ${listingId}: ${matchingResult.matchCount} matches found`)
+    } catch (matchingError) {
+      // Log the error but don't fail the approval process
+      console.error('Error in wanted request matching:', matchingError)
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Listing approved successfully'
     })
 
   } catch (error) {

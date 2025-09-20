@@ -11,6 +11,7 @@ import {
 import { useAuth } from '../contexts/AuthContext'
 import { AuthModal } from './auth'
 import { useUnreadMessages } from '@/lib/hooks/useUnreadMessages'
+import { useNotificationCount } from '@/lib/hooks/useWantedNotifications'
 
 interface User {
   id: string
@@ -30,6 +31,7 @@ export default function Header() {
   const [showEmailLogin, setShowEmailLogin] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
   const unreadMessages = useUnreadMessages()
+  const { count: wantedNotificationCount } = useNotificationCount()
 
   // Centralized function to check for showLogin flag
   const checkForShowLogin = (source = 'mount') => {
@@ -140,12 +142,15 @@ export default function Header() {
             
             {/* Mobile Action Buttons */}
             <div className="flex items-center gap-2 ml-auto sm:hidden">
-              <Link 
-                href="/wanted" 
-                className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 px-2 py-2 rounded-lg hover:bg-blue-50 text-xs"
+              <Link
+                href="/wanted"
+                className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 px-2 py-2 rounded-lg hover:bg-blue-50 text-xs relative"
               >
                 <Search className="w-4 h-4" />
                 <span>Wanted</span>
+                {wantedNotificationCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                )}
               </Link>
               
               <Link 
@@ -169,8 +174,11 @@ export default function Header() {
             <Link href="/dealers" className="text-gray-700 hover:text-blue-600 font-medium">
               Dealer Directory
             </Link>
-            <Link href="/wanted" className="text-gray-700 hover:text-blue-600 font-medium">
+            <Link href="/wanted" className="text-gray-700 hover:text-blue-600 font-medium relative">
               Wanted Requests
+              {wantedNotificationCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+              )}
             </Link>
           </div>
           
@@ -397,10 +405,15 @@ export default function Header() {
               </Link>
               <Link
                 href="/wanted"
-                className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
+                className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium relative"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Wanted Requests
+                <div className="flex items-center justify-between">
+                  <span>Wanted Requests</span>
+                  {wantedNotificationCount > 0 && (
+                    <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                  )}
+                </div>
               </Link>
               <Link 
                 href="/post" 
