@@ -8,6 +8,9 @@ import LocationFilter from '@/app/components/LocationFilter'
 import PriceDisplay from '@/app/components/PriceDisplay'
 import FeaturedAdCard from '@/app/components/listings/FeaturedAdCard'
 import RegularAdCard from '@/app/components/listings/RegularAdCard'
+import TopSpotCard from '@/app/components/listings/TopSpotCard'
+import BoostedCard from '@/app/components/listings/BoostedCard'
+import UrgentListingCard from '@/app/components/listings/UrgentListingCard'
 import PromotionBadges from '@/app/components/listings/PromotionBadges'
 import { getVehicleCategories, getMakesByCategory, getModelsByMake, getCategoryInfo } from '@/lib/constants/vehicleData'
 import { RotationService } from '@/lib/services/rotationService'
@@ -1213,7 +1216,7 @@ export default function AdvancedListingsPage() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {topSpotAds.map(listing => (
-                        <RegularAdCard
+                        <TopSpotCard
                           key={listing.id}
                           listing={listing}
                           isSaved={savedListings.includes(listing.id)}
@@ -1285,7 +1288,7 @@ export default function AdvancedListingsPage() {
 
                         {/* Mix in boosted ads */}
                         {boostedAds.slice(0, 2).map(listing => (
-                          <RegularAdCard
+                          <BoostedCard
                             key={`boosted-${listing.id}`}
                             listing={listing}
                             isSaved={savedListings.includes(listing.id)}
@@ -1323,7 +1326,7 @@ export default function AdvancedListingsPage() {
 
                         {/* Mix in urgent ads */}
                         {urgentAds.slice(0, 2).map(listing => (
-                          <RegularAdCard
+                          <UrgentListingCard
                             key={`urgent-${listing.id}`}
                             listing={listing}
                             isSaved={savedListings.includes(listing.id)}

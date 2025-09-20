@@ -7,6 +7,10 @@ import { useInView } from 'react-intersection-observer'
 import debounce from 'lodash/debounce'
 import LocationFilter from '@/app/components/LocationFilter'
 import ContactModal from '@/app/components/modals/ContactModal'
+import GoldFeaturedWantedCard from '@/app/components/wantedRequests/GoldFeaturedWantedCard'
+import UrgentWantedCard from '@/app/components/wantedRequests/UrgentWantedCard'
+import BoostedWantedCard from '@/app/components/wantedRequests/BoostedWantedCard'
+import RegularWantedCard from '@/app/components/wantedRequests/RegularWantedCard'
 
 interface WantedRequest {
   id: string
@@ -14,6 +18,7 @@ interface WantedRequest {
   description?: string
   min_budget?: number
   max_budget?: number
+  budget?: number // For card components compatibility
   make?: string
   model?: string
   min_year?: number
@@ -31,6 +36,17 @@ interface WantedRequest {
   user_avatar?: string
   is_active: boolean
   saved?: boolean
+  // Promotion fields
+  is_featured?: boolean
+  is_urgent?: boolean
+  is_high_priority?: boolean
+  is_boosted?: boolean
+  featured_until?: string
+  urgent_until?: string
+  high_priority_until?: string
+  boosted_until?: string
+  views?: number
+  responses?: number
 }
 
 interface FilterState {
@@ -80,6 +96,28 @@ const formatBudget = (value: number | null | undefined): string => {
   
   // Display with one decimal place if not a whole number
   return millions % 1 === 0 ? `${millions}M` : `${millions.toFixed(1)}M`
+}
+
+// Helper function to render the appropriate card component
+const renderWantedCard = (request: WantedRequest) => {
+  // Prepare request data with budget field for card compatibility
+  const requestWithBudget = {
+    ...request,
+    budget: request.max_budget || request.min_budget || 0
+  }
+
+  // Determine which card component to use based on promotion flags
+  if (request.is_high_priority) {
+    return <UrgentWantedCard key={request.id} request={requestWithBudget} />
+  }
+
+  // For now, treat any request with urgency 'high' as featured (golden)
+  if (request.urgency === 'high') {
+    return <GoldFeaturedWantedCard key={request.id} request={{ ...requestWithBudget, is_featured: true }} />
+  }
+
+  // Default to regular card
+  return <RegularWantedCard key={request.id} request={requestWithBudget} />
 }
 
 export default function WantedRequestsPage() {
@@ -929,120 +967,7 @@ export default function WantedRequestsPage() {
             ) : filteredRequests.length > 0 ? (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {filteredRequests.map((request) => (
-                    <div key={request.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
-                      <div className="relative bg-gradient-to-r from-gray-50 to-gray-100 p-5 rounded-t-lg border-b">
-                        {request.urgency === 'high' && (
-                          <span className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold ${getUrgencyClass(request.urgency)}`}>
-                            High Priority
-                          </span>
-                        )}
-                        <h3 className="text-xl font-semibold text-gray-900 pr-24 mb-2">
-                          {request.title.replace(/^looking for:\s*/i, '')}
-                        </h3>
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                            {request.user_avatar}
-                          </div>
-                          <div>
-                            <div className="font-medium text-gray-700">{request.user_name}</div>
-                            <div className="text-xs text-gray-500">{formatTimeAgo(request.created_at)}</div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="p-5">
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                          <div className="text-xs font-semibold text-blue-700 mb-1">Budget Range</div>
-                          <div className="text-lg font-bold text-blue-900">
-                            Rs. {formatBudget(request.min_budget)} - {formatBudget(request.max_budget)}
-                          </div>
-                        </div>
-
-                        <div className="space-y-2 mb-4 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Preferred Location:</span>
-                            <span className="font-medium text-gray-900">{request.location}</span>
-                          </div>
-                          {request.fuel_type && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Fuel Type:</span>
-                              <span className="font-medium text-gray-900">{request.fuel_type}</span>
-                            </div>
-                          )}
-                          {request.transmission && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Transmission:</span>
-                              <span className="font-medium text-gray-900">{request.transmission}</span>
-                            </div>
-                          )}
-                          {request.max_mileage && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Max Mileage:</span>
-                              <span className="font-medium text-gray-900">{request.max_mileage.toLocaleString()} km</span>
-                            </div>
-                          )}
-                          {(request.min_year || request.max_year) && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Year Range:</span>
-                              <span className="font-medium text-gray-900">
-                                {request.min_year || 'Any'} - {request.max_year || 'Any'}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        {request.description && (
-                          <div className="bg-gray-50 rounded-md p-3 mb-5 border-l-4 border-blue-600">
-                            <p className="text-sm text-gray-700 leading-relaxed">{request.description}</p>
-                          </div>
-                        )}
-
-                        <div className="flex gap-3 pt-4 border-t">
-                          <button
-                            onClick={(e) => handleContactBuyer(request, e)}
-                            className="flex-1 bg-blue-600 text-white text-center py-2.5 rounded-md hover:bg-blue-700 transition font-semibold"
-                          >
-                            Contact Buyer
-                          </button>
-                          <div className="relative">
-                            <button
-                              onClick={(e) => toggleMenu(request.id, e)}
-                              data-menu-button="true"
-                              className="px-4 py-2.5 rounded-md border bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200 transition"
-                            >
-                              <i className="fas fa-ellipsis-h"></i>
-                            </button>
-                            {openMenuId === request.id && (
-                              <div data-menu-dropdown="true" className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 min-w-[120px]">
-                                <button
-                                  onClick={(e) => toggleSave(request.id, e)}
-                                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
-                                >
-                                  <i className={`fas ${savedRequests.has(request.id) ? 'fa-heart text-red-500' : 'fa-heart'}`}></i>
-                                  {savedRequests.has(request.id) ? 'Unsave' : 'Save'}
-                                </button>
-                                <button
-                                  onClick={(e) => handleShare(request, e)}
-                                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
-                                >
-                                  <i className="fas fa-share"></i>
-                                  Share
-                                </button>
-                                <button
-                                  onClick={(e) => handleReport(request.id, e)}
-                                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 text-red-600"
-                                >
-                                  <i className="fas fa-flag"></i>
-                                  Report
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                  {filteredRequests.map((request) => renderWantedCard(request))}
                 </div>
 
                 {/* Load More / Infinite Scroll */}
