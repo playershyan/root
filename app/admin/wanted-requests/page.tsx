@@ -78,7 +78,7 @@ export default function WantedRequestsManagement() {
     setLoading(true)
     try {
       const params = new URLSearchParams({
-        status: filter === 'all' ? '' : filter === 'reported' ? 'active' : filter === 'pending' ? 'active' : filter,
+        status: filter === 'all' ? '' : filter === 'reported' ? 'active' : filter,
         page: page.toString(),
         search: searchTerm,
         ...(filter === 'reported' && { reported: 'true' }),

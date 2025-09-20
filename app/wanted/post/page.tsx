@@ -343,7 +343,8 @@ export default function PostWantedPage() {
           fuel_type: formData.fuel_type || null,
           transmission: formData.transmission || null,
           max_mileage: formData.max_mileage ? parseInt(formData.max_mileage) : null,
-          is_active: true
+          status: 'pending',
+          is_active: false
         },
       ]).select()
 
