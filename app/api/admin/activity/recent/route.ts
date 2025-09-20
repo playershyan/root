@@ -73,6 +73,10 @@ function mapActivityType(actionType: string): string {
     'user_banned': 'user_banned',
     'report_resolved': 'report_resolved',
     'login': 'user_login',
+    'approve_wanted_request': 'wanted_request_approved',
+    'reject_wanted_request': 'wanted_request_rejected',
+    'delete_wanted_request': 'wanted_request_deleted',
+    'permanently_delete_wanted_request': 'wanted_request_permanently_deleted',
   }
   return typeMap[actionType] || 'other'
 }
@@ -85,6 +89,10 @@ function getActivityTitle(actionType: string): string {
     'report_resolved': 'Report Resolved',
     'login': 'Admin Login',
     'view_stats': 'Viewed Statistics',
+    'approve_wanted_request': 'Wanted Request Approved',
+    'reject_wanted_request': 'Wanted Request Rejected',
+    'delete_wanted_request': 'Wanted Request Deleted',
+    'permanently_delete_wanted_request': 'Wanted Request Permanently Deleted',
   }
   return titles[actionType] || 'Admin Activity'
 }
@@ -105,6 +113,14 @@ function getActivityDescription(activity: any): string {
       return 'Logged into admin dashboard'
     case 'view_stats':
       return 'Viewed dashboard statistics'
+    case 'approve_wanted_request':
+      return `Approved wanted request ${activity.affected_record_id?.slice(0, 8)}...`
+    case 'reject_wanted_request':
+      return `Rejected wanted request with reason: ${details.rejection_reason || 'N/A'}`
+    case 'delete_wanted_request':
+      return `Deleted wanted request ${activity.affected_record_id?.slice(0, 8)}...`
+    case 'permanently_delete_wanted_request':
+      return `Permanently deleted wanted request ${activity.affected_record_id?.slice(0, 8)}...`
     default:
       return `Performed ${activity.action_type}`
   }

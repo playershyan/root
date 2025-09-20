@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Users, Car, Flag, Building2, Shield,
   Database, Bell, Settings, ChevronRight, Menu, X,
-  TrendingUp, FileText, Calendar, Mail
+  TrendingUp, FileText, Calendar, Mail, Search
 } from 'lucide-react'
 import { useAdmin } from './AdminProvider'
 
@@ -21,6 +21,12 @@ const menuItems = [
     label: 'Listings',
     href: '/admin/listings',
     icon: Car,
+    permission: 'moderate_listings',
+  },
+  {
+    label: 'Wanted Requests',
+    href: '/admin/wanted-requests',
+    icon: Search,
     permission: 'moderate_listings',
   },
   {

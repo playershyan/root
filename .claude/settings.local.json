@@ -40,7 +40,8 @@
       "Bash(findstr:*)",
       "Bash(dir:*)",
       "Bash(npx tsx:*)",
-      "Read(//d/**)"
+      "Read(//d/**)",
+      "Bash(cmd /c:*)"
     ],
     "deny": []
   }

@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Clock, User, Car, Flag, CheckCircle, XCircle } from 'lucide-react'
+import { Clock, User, Car, Flag, CheckCircle, XCircle, Search, Trash2 } from 'lucide-react'
 
 interface Activity {
   id: string
-  type: 'listing_created' | 'user_registered' | 'report_submitted' | 'listing_approved' | 'listing_rejected'
+  type: 'listing_created' | 'user_registered' | 'report_submitted' | 'listing_approved' | 'listing_rejected' | 'wanted_request_approved' | 'wanted_request_rejected' | 'wanted_request_deleted' | 'wanted_request_permanently_deleted'
   title: string
   description: string
   timestamp: string
@@ -50,6 +50,14 @@ export default function RecentActivity() {
         return { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-100' }
       case 'listing_rejected':
         return { icon: XCircle, color: 'text-red-600', bg: 'bg-red-100' }
+      case 'wanted_request_approved':
+        return { icon: CheckCircle, color: 'text-indigo-600', bg: 'bg-indigo-100' }
+      case 'wanted_request_rejected':
+        return { icon: XCircle, color: 'text-orange-600', bg: 'bg-orange-100' }
+      case 'wanted_request_deleted':
+        return { icon: Trash2, color: 'text-red-600', bg: 'bg-red-100' }
+      case 'wanted_request_permanently_deleted':
+        return { icon: Trash2, color: 'text-red-800', bg: 'bg-red-200' }
       default:
         return { icon: Clock, color: 'text-gray-600', bg: 'bg-gray-100' }
     }

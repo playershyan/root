@@ -39,7 +39,10 @@ export async function GET(request: NextRequest) {
         todayListings: metrics.new_listings || 0,
         todayUsers: metrics.new_users || 0,
         pendingBusinessProfiles: metrics.pending_business || 0,
-        verifiedBusinessProfiles: metrics.verified_business || 0
+        verifiedBusinessProfiles: metrics.verified_business || 0,
+        activeWantedRequests: metrics.active_wanted_requests || 0,
+        pendingWantedRequests: metrics.pending_wanted_requests || 0,
+        todayWantedRequests: metrics.new_wanted_requests || 0
       })
     }
 
@@ -52,7 +55,10 @@ export async function GET(request: NextRequest) {
       todayListings,
       todayUsers,
       pendingBusinessProfiles,
-      verifiedBusinessProfiles
+      verifiedBusinessProfiles,
+      activeWantedRequests,
+      pendingWantedRequests,
+      todayWantedRequests
     ] = await Promise.all([
       supabase
         .from('listings')
@@ -92,7 +98,23 @@ export async function GET(request: NextRequest) {
       supabase
         .from('business_profiles')
         .select('*', { count: 'exact', head: true })
-        .eq('is_verified', true)
+        .eq('is_verified', true),
+
+      supabase
+        .from('wanted_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active'),
+
+      supabase
+        .from('wanted_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active')
+        .is('approved_at', null),
+
+      supabase
+        .from('wanted_requests')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString())
     ])
 
     const stats = {
@@ -103,7 +125,10 @@ export async function GET(request: NextRequest) {
       todayListings: todayListings.count || 0,
       todayUsers: todayUsers.count || 0,
       pendingBusinessProfiles: pendingBusinessProfiles.count || 0,
-      verifiedBusinessProfiles: verifiedBusinessProfiles.count || 0
+      verifiedBusinessProfiles: verifiedBusinessProfiles.count || 0,
+      activeWantedRequests: activeWantedRequests.count || 0,
+      pendingWantedRequests: pendingWantedRequests.count || 0,
+      todayWantedRequests: todayWantedRequests.count || 0
     }
 
     // Log admin activity

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Users, Car, Flag, Clock, TrendingUp, Package, AlertTriangle, CheckCircle } from 'lucide-react'
+import { Users, Car, Flag, Clock, TrendingUp, Package, AlertTriangle, CheckCircle, Search } from 'lucide-react'
 
 interface Stats {
   totalUsers: number
@@ -12,6 +12,9 @@ interface Stats {
   todayUsers: number
   pendingBusinessProfiles: number
   verifiedBusinessProfiles: number
+  activeWantedRequests: number
+  pendingWantedRequests: number
+  todayWantedRequests: number
 }
 
 export default function DashboardStats() {
@@ -24,6 +27,9 @@ export default function DashboardStats() {
     todayUsers: 0,
     pendingBusinessProfiles: 0,
     verifiedBusinessProfiles: 0,
+    activeWantedRequests: 0,
+    pendingWantedRequests: 0,
+    todayWantedRequests: 0,
   })
   const [loading, setLoading] = useState(true)
 
@@ -83,6 +89,24 @@ export default function DashboardStats() {
       bgColor: 'bg-red-50',
       iconColor: 'text-red-600',
       urgent: stats.pendingReports > 5,
+    },
+    {
+      title: 'Active Wanted Requests',
+      value: stats.activeWantedRequests,
+      change: stats.todayWantedRequests,
+      icon: Search,
+      color: 'indigo',
+      bgColor: 'bg-indigo-50',
+      iconColor: 'text-indigo-600',
+    },
+    {
+      title: 'Pending Wanted Requests',
+      value: stats.pendingWantedRequests,
+      icon: Clock,
+      color: 'orange',
+      bgColor: 'bg-orange-50',
+      iconColor: 'text-orange-600',
+      urgent: stats.pendingWantedRequests > 5,
     },
     {
       title: 'Business Profiles',
