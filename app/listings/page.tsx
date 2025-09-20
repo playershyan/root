@@ -142,11 +142,9 @@ export default function AdvancedListingsPage() {
     setTempMaxYear(maxYear)
   }, [])
 
-  // Load promoted ads when category changes
+  // Load promoted ads when category changes (or on initial load)
   useEffect(() => {
-    if (selectedVehicleCategory) {
-      loadPromotedAds()
-    }
+    loadPromotedAds()
   }, [selectedVehicleCategory])
 
   // Apply filters when any filter changes
@@ -193,12 +191,13 @@ export default function AdvancedListingsPage() {
 
   const loadPromotedAds = async () => {
     try {
-      // Get rotated promoted ads for the selected category
+      // Get rotated promoted ads for the selected category (or all if no category selected)
+      const vehicleType = selectedVehicleCategory || undefined
       const [featuredRes, topSpotRes, boostedRes, urgentRes] = await Promise.all([
-        RotationService.getRotatedFeaturedAds(selectedVehicleCategory, 2),
-        RotationService.getRotatedTopSpotAds(selectedVehicleCategory, 3),
-        PromotionService.getBoostedListings(selectedVehicleCategory, 10),
-        PromotionService.getUrgentListings(selectedVehicleCategory, 10)
+        RotationService.getRotatedFeaturedAds(vehicleType, 2),
+        RotationService.getRotatedTopSpotAds(vehicleType, 3),
+        PromotionService.getBoostedListings(vehicleType, 10),
+        PromotionService.getUrgentListings(vehicleType, 10)
       ])
 
       // Robust data extraction with type checking
