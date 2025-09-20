@@ -328,7 +328,7 @@ export default function PostWantedPage() {
     const title = generateTitle()
     
     try {
-      const { error } = await supabase.from('wanted_requests').insert([
+      const { data, error } = await supabase.from('wanted_requests').insert([
         {
           title: title,
           description: formData.description.trim() || null,
@@ -345,12 +345,17 @@ export default function PostWantedPage() {
           max_mileage: formData.max_mileage ? parseInt(formData.max_mileage) : null,
           is_active: true
         },
-      ])
+      ]).select()
 
       if (error) throw error
 
-      // Redirect to paid features page with success message
-      router.push(`/wanted-request/paid-features?new=true&request_id=${data[0].id}`)
+      // Redirect to wanted page or paid features page based on if data was returned
+      if (data && data.length > 0) {
+        router.push(`/wanted-request/paid-features?new=true&request_id=${data[0].id}`)
+      } else {
+        // Fallback if no data returned - just go to wanted page with success
+        router.push('/wanted?posted=success')
+      }
     } catch (error) {
       alert('Error posting request. Please try again.')
       console.error(error)
