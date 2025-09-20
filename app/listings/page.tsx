@@ -1218,7 +1218,13 @@ export default function AdvancedListingsPage() {
                       {topSpotAds.map(listing => (
                         <TopSpotCard
                           key={listing.id}
-                          listing={listing}
+                          listing={{
+                            ...listing,
+                            is_top_spot: true,
+                            created_at: listing.created_at || new Date().toISOString(),
+                            primary_image_url: listing.image_url,
+                            posted_date: listing.created_at || new Date().toISOString()
+                          }}
                           isSaved={savedListings.includes(listing.id)}
                           onToggleSaved={() => toggleSavedListing(listing.id)}
                           activeImageIndex={activeImageIndex[listing.id] || 0}
@@ -1290,7 +1296,11 @@ export default function AdvancedListingsPage() {
                         {boostedAds.slice(0, 2).map(listing => (
                           <BoostedCard
                             key={`boosted-${listing.id}`}
-                            listing={listing}
+                            listing={{
+                              ...listing,
+                              is_boosted: true,
+                              created_at: listing.created_at || new Date().toISOString()
+                            }}
                             isSaved={savedListings.includes(listing.id)}
                             onToggleSaved={() => toggleSavedListing(listing.id)}
                             activeImageIndex={activeImageIndex[listing.id] || 0}
@@ -1328,7 +1338,11 @@ export default function AdvancedListingsPage() {
                         {urgentAds.slice(0, 2).map(listing => (
                           <UrgentListingCard
                             key={`urgent-${listing.id}`}
-                            listing={listing}
+                            listing={{
+                              ...listing,
+                              is_urgent: true,
+                              created_at: listing.created_at || new Date().toISOString()
+                            }}
                             isSaved={savedListings.includes(listing.id)}
                             onToggleSaved={() => toggleSavedListing(listing.id)}
                             activeImageIndex={activeImageIndex[listing.id] || 0}
