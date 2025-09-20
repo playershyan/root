@@ -349,8 +349,8 @@ export default function PostWantedPage() {
 
       if (error) throw error
 
-      // Skip boost for now - redirect to wanted page
-      router.push('/wanted?success=true')
+      // Redirect to paid features page with success message
+      router.push(`/wanted-request/paid-features?new=true&request_id=${data[0].id}`)
     } catch (error) {
       alert('Error posting request. Please try again.')
       console.error(error)
