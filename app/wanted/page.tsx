@@ -234,7 +234,6 @@ export default function WantedRequestsPage() {
             id,
             name,
             phone,
-            whatsapp,
             email,
             location,
             avatar_url,
@@ -242,7 +241,6 @@ export default function WantedRequestsPage() {
               id,
               business_name,
               phone,
-              whatsapp,
               address,
               is_active
             )
