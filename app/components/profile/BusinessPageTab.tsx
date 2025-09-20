@@ -4,6 +4,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Building2, Globe, Phone, Clock, MapPin, CheckCircle, Edit2, Save, X, Camera, Upload, Eye, ExternalLink, MessageCircle } from 'lucide-react'
 import { BusinessProfile, UpdateBusinessProfileData } from '@/lib/types/businessProfile'
+import { useToast } from '@/app/components/notifications/useToast'
+import { ToastContainer } from '@/app/components/notifications/ToastContainer'
 
 interface BusinessPageTabProps {
   businessProfile: BusinessProfile
@@ -16,6 +18,7 @@ export default function BusinessPageTab({
   onUpdate,
   loading = false
 }: BusinessPageTabProps) {
+  const { toasts, showError, removeToast } = useToast()
   
   // Show loading state while business profile is being fetched
   if (loading) {
@@ -101,6 +104,12 @@ export default function BusinessPageTab({
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0]
       if (file) {
+        // Check file size (10MB limit)
+        if (file.size > 10 * 1024 * 1024) {
+          showError('Image exceeds 10MB')
+          return
+        }
+
         // TODO: Upload file to storage and get URL
         // For now, just show placeholder
         const reader = new FileReader()
@@ -138,7 +147,7 @@ export default function BusinessPageTab({
     }
   }
 
-  if (businessProfile.is_paused) {
+  if (!businessProfile.is_active) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
         <div className="text-center">
@@ -180,6 +189,7 @@ export default function BusinessPageTab({
           <button
             onClick={() => handleImageUpload('banner_url')}
             className="absolute top-4 right-4 bg-white bg-opacity-90 hover:bg-opacity-100 text-gray-700 p-2 rounded-lg transition-colors"
+            title="Upload banner image (Max 10MB)"
           >
             <Camera className="w-5 h-5" />
           </button>
@@ -212,6 +222,7 @@ export default function BusinessPageTab({
                 <button
                   onClick={() => handleImageUpload('profile_image_url')}
                   className="absolute bottom-2 right-2 bg-white hover:bg-gray-50 border text-gray-700 p-2 rounded-full shadow-md transition-colors"
+                  title="Upload profile image (Max 10MB)"
                 >
                   <Camera className="w-4 h-4" />
                 </button>
@@ -486,6 +497,7 @@ export default function BusinessPageTab({
           </div>
         </div>
       </div>
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   )
 }

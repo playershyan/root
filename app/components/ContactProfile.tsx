@@ -106,7 +106,9 @@ function BusinessProfile({ seller, listing }: {
             >
               {seller.name}
               {seller.isVerified && (
-                <CheckCircle className="w-5 h-5 text-blue-600" title="Verified Business" />
+                <span title="Verified Business">
+                  <CheckCircle className="w-5 h-5 text-blue-600" />
+                </span>
               )}
             </Link>
           </div>

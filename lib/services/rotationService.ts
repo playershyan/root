@@ -1,4 +1,5 @@
-import { supabase } from '@/lib/supabase'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { supabase as supabaseClient } from '@/lib/supabase'
 
 export interface RotationConfig {
   featuredSlots: number // Number of featured slots (default: 2)
@@ -27,6 +28,10 @@ const DEFAULT_CONFIG: RotationConfig = {
 export class RotationService {
   private static config: RotationConfig = DEFAULT_CONFIG
 
+  private static getClient(client?: SupabaseClient) {
+    return client ?? supabaseClient
+  }
+
   /**
    * Set rotation configuration
    */
@@ -39,71 +44,16 @@ export class RotationService {
    */
   static async getRotatedFeaturedAds(
     vehicleType?: string,
-    limit?: number
+    limit?: number,
+    client?: SupabaseClient
   ): Promise<{ data: any[]; error: any }> {
-    try {
-      // Get all active featured promotions
-      let query = supabase
-        .from('promotions')
-        .select(`
-          *,
-          listings!inner(*)
-        `)
-        .eq('promotion_type', 'featured')
-        .eq('is_active', true)
-        .gt('expires_at', new Date().toISOString())
+    const supabase = this.getClient(client)
+    const { data, error } = await supabaseClient.rpc('get_rotated_featured_ads', {
+      p_vehicle_type: vehicleType ?? null,
+      p_limit: limit ?? undefined
+    })
 
-      if (vehicleType) {
-        query = query.eq('listings.vehicle_type', vehicleType)
-      }
-
-      const { data: promotions, error } = await query
-
-      if (error) throw error
-      if (!promotions || promotions.length === 0) return { data: [], error: null }
-
-      const slots = limit || this.config.featuredSlots
-
-      // If we have fewer ads than slots, return all
-      if (promotions.length <= slots) {
-        return { data: promotions.map(p => p.listings), error: null }
-      }
-
-      // Calculate rotation scores for fair distribution
-      const scoredPromotions = promotions.map(promo => {
-        const hoursSinceShown = promo.last_shown_at
-          ? (Date.now() - new Date(promo.last_shown_at).getTime()) / (1000 * 60 * 60)
-          : 1000 // Never shown = very high priority
-
-        const score = 
-          hoursSinceShown // More time since shown = higher priority
-          - (promo.impressions * this.config.impressionWeight) // Fewer impressions = higher priority
-          + (Math.random() * this.config.randomFactor) // Random factor for fairness
-
-        return { ...promo, rotationScore: score }
-      })
-
-      // Sort by rotation score and select top slots
-      scoredPromotions.sort((a, b) => b.rotationScore - a.rotationScore)
-      const selectedAds = scoredPromotions.slice(0, slots)
-
-      // Update impression counts and last_shown_at
-      const promotionIds = selectedAds.map(ad => ad.id)
-      await this.updateImpressions(promotionIds)
-
-      return { 
-        data: selectedAds.map(p => ({
-          ...p.listings,
-          promotion_id: p.id,
-          rotation_score: p.rotation_score,
-          impressions: p.impressions
-        })), 
-        error: null 
-      }
-    } catch (error) {
-      console.error('Error getting rotated featured ads:', error)
-      return { data: [], error }
-    }
+    return { data: data || [], error }
   }
 
   /**
@@ -182,89 +132,26 @@ export class RotationService {
    */
   static async getRotatedBoostedAds(
     vehicleType?: string,
-    limit = 10
+    limit = 10,
+    client?: SupabaseClient
   ): Promise<{ data: any[]; error: any }> {
-    try {
-      let query = supabase
-        .from('promotions')
-        .select(`
-          *,
-          listings!inner(*)
-        `)
-        .eq('promotion_type', 'boost')
-        .eq('is_active', true)
-        .gt('expires_at', new Date().toISOString())
+    const supabase = this.getClient(client)
+    const { data, error } = await supabaseClient.rpc('get_rotated_boost_ads', {
+      p_vehicle_type: vehicleType ?? null,
+      p_limit: limit
+    })
 
-      if (vehicleType) {
-        query = query.eq('listings.vehicle_type', vehicleType)
-      }
-
-      const { data: promotions, error } = await query
-
-      if (error) throw error
-      if (!promotions || promotions.length === 0) return { data: [], error: null }
-
-      // For boosted ads, use time-based rotation within the day
-      const currentHour = new Date().getHours()
-      const rotationGroup = Math.floor(currentHour / this.config.rotationInterval)
-      
-      // Shuffle based on rotation group for fairness
-      const shuffled = this.shuffleWithSeed(promotions, rotationGroup)
-      const selectedAds = shuffled.slice(0, limit)
-
-      // Update metrics
-      const promotionIds = selectedAds.map(ad => ad.id)
-      await this.updateImpressions(promotionIds)
-
-      return { 
-        data: selectedAds.map(p => ({
-          ...p.listings,
-          promotion_id: p.id,
-          is_boosted: true
-        })), 
-        error: null 
-      }
-    } catch (error) {
-      console.error('Error getting rotated boosted ads:', error)
-      return { data: [], error }
-    }
+    return { data: data || [], error }
   }
 
-  /**
-   * Update impression counts for shown ads
-   */
-  private static async updateImpressions(promotionIds: string[]): Promise<void> {
-    if (promotionIds.length === 0) return
-
-    try {
-      await supabase
-        .from('promotions')
-        .update({
-          impressions: supabase.raw('impressions + 1'),
-          last_shown_at: new Date().toISOString(),
-          rotation_score: supabase.raw('rotation_score + 1')
-        })
-        .in('id', promotionIds)
-    } catch (error) {
-      console.error('Error updating impressions:', error)
-    }
-  }
+  // Deprecated: rotation and impression tracking handled inside Postgres RPCs
 
   /**
    * Reset daily rotation scores (call at midnight)
    */
-  static async resetDailyRotationScores(): Promise<void> {
-    try {
-      await supabase
-        .from('promotions')
-        .update({ rotation_score: 0 })
-        .eq('is_active', true)
-        .gt('expires_at', new Date().toISOString())
-
-      console.log('Daily rotation scores reset successfully')
-    } catch (error) {
-      console.error('Error resetting rotation scores:', error)
-    }
+  static async resetDailyRotationScores(client?: SupabaseClient): Promise<void> {
+    const supabase = this.getClient(client)
+    await supabaseClient.rpc('reset_daily_rotation_scores')
   }
 
   /**
@@ -334,10 +221,14 @@ export class RotationService {
   /**
    * Shuffle array with seed for consistent rotation
    */
-  private static shuffleWithSeed<T>(array: T[], seed: number): T[] {
+  private static shuffleWithSeed<T>(array: T[], seed: string | number): T[] {
+    // Convert string seed to number
+    const numericSeed = typeof seed === 'string'
+      ? seed.split('').reduce((a, b) => a + b.charCodeAt(0), 0)
+      : seed
     const shuffled = [...array]
     let currentIndex = shuffled.length
-    let randomValue = seed
+    let randomValue = numericSeed
 
     // Simple seeded random
     const random = () => {
@@ -362,7 +253,7 @@ export class RotationService {
     listingId: string
   ): Promise<{ data: any; error: any }> {
     try {
-      const { data: promotion, error: promotionError } = await supabase
+      const { data: promotion, error: promotionError } = await supabaseClient
         .from('promotions')
         .select('*')
         .eq('listing_id', listingId)
@@ -372,7 +263,7 @@ export class RotationService {
       if (promotionError) throw promotionError
 
       // Get total active promotions of same type
-      const { count: totalCount } = await supabase
+      const { count: totalCount } = await supabaseClient
         .from('promotions')
         .select('*', { count: 'exact', head: true })
         .eq('promotion_type', promotion.promotion_type)
@@ -415,6 +306,25 @@ export class RotationService {
     } catch (error) {
       console.error('Error getting fair share report:', error)
       return { data: null, error }
+    }
+  }
+
+  /**
+   * Update impression counts for promotions
+   */
+  static async updateImpressions(promotionIds: string[]): Promise<void> {
+    try {
+      if (promotionIds.length === 0) return
+
+      await supabaseClient
+        .from('promotions')
+        .update({
+          impressions: supabaseClient.rpc('increment_impressions'),
+          last_shown_at: new Date().toISOString()
+        })
+        .in('id', promotionIds)
+    } catch (error) {
+      console.error('Error updating impressions:', error)
     }
   }
 }

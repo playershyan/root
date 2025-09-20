@@ -3,32 +3,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 // Create a single supabase client for interacting with your database
 export const supabase = createClientComponentClient()
 
-// Type definitions for our database
-export type Listing = {
-  id: string
-  title: string
-  description: string | null
-  price: number
-  make: string
-  model: string
-  year: number
-  mileage: number | null
-  fuel_type: string | null
-  transmission: string | null
-  location: string
-  phone: string
-  whatsapp: string | null
-  email: string | null
-  image_url: string | null
-  image_urls: string[] | null
-  ai_generated_description: string | null
-  ai_summary: string | null
-  is_featured: boolean
-  is_sold: boolean
-  views: number
-  created_at: string
-  updated_at: string
-}
+// Note: Listing type moved to @/lib/types.ts for consistency
 
 export type WantedRequest = {
   id: string

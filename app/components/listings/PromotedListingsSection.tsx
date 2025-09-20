@@ -74,10 +74,10 @@ export default function PromotedListingsSection({
           
           <div className="grid gap-6">
             {featuredListings.map((listing) => (
-              <FeaturedAdCard 
-                key={listing.id} 
-                listing={listing} 
-                priority="featured"
+              <FeaturedAdCard
+                key={listing.id}
+                listing={listing}
+                promotionType="featured"
               />
             ))}
           </div>
@@ -97,10 +97,10 @@ export default function PromotedListingsSection({
           
           <div className="grid md:grid-cols-2 gap-4">
             {topSpotListings.map((listing) => (
-              <FeaturedAdCard 
-                key={listing.id} 
-                listing={listing} 
-                priority="top_spot"
+              <FeaturedAdCard
+                key={listing.id}
+                listing={listing}
+                promotionType="top_spot"
               />
             ))}
           </div>

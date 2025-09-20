@@ -1,10 +1,4 @@
-interface Listing {
-  id: string
-  created_at: string
-  boost_score?: number
-  views?: number
-  featured_until?: string
-}
+import { Listing } from '@/lib/types'
 
 interface RotationConfig {
   rotationIntervalMinutes: number

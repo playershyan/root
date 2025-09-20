@@ -1,12 +1,13 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
-import { Building2, MapPin, Phone, Globe, Clock, CheckCircle, ArrowLeft } from 'lucide-react'
+import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { Building2, MapPin, Phone, Globe, Clock, CheckCircle, ArrowLeft, Mail, MessageCircle } from 'lucide-react'
 import ListingCard from '@/app/components/listings/ListingCard'
 
 export const revalidate = 60
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
+  const supabase = createServerSupabaseClient()
   const { data: business } = await supabase
     .from('business_profiles')
     .select('business_name, description')
@@ -30,6 +31,7 @@ export default async function BusinessPage({
 }: {
   params: { id: string }
 }) {
+  const supabase = createServerSupabaseClient()
   // Fetch business profile
   const { data: businessProfile } = await supabase
     .from('business_profiles')
@@ -44,20 +46,28 @@ export default async function BusinessPage({
     `)
     .eq('id', params.id)
     .eq('is_active', true)
+    .eq('is_paused', false)
     .single()
 
   if (!businessProfile) {
     notFound()
   }
 
+  const phoneNumber = businessProfile.phone || businessProfile.profiles?.phone
+  const whatsappNumber = businessProfile.whatsapp
+  const contactEmail = businessProfile.profiles?.email
+
   // Fetch all active listings from this business
   const { data: listings } = await supabase
     .from('listings')
-    .select('*')
+    .select(
+      'id, title, price, make, model, year, mileage, fuel_type, transmission, location, image_url, image_urls, created_at, is_featured, is_top_spot, is_boosted'
+    )
     .eq('user_id', businessProfile.user_id)
     .eq('is_sold', false)
     .eq('status', 'active')
     .order('created_at', { ascending: false })
+    .limit(36)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -133,12 +143,37 @@ export default async function BusinessPage({
                     </div>
                   )}
                   
-                  {businessProfile.phone && (
+                  {phoneNumber && (
                     <div className="flex items-start gap-3">
                       <Phone className="w-5 h-5 text-gray-400 mt-0.5" />
                       <div>
                         <p className="text-sm text-gray-500">Phone</p>
-                        <p className="text-gray-900">{businessProfile.phone}</p>
+                        <p className="text-gray-900">{phoneNumber}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {whatsappNumber && (
+                    <div className="flex items-start gap-3">
+                      <MessageCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                      <div>
+                        <p className="text-sm text-gray-500">WhatsApp</p>
+                        <p className="text-gray-900">{whatsappNumber}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {contactEmail && (
+                    <div className="flex items-start gap-3">
+                      <Mail className="w-5 h-5 text-gray-400 mt-0.5" />
+                      <div>
+                        <p className="text-sm text-gray-500">Email</p>
+                        <a
+                          href={`mailto:${contactEmail}`}
+                          className="text-blue-600 hover:underline"
+                        >
+                          {contactEmail}
+                        </a>
                       </div>
                     </div>
                   )}

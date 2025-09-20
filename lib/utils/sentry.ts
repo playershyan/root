@@ -129,13 +129,13 @@ export const reportMCPError = (error: Error, toolName: string, operation: string
 // Performance monitoring for MCP operations
 export const createMCPTransaction = (name: string, operation: string) => {
   if (process.env.NODE_ENV === 'production') {
-    return Sentry.startTransaction({
+    return Sentry.startSpan({
       name: `MCP: ${name}`,
       op: operation,
-      tags: {
+      attributes: {
         'mcp.operation': operation
       }
-    })
+    }, () => {})
   }
   return null
 }

@@ -84,7 +84,7 @@ Example format:
     // Return cached fallback instantly
     const fallback = {
       compact: `
-        <p style="color: #2563eb;">Essential points for buying ${request.searchContext || 'this vehicle'}:</p>
+        <p style="color: #2563eb;">Essential points for buying this vehicle:</p>
         <ul>
           <li><strong>Engine:</strong> Check for smooth idle and no unusual noises</li>
           <li><strong>Body:</strong> Inspect for rust, dents, and paint consistency</li>

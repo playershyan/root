@@ -47,7 +47,7 @@ export default function PhoneAuthForm({
     if (loading || externalLoading || disabled) return
 
     // Format phone for storage (country code + number without zero)
-    const fullPhone = formatPhoneForStorage(phone, selectedCountry.dial_code)
+    const fullPhone = formatPhoneForStorage(phone, selectedCountry.dialCode)
     
     if (!validatePhone(fullPhone)) {
       const errorMessage = 'Please enter a valid phone number'
@@ -104,7 +104,7 @@ export default function PhoneAuthForm({
           <div className="flex">
             <CountrySelector
               selectedCountry={selectedCountry}
-              onCountryChange={handleCountryChange}
+              onCountrySelect={handleCountryChange}
               className="border-r-0 rounded-r-none"
               disabled={loading || externalLoading || disabled}
             />

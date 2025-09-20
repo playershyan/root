@@ -1,69 +1,159 @@
-import Link from 'next/link'
-import { Metadata } from 'next'
+'use client'
 
-export const metadata: Metadata = {
-  title: 'Auto Dealers Directory | VERA',
-  description: 'Browse verified auto dealers in Sri Lanka. Find trusted car dealerships with ratings, reviews, and current inventory.',
-}
+import { useEffect, useState } from 'react'
+import { createClientSupabaseClient } from '@/lib/supabase'
+import { BusinessProfile } from '@/lib/types/businessProfile'
+import DealershipCard from '@/app/components/dealers/DealershipCard'
+import { Search, MapPin, Building2 } from 'lucide-react'
 
-export default function DealersPage() {
+export default function DealerDirectoryPage() {
+  const [dealers, setDealers] = useState<BusinessProfile[]>([])
+  const [filteredDealers, setFilteredDealers] = useState<BusinessProfile[]>([])
+  const [searchInput, setSearchInput] = useState('')
+  const [activeSearchQuery, setActiveSearchQuery] = useState('')
+  const [loading, setLoading] = useState(true)
+  const supabase = createClientSupabaseClient()
+
+  useEffect(() => {
+    fetchDealers()
+  }, [])
+
+  useEffect(() => {
+    filterDealers(activeSearchQuery)
+  }, [activeSearchQuery, dealers])
+
+  async function fetchDealers() {
+    try {
+      setLoading(true)
+      const { data, error } = await supabase
+        .from('business_profiles')
+        .select('*')
+        .eq('is_active', true)
+        .eq('is_paused', false)
+        .order('is_verified', { ascending: false })
+        .order('business_name', { ascending: true })
+
+      if (error) throw error
+      setDealers(data || [])
+      setFilteredDealers(data || [])
+    } catch (error) {
+      console.error('Error fetching dealers:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function filterDealers(query: string) {
+    if (!query.trim()) {
+      setFilteredDealers(dealers)
+      return
+    }
+
+    const searchTerm = query.toLowerCase()
+    const filtered = dealers.filter(dealer => {
+      const locationMatch = dealer.address?.toLowerCase().includes(searchTerm)
+      const nameMatch = dealer.business_name?.toLowerCase().includes(searchTerm)
+      return locationMatch || nameMatch
+    })
+    setFilteredDealers(filtered)
+  }
+
+  function handleSearch() {
+    setActiveSearchQuery(searchInput)
+  }
+
+  function handleKeyPress(e: React.KeyboardEvent) {
+    if (e.key === 'Enter') {
+      handleSearch()
+    }
+  }
+
+  function handleClearSearch() {
+    setSearchInput('')
+    setActiveSearchQuery('')
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Breadcrumb */}
-        <nav className="mb-6">
-          <ol className="flex items-center space-x-2 text-sm">
-            <li>
-              <Link href="/" className="text-gray-600 hover:text-blue-600">
-                Home
-              </Link>
-            </li>
-            <li className="text-gray-400">/</li>
-            <li className="text-gray-900 font-medium">Dealers</li>
-          </ol>
-        </nav>
-
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Auto Dealers Directory</h1>
-          <p className="text-gray-600">Find trusted car dealerships across Sri Lanka</p>
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-800 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl lg:text-4xl font-bold text-white flex items-center gap-3">
+            <Building2 className="w-8 h-8" />
+            Dealer Directory
+          </h1>
+          <p className="text-blue-100 mt-2 text-lg">
+            Find trusted car dealerships near you
+          </p>
         </div>
+      </div>
 
-        {/* Placeholder Content */}
-        <div className="bg-white rounded-xl shadow-sm p-8">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
+      {/* Search Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
+        <div className="bg-white rounded-xl shadow-lg p-4">
+          <div className="relative flex items-center">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <MapPin className="h-5 w-5 text-gray-400" />
             </div>
-            
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Dealers Directory Coming Soon</h2>
-            <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              We're building a comprehensive directory of verified auto dealers. 
-              Soon you'll be able to browse, compare, and contact dealers directly.
-            </p>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-md mx-auto mb-6">
-              <h3 className="font-semibold text-blue-900 mb-2">Coming Features:</h3>
-              <ul className="text-left text-blue-700 text-sm space-y-1">
-                <li>• Verified dealer profiles</li>
-                <li>• Customer reviews and ratings</li>
-                <li>• Dealer specializations</li>
-                <li>• Location-based search</li>
-                <li>• Direct contact options</li>
-                <li>• Current inventory listings</li>
-              </ul>
-            </div>
-
-            <Link 
-              href="/listings" 
-              className="btn-primary px-6 py-2 rounded-lg"
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Search by location/dealership name"
+              className="block w-full pl-12 pr-12 py-3 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            />
+            <button
+              onClick={handleSearch}
+              className="absolute inset-y-0 right-0 pr-4 flex items-center cursor-pointer hover:text-blue-600 transition-colors"
+              aria-label="Search"
             >
-              Browse Vehicle Listings
-            </Link>
+              <Search className="h-5 w-5 text-gray-400 hover:text-blue-600" />
+            </button>
           </div>
+          {activeSearchQuery && (
+            <div className="mt-2 flex items-center">
+              <span className="text-sm text-gray-600">
+                Showing results for: <span className="font-medium">{activeSearchQuery}</span>
+              </span>
+              <button
+                onClick={handleClearSearch}
+                className="ml-2 text-sm text-blue-600 hover:text-blue-700 underline"
+              >
+                Clear
+              </button>
+            </div>
+          )}
         </div>
+      </div>
+
+      {/* Results Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-gray-900">
+            {activeSearchQuery ? `Results for "${activeSearchQuery}"` : 'All Dealerships'} ({filteredDealers.length})
+          </h2>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        ) : filteredDealers.length > 0 ? (
+          <div className="space-y-4">
+            {filteredDealers.map((dealer) => (
+              <DealershipCard key={dealer.id} dealer={dealer} />
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl p-12 text-center">
+            <Building2 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500 text-lg">
+              {activeSearchQuery ? `No dealerships found for "${activeSearchQuery}"` : 'No dealerships available'}
+            </p>
+            <p className="text-gray-400 mt-2">Try adjusting your search</p>
+          </div>
+        )}
       </div>
     </div>
   )

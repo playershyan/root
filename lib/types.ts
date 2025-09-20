@@ -17,7 +17,6 @@ export interface Profile {
   language: string
   bio?: string
   avatar_url?: string
-  membership_type: 'basic' | 'premium' | 'dealer'
   created_at: string
   updated_at: string
 }
@@ -82,6 +81,9 @@ export interface Listing {
   views: number
   created_at: string
   updated_at: string
+  posted_at?: string  // Legacy compatibility property
+  image?: string      // Legacy compatibility property
+  vehicle_type?: string
 }
 
 export interface WantedRequest {

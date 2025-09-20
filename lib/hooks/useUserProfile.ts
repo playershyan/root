@@ -10,7 +10,6 @@ interface UserProfileData {
   phoneVerifiedAt?: string
   tempPhone?: string
   email: string
-  membershipType: 'basic' | 'gold' | 'platinum'
   avatar?: string
   country: string
   businessProfile?: {
@@ -77,7 +76,6 @@ export function useUserProfile() {
               phoneVerifiedAt: newProfileData.phone_verified_at,
               tempPhone: newProfileData.temp_phone,
               email: user.email || '',
-              membershipType: newProfileData.membership_type || 'basic',
               country: newProfileData.location || 'LK',
               businessProfile: newProfileData.business_profile && newProfileData.business_profile.is_active ? {
                 id: newProfileData.business_profile.id,
@@ -100,7 +98,6 @@ export function useUserProfile() {
           phoneVerifiedAt: profileData.phone_verified_at,
           tempPhone: profileData.temp_phone,
           email: user.email || '',
-          membershipType: profileData.membership_type || 'basic',
           country: profileData.location || 'LK',
           businessProfile: profileData.business_profile && profileData.business_profile.is_active ? {
             id: profileData.business_profile.id,

@@ -51,20 +51,33 @@ export default function PromotionBadges({
 
   const badges = []
 
-  // Featured Badge - Most prominent
-  if (listing.is_featured) {
+  // Urgent Badge - Highest Priority (Red)
+  if (listing.is_urgent) {
     badges.push(
       <div
-        key="featured"
-        className={`${styles.badge} bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-full shadow-lg flex items-center gap-1.5 font-bold`}
+        key="urgent"
+        className={`${styles.badge} bg-gradient-to-r from-red-600 to-red-700 text-white rounded-full shadow-lg flex items-center gap-1.5 font-bold animate-pulse border-2 border-red-300`}
       >
-        <Star className={`${styles.icon} fill-white`} />
-        {showLabels && <span>FEATURED</span>}
+        <AlertTriangle className={`${styles.icon} animate-bounce`} />
+        {showLabels && <span className="tracking-wide">URGENT</span>}
       </div>
     )
   }
 
-  // Top Spot Badge
+  // Featured Badge - High Priority (Gold)
+  if (listing.is_featured) {
+    badges.push(
+      <div
+        key="featured"
+        className={`${styles.badge} bg-gradient-to-r from-amber-500 to-yellow-600 text-white rounded-full shadow-lg flex items-center gap-1.5 font-bold border border-amber-300`}
+      >
+        <Star className={`${styles.icon} fill-white`} />
+        {showLabels && <span className="tracking-wide">FEATURED</span>}
+      </div>
+    )
+  }
+
+  // Top Spot Badge - Medium Priority (Purple)
   if (listing.is_top_spot) {
     badges.push(
       <div
@@ -77,7 +90,7 @@ export default function PromotionBadges({
     )
   }
 
-  // Boosted Badge
+  // Boosted Badge - Lower Priority (Blue)
   if (listing.is_boosted) {
     badges.push(
       <div
@@ -86,19 +99,6 @@ export default function PromotionBadges({
       >
         <TrendingUp className={styles.icon} />
         {showLabels && <span>BOOSTED</span>}
-      </div>
-    )
-  }
-
-  // Urgent Badge
-  if (listing.is_urgent) {
-    badges.push(
-      <div
-        key="urgent"
-        className={`${styles.badge} bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full shadow-md flex items-center gap-1.5 font-semibold animate-pulse`}
-      >
-        <AlertTriangle className={styles.icon} />
-        {showLabels && <span>URGENT</span>}
       </div>
     )
   }
@@ -121,9 +121,9 @@ export function FeaturedBadge({ size = 'medium' }: { size?: 'small' | 'medium' |
   }
 
   return (
-    <div className={`${styles[size]} bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-full shadow-lg flex items-center gap-1.5 font-bold`}>
+    <div className={`${styles[size]} bg-gradient-to-r from-amber-500 to-yellow-600 text-white rounded-full shadow-lg flex items-center gap-1.5 font-bold border border-amber-300`}>
       <Star className={size === 'small' ? 'w-3 h-3' : size === 'large' ? 'w-5 h-5' : 'w-4 h-4'} fill="white" />
-      <span>FEATURED</span>
+      <span className="tracking-wide">FEATURED</span>
     </div>
   )
 }
@@ -166,9 +166,9 @@ export function UrgentBadge({ size = 'medium' }: { size?: 'small' | 'medium' | '
   }
 
   return (
-    <div className={`${styles[size]} bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full shadow-md flex items-center gap-1.5 font-semibold animate-pulse`}>
-      <AlertTriangle className={size === 'small' ? 'w-3 h-3' : size === 'large' ? 'w-5 h-5' : 'w-4 h-4'} />
-      <span>URGENT</span>
+    <div className={`${styles[size]} bg-gradient-to-r from-red-600 to-red-700 text-white rounded-full shadow-lg flex items-center gap-1.5 font-bold animate-pulse border-2 border-red-300`}>
+      <AlertTriangle className={`${size === 'small' ? 'w-3 h-3' : size === 'large' ? 'w-5 h-5' : 'w-4 h-4'} animate-bounce`} />
+      <span className="tracking-wide">URGENT</span>
     </div>
   )
 }

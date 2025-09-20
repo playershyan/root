@@ -27,6 +27,7 @@ import WantedRequestActions from '@/app/components/wantedRequests/WantedRequestA
 import WantedRequestStatusMessage from '@/app/components/wantedRequests/WantedRequestStatusMessage'
 import MessagesTab from '@/app/components/messages/MessagesTab'
 import { ConversationData, MessageData } from '@/lib/utils/messageUtils'
+import { Listing } from '@/lib/types'
 import FavoritesTab from '@/app/components/favorites/FavoritesTab'
 import BusinessProfileManagement from '@/app/components/profile/BusinessProfileManagement'
 import CreateBusinessProfile from '@/app/components/profile/CreateBusinessProfile'
@@ -47,25 +48,12 @@ interface UserProfile {
   phoneVerified?: boolean
   phoneVerifiedAt?: string
   tempPhone?: string
-  membershipType: 'basic' | 'gold' | 'platinum'
   avatar?: string
   country: string
 }
 
-interface BusinessProfile {
-  id: string
-  businessName: string
-  businessType: string
-  description: string
-  logoUrl?: string
-  website?: string
-  address?: string
-  phone?: string
-  operatingHours?: string
-  isVerified: boolean
-}
-
-interface Listing {
+// Using main Listing type from @/lib/types
+interface LocalListingStatus {
   id: string
   title: string
   details: string
@@ -211,19 +199,17 @@ export default function ProfilePage() {
       label: 'My Profile', 
       icon: User 
     },
-    // Show business page tab only if business profile exists
-    ...(businessProfile && !businessProfile.deleted_at ? [{ 
-      id: 'business', 
-      label: 'Business Page', 
-      icon: Building2,
-      disabled: businessProfile.is_paused
+    // Show business page tab only if business profile exists and is active
+    ...(businessProfile && businessProfile.is_active ? [{
+      id: 'business',
+      label: 'Business Page',
+      icon: Building2
     }] : []),
     { id: 'listings', label: 'My Listings', icon: Car },
     { id: 'favorites', label: 'Favorites', icon: Heart },
     { id: 'wanted', label: 'My Wanted Requests', icon: Search },
     { id: 'messages', label: 'Messages', icon: MessageSquare },
     { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'membership', label: 'VERA Membership', icon: Crown, special: true },
     { id: 'security', label: 'Security', icon: Shield },
     { id: 'bin', label: 'Bin', icon: Trash2 }
   ]
@@ -234,14 +220,12 @@ export default function ProfilePage() {
     fullName: '',
     phone: '',
     phoneVerified: false,
-    membershipType: 'basic',
-    accountType: 'individual',
     country: 'LK' // Default to Sri Lanka
   })
 
 
   // Listings data
-  const [listings, setListings] = useState<Listing[]>([])
+  const [listings, setListings] = useState<LocalListingStatus[]>([])
   const [listingsLoading, setListingsLoading] = useState(true)
   const [listingStatusFilter, setListingStatusFilter] = useState<'all' | 'active' | 'sold' | 'pending' | 'paused' | 'reported'>('all')
   
@@ -636,7 +620,6 @@ export default function ProfilePage() {
             phoneVerified: profileData.phone_verified || false,
             phoneVerifiedAt: profileData.phone_verified_at,
             tempPhone: profileData.temp_phone,
-            membershipType: profileData.membership_type || 'basic',
             country: profileData.location || 'LK'
           })
           setOriginalPhone(profileData.phone || user.phone || '')
@@ -648,15 +631,21 @@ export default function ProfilePage() {
           if (profileData.business_profile && profileData.business_profile.is_active) {
             setBusinessProfile({
               id: profileData.business_profile.id,
-              businessName: profileData.business_profile.business_name || '',
-              businessType: profileData.business_profile.business_type || 'Auto Dealer',
+              user_id: profileData.business_profile.user_id || user.id,
+              business_name: profileData.business_profile.business_name || '',
               description: profileData.business_profile.description || '',
-              logoUrl: profileData.business_profile.logo_url || '',
+              logo_url: profileData.business_profile.logo_url || '',
+              banner_url: profileData.business_profile.banner_url || '',
+              profile_image_url: profileData.business_profile.profile_image_url || '',
               website: profileData.business_profile.website || '',
               address: profileData.business_profile.address || '',
               phone: profileData.business_profile.phone || '',
-              operatingHours: profileData.business_profile.operating_hours || '',
-              isVerified: profileData.business_profile.is_verified || false
+              whatsapp: profileData.business_profile.whatsapp || '',
+              operating_hours: profileData.business_profile.operating_hours || '',
+              is_verified: profileData.business_profile.is_verified || false,
+              is_active: profileData.business_profile.is_active || true,
+              created_at: profileData.business_profile.created_at || new Date().toISOString(),
+              updated_at: profileData.business_profile.updated_at || new Date().toISOString()
             })
           }
         } else {
@@ -823,7 +812,7 @@ export default function ProfilePage() {
           last_message_preview: conv.last_message_preview || '',
           unread_count: conv.buyer_id === user.id ? conv.buyer_unread_count : conv.seller_unread_count,
           is_archived: conv.buyer_id === user.id ? conv.buyer_archived : conv.seller_archived,
-          current_user_role: conv.buyer_id === user.id ? 'buyer' : 'seller',
+          current_user_role: (conv.buyer_id === user.id ? 'buyer' : 'seller') as 'buyer' | 'seller',
           buyer: {
             profiles: {
               name: buyerProfile?.name || 'Unknown User',
@@ -1990,14 +1979,10 @@ export default function ProfilePage() {
                       activeTab === tab.id
                         ? 'bg-gray-50 text-blue-600'
                         : 'text-gray-700 hover:bg-gray-50'
-                    } ${
-                      tab.special 
-                        ? 'bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 my-1' 
-                        : ''
                     }`}
                   >
-                    <tab.icon className={`w-5 h-5 ${tab.special ? 'text-amber-600' : ''}`} />
-                    <span className={`font-medium ${tab.special ? 'text-amber-700' : ''}`}>
+                    <tab.icon className="w-5 h-5" />
+                    <span className="font-medium">
                       {tab.label}
                     </span>
                   </button>
@@ -2168,43 +2153,6 @@ export default function ProfilePage() {
                 </div>
               )}
 
-              {/* Membership Tab */}
-              {activeTab === 'membership' && (
-                <>
-                  <div className="p-6 border-b">
-                    <h1 className="text-2xl font-semibold">VERA Membership</h1>
-                  </div>
-                  <div className="p-6">
-                    <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg p-6 mb-6">
-                      <div className="flex items-center gap-4 mb-4">
-                        <Crown className="w-12 h-12 text-amber-600" />
-                        <div>
-                          <h2 className="text-xl font-semibold text-amber-900">Gold Member</h2>
-                          <p className="text-amber-700">Member since January 2024</p>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                        <div className="bg-white/60 rounded-lg p-4">
-                          <h3 className="font-semibold text-amber-900 mb-2">Priority Listings</h3>
-                          <p className="text-sm text-amber-700">Your ads appear at the top of search results</p>
-                        </div>
-                        <div className="bg-white/60 rounded-lg p-4">
-                          <h3 className="font-semibold text-amber-900 mb-2">AI Photo Enhancement</h3>
-                          <p className="text-sm text-amber-700">Automatic photo optimization for better views</p>
-                        </div>
-                        <div className="bg-white/60 rounded-lg p-4">
-                          <h3 className="font-semibold text-amber-900 mb-2">Unlimited Listings</h3>
-                          <p className="text-sm text-amber-700">Post as many vehicles as you want</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <button className="w-full bg-gradient-to-r from-amber-600 to-yellow-600 text-white py-3 rounded-lg font-semibold hover:from-amber-700 hover:to-yellow-700">
-                      Upgrade to Platinum
-                    </button>
-                  </div>
-                </>
-              )}
 
               {/* Listings Tab */}
               {activeTab === 'listings' && (

@@ -17,7 +17,6 @@ interface User {
   name: string
   email: string
   avatar?: string
-  membershipType?: 'basic' | 'gold' | 'platinum'
   unreadMessages?: number
   favorites?: number
 }
@@ -86,7 +85,6 @@ export default function Header() {
     id: authUser.id,
     name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
     email: authUser.email || '',
-    membershipType: 'basic' as const,
     unreadMessages: unreadMessages,
     favorites: 0
   } : null
@@ -168,6 +166,9 @@ export default function Header() {
             <Link href="/listings" className="text-gray-700 hover:text-blue-600 font-medium">
               Browse Vehicles
             </Link>
+            <Link href="/dealers" className="text-gray-700 hover:text-blue-600 font-medium">
+              Dealer Directory
+            </Link>
             <Link href="/wanted" className="text-gray-700 hover:text-blue-600 font-medium">
               Wanted Requests
             </Link>
@@ -188,9 +189,6 @@ export default function Header() {
                         {user.name.split(' ').map(n => n[0]).join('')}
                       </span>
                     </div>
-                    {user.membershipType === 'gold' && (
-                      <Crown className="w-4 h-4 text-amber-600" />
-                    )}
                   </button>
 
                   {/* User Dropdown Menu */}
@@ -199,12 +197,6 @@ export default function Header() {
                       <div className="px-4 py-3 border-b">
                         <p className="font-medium text-gray-900">{user.name}</p>
                         <p className="text-sm text-gray-600">{user.email}</p>
-                        {user.membershipType === 'gold' && (
-                          <div className="flex items-center gap-1 mt-1">
-                            <Crown className="w-4 h-4 text-amber-600" />
-                            <span className="text-sm text-amber-600 font-medium">Gold Member</span>
-                          </div>
-                        )}
                       </div>
                       
                       <Link
@@ -254,13 +246,6 @@ export default function Header() {
                       
                       <hr className="my-2" />
                       
-                      <Link
-                        href="/profile?tab=membership"
-                        className="block px-4 py-2 text-amber-700 hover:bg-amber-50 flex items-center gap-3"
-                      >
-                        <Crown className="w-4 h-4" />
-                        Membership
-                      </Link>
                       
                       <Link
                         href="/profile?tab=security"
@@ -276,25 +261,6 @@ export default function Header() {
                       >
                         <HelpCircle className="w-4 h-4" />
                         Help & Support
-                      </Link>
-
-                      <hr className="my-2" />
-
-                      {/* Admin Section */}
-                      <Link
-                        href="/admin/setup"
-                        className="block px-4 py-2 text-blue-700 hover:bg-blue-50 flex items-center gap-3"
-                      >
-                        <Settings className="w-4 h-4" />
-                        Admin Setup
-                      </Link>
-
-                      <Link
-                        href="/admin"
-                        className="block px-4 py-2 text-blue-700 hover:bg-blue-50 flex items-center gap-3"
-                      >
-                        <Shield className="w-4 h-4" />
-                        Admin Dashboard
                       </Link>
 
                       <hr className="my-2" />
@@ -403,12 +369,6 @@ export default function Header() {
                     <p className="text-sm text-gray-600">{user.email}</p>
                   </div>
                 </div>
-                {user.membershipType === 'gold' && (
-                  <div className="flex items-center gap-1 bg-amber-50 rounded-md px-3 py-1.5 inline-flex">
-                    <Crown className="w-4 h-4 text-amber-600" />
-                    <span className="text-sm text-amber-700 font-medium">Gold Member</span>
-                  </div>
-                )}
               </div>
             )}
 
@@ -421,15 +381,22 @@ export default function Header() {
               >
                 Home
               </Link>
-              <Link 
-                href="/listings" 
+              <Link
+                href="/listings"
                 className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Browse Vehicles
               </Link>
-              <Link 
-                href="/wanted" 
+              <Link
+                href="/dealers"
+                className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Dealer Directory
+              </Link>
+              <Link
+                href="/wanted"
                 className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -511,14 +478,6 @@ export default function Header() {
                   
                   <div className="border-t my-4" />
                   
-                  <Link 
-                    href="/profile?tab=membership" 
-                    className="block py-3 px-4 text-amber-700 hover:bg-amber-50 rounded-lg flex items-center gap-3"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <Crown className="w-5 h-5" />
-                    Membership
-                  </Link>
                   
                   <Link 
                     href="/profile?tab=security" 

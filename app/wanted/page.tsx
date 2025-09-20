@@ -172,20 +172,71 @@ export default function WantedRequestsPage() {
     try {
       const { data, error } = await supabase
         .from('wanted_requests')
-        .select('*, phone, whatsapp, email')
+        .select(`
+          *,
+          profiles!wanted_requests_user_id_fkey (
+            id,
+            name,
+            phone,
+            whatsapp,
+            email,
+            location,
+            avatar_url,
+            business_profiles (
+              id,
+              business_name,
+              phone,
+              whatsapp,
+              address,
+              is_active
+            )
+          )
+        `)
         .eq('is_active', true)
         .order('created_at', { ascending: false })
 
       if (error) throw error
 
-      // Add mock user info for demo, but preserve real urgency from database
-      const enhancedRequests = (data || []).map((req, index) => ({
-        ...req,
-        // Keep the actual urgency from database (don't override with mock data)
-        user_name: req.user_name || `User ${req.id.slice(0, 4)}`,
-        user_avatar: req.user_name?.slice(0, 2).toUpperCase() || 'U'
-      }))
+      // Process requests with proper contact logic
+      const enhancedRequests = (data || []).map((req) => {
+        const profile = req.profiles
 
+        // Determine contact info based on business profile status
+        let contactInfo = {
+          phone: req.phone,
+          whatsapp: req.whatsapp,
+          email: req.email,
+          location: req.location
+        }
+
+        if (profile) {
+          // Check if user has active business profile
+          if (profile.business_profiles && profile.business_profiles.is_active) {
+            const businessProfile = profile.business_profiles
+            contactInfo = {
+              phone: businessProfile.phone || profile.phone || req.phone,
+              whatsapp: businessProfile.whatsapp || businessProfile.phone || profile.whatsapp || profile.phone || req.whatsapp,
+              email: profile.email || req.email,
+              location: businessProfile.address || profile.location || req.location
+            }
+          } else {
+            // Use individual profile contact info
+            contactInfo = {
+              phone: profile.phone || req.phone,
+              whatsapp: profile.whatsapp || profile.phone || req.whatsapp,
+              email: profile.email || req.email,
+              location: profile.location || req.location
+            }
+          }
+        }
+
+        return {
+          ...req,
+          ...contactInfo,
+          user_name: profile?.name || req.user_name || `User ${req.id.slice(0, 4)}`,
+          user_avatar: (profile?.name || req.user_name || 'U').slice(0, 2).toUpperCase()
+        }
+      })
 
       setRequests(enhancedRequests)
       setFilteredRequests(enhancedRequests.slice(0, displayCount))

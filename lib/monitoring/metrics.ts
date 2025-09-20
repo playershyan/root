@@ -31,16 +31,9 @@ export class PerformanceMonitor {
       this.alertSlowResponse(endpoint, responseTime)
     }
 
-    // Update Sentry metrics (check if available)
-    if (typeof Sentry.metrics !== 'undefined') {
-      Sentry.metrics.increment('api.requests', 1, {
-        tags: { endpoint }
-      })
-      
-      Sentry.metrics.gauge('api.response_time', responseTime, {
-        tags: { endpoint }
-      })
-    }
+    // Update Sentry metrics
+    Sentry.setMeasurement('api.response_time', responseTime)
+    Sentry.setTag('api.endpoint', endpoint)
   }
 
   // Get average response time for endpoint
@@ -55,15 +48,9 @@ export class PerformanceMonitor {
   trackDatabaseQuery(query: string, duration: number) {
     const queryType = this.extractQueryType(query)
     
-    if (typeof Sentry.metrics !== 'undefined') {
-      Sentry.metrics.increment('db.queries', 1, {
-        tags: { type: queryType }
-      })
-      
-      Sentry.metrics.gauge('db.query_duration', duration, {
-        tags: { type: queryType }
-      })
-    }
+    // Report to Sentry
+    Sentry.setMeasurement('db.query_duration', duration)
+    Sentry.setTag('db.query_type', queryType)
 
     // Alert on slow queries
     if (duration > 1000) { // 1 second

@@ -13,11 +13,8 @@ export interface BusinessProfile {
   operating_hours?: string
   is_verified: boolean
   is_active: boolean
-  is_paused: boolean
   created_at: string
   updated_at: string
-  paused_at?: string
-  deleted_at?: string
 }
 
 export interface CreateBusinessProfileData {
@@ -34,5 +31,5 @@ export interface CreateBusinessProfileData {
 }
 
 export interface UpdateBusinessProfileData extends Partial<CreateBusinessProfileData> {
-  is_paused?: boolean
+  is_active?: boolean
 }

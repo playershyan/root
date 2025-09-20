@@ -13,33 +13,9 @@ import { getVehicleCategories, getMakesByCategory, getModelsByMake, getCategoryI
 import { RotationService } from '@/lib/services/rotationService'
 import { PromotionService, PromotedListing } from '@/lib/services/promotionService'
 import { useRecaptcha } from '@/lib/hooks/useRecaptcha'
+import { Listing } from '@/lib/types'
 
-// Types
-type Listing = {
-  id: string
-  title: string
-  description: string | null
-  price: number
-  make: string
-  model: string
-  year: number
-  mileage: number | null
-  fuel_type: string | null
-  transmission: string | null
-  location: string
-  phone: string
-  image_url: string | null
-  image_urls: string[] | null
-  is_featured: boolean
-  is_urgent?: boolean
-  urgent_until?: string
-  created_at: string
-  pricing_type?: 'cash' | 'finance'
-  monthly_payment?: number
-  asking_price?: number
-  negotiable?: boolean
-  vehicle_type?: string
-}
+// Using imported Listing type from @/lib/types
 
 
 
@@ -614,8 +590,8 @@ export default function AdvancedListingsPage() {
             title: listing.title,
             price: listing.price,
             location: listing.location,
-            image: listing.image_urls?.[0] || listing.image || '',
-            postedDate: listing.posted_at || new Date().toISOString(),
+            image: listing.image_urls?.[0] || listing.primary_image_url || '',
+            postedDate: listing.posted_date || listing.created_at,
             make: listing.make,
             model: listing.model,
             year: listing.year,

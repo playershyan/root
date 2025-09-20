@@ -73,9 +73,9 @@ export default function BusinessProfileManagement({
               }`}>
                 {businessProfile.is_verified ? 'Verified' : 'Pending Verification'}
               </span>
-              {businessProfile.is_paused && (
+              {!businessProfile.is_active && (
                 <span className="text-sm px-2 py-1 rounded-full bg-gray-100 text-gray-700">
-                  Paused
+                  Inactive
                 </span>
               )}
             </div>
@@ -87,14 +87,14 @@ export default function BusinessProfileManagement({
         <div className="p-4 bg-gray-50 rounded-lg">
           <h4 className="font-medium text-gray-900 mb-3">Business Profile Actions</h4>
           <div className="flex flex-wrap gap-3">
-            {businessProfile.is_paused ? (
+            {!businessProfile.is_active ? (
               <button
                 onClick={onResumeProfile}
                 disabled={loading}
                 className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Play className="w-4 h-4" />
-                Resume Business Profile
+                Activate Business Profile
               </button>
             ) : (
               <button
@@ -103,7 +103,7 @@ export default function BusinessProfileManagement({
                 className="flex items-center gap-2 bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Pause className="w-4 h-4" />
-                Pause Business Profile
+                Deactivate Business Profile
               </button>
             )}
             
@@ -117,7 +117,7 @@ export default function BusinessProfileManagement({
             </button>
           </div>
 
-          {businessProfile.is_paused && (
+          {!businessProfile.is_active && (
             <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <div className="flex items-start gap-2">
                 <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />

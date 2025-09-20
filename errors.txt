@@ -1,0 +1,137 @@
+app/api/auth/check-email/route.ts(47,12): error TS2339: Property 'email' does not exist on type 'never'.
+app/components/auth/PhoneAuthForm.tsx(52,10): error TS1345: An expression of type 'void' cannot be tested for truthiness.
+app/components/header.tsx(191,22): error TS2367: This comparison appears to be unintentional because the types '"basic"' and '"gold"' have no overlap.
+app/components/header.tsx(202,26): error TS2367: This comparison appears to be unintentional because the types '"basic"' and '"gold"' have no overlap.
+app/components/header.tsx(387,18): error TS2367: This comparison appears to be unintentional because the types '"basic"' and '"gold"' have no overlap.
+app/components/homepage/FeaturedListings.tsx(64,30): error TS2345: Argument of type 'Listing[]' is not assignable to parameter of type 'SetStateAction<Listing[]>'.
+  Type 'Listing[]' is not assignable to type 'Listing[]'. Two different types with this name exist, but they are unrelated.
+    Type 'Listing' is missing the following properties from type 'Listing': title, price
+app/components/homepage/FeaturedListings.tsx(80,26): error TS2345: Argument of type 'Listing[]' is not assignable to parameter of type 'SetStateAction<Listing[]>'.
+  Type 'Listing[]' is not assignable to type 'Listing[]'. Two different types with this name exist, but they are unrelated.
+    Type 'Listing' is missing the following properties from type 'Listing': title, price
+app/components/PhoneVerificationModal.tsx(36,9): error TS2353: Object literal may only specify known properties, and 'otp' does not exist in type 'CredentialRequestOptions'.
+app/listings/page.tsx(617,55): error TS2339: Property 'image' does not exist on type 'Listing | PromotedListing'.
+  Property 'image' does not exist on type 'Listing'.
+app/listings/page.tsx(618,33): error TS2339: Property 'posted_at' does not exist on type 'Listing | PromotedListing'.
+  Property 'posted_at' does not exist on type 'Listing'.
+app/profile/page.tsx(225,5): error TS2353: Object literal may only specify known properties, and 'accountType' does not exist in type 'UserProfile | (() => UserProfile)'.
+app/profile/page.tsx(638,15): error TS2353: Object literal may only specify known properties, and 'businessName' does not exist in type 'SetStateAction<BusinessProfile>'.
+app/profile/page.tsx(829,24): error TS2345: Argument of type '{ id: any; listing_id: any; listing_title: any; listing_price: any; listing_image_url: any; buyer_id: any; seller_id: any; last_message_at: any; last_message_preview: any; unread_count: any; is_archived: any; current_user_role: string; buyer: { ...; }; seller: { ...; }; }[]' is not assignable to parameter of type 'SetStateAction<ConversationData[]>'.
+  Type '{ id: any; listing_id: any; listing_title: any; listing_price: any; listing_image_url: any; buyer_id: any; seller_id: any; last_message_at: any; last_message_preview: any; unread_count: any; is_archived: any; current_user_role: string; buyer: { ...; }; seller: { ...; }; }[]' is not assignable to type 'ConversationData[]'.
+    Type '{ id: any; listing_id: any; listing_title: any; listing_price: any; listing_image_url: any; buyer_id: any; seller_id: any; last_message_at: any; last_message_preview: any; unread_count: any; is_archived: any; current_user_role: string; buyer: { ...; }; seller: { ...; }; }' is not assignable to type 'ConversationData'.
+      Types of property 'current_user_role' are incompatible.
+        Type 'string' is not assignable to type '"seller" | "buyer"'.
+app/sitemap.xml/route.ts(107,30): error TS2802: Type 'Set<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+app/sitemap.xml/route.ts(111,29): error TS2802: Type 'Set<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+lib/mcp/sentryIntegration.ts(36,20): error TS2339: Property 'setStatus' does not exist on type 'void'.
+lib/mcp/sentryIntegration.ts(48,20): error TS2339: Property 'setStatus' does not exist on type 'void'.
+lib/mcp/sentryIntegration.ts(51,20): error TS2339: Property 'end' does not exist on type 'void'.
+lib/mcp/sentryIntegration.ts(77,20): error TS2339: Property 'setStatus' does not exist on type 'void'.
+lib/mcp/sentryIntegration.ts(88,20): error TS2339: Property 'setStatus' does not exist on type 'void'.
+lib/mcp/sentryIntegration.ts(91,20): error TS2339: Property 'end' does not exist on type 'void'.
+lib/mcp/sentryIntegration.ts(117,20): error TS2339: Property 'setStatus' does not exist on type 'void'.
+lib/mcp/sentryIntegration.ts(128,20): error TS2339: Property 'setStatus' does not exist on type 'void'.
+lib/mcp/sentryIntegration.ts(131,20): error TS2339: Property 'end' does not exist on type 'void'.
+lib/monitoring/metrics.ts(35,12): error TS2554: Expected 3-4 arguments, but got 2.
+lib/monitoring/metrics.ts(52,12): error TS2554: Expected 3-4 arguments, but got 2.
+lib/monitoring/metrics.ts(63,23): error TS2339: Property 'metrics' does not exist on type 'typeof import("D:/projects/root/node_modules/@sentry/nextjs/build/types/index.types")'.
+lib/monitoring/metrics.ts(64,14): error TS2339: Property 'metrics' does not exist on type 'typeof import("D:/projects/root/node_modules/@sentry/nextjs/build/types/index.types")'.
+lib/monitoring/metrics.ts(78,23): error TS2339: Property 'metrics' does not exist on type 'typeof import("D:/projects/root/node_modules/@sentry/nextjs/build/types/index.types")'.
+lib/monitoring/metrics.ts(79,14): error TS2339: Property 'metrics' does not exist on type 'typeof import("D:/projects/root/node_modules/@sentry/nextjs/build/types/index.types")'.
+lib/monitoring/metrics.ts(90,23): error TS2339: Property 'metrics' does not exist on type 'typeof import("D:/projects/root/node_modules/@sentry/nextjs/build/types/index.types")'.
+lib/monitoring/metrics.ts(91,14): error TS2339: Property 'metrics' does not exist on type 'typeof import("D:/projects/root/node_modules/@sentry/nextjs/build/types/index.types")'.
+lib/monitoring/security-monitoring.ts(6,10): error TS2305: Module '"@/lib/supabase-server"' has no exported member 'supabase'.
+lib/monitoring/uptime.ts(52,33): error TS2802: Type 'Map<string, HealthCheck>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+lib/security/metrics.ts(32,24): error TS2802: Type 'MapIterator<[string, number]>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+lib/security/redis-rate-limiter.ts(328,30): error TS2802: Type 'MapIterator<[string, { violations: number; until: number; }]>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+lib/services/promotionService.ts(152,40): error TS2304: Cannot find name 'supabase'.
+lib/services/promotionService.ts(294,35): error TS2304: Cannot find name 'supabase'.
+lib/services/promotionService.ts(312,17): error TS2304: Cannot find name 'supabase'.
+lib/services/promotionService.ts(336,17): error TS2304: Cannot find name 'supabase'.
+lib/services/promotionService.ts(360,17): error TS2304: Cannot find name 'supabase'.
+lib/services/promotionService.ts(381,35): error TS2304: Cannot find name 'supabase'.
+lib/services/promotionService.ts(417,58): error TS2304: Cannot find name 'supabase'.
+lib/services/promotionService.ts(425,64): error TS2304: Cannot find name 'supabase'.
+lib/services/rotationService.ts(67,19): error TS2304: Cannot find name 'supabase'.
+lib/services/rotationService.ts(162,19): error TS2304: Cannot find name 'supabase'.
+lib/services/templateProcessor.ts(106,76): error TS1501: This regular expression flag is only available when targeting 'es2018' or later.
+lib/services/templateProcessor.ts(113,65): error TS1501: This regular expression flag is only available when targeting 'es2018' or later.
+lib/services/templateProcessor.ts(120,71): error TS1501: This regular expression flag is only available when targeting 'es2018' or later.
+lib/utils/sentry.ts(59,33): error TS2345: Argument of type 'MCPContext' is not assignable to parameter of type 'Context'.
+  Index signature for type 'string' is missing in type 'MCPContext'.
+supabase/functions/cleanup-deleted-items/index.ts(1,23): error TS2307: Cannot find module 'https://deno.land/std@0.168.0/http/server.ts' or its corresponding type declarations.
+supabase/functions/cleanup-deleted-items/index.ts(2,30): error TS2307: Cannot find module 'https://esm.sh/@supabase/supabase-js@2.38.4' or its corresponding type declarations.
+supabase/functions/cleanup-deleted-items/index.ts(17,25): error TS2304: Cannot find name 'Deno'.
+supabase/functions/cleanup-deleted-items/index.ts(18,32): error TS2304: Cannot find name 'Deno'.
+supabase/functions/cleanup-deleted-items/index.ts(29,27): error TS2304: Cannot find name 'Deno'.
+supabase/functions/cleanup-deleted-records/index.ts(1,23): error TS2307: Cannot find module 'https://deno.land/std@0.168.0/http/server.ts' or its corresponding type declarations.
+supabase/functions/cleanup-deleted-records/index.ts(2,30): error TS2307: Cannot find module 'https://esm.sh/@supabase/supabase-js@2.38.4' or its corresponding type declarations.
+supabase/functions/cleanup-deleted-records/index.ts(18,27): error TS2304: Cannot find name 'Deno'.
+supabase/functions/cleanup-deleted-records/index.ts(28,7): error TS2304: Cannot find name 'Deno'.
+supabase/functions/cleanup-deleted-records/index.ts(29,7): error TS2304: Cannot find name 'Deno'.
+tests/integration/api/admin.integration.test.ts(108,56): error TS2739: Type '{ select: Mock<any, any, any>; eq: Mock<any, any, any>; order: Mock<any, any, any>; limit: Mock<any, any, any>; }' is missing the following properties from type '{ select: Mock<any, any, any>; insert: Mock<any, any, any>; update: Mock<any, any, any>; delete: Mock<any, any, any>; eq: Mock<any, any, any>; single: Mock<...>; order: Mock<...>; limit: Mock<...>; }': insert, update, delete, single
+tests/integration/api/admin.integration.test.ts(163,50): error TS2345: Argument of type '(table: string) => { update: jest.Mock<any, any, any>; eq: jest.Mock<any, any, any>; select: jest.Mock<any, any, any>; single: jest.Mock<any, any, any>; insert?: undefined; } | { ...; }' is not assignable to parameter of type '() => { select: Mock<any, any, any>; insert: Mock<any, any, any>; update: Mock<any, any, any>; delete: Mock<any, any, any>; eq: Mock<any, any, any>; single: Mock<...>; order: Mock<...>; limit: Mock<...>; }'.
+  Target signature provides too few arguments. Expected 1 or more, but got 0.
+tests/integration/api/admin.integration.test.ts(187,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/admin.integration.test.ts(212,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/admin.integration.test.ts(234,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/admin.integration.test.ts(265,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/admin.integration.test.ts(294,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/admin.integration.test.ts(319,50): error TS2345: Argument of type '(table: string) => { update: jest.Mock<any, any, any>; eq: jest.Mock<any, any, any>; select: jest.Mock<any, any, any>; single: jest.Mock<any, any, any>; insert?: undefined; } | { ...; }' is not assignable to parameter of type '() => { select: Mock<any, any, any>; insert: Mock<any, any, any>; update: Mock<any, any, any>; delete: Mock<any, any, any>; eq: Mock<any, any, any>; single: Mock<...>; order: Mock<...>; limit: Mock<...>; }'.
+  Target signature provides too few arguments. Expected 1 or more, but got 0.
+tests/integration/api/admin.integration.test.ts(343,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/admin.integration.test.ts(382,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/auth.integration.test.ts(77,36): error TS2339: Property 'POST' does not exist on type '(request: NextRequest) => Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; user: User; }>>'.
+tests/integration/api/auth.integration.test.ts(103,36): error TS2339: Property 'POST' does not exist on type '(request: NextRequest) => Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; user: User; }>>'.
+tests/integration/api/auth.integration.test.ts(124,36): error TS2339: Property 'POST' does not exist on type '(request: NextRequest) => Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; user: User; }>>'.
+tests/integration/api/auth.integration.test.ts(145,36): error TS2339: Property 'POST' does not exist on type '(request: NextRequest) => Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; user: User; }>>'.
+tests/integration/api/auth.integration.test.ts(181,36): error TS2339: Property 'POST' does not exist on type '(request: NextRequest) => Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; user: User; }>>'.
+tests/integration/api/auth.integration.test.ts(206,36): error TS2339: Property 'POST' does not exist on type '(request: NextRequest) => Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; user: User; }>>'.
+tests/integration/api/listings.integration.test.ts(3,39): error TS2307: Cannot find module '../../../app/api/listings/route' or its corresponding type declarations.
+tests/integration/api/listings.integration.test.ts(61,50): error TS2345: Argument of type '(table: string) => { select: jest.Mock<any, any, any>; update: jest.Mock<any, any, any>; eq: jest.Mock<any, any, any>; single: jest.Mock<any, any, any>; insert?: undefined; } | { ...; }' is not assignable to parameter of type '() => { select: Mock<any, any, any>; insert: Mock<any, any, any>; update: Mock<any, any, any>; delete: Mock<any, any, any>; eq: Mock<any, any, any>; single: Mock<...>; order: Mock<...>; }'.
+  Target signature provides too few arguments. Expected 1 or more, but got 0.
+tests/integration/api/listings.integration.test.ts(86,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/listings.integration.test.ts(110,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/listings.integration.test.ts(134,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/listings.integration.test.ts(152,50): error TS2345: Argument of type '(table: string) => { select: jest.Mock<any, any, any>; update: jest.Mock<any, any, any>; eq: jest.Mock<any, any, any>; single: jest.Mock<any, any, any>; insert?: undefined; } | { ...; }' is not assignable to parameter of type '() => { select: Mock<any, any, any>; insert: Mock<any, any, any>; update: Mock<any, any, any>; delete: Mock<any, any, any>; eq: Mock<any, any, any>; single: Mock<...>; order: Mock<...>; }'.
+  Target signature provides too few arguments. Expected 1 or more, but got 0.
+tests/integration/api/listings.integration.test.ts(177,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/listings.integration.test.ts(202,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/listings.integration.test.ts(220,50): error TS2345: Argument of type '(table: string) => { select: jest.Mock<any, any, any>; update: jest.Mock<any, any, any>; eq: jest.Mock<any, any, any>; single: jest.Mock<any, any, any>; insert?: undefined; } | { ...; }' is not assignable to parameter of type '() => { select: Mock<any, any, any>; insert: Mock<any, any, any>; update: Mock<any, any, any>; delete: Mock<any, any, any>; eq: Mock<any, any, any>; single: Mock<...>; order: Mock<...>; }'.
+  Target signature provides too few arguments. Expected 1 or more, but got 0.
+tests/integration/api/listings.integration.test.ts(245,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/listings.integration.test.ts(264,50): error TS2345: Argument of type '(table: string) => { select: jest.Mock<any, any, any>; update: jest.Mock<any, any, any>; eq: jest.Mock<any, any, any>; single: jest.Mock<any, any, any>; insert?: undefined; } | { ...; }' is not assignable to parameter of type '() => { select: Mock<any, any, any>; insert: Mock<any, any, any>; update: Mock<any, any, any>; delete: Mock<any, any, any>; eq: Mock<any, any, any>; single: Mock<...>; order: Mock<...>; }'.
+  Target signature provides too few arguments. Expected 1 or more, but got 0.
+tests/integration/api/listings.integration.test.ts(289,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/listings.integration.test.ts(308,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/listings.integration.test.ts(326,50): error TS2345: Argument of type '(table: string) => { select: jest.Mock<any, any, any>; update: jest.Mock<any, any, any>; eq: jest.Mock<any, any, any>; single: jest.Mock<any, any, any>; insert?: undefined; } | { ...; }' is not assignable to parameter of type '() => { select: Mock<any, any, any>; insert: Mock<any, any, any>; update: Mock<any, any, any>; delete: Mock<any, any, any>; eq: Mock<any, any, any>; single: Mock<...>; order: Mock<...>; }'.
+  Target signature provides too few arguments. Expected 1 or more, but got 0.
+tests/integration/api/listings.integration.test.ts(351,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/listings.integration.test.ts(377,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/wanted-requests.integration.test.ts(7,10): error TS2305: Module '"../../../app/api/wanted-requests/update/route"' has no exported member 'POST'.
+tests/integration/api/wanted-requests.integration.test.ts(61,50): error TS2345: Argument of type '(table: string) => { select: jest.Mock<any, any, any>; update: jest.Mock<any, any, any>; eq: jest.Mock<any, any, any>; single: jest.Mock<any, any, any>; insert?: undefined; } | { ...; }' is not assignable to parameter of type '() => { select: Mock<any, any, any>; insert: Mock<any, any, any>; update: Mock<any, any, any>; delete: Mock<any, any, any>; eq: Mock<any, any, any>; single: Mock<...>; order: Mock<...>; }'.
+  Target signature provides too few arguments. Expected 1 or more, but got 0.
+tests/integration/api/wanted-requests.integration.test.ts(86,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/wanted-requests.integration.test.ts(110,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/wanted-requests.integration.test.ts(134,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/wanted-requests.integration.test.ts(158,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/wanted-requests.integration.test.ts(176,50): error TS2345: Argument of type '(table: string) => { select: jest.Mock<any, any, any>; update: jest.Mock<any, any, any>; eq: jest.Mock<any, any, any>; single: jest.Mock<any, any, any>; insert?: undefined; } | { ...; }' is not assignable to parameter of type '() => { select: Mock<any, any, any>; insert: Mock<any, any, any>; update: Mock<any, any, any>; delete: Mock<any, any, any>; eq: Mock<any, any, any>; single: Mock<...>; order: Mock<...>; }'.
+  Target signature provides too few arguments. Expected 1 or more, but got 0.
+tests/integration/api/wanted-requests.integration.test.ts(200,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/wanted-requests.integration.test.ts(219,50): error TS2345: Argument of type '(table: string) => { select: jest.Mock<any, any, any>; update: jest.Mock<any, any, any>; eq: jest.Mock<any, any, any>; single: jest.Mock<any, any, any>; insert?: undefined; } | { ...; }' is not assignable to parameter of type '() => { select: Mock<any, any, any>; insert: Mock<any, any, any>; update: Mock<any, any, any>; delete: Mock<any, any, any>; eq: Mock<any, any, any>; single: Mock<...>; order: Mock<...>; }'.
+  Target signature provides too few arguments. Expected 1 or more, but got 0.
+tests/integration/api/wanted-requests.integration.test.ts(243,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/wanted-requests.integration.test.ts(262,50): error TS2345: Argument of type '(table: string) => { select: jest.Mock<any, any, any>; update: jest.Mock<any, any, any>; eq: jest.Mock<any, any, any>; single: jest.Mock<any, any, any>; insert?: undefined; } | { ...; }' is not assignable to parameter of type '() => { select: Mock<any, any, any>; insert: Mock<any, any, any>; update: Mock<any, any, any>; delete: Mock<any, any, any>; eq: Mock<any, any, any>; single: Mock<...>; order: Mock<...>; }'.
+  Target signature provides too few arguments. Expected 1 or more, but got 0.
+tests/integration/api/wanted-requests.integration.test.ts(286,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/wanted-requests.integration.test.ts(305,50): error TS2345: Argument of type '(table: string) => { select: jest.Mock<any, any, any>; update: jest.Mock<any, any, any>; eq: jest.Mock<any, any, any>; single: jest.Mock<any, any, any>; insert?: undefined; } | { ...; }' is not assignable to parameter of type '() => { select: Mock<any, any, any>; insert: Mock<any, any, any>; update: Mock<any, any, any>; delete: Mock<any, any, any>; eq: Mock<any, any, any>; single: Mock<...>; order: Mock<...>; }'.
+  Target signature provides too few arguments. Expected 1 or more, but got 0.
+tests/integration/api/wanted-requests.integration.test.ts(329,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/wanted-requests.integration.test.ts(354,50): error TS2345: Argument of type '(table: string) => { select: jest.Mock<any, any, any>; update: jest.Mock<any, any, any>; eq: jest.Mock<any, any, any>; single: jest.Mock<any, any, any>; insert?: undefined; } | { ...; }' is not assignable to parameter of type '() => { select: Mock<any, any, any>; insert: Mock<any, any, any>; update: Mock<any, any, any>; delete: Mock<any, any, any>; eq: Mock<any, any, any>; single: Mock<...>; order: Mock<...>; }'.
+  Target signature provides too few arguments. Expected 1 or more, but got 0.
+tests/integration/api/wanted-requests.integration.test.ts(378,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/wanted-requests.integration.test.ts(408,50): error TS2345: Argument of type '(table: string) => { select: jest.Mock<any, any, any>; update: jest.Mock<any, any, any>; eq: jest.Mock<any, any, any>; single: jest.Mock<any, any, any>; insert?: undefined; } | { ...; }' is not assignable to parameter of type '() => { select: Mock<any, any, any>; insert: Mock<any, any, any>; update: Mock<any, any, any>; delete: Mock<any, any, any>; eq: Mock<any, any, any>; single: Mock<...>; order: Mock<...>; }'.
+  Target signature provides too few arguments. Expected 1 or more, but got 0.
+tests/integration/api/wanted-requests.integration.test.ts(432,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/wanted-requests.integration.test.ts(464,9): error TS2322: Type 'string' is not assignable to type 'Body'.
+tests/integration/api/wanted-requests.integration.test.ts(484,9): error TS2322: Type 'string' is not assignable to type 'Body'.

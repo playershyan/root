@@ -61,7 +61,7 @@ export class TemplateProcessor {
   /**
    * Process template string with form data
    */
-  private static processTemplate(template: string, data: FormDataForTemplate): string {
+  static processTemplate(template: string, data: FormDataForTemplate): string {
     let processed = template
 
     // Define variable mappings - use empty strings for missing values to trigger line removal

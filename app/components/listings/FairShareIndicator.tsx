@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { usePromotionFairShare } from '@/lib/hooks/useRotatedPromotions'
 import { Clock, TrendingUp, Users, BarChart3 } from 'lucide-react'
 

@@ -4,18 +4,18 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/app/contexts/AuthContext'
-import { 
-  Car, Camera, MapPin, Phone, CreditCard, CheckCircle, 
-  AlertCircle, Upload, X, Sparkles, ChevronRight, 
+import {
+  Car, Camera, MapPin, Phone, CreditCard, CheckCircle,
+  AlertCircle, Upload, X, Sparkles, ChevronRight,
   FileText, User, Image as ImageIcon, Star
 } from 'lucide-react'
 import CountrySelector, { useCountrySelector } from '@/app/components/CountrySelector'
 import { formatPhoneForStorage, formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
 import DescriptionGenerator from '@/app/components/vehicle-forms/DescriptionGenerator'
-import { 
-  DISTRICTS, 
+import {
+  DISTRICTS,
   getCitiesByDistrictId,
-  getDistrictByName 
+  getDistrictByName
 } from '@/lib/constants/locations'
 import {
   VehicleType,
@@ -27,6 +27,8 @@ import VehicleFormFactory from '@/app/components/vehicle-forms/VehicleFormFactor
 import { BaseVehicleFormData } from '@/app/components/vehicle-forms/types'
 import { useUserProfile } from '@/lib/hooks/useUserProfile'
 import { useRecaptcha } from '@/lib/hooks/useRecaptcha'
+import { useToast } from '@/app/components/notifications/useToast'
+import { ToastContainer } from '@/app/components/notifications/ToastContainer'
 
 // Vehicle makes and models are now loaded from vehicleData.ts
 // Form constants are now in the vehicle-forms types
@@ -107,6 +109,7 @@ export default function EnhancedPostVehiclePage() {
   const { user, loading: authLoading } = useAuth()
   const { profile, loading: profileLoading, getPhoneNumber, getWhatsAppNumber } = useUserProfile()
   const { getAIToken } = useRecaptcha()
+  const { toasts, showError, removeToast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const vehicleDropdownRef = useRef<HTMLDivElement>(null)
   
@@ -358,9 +361,21 @@ export default function EnhancedPostVehiclePage() {
     e.stopPropagation()
     setDragActive(false)
     
-    const files = Array.from(e.dataTransfer.files).filter(file => 
-      file.type.startsWith('image/') && file.size <= 5 * 1024 * 1024
-    )
+    const allFiles = Array.from(e.dataTransfer.files)
+    const validFiles: File[] = []
+
+    for (const file of allFiles) {
+      if (!file.type.startsWith('image/')) continue
+
+      if (file.size > 10 * 1024 * 1024) {
+        showError('Image exceeds 10MB')
+        continue
+      }
+
+      validFiles.push(file)
+    }
+
+    const files = validFiles
     
     if (files.length + formData.images.length > 15) {
       alert('Maximum 15 images allowed')
@@ -371,9 +386,21 @@ export default function EnhancedPostVehiclePage() {
   }
   
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []).filter(file => 
-      file.type.startsWith('image/') && file.size <= 5 * 1024 * 1024
-    )
+    const allFiles = Array.from(e.target.files || [])
+    const validFiles: File[] = []
+
+    for (const file of allFiles) {
+      if (!file.type.startsWith('image/')) continue
+
+      if (file.size > 10 * 1024 * 1024) {
+        showError('Image exceeds 10MB')
+        continue
+      }
+
+      validFiles.push(file)
+    }
+
+    const files = validFiles
     
     if (files.length + formData.images.length > 15) {
       alert('Maximum 15 images allowed')
@@ -564,7 +591,8 @@ export default function EnhancedPostVehiclePage() {
         .from('listings')
         .insert([listingData])
         .select()
-      
+        .single()
+
       if (error) {
         console.error('Supabase error details:', {
           message: error.message,
@@ -574,9 +602,9 @@ export default function EnhancedPostVehiclePage() {
         })
         throw error
       }
-      
+
       console.log('Listing created successfully:', data)
-      
+
       localStorage.removeItem('vehiclePostDraft')
       // Skip paid features for now - redirect to listing
       router.push(`/listings/${data.id}?success=true`)
@@ -966,7 +994,7 @@ export default function EnhancedPostVehiclePage() {
                     </button>
                   </p>
                   <p className="text-sm text-gray-500">
-                    At least 1 photo required. Maximum 15 photos, up to 5MB each. JPG, PNG formats.
+                    At least 1 photo required. Maximum 15 photos, up to 10MB each. JPG, PNG formats.
                   </p>
                 </div>
                 {errors.images && <p className="text-red-600 text-sm mt-1">{errors.images}</p>}
@@ -1199,6 +1227,7 @@ export default function EnhancedPostVehiclePage() {
         </div>
         
       </div>
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   )
 }

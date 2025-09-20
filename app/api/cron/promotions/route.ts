@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PromotionService } from '@/lib/services/promotionService'
 import { RotationService } from '@/lib/services/rotationService'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
 // This endpoint should be called by a cron job service (like Vercel Cron, Railway Cron, or external service)
 // Schedule: Every hour for expiring promotions, every day at midnight for daily boost
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
     
     if (action === 'expire') {
       // Expire promotions that have passed their expiry date
-      await PromotionService.expirePromotions()
+      await PromotionService.expirePromotions(supabaseAdmin)
       
       return NextResponse.json({
         success: true,
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
       })
     } else if (action === 'boost') {
       // Apply daily boost to boosted listings
-      await PromotionService.applyDailyBoost()
+      await PromotionService.applyDailyBoost(supabaseAdmin)
       
       return NextResponse.json({
         success: true,
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
       })
     } else if (action === 'rotation') {
       // Reset rotation scores for fair distribution
-      await RotationService.resetDailyRotationScores()
+      await RotationService.resetDailyRotationScores(supabaseAdmin)
       
       return NextResponse.json({
         success: true,
@@ -46,9 +47,9 @@ export async function GET(request: NextRequest) {
       })
     } else {
       // Run all operations
-      await PromotionService.expirePromotions()
-      await PromotionService.applyDailyBoost()
-      await RotationService.resetDailyRotationScores()
+      await PromotionService.expirePromotions(supabaseAdmin)
+      await PromotionService.applyDailyBoost(supabaseAdmin)
+      await RotationService.resetDailyRotationScores(supabaseAdmin)
       
       return NextResponse.json({
         success: true,

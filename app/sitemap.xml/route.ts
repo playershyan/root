@@ -29,7 +29,6 @@ export async function GET() {
   // Routes to exclude from sitemap (internal/admin/test routes)
   const excludedRoutes = [
     '/admin',
-    '/admin/setup',
     '/profile',
     '/test-auth',
     '/test/cloudinary',

@@ -5,24 +5,7 @@ import Link from 'next/link'
 import { Star, Eye, MapPin, Calendar, ArrowRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { getFairRotatedListings, getListingExposureStats } from '@/lib/utils/featuredRotation'
-
-interface Listing {
-  id: string
-  title: string
-  price: number
-  image_url?: string
-  image_urls?: string[]
-  year?: number
-  mileage?: number
-  fuel_type?: string
-  location?: string
-  views?: number
-  created_at: string
-  featured_until?: string
-  boost_score?: number
-  make?: string
-  model?: string
-}
+import { Listing } from '@/lib/types'
 
 interface FeaturedListingsProps {
   displayCount?: number

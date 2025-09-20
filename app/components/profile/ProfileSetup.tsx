@@ -100,7 +100,6 @@ export default function ProfileSetup({ initialData }: ProfileSetupProps) {
           phone: formatPhoneForStorage(profileData.phone.trim()),
           location: profileData.location.trim(),
           country: profileData.country,
-          membership_type: 'basic',
           language: 'en',
           updated_at: new Date().toISOString()
         })
@@ -157,7 +156,7 @@ export default function ProfileSetup({ initialData }: ProfileSetupProps) {
               </label>
               <CountrySelector
                 selectedCountry={countries.find(c => c.code === profileData.country) || countries.find(c => c.code === 'LK')!}
-                onSelect={(country: Country) => setProfileData({ ...profileData, country: country.code })}
+                onCountrySelect={(country: Country) => setProfileData({ ...profileData, country: country.code })}
                 disabled={loading}
               />
             </div>

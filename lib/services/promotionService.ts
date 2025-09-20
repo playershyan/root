@@ -1,4 +1,5 @@
-import { supabase } from '@/lib/supabase'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { supabase as supabaseClient } from '@/lib/supabase'
 
 export type PromotionType = 'featured' | 'top_spot' | 'boost' | 'urgent'
 
@@ -75,19 +76,24 @@ export const PROMOTION_PRICING: PromotionPricing = {
 }
 
 export class PromotionService {
+  private static getClient(client?: SupabaseClient) {
+    return client ?? supabaseClient
+  }
   /**
    * Create a new promotion for a listing
    */
   static async createPromotion(
     listingId: string,
     promotionType: PromotionType,
-    paymentId?: string
+    paymentId?: string,
+    client?: SupabaseClient
   ): Promise<{ data: any; error: any }> {
+    const supabase = this.getClient(client)
     const pricing = PROMOTION_PRICING[promotionType]
     const expiresAt = new Date()
     expiresAt.setDate(expiresAt.getDate() + pricing.days)
 
-    const { data, error } = await supabase.from('promotions').insert([
+    const { data, error } = await supabaseClient.from('promotions').insert([
       {
         listing_id: listingId,
         promotion_type: promotionType,
@@ -129,7 +135,7 @@ export class PromotionService {
       }
     })
 
-    const { data, error } = await supabase.from('promotions').insert(promotions)
+    const { data, error } = await supabaseClient.from('promotions').insert(promotions)
 
     if (!error) {
       await this.updateListingPromotions(listingId)
@@ -185,13 +191,14 @@ export class PromotionService {
       }
     })
 
-    await supabase.from('listings').update(updateData).eq('id', listingId)
+    await supabaseClient.from('listings').update(updateData).eq('id', listingId)
   }
 
   /**
    * Expire promotions that have passed their expiry date
    */
-  static async expirePromotions(): Promise<void> {
+  static async expirePromotions(client?: SupabaseClient): Promise<void> {
+    const supabase = this.getClient(client)
     // Mark expired promotions as inactive
     await supabase
       .from('promotions')
@@ -217,7 +224,8 @@ export class PromotionService {
   /**
    * Apply daily boost to boosted listings
    */
-  static async applyDailyBoost(): Promise<void> {
+  static async applyDailyBoost(client?: SupabaseClient): Promise<void> {
+    const supabase = this.getClient(client)
     const now = Date.now()
 
     // Update boost score for all active boosted listings
@@ -244,7 +252,7 @@ export class PromotionService {
     limit = 20,
     offset = 0
   ): Promise<{ data: any; error: any }> {
-    let query = supabase.from('listings').select('*')
+    let query = supabaseClient.from('listings').select('*')
 
     // Apply filters
     if (filters.vehicle_type) {

@@ -9,6 +9,7 @@
         "start": "NODE_ENV=production node server.js",
         "start:next-only": "next start",
         "lint": "next lint",
+        "typecheck": "tsc --noEmit",
         "mcp:server": "node mcp-sentry.config.js",
         "test": "jest",
         "test:watch": "jest --watch",
