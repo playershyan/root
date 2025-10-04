@@ -165,7 +165,15 @@ export async function POST(
       .single()
 
     if (msgError) {
-      console.error('Error creating message:', msgError)
+      console.error('Detailed message error:', {
+        error: msgError,
+        code: msgError.code,
+        details: msgError.details,
+        hint: msgError.hint,
+        message: msgError.message,
+        userId: user.id,
+        conversationId
+      })
       return NextResponse.json(
         { error: 'Failed to send message' },
         { status: 500 }
