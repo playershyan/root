@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
 /**
@@ -140,8 +141,13 @@ export async function POST(
       )
     }
 
-    // Create message
-    const { data: message, error: msgError } = await supabase
+    // Create message using service role to bypass RLS
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const { data: message, error: msgError } = await supabaseAdmin
       .from('messages')
       .insert({
         conversation_id: conversationId,
@@ -181,7 +187,7 @@ export async function POST(
     }
 
     // Update conversation last message info
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseAdmin
       .from('conversations')
       .update({
         last_message_at: new Date().toISOString(),
