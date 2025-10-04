@@ -55,12 +55,11 @@ type IndividualSellerData = {
 type SellerData = BusinessSellerData | IndividualSellerData | null
 
 type ContactProfileProps = {
-  listing: Listing,
-  onMessageClick?: () => void
+  listing: Listing
   sellerData: SellerData
+  onMessageClick?: () => void
   // Legacy props for backward compatibility
   dealer?: any
-  onMessageClick?: () => void
 }
 
 // Business Profile Component
@@ -126,7 +125,7 @@ function BusinessProfile({ seller, listing, onMessageClick }: {
             <Phone className="w-4 h-4" />
             Contact
           </button>
-          <MessageButton listing={listing} />
+          <MessageButton listing={listing} onMessageClick={onMessageClick} />
         </div>
       </div>
 
@@ -150,8 +149,8 @@ function BusinessProfile({ seller, listing, onMessageClick }: {
 }
 
 // Individual Profile Component
-function IndividualProfile({ seller, listing }: { 
-  seller: IndividualSellerData, 
+function IndividualProfile({ seller, listing, onMessageClick }: {
+  seller: IndividualSellerData,
   listing: Listing,
   onMessageClick?: () => void
 }) {
@@ -182,7 +181,7 @@ function IndividualProfile({ seller, listing }: {
           <Phone className="w-4 h-4" />
           Contact
         </button>
-        <MessageButton listing={listing} />
+        <MessageButton listing={listing} onMessageClick={onMessageClick} />
       </div>
 
       <ContactModal
@@ -205,13 +204,23 @@ function IndividualProfile({ seller, listing }: {
 }
 
 // Message Button Component
-function MessageButton({ listing }: { listing: Listing,
-  onMessageClick?: () => void }) {
+function MessageButton({ listing, onMessageClick }: {
+  listing: Listing
+  onMessageClick?: () => void
+}) {
+
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const supabase = createClientComponentClient()
 
   const handleMessage = async () => {
+    // If onMessageClick prop is provided, use it instead of redirect
+    if (onMessageClick) {
+      onMessageClick()
+      return
+    }
+
+    // Fallback to original redirect behavior
     if (!listing.id || !listing.user_id) {
       alert('Unable to send message. Listing information is missing.')
       return
@@ -270,13 +279,13 @@ function MessageButton({ listing }: { listing: Listing,
 }
 
 // Main ContactProfile Component
-export default function ContactProfile({ listing, sellerData, dealer }: ContactProfileProps) {
+export default function ContactProfile({ listing, sellerData, dealer, onMessageClick }: ContactProfileProps) {
   // Use seller data if available, otherwise fall back to legacy dealer data
   if (sellerData) {
     if (sellerData.type === 'business') {
-      return <BusinessProfile seller={sellerData} listing={listing} />
+      return <BusinessProfile seller={sellerData} listing={listing} onMessageClick={onMessageClick} />
     } else {
-      return <IndividualProfile seller={sellerData} listing={listing} />
+      return <IndividualProfile seller={sellerData} listing={listing} onMessageClick={onMessageClick} />
     }
   }
   
@@ -294,7 +303,7 @@ export default function ContactProfile({ listing, sellerData, dealer }: ContactP
       reviewCount: dealer.reviewCount,
       avatar: dealer.avatar
     }
-    return <BusinessProfile seller={legacyBusinessSeller} listing={listing} />
+    return <BusinessProfile seller={legacyBusinessSeller} listing={listing} onMessageClick={onMessageClick} />
   }
   
   // Fallback to basic individual profile
@@ -306,5 +315,5 @@ export default function ContactProfile({ listing, sellerData, dealer }: ContactP
     whatsapp: listing.whatsapp || listing.phone
   }
   
-  return <IndividualProfile seller={fallbackSeller} listing={listing} />
+  return <IndividualProfile seller={fallbackSeller} listing={listing} onMessageClick={onMessageClick} />
 }
