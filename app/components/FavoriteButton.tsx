@@ -69,11 +69,11 @@ export default function FavoriteButton({
     e.preventDefault()
     e.stopPropagation()
 
-    console.log('FavoriteButton clicked', { 
-      user: !!user, 
+    console.log('FavoriteButton clicked', {
+      user: !!user,
       userObject: user,
       listingId,
-      currentIsFavorite: isFavorite 
+      currentIsFavorite: isFavorite
     })
 
     // If not logged in, show auth modal and save listing ID for later
@@ -85,9 +85,12 @@ export default function FavoriteButton({
     }
 
     // If logged in, toggle favorite
+    console.log('User is logged in, attempting to toggle favorite...')
     setIsProcessing(true)
     try {
+      console.log('Calling toggleFavorite with listingId:', listingId)
       const newState = await toggleFavorite(listingId)
+      console.log('toggleFavorite returned:', newState)
       onToggle?.(newState)
     } catch (error) {
       console.error('Failed to toggle favorite:', error)
