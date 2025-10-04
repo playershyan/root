@@ -8,11 +8,14 @@ export async function GET(
 ) {
   try {
     const supabase = createServerComponentClient({ cookies })
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
+      console.error('GET Authentication error:', authError)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    console.log('GET Authenticated user:', user.id, 'for conversation:', params.conversationId)
 
     const conversationId = params.conversationId
 
@@ -92,11 +95,14 @@ export async function POST(
 ) {
   try {
     const supabase = createServerComponentClient({ cookies })
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
+      console.error('POST Authentication error:', authError)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    console.log('POST Authenticated user:', user.id, 'sending message to conversation:', params.conversationId)
 
     const conversationId = params.conversationId
     const { content } = await request.json()
@@ -118,6 +124,7 @@ export async function POST(
     }
 
     // Create message
+    console.log('Creating message for conversation:', conversationId)
     const { data: message, error: msgError } = await supabase
       .from('messages')
       .insert({
@@ -133,7 +140,7 @@ export async function POST(
 
     if (msgError) {
       console.error('Error creating message:', msgError)
-      return NextResponse.json({ error: 'Failed to send message' }, { status: 500 })
+      return NextResponse.json({ error: `Failed to send message: ${msgError.message}` }, { status: 500 })
     }
 
     // Create notification for the recipient

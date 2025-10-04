@@ -1,16 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { createAuthenticatedSupabaseClient } from '@/lib/supabase-server'
 
 export async function GET(request: NextRequest) {
   try {
     const supabase = createServerComponentClient({ cookies })
-    
+
     // Get user from session
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
+      console.error('Authentication error:', authError)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    console.log('Authenticated user:', user.id)
 
     // Fetch conversations for the user
     const { data: conversations, error } = await supabase
@@ -47,11 +51,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = createServerComponentClient({ cookies })
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
+      console.error('POST Authentication error:', authError)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    console.log('POST Authenticated user:', user.id)
 
     const { listing_id, seller_id, initial_message } = await request.json()
 
@@ -76,7 +83,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if conversation already exists
-    const { data: existingConv } = await supabase
+    const { data: existingConv, error: existingError } = await supabase
       .from('conversations')
       .select('id')
       .eq('listing_id', listing_id)
@@ -84,10 +91,17 @@ export async function POST(request: NextRequest) {
       .eq('seller_id', seller_id)
       .single()
 
+    if (existingError && existingError.code !== 'PGRST116') {
+      console.error('Error checking existing conversation:', existingError)
+      return NextResponse.json({ error: 'Database error' }, { status: 500 })
+    }
+
     if (existingConv) {
       // Return existing conversation
       return NextResponse.json({ conversation_id: existingConv.id, existing: true })
     }
+
+    console.log('Creating new conversation for listing:', listing_id)
 
     // Create new conversation
     const { data: newConv, error: convError } = await supabase
@@ -106,7 +120,7 @@ export async function POST(request: NextRequest) {
 
     if (convError) {
       console.error('Error creating conversation:', convError)
-      return NextResponse.json({ error: 'Failed to create conversation' }, { status: 500 })
+      return NextResponse.json({ error: `Failed to create conversation: ${convError.message}` }, { status: 500 })
     }
 
     // If initial message provided, create it
