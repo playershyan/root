@@ -103,6 +103,7 @@ export default function FavoriteButton({
     <>
       <button
         onClick={(e) => {
+          alert('FAVORITE BUTTON CLICKED!')
           console.log('BUTTON CLICKED - START OF HANDLER')
           handleClick(e)
         }}
