@@ -1,10 +1,14 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { X, Send, User, Car, MessageCircle, LogIn } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import {
+  X, Send, User, Car, MessageCircle, LogIn,
+  Check, CheckCheck, Clock, AlertCircle, ArrowDown
+} from 'lucide-react'
 import { useAuth } from '@/app/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { AuthModal } from '@/app/components/auth'
+import { getContextualQuickReplies } from '@/lib/messaging/quickReplies'
 
 interface Message {
   id: string
@@ -12,6 +16,7 @@ interface Message {
   sender_id: string
   created_at: string
   is_read: boolean
+  status?: 'sending' | 'sent' | 'delivered' | 'read' | 'failed'
 }
 
 interface Profile {
@@ -106,8 +111,8 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
         setSellerProfile(sellerProfileData)
       }
 
-      // Check conversations through API
-      const response = await fetch('/api/messages/conversations')
+      // Check conversations through optimized API
+      const response = await fetch('/api/messaging/conversations')
       if (response.ok) {
         const { conversations } = await response.json()
 
@@ -128,6 +133,7 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
           setMessages([])
         }
       } else {
+        console.error('Failed to load conversations:', await response.text())
         // Fallback to no conversation
         setConversationId(null)
         setMessages([])
@@ -141,8 +147,10 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
 
   const loadMessages = async (convId: string) => {
     try {
-      const response = await fetch(`/api/messages/${convId}`)
+      const response = await fetch(`/api/messaging/conversations/${convId}`)
       if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Failed to load messages:', errorText)
         throw new Error('Failed to load messages')
       }
 
@@ -166,7 +174,7 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
 
       // Create conversation if it doesn't exist
       if (!currentConversationId) {
-        const response = await fetch('/api/messages/conversations', {
+        const response = await fetch('/api/messaging/conversations', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -179,6 +187,8 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
         })
 
         if (!response.ok) {
+          const errorText = await response.text()
+          console.error('Failed to create conversation:', errorText)
           throw new Error('Failed to create conversation')
         }
 
@@ -193,15 +203,16 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
             content: messageContent,
             sender_id: user.id,
             created_at: new Date().toISOString(),
-            is_read: false
+            is_read: false,
+            status: 'sent' as const
           }
           setMessages(prev => [...prev, newMessageObj])
           return
         }
       }
 
-      // Send the message using API
-      const response = await fetch(`/api/messages/${currentConversationId}`, {
+      // Send the message using optimized API
+      const response = await fetch(`/api/messaging/conversations/${currentConversationId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -212,13 +223,15 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
       })
 
       if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Failed to send message:', errorText)
         throw new Error('Failed to send message')
       }
 
       const { message: newMessage } = await response.json()
 
-      // Add message to local state
-      setMessages(prev => [...prev, newMessage])
+      // Add message to local state with status
+      setMessages(prev => [...prev, { ...newMessage, status: 'sent' }])
 
     } catch (error) {
       console.error('Error sending message:', error)
@@ -360,9 +373,20 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
                     }`}>
                       <p className="text-sm">{message.content}</p>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1 px-2">
-                      {formatMessageTime(message.created_at)}
-                    </p>
+                    <div className={`flex items-center gap-1 mt-1 px-2 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
+                      <p className="text-xs text-gray-500">
+                        {formatMessageTime(message.created_at)}
+                      </p>
+                      {isCurrentUser && (
+                        <div className="flex items-center">
+                          {message.status === 'sending' && <Clock className="w-3 h-3 text-gray-400" />}
+                          {message.status === 'sent' && <Check className="w-3 h-3 text-gray-400" />}
+                          {message.status === 'delivered' && <CheckCheck className="w-3 h-3 text-gray-400" />}
+                          {message.status === 'read' && <CheckCheck className="w-3 h-3 text-blue-400" />}
+                          {message.status === 'failed' && <AlertCircle className="w-3 h-3 text-red-400" />}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )
@@ -381,7 +405,10 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
                 <div className="bg-blue-600 text-white px-4 py-2 rounded-2xl rounded-br-md opacity-70">
                   <p className="text-sm">{newMessage}</p>
                 </div>
-                <p className="text-xs text-gray-500 mt-1 px-2">Sending...</p>
+                <div className="flex items-center gap-1 mt-1 px-2">
+                  <Clock className="w-3 h-3 text-gray-500" />
+                  <p className="text-xs text-gray-500">Sending...</p>
+                </div>
               </div>
             </div>
           )}
@@ -411,13 +438,9 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
                 </button>
               </form>
 
-              {/* Quick Messages */}
+              {/* Smart Quick Messages */}
               <div className="mt-3 flex flex-wrap gap-2">
-                {[
-                  "Is this still available?",
-                  "Can you negotiate on the price?",
-                  "Can I see the vehicle?"
-                ].map((quickMsg) => (
+                {getContextualQuickReplies(messages, user?.id === listing.user_id ? 'seller' : 'buyer').map((quickMsg) => (
                   <button
                     key={quickMsg}
                     onClick={() => setNewMessage(quickMsg)}
