@@ -80,9 +80,9 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
 
   const loadConversation = async () => {
     if (!user) return
-    
+
     setLoading(true)
-    
+
     try {
       // Load user profile
       const { data: userProfileData } = await supabase
@@ -90,7 +90,7 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
         .select('id, name, avatar_url')
         .eq('id', user.id)
         .single()
-      
+
       if (userProfileData) {
         setUserProfile(userProfileData)
       }
@@ -101,26 +101,34 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
         .select('id, name, avatar_url')
         .eq('id', listing.user_id)
         .single()
-      
+
       if (sellerProfileData) {
         setSellerProfile(sellerProfileData)
       }
 
-      // Check if conversation already exists
-      const { data: existingConversation } = await supabase
-        .from('conversations')
-        .select('id')
-        .eq('listing_id', listing.id)
-        .eq('buyer_id', user.id)
-        .eq('seller_id', listing.user_id)
-        .single()
+      // Check conversations through API
+      const response = await fetch('/api/messages/conversations')
+      if (response.ok) {
+        const { conversations } = await response.json()
 
-      if (existingConversation) {
-        // Load existing messages
-        setConversationId(existingConversation.id)
-        await loadMessages(existingConversation.id)
+        // Find conversation for this listing
+        const existingConversation = conversations?.find((conv: any) =>
+          conv.listing_id === listing.id &&
+          conv.buyer_id === user.id &&
+          conv.seller_id === listing.user_id
+        )
+
+        if (existingConversation) {
+          // Load existing messages
+          setConversationId(existingConversation.id)
+          await loadMessages(existingConversation.id)
+        } else {
+          // No existing conversation, will be created when first message is sent
+          setConversationId(null)
+          setMessages([])
+        }
       } else {
-        // No existing conversation, will be created when first message is sent
+        // Fallback to no conversation
         setConversationId(null)
         setMessages([])
       }
@@ -133,22 +141,13 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
 
   const loadMessages = async (convId: string) => {
     try {
-      const { data: messagesData, error } = await supabase
-        .from('messages')
-        .select('id, content, sender_id, created_at, is_read')
-        .eq('conversation_id', convId)
-        .order('created_at', { ascending: true })
+      const response = await fetch(`/api/messages/${convId}`)
+      if (!response.ok) {
+        throw new Error('Failed to load messages')
+      }
 
-      if (error) throw error
-
-      setMessages(messagesData || [])
-
-      // Mark messages as read
-      await supabase
-        .from('messages')
-        .update({ is_read: true })
-        .eq('conversation_id', convId)
-        .neq('sender_id', user!.id)
+      const { messages } = await response.json()
+      setMessages(messages || [])
     } catch (error) {
       console.error('Error loading messages:', error)
     }
@@ -158,47 +157,65 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
     e.preventDefault()
     if (!newMessage.trim() || sending || !user) return
 
-
     setSending(true)
     const messageContent = newMessage.trim()
     setNewMessage('')
-    
+
     try {
       let currentConversationId = conversationId
 
       // Create conversation if it doesn't exist
       if (!currentConversationId) {
-        const { data: newConversation, error: conversationError } = await supabase
-          .from('conversations')
-          .insert({
+        const response = await fetch('/api/messages/conversations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
             listing_id: listing.id,
-            listing_title: listing.title,
-            listing_price: listing.price,
-            listing_image_url: listing.primary_image_url,
-            buyer_id: user.id,
-            seller_id: listing.user_id
-          })
-          .select('id')
-          .single()
+            seller_id: listing.user_id,
+            initial_message: messageContent
+          }),
+        })
 
-        if (conversationError) throw conversationError
-        
-        currentConversationId = newConversation.id
+        if (!response.ok) {
+          throw new Error('Failed to create conversation')
+        }
+
+        const { conversation_id, existing } = await response.json()
+        currentConversationId = conversation_id
         setConversationId(currentConversationId)
+
+        // If this was a new conversation with initial message, it's already sent
+        if (!existing) {
+          const newMessageObj = {
+            id: Date.now().toString(), // Temporary ID
+            content: messageContent,
+            sender_id: user.id,
+            created_at: new Date().toISOString(),
+            is_read: false
+          }
+          setMessages(prev => [...prev, newMessageObj])
+          return
+        }
       }
 
-      // Send the message
-      const { data: newMessage, error: messageError } = await supabase
-        .from('messages')
-        .insert({
-          conversation_id: currentConversationId,
-          sender_id: user.id,
+      // Send the message using API
+      const response = await fetch(`/api/messages/${currentConversationId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           content: messageContent
-        })
-        .select('id, content, sender_id, created_at, is_read')
-        .single()
+        }),
+      })
 
-      if (messageError) throw messageError
+      if (!response.ok) {
+        throw new Error('Failed to send message')
+      }
+
+      const { message: newMessage } = await response.json()
 
       // Add message to local state
       setMessages(prev => [...prev, newMessage])
