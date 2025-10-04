@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import AuthModal from './AuthModal'
+import { AuthModal } from './auth'
 
 export default function AuthWrapper({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams()
@@ -51,10 +51,9 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
     <>
       {children}
       {showAuthModal && (
-        <AuthModal 
+        <AuthModal
           isOpen={showAuthModal}
           onClose={handleCloseAuthModal}
-          returnUrl={returnUrl}
         />
       )}
     </>

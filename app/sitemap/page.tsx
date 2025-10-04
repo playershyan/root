@@ -66,8 +66,6 @@ export default function SitemapPage() {
             <div className="ml-4">
               <div className="text-gray-700 font-medium mb-1">├── User Account</div>
               <div className="ml-4 space-y-1">
-                <div>├── <Link href="/register" className="text-blue-600 hover:underline">Create Account</Link></div>
-                <div>├── <Link href="/login" className="text-blue-600 hover:underline">Sign In</Link></div>
                 <div>├── <Link href="/profile" className="text-blue-600 hover:underline">My Profile</Link> <span className="text-gray-500 text-xs">(requires login)</span></div>
                 <div>└── <Link href="/forgot-password" className="text-blue-600 hover:underline">Forgot Password</Link></div>
               </div>

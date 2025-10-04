@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { X, Send, User, Car, MessageCircle, LogIn } from 'lucide-react'
 import { useAuth } from '@/app/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-import Link from 'next/link'
+import { AuthModal } from '@/app/components/auth'
 
 interface Message {
   id: string
@@ -45,6 +45,8 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [sellerProfile, setSellerProfile] = useState<Profile | null>(null)
   const [userProfile, setUserProfile] = useState<Profile | null>(null)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [authType, setAuthType] = useState<'login' | 'register'>('login')
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Auto scroll to bottom when messages change
@@ -288,20 +290,24 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Log in to send messages</h3>
               <p className="text-gray-600 mb-4 text-sm">You need to be logged in to contact the seller</p>
               <div className="flex gap-3">
-                <Link
-                  href="/login"
-                  onClick={onClose}
+                <button
+                  onClick={() => {
+                    setAuthType('login')
+                    setShowAuthModal(true)
+                  }}
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
                 >
                   Log In
-                </Link>
-                <Link
-                  href="/register"
-                  onClick={onClose}
+                </button>
+                <button
+                  onClick={() => {
+                    setAuthType('register')
+                    setShowAuthModal(true)
+                  }}
                   className="border border-blue-600 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors font-medium text-sm"
                 >
                   Sign Up
-                </Link>
+                </button>
               </div>
             </div>
           ) : loading ? (
@@ -414,6 +420,13 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
           )}
         </div>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        initialView={authType}
+      />
     </div>
   )
 }
