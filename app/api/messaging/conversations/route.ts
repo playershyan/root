@@ -4,57 +4,66 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthenticatedUser } from '@/lib/messaging/auth'
-import {
-  getUserConversations,
-  createOrGetConversation,
-  getListingInfo,
-  logPerformanceMetric
-} from '@/lib/messaging/database'
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 
 /**
  * GET /api/messaging/conversations
  * Retrieve user's conversations with optimized query
  */
 export async function GET(request: NextRequest) {
-  const startTime = Date.now()
-
   try {
-    // Authenticate user
-    const { user, error: authError } = await getAuthenticatedUser()
+    const supabase = createServerComponentClient({ cookies })
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json(
-        { error: authError || 'Authentication required' },
+        { error: 'Authentication required' },
         { status: 401 }
       )
     }
 
-    // Get conversations
-    const conversations = await getUserConversations(user.id)
+    const { data: conversations, error } = await supabase
+      .from('conversations')
+      .select(`
+        id,
+        listing_id,
+        listing_title,
+        listing_price,
+        listing_image_url,
+        buyer_id,
+        seller_id,
+        last_message_at,
+        last_message_preview,
+        buyer_unread_count,
+        seller_unread_count,
+        is_active,
+        buyer_archived,
+        seller_archived,
+        created_at,
+        updated_at
+      `)
+      .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+      .eq('is_active', true)
+      .order('last_message_at', { ascending: false })
 
-    // Log performance
-    await logPerformanceMetric(
-      'get_conversations',
-      Date.now() - startTime,
-      user.id
-    )
+    if (error) {
+      console.error('Database error:', error)
+      return NextResponse.json(
+        { error: 'Failed to fetch conversations' },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json({
-      conversations,
-      count: conversations.length
+      conversations: conversations || [],
+      count: conversations?.length || 0
     })
 
   } catch (error) {
     console.error('GET /api/messaging/conversations error:', error)
-
-    // Log performance for failed request
-    await logPerformanceMetric(
-      'get_conversations_error',
-      Date.now() - startTime
-    )
-
     return NextResponse.json(
-      { error: 'Failed to fetch conversations' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }
@@ -65,19 +74,17 @@ export async function GET(request: NextRequest) {
  * Create or retrieve existing conversation
  */
 export async function POST(request: NextRequest) {
-  const startTime = Date.now()
-
   try {
-    // Authenticate user
-    const { user, error: authError } = await getAuthenticatedUser()
+    const supabase = createServerComponentClient({ cookies })
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json(
-        { error: authError || 'Authentication required' },
+        { error: 'Authentication required' },
         { status: 401 }
       )
     }
 
-    // Parse request body
     const { listing_id, seller_id, initial_message } = await request.json()
 
     // Validate required fields
@@ -97,47 +104,93 @@ export async function POST(request: NextRequest) {
     }
 
     // Get listing information
-    const listing = await getListingInfo(listing_id)
-    if (!listing) {
+    const { data: listing, error: listingError } = await supabase
+      .from('listings')
+      .select('id, title, price, primary_image_url, image_url')
+      .eq('id', listing_id)
+      .single()
+
+    if (listingError || !listing) {
       return NextResponse.json(
         { error: 'Listing not found' },
         { status: 404 }
       )
     }
 
-    // Create or get conversation
-    const result = await createOrGetConversation({
-      listing_id,
-      listing_title: listing.title,
-      listing_price: listing.price,
-      listing_image_url: listing.primary_image_url || listing.image_url,
-      buyer_id: user.id,
-      seller_id,
-      initial_message
+    // Check for existing conversation
+    const { data: existingConv, error: existingError } = await supabase
+      .from('conversations')
+      .select('id')
+      .eq('listing_id', listing_id)
+      .eq('buyer_id', user.id)
+      .eq('seller_id', seller_id)
+      .eq('is_active', true)
+      .single()
+
+    if (existingError && existingError.code !== 'PGRST116') {
+      console.error('Database error checking existing conversation:', existingError)
+      return NextResponse.json(
+        { error: 'Database error' },
+        { status: 500 }
+      )
+    }
+
+    if (existingConv) {
+      return NextResponse.json({
+        conversation_id: existingConv.id,
+        existing: true
+      })
+    }
+
+    // Create new conversation
+    const { data: newConv, error: convError } = await supabase
+      .from('conversations')
+      .insert({
+        listing_id,
+        listing_title: listing.title,
+        listing_price: listing.price,
+        listing_image_url: listing.primary_image_url || listing.image_url,
+        buyer_id: user.id,
+        seller_id,
+        last_message_preview: initial_message ? initial_message.substring(0, 100) : null
+      })
+      .select('id')
+      .single()
+
+    if (convError) {
+      console.error('Database error creating conversation:', convError)
+      return NextResponse.json(
+        { error: 'Failed to create conversation' },
+        { status: 500 }
+      )
+    }
+
+    // Create initial message if provided
+    if (initial_message && newConv) {
+      const { error: messageError } = await supabase
+        .from('messages')
+        .insert({
+          conversation_id: newConv.id,
+          sender_id: user.id,
+          content: initial_message.trim(),
+          message_type: 'text'
+        })
+
+      if (messageError) {
+        console.error('Error creating initial message:', messageError)
+        // Don't fail the conversation creation if message creation fails
+      }
+    }
+
+    return NextResponse.json({
+      conversation_id: newConv.id,
+      existing: false
     })
-
-    // Log performance
-    await logPerformanceMetric(
-      'create_conversation',
-      Date.now() - startTime,
-      user.id,
-      result.conversation_id
-    )
-
-    return NextResponse.json(result)
 
   } catch (error) {
     console.error('POST /api/messaging/conversations error:', error)
-
-    // Log performance for failed request
-    await logPerformanceMetric(
-      'create_conversation_error',
-      Date.now() - startTime
-    )
-
-    const errorMessage = error instanceof Error ? error.message : 'Failed to create conversation'
     return NextResponse.json(
-      { error: errorMessage },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }
