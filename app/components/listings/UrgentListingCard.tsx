@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { MapPin, Calendar, Eye, AlertTriangle, Phone, MessageCircle } from 'lucide-react'
 import OptimizedImage from '@/components/ui/OptimizedImage'
 import FavoriteButton from '@/app/components/FavoriteButton'
+import ContactModal from '@/app/components/modals/ContactModal'
+import ConversationModal from '@/app/components/modals/ConversationModal'
 
 interface UrgentListingCardProps {
   listing: {
@@ -20,15 +22,21 @@ interface UrgentListingCardProps {
     transmission?: string
     image_url?: string
     image_urls?: string[]
+    primary_image_url?: string
     created_at: string
     views?: number
     is_urgent: true
     urgent_until?: string
+    phone?: string
+    whatsapp?: string
+    user_id: string
   }
 }
 
 export default function UrgentListingCard({ listing }: UrgentListingCardProps) {
   const [imageError, setImageError] = useState(false)
+  const [showContactModal, setShowContactModal] = useState(false)
+  const [showConversationModal, setShowConversationModal] = useState(false)
 
   const formatPrice = (price: number) => {
     return `Rs. ${price.toLocaleString()}`
@@ -161,7 +169,7 @@ export default function UrgentListingCard({ listing }: UrgentListingCardProps) {
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                // Handle call action
+                setShowContactModal(true)
               }}
               className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
             >
@@ -172,7 +180,7 @@ export default function UrgentListingCard({ listing }: UrgentListingCardProps) {
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                // Handle message action
+                setShowConversationModal(true)
               }}
               className="flex-1 bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
             >
@@ -190,6 +198,40 @@ export default function UrgentListingCard({ listing }: UrgentListingCardProps) {
           className="bg-white/90 hover:bg-white shadow-lg"
         />
       </div>
+
+      {/* Contact Modal */}
+      <ContactModal
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        listing={{
+          id: listing.id,
+          title: listing.title,
+          phone: listing.phone,
+          whatsapp: listing.whatsapp,
+          price: listing.price,
+          location: listing.location,
+          make: listing.make,
+          model: listing.model,
+          year: listing.year
+        }}
+      />
+
+      {/* Conversation Modal */}
+      <ConversationModal
+        isOpen={showConversationModal}
+        onClose={() => setShowConversationModal(false)}
+        listing={{
+          id: listing.id,
+          title: listing.title,
+          price: listing.price,
+          location: listing.location,
+          make: listing.make,
+          model: listing.model,
+          year: listing.year,
+          primary_image_url: listing.image_urls?.[0] || listing.image_url || listing.primary_image_url,
+          user_id: listing.user_id
+        }}
+      />
     </div>
   )
 }

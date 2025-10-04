@@ -9,7 +9,30 @@ import ContactModal from '@/app/components/modals/ContactModal'
 import ConversationModal from '@/app/components/modals/ConversationModal'
 
 interface RegularAdCardProps {
-  listing: any
+  listing: {
+    id: string
+    title: string
+    price: number
+    location: string
+    make?: string
+    model?: string
+    year: number
+    mileage?: number
+    fuel_type?: string
+    transmission?: string
+    image_url?: string
+    image_urls?: string[]
+    primary_image_url?: string
+    pricing_type?: string
+    negotiable?: boolean
+    asking_price?: number
+    monthly_payment?: number
+    isPromoted?: boolean
+    promotionType?: string
+    phone?: string
+    whatsapp?: string
+    user_id: string
+  }
   showPromotionBadge?: boolean
   activeImageIndex?: number
   onImageNavigate?: (direction: 'prev' | 'next') => void
@@ -244,7 +267,7 @@ export default function RegularAdCard({
           make: listing.make,
           model: listing.model,
           year: listing.year,
-          primary_image_url: listing.primary_image_url,
+          primary_image_url: images[0] || listing.image_url || listing.primary_image_url,
           user_id: listing.user_id
         }}
       />

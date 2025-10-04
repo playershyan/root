@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { MapPin, Calendar, Eye, TrendingUp, Star, Crown } from 'lucide-react'
 import OptimizedImage from '@/components/ui/OptimizedImage'
 import FavoriteButton from '@/app/components/FavoriteButton'
+import ContactModal from '@/app/components/modals/ContactModal'
+import ConversationModal from '@/app/components/modals/ConversationModal'
 
 interface BoostedCardProps {
   listing: {
@@ -20,17 +22,23 @@ interface BoostedCardProps {
     transmission?: string
     image_url?: string
     image_urls?: string[]
+    primary_image_url?: string
     created_at: string
     views?: number
     is_boosted: true
     is_featured?: boolean
     is_top_spot?: boolean
     boosted_until?: string
+    phone?: string
+    whatsapp?: string
+    user_id: string
   }
 }
 
 export default function BoostedCard({ listing }: BoostedCardProps) {
   const [imageError, setImageError] = useState(false)
+  const [showContactModal, setShowContactModal] = useState(false)
+  const [showConversationModal, setShowConversationModal] = useState(false)
 
   const formatPrice = (price: number) => {
     return `Rs. ${price.toLocaleString()}`
@@ -189,7 +197,7 @@ export default function BoostedCard({ listing }: BoostedCardProps) {
 
           {/* Boost Benefits */}
           <div className="mt-3 pt-3 border-t border-blue-100">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-3">
               <span className="text-xs text-blue-700 font-medium flex items-center gap-1">
                 <TrendingUp className="w-3 h-3" />
                 Increased Visibility
@@ -197,6 +205,30 @@ export default function BoostedCard({ listing }: BoostedCardProps) {
               <span className="text-xs text-gray-500">
                 More Views
               </span>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2">
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  setShowContactModal(true)
+                }}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-1"
+              >
+                <i className="fas fa-phone text-xs"></i>
+                Call
+              </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  setShowConversationModal(true)
+                }}
+                className="flex-1 border border-blue-600 text-blue-600 hover:bg-blue-50 py-2 px-3 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-1"
+              >
+                <i className="fas fa-envelope text-xs"></i>
+                Message
+              </button>
             </div>
           </div>
         </div>
@@ -209,6 +241,40 @@ export default function BoostedCard({ listing }: BoostedCardProps) {
           className="bg-white/90 hover:bg-white shadow-md border border-blue-200"
         />
       </div>
+
+      {/* Contact Modal */}
+      <ContactModal
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        listing={{
+          id: listing.id,
+          title: listing.title,
+          phone: listing.phone,
+          whatsapp: listing.whatsapp,
+          price: listing.price,
+          location: listing.location,
+          make: listing.make,
+          model: listing.model,
+          year: listing.year
+        }}
+      />
+
+      {/* Conversation Modal */}
+      <ConversationModal
+        isOpen={showConversationModal}
+        onClose={() => setShowConversationModal(false)}
+        listing={{
+          id: listing.id,
+          title: listing.title,
+          price: listing.price,
+          location: listing.location,
+          make: listing.make,
+          model: listing.model,
+          year: listing.year,
+          primary_image_url: listing.image_urls?.[0] || listing.image_url || listing.primary_image_url,
+          user_id: listing.user_id
+        }}
+      />
     </div>
   )
 }

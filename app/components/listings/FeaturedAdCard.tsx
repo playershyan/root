@@ -5,9 +5,32 @@ import Link from 'next/link'
 import { Heart, MapPin, Calendar, Eye, Star } from 'lucide-react'
 import PromotionBadges from './PromotionBadges'
 import ImageCarousel from '@/components/ui/ImageCarousel'
+import ContactModal from '@/app/components/modals/ContactModal'
+import ConversationModal from '@/app/components/modals/ConversationModal'
 
 interface FeaturedAdCardProps {
-  listing: any
+  listing: {
+    id: string
+    title: string
+    price: number
+    location: string
+    make?: string
+    model?: string
+    year: number
+    mileage?: number
+    fuel_type?: string
+    transmission?: string
+    image_url?: string
+    image_urls?: string[]
+    primary_image_url?: string
+    created_at: string
+    views?: number
+    is_boosted?: boolean
+    is_urgent?: boolean
+    phone?: string
+    whatsapp?: string
+    user_id: string
+  }
   promotionType: 'featured' | 'top_spot'
 }
 
@@ -16,6 +39,8 @@ export default function FeaturedAdCard({ listing, promotionType }: FeaturedAdCar
   const [isFavorite, setIsFavorite] = useState(false)
   const [imageError, setImageError] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [showContactModal, setShowContactModal] = useState(false)
+  const [showConversationModal, setShowConversationModal] = useState(false)
 
   const images = listing.image_urls || (listing.image_url ? [listing.image_url] : [])
   const hasMultipleImages = images.length > 1
@@ -179,12 +204,30 @@ export default function FeaturedAdCard({ listing, promotionType }: FeaturedAdCar
                 </div>
               </div>
 
-              {/* CTA Button for Featured Ads */}
+              {/* CTA Buttons for Featured Ads */}
               {priority === 'featured' && (
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2">
-                  View Details
-                  <i className="fas fa-arrow-right text-sm"></i>
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setShowContactModal(true)
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2"
+                  >
+                    <i className="fas fa-phone text-sm"></i>
+                    Call
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setShowConversationModal(true)
+                    }}
+                    className="border border-blue-600 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2"
+                  >
+                    <i className="fas fa-envelope text-sm"></i>
+                    Message
+                  </button>
+                </div>
               )}
             </div>
 
@@ -211,6 +254,40 @@ export default function FeaturedAdCard({ listing, promotionType }: FeaturedAdCar
           </div>
         </div>
       </div>
+
+      {/* Contact Modal */}
+      <ContactModal
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        listing={{
+          id: listing.id,
+          title: listing.title,
+          phone: listing.phone,
+          whatsapp: listing.whatsapp,
+          price: listing.price,
+          location: listing.location,
+          make: listing.make,
+          model: listing.model,
+          year: listing.year
+        }}
+      />
+
+      {/* Conversation Modal */}
+      <ConversationModal
+        isOpen={showConversationModal}
+        onClose={() => setShowConversationModal(false)}
+        listing={{
+          id: listing.id,
+          title: listing.title,
+          price: listing.price,
+          location: listing.location,
+          make: listing.make,
+          model: listing.model,
+          year: listing.year,
+          primary_image_url: images[0] || listing.image_url || listing.primary_image_url,
+          user_id: listing.user_id
+        }}
+      />
     </Link>
   )
 }
