@@ -7,6 +7,7 @@ import PriceDisplay from '@/app/components/PriceDisplay'
 import PromotionBadges from './PromotionBadges'
 import ContactModal from '@/app/components/modals/ContactModal'
 import ConversationModal from '@/app/components/modals/ConversationModal'
+import FavoriteButton from '@/app/components/FavoriteButton'
 
 interface RegularAdCardProps {
   listing: {
@@ -36,8 +37,6 @@ interface RegularAdCardProps {
   showPromotionBadge?: boolean
   activeImageIndex?: number
   onImageNavigate?: (direction: 'prev' | 'next') => void
-  isSaved?: boolean
-  onToggleSaved?: () => void
   imageLoading?: boolean
   imageError?: boolean
   onImageLoad?: () => void
@@ -49,8 +48,6 @@ export default function RegularAdCard({
   showPromotionBadge = false,
   activeImageIndex = 0,
   onImageNavigate,
-  isSaved = false,
-  onToggleSaved,
   imageLoading = false,
   imageError = false,
   onImageLoad,
@@ -151,19 +148,13 @@ export default function RegularAdCard({
         )}
         
         {/* Save Button */}
-        {onToggleSaved && (
-          <button
-            onClick={(e) => {
-              e.preventDefault()
-              onToggleSaved()
-            }}
-            className="absolute top-2 right-2 bg-white/90 p-2 rounded-full hover:bg-white transition-colors shadow-sm"
-          >
-            <Heart 
-              className={`w-4 h-4 ${isSaved ? 'text-red-500 fill-current' : 'text-gray-400'}`}
-            />
-          </button>
-        )}
+        <div className="absolute top-2 right-2 z-20">
+          <FavoriteButton
+            listingId={listing.id}
+            size="small"
+            className="bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm"
+          />
+        </div>
       </div>
       
       {/* Content Section */}
