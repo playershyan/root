@@ -1,9 +1,21 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, createContext, useContext, ReactNode } from 'react'
 import { useAuth } from '@/app/contexts/AuthContext'
 
-export function useFavorites() {
+// Context for sharing favorites state across components
+interface FavoritesContextType {
+  favorites: string[]
+  loading: boolean
+  toggleFavorite: (listingId: string) => Promise<boolean>
+  isFavorited: (listingId: string) => boolean
+  refetch: () => Promise<void>
+}
+
+const FavoritesContext = createContext<FavoritesContextType | null>(null)
+
+// Provider component
+export function FavoritesProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const [favorites, setFavorites] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
@@ -94,11 +106,26 @@ export function useFavorites() {
     fetchFavorites()
   }, [fetchFavorites])
 
-  return {
+  const contextValue = {
     favorites,
     loading,
     toggleFavorite,
     isFavorited,
     refetch: fetchFavorites
   }
+
+  return (
+    <FavoritesContext.Provider value={contextValue}>
+      {children}
+    </FavoritesContext.Provider>
+  )
+}
+
+// Hook to use favorites context
+export function useFavorites() {
+  const context = useContext(FavoritesContext)
+  if (!context) {
+    throw new Error('useFavorites must be used within a FavoritesProvider')
+  }
+  return context
 }

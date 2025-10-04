@@ -2,13 +2,14 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { Suspense } from 'react'
 import './globals.css'
-import Header from './components/header'
+import Header from './components/Header'
 import Footer from './components/Footer'
 import ErrorBoundary from './components/ErrorBoundary'
 import { NotificationProvider } from './components/NotificationSystem'
 import { AuthProvider } from './contexts/AuthContext'
 import { GoogleOneTapProvider } from './components/auth'
 import AuthWrapper from './components/AuthWrapper'
+import { FavoritesProvider } from '@/lib/contexts/FavoritesContext'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -46,18 +47,20 @@ export default function RootLayout({
       <body className={inter.className}>
         <ErrorBoundary>
           <AuthProvider>
-            <NotificationProvider>
-              <GoogleOneTapProvider />
-              <Suspense fallback={<div className="min-h-screen" />}>
-                <AuthWrapper>
-                  <Header />
-                  <main className="min-h-screen">
-                    {children}
-                  </main>
-                  <Footer />
-                </AuthWrapper>
-              </Suspense>
-            </NotificationProvider>
+            <FavoritesProvider>
+              <NotificationProvider>
+                <GoogleOneTapProvider />
+                <Suspense fallback={<div className="min-h-screen" />}>
+                  <AuthWrapper>
+                    <Header />
+                    <main className="min-h-screen">
+                      {children}
+                    </main>
+                    <Footer />
+                  </AuthWrapper>
+                </Suspense>
+              </NotificationProvider>
+            </FavoritesProvider>
           </AuthProvider>
         </ErrorBoundary>
       </body>
