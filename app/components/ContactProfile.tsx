@@ -55,16 +55,19 @@ type IndividualSellerData = {
 type SellerData = BusinessSellerData | IndividualSellerData | null
 
 type ContactProfileProps = {
-  listing: Listing
+  listing: Listing,
+  onMessageClick?: () => void
   sellerData: SellerData
   // Legacy props for backward compatibility
   dealer?: any
+  onMessageClick?: () => void
 }
 
 // Business Profile Component
-function BusinessProfile({ seller, listing }: { 
+function BusinessProfile({ seller, listing, onMessageClick }: { 
   seller: BusinessSellerData, 
-  listing: Listing
+  listing: Listing,
+  onMessageClick?: () => void
 }) {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false)
 
@@ -149,7 +152,8 @@ function BusinessProfile({ seller, listing }: {
 // Individual Profile Component
 function IndividualProfile({ seller, listing }: { 
   seller: IndividualSellerData, 
-  listing: Listing
+  listing: Listing,
+  onMessageClick?: () => void
 }) {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false)
 
@@ -201,7 +205,8 @@ function IndividualProfile({ seller, listing }: {
 }
 
 // Message Button Component
-function MessageButton({ listing }: { listing: Listing }) {
+function MessageButton({ listing }: { listing: Listing,
+  onMessageClick?: () => void }) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const supabase = createClientComponentClient()

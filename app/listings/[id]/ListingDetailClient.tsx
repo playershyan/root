@@ -8,6 +8,7 @@ import PriceDisplay from '../../components/PriceDisplay'
 import FavoriteButton from '@/app/components/FavoriteButton'
 import OfferModal from '@/app/components/messaging/OfferModal'
 import { useAuth } from '@/app/contexts/AuthContext'
+import ConversationModal from '@/app/components/modals/ConversationModal'
 
 type Listing = {
   id: string
@@ -92,6 +93,7 @@ export default function ListingDetailClient({
   const { user } = useAuth()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [showOfferModal, setShowOfferModal] = useState(false)
+  const [showConversationModal, setShowConversationModal] = useState(false)
   
   // Finance Calculator States
   const [loanAmount, setLoanAmount] = useState(listing.price)
@@ -428,6 +430,7 @@ export default function ListingDetailClient({
             listing={listing} 
             sellerData={sellerData}
             dealer={dealer}
+            onMessageClick={() => setShowConversationModal(true)}
           />
 
           {/* Important Information */}
@@ -653,6 +656,7 @@ export default function ListingDetailClient({
         </div>
       )}
 
+{/* Conversation Modal */}      <ConversationModal        isOpen={showConversationModal}        onClose={() => setShowConversationModal(false)}        listing={{          id: listing.id,          title: listing.title,          price: listing.price,          location: listing.location,          make: listing.make,          model: listing.model,          year: listing.year,          primary_image_url: images[0] || listing.image_url,          user_id: listing.user_id || ""        }}      />
       {/* Offer Modal */}
       <OfferModal
         isOpen={showOfferModal}
