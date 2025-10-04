@@ -102,14 +102,19 @@ export default function FavoriteButton({
   return (
     <>
       <button
-        onClick={handleClick}
+        onClick={(e) => {
+          console.log('BUTTON CLICKED - START OF HANDLER')
+          handleClick(e)
+        }}
         disabled={isProcessing}
         className={`
           ${sizeClasses[size]}
           ${className}
           ${isProcessing ? 'opacity-50 cursor-wait' : ''}
           transition-all duration-200
+          relative pointer-events-auto
         `}
+        style={{ zIndex: 30 }}
         aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
         title={!user ? 'Sign in to save favorites' : (isFavorite ? 'Remove from favorites' : 'Add to favorites')}
       >

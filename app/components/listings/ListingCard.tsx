@@ -161,8 +161,8 @@ export default function ListingCard({ listing }: ListingCardProps) {
       </Link>
 
       {/* Favorite Button - Outside Link to prevent event conflicts */}
-      <div className="absolute top-2 right-10 z-10">
-        <FavoriteButton 
+      <div className="absolute top-2 right-10 z-20">
+        <FavoriteButton
           listingId={listing.id}
           size="small"
           className="bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
