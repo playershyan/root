@@ -224,7 +224,7 @@ function MessageButton({ listing }: { listing: Listing }) {
       }
 
       // Create or get conversation
-      const response = await fetch('/api/messages/conversations', {
+      const response = await fetch('/api/messaging/conversations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

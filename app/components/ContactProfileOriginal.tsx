@@ -172,7 +172,7 @@ function MessageButton({ listing }: { listing: ContactProfileProps['listing'] })
       }
 
       // Create or get conversation
-      const response = await fetch('/api/messages/conversations', {
+      const response = await fetch('/api/messaging/conversations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
