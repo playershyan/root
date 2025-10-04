@@ -53,7 +53,7 @@ export async function middleware(req: NextRequest) {
 
   // Protected routes
   const protectedRoutes = ['/profile', '/post', '/wanted/post', '/messages', '/admin']
-  const authRoutes = ['/login', '/register']
+  const authRoutes: string[] = [] // Removed /login and /register
 
   const path = req.nextUrl.pathname
 
@@ -80,9 +80,9 @@ export async function middleware(req: NextRequest) {
   // If user is not logged in and trying to access protected route
   if (!session && protectedRoutes.some(route => path.startsWith(route))) {
     if (process.env.NODE_ENV !== 'production') {
-      console.log('Middleware - Redirecting to login, no session found')
+      console.log('Middleware - Redirecting to home with auth prompt, no session found')
     }
-    return NextResponse.redirect(new URL('/login', req.url))
+    return NextResponse.redirect(new URL(`/?auth=true&redirect=${encodeURIComponent(path)}`, req.url))
   }
 
   // If user is logged in and trying to access auth routes
@@ -96,13 +96,11 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     '/api/:path*',
-    '/profile/:path*', 
-    '/post/:path*', 
-    '/wanted/:path*', 
-    '/messages/:path*', 
-    '/admin/:path*', 
-    '/login', 
-    '/register'
+    '/profile/:path*',
+    '/post/:path*',
+    '/wanted/:path*',
+    '/messages/:path*',
+    '/admin/:path*'
   ]
 }
 
