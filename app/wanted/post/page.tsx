@@ -48,6 +48,10 @@ export default function PostWantedPage() {
   const { profile, loading: profileLoading, getPhoneNumber } = useUserProfile()
   const { selectedCountry, setSelectedCountry } = useCountrySelector('LK')
   const [loading, setLoading] = useState(false)
+
+  // Detect edit mode
+  const isEditMode = searchParams.get('edit') !== null
+  const editId = searchParams.get('edit')
   const [step, setStep] = useState(1) // Multi-step form
   const [showPreview, setShowPreview] = useState(true)
   const [errors, setErrors] = useState<FormErrors>({})
@@ -62,11 +66,89 @@ export default function PostWantedPage() {
     }
   }, [user, authLoading, router])
 
+  // Load existing wanted request data for edit mode
+  useEffect(() => {
+    if (isEditMode && editId && user) {
+      console.log('[WANTED POST] Loading existing request for edit:', editId)
+
+      const loadWantedRequest = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('wanted_requests')
+            .select('*')
+            .eq('id', editId)
+            .eq('user_id', user.id)
+            .single()
+
+          if (error) {
+            console.error('[WANTED POST] Error loading wanted request:', error)
+            alert('Error loading wanted request. Please try again.')
+            router.push('/wanted')
+            return
+          }
+
+          if (data) {
+            console.log('[WANTED POST] Loaded wanted request data:', data)
+
+            // Parse location if it contains district
+            let district = ''
+            let city = ''
+            if (data.location) {
+              const locationParts = data.location.split(', ')
+              if (locationParts.length === 2) {
+                city = locationParts[0]
+                district = locationParts[1]
+              } else {
+                city = data.location
+              }
+            }
+
+            // Parse phone number to remove country code if present
+            let phoneNumber = data.phone || ''
+            if (phoneNumber.startsWith('+94 ')) {
+              phoneNumber = phoneNumber.replace('+94 ', '0')
+            }
+
+            // Map database fields to form fields
+            setFormData({
+              description: data.description || '',
+              vehicleType: data.vehicle_type || '',
+              min_budget: data.min_budget ? data.min_budget.toString() : '',
+              max_budget: data.max_budget ? data.max_budget.toString() : '',
+              make: data.make || '',
+              customMake: data.make === 'Other' ? data.make : '',
+              model: data.model || '',
+              customModel: data.model === 'Other' ? data.model : '',
+              min_year: data.min_year ? data.min_year.toString() : '',
+              max_year: data.max_year ? data.max_year.toString() : '',
+              location: city,
+              phone: phoneNumber,
+              fuel_type: data.fuel_type || '',
+              transmission: data.transmission || '',
+              max_mileage: data.max_mileage ? data.max_mileage.toString() : ''
+            })
+
+            // Set district if found
+            if (district) {
+              setSelectedDistrict(district)
+            }
+          }
+        } catch (error) {
+          console.error('[WANTED POST] Error in loadWantedRequest:', error)
+          alert('Error loading wanted request. Please try again.')
+          router.push('/wanted')
+        }
+      }
+
+      loadWantedRequest()
+    }
+  }, [isEditMode, editId, user, router])
+
   // Auto-populate phone number from user profile
   useEffect(() => {
-    if (!profileLoading && profile && !formData.phone) {
+    if (!profileLoading && profile && !formData.phone && !isEditMode) {
       const phoneNumber = getPhoneNumber()
-      
+
       if (phoneNumber) {
         setFormData(prev => ({
           ...prev,
@@ -74,7 +156,7 @@ export default function PostWantedPage() {
         }))
       }
     }
-  }, [profile, profileLoading, getPhoneNumber])
+  }, [profile, profileLoading, getPhoneNumber, isEditMode])
   
   const currentYear = new Date().getFullYear()
   const minYear = 1990
@@ -326,36 +408,68 @@ export default function PostWantedPage() {
       : formData.location || selectedDistrict
 
     const title = generateTitle()
-    
+
     try {
-      const { data, error } = await supabase.from('wanted_requests').insert([
-        {
-          title: title,
-          description: formData.description.trim() || null,
-          min_budget: formData.min_budget ? parseFloat(formData.min_budget) : null,
-          max_budget: formData.max_budget ? parseFloat(formData.max_budget) : null,
-          make: formData.make === 'Other' ? (formData.customMake || 'Other') : (formData.make || null),
-          model: formData.model === 'Other' ? (formData.customModel || 'Other') : (formData.model || null),
-          min_year: formData.min_year ? parseInt(formData.min_year) : null,
-          max_year: formData.max_year ? parseInt(formData.max_year) : null,
-          location: locationString,
-          phone: formattedPhone,
-          fuel_type: formData.fuel_type || null,
-          transmission: formData.transmission || null,
-          max_mileage: formData.max_mileage ? parseInt(formData.max_mileage) : null,
-          status: 'pending',
-          is_active: false
-        },
-      ]).select()
+      if (isEditMode && editId) {
+        // Update existing wanted request
+        const { data, error } = await supabase
+          .from('wanted_requests')
+          .update({
+            title: title,
+            description: formData.description.trim() || null,
+            min_budget: formData.min_budget ? parseFloat(formData.min_budget) : null,
+            max_budget: formData.max_budget ? parseFloat(formData.max_budget) : null,
+            make: formData.make === 'Other' ? (formData.customMake || 'Other') : (formData.make || null),
+            model: formData.model === 'Other' ? (formData.customModel || 'Other') : (formData.model || null),
+            min_year: formData.min_year ? parseInt(formData.min_year) : null,
+            max_year: formData.max_year ? parseInt(formData.max_year) : null,
+            location: locationString,
+            phone: formattedPhone,
+            fuel_type: formData.fuel_type || null,
+            transmission: formData.transmission || null,
+            max_mileage: formData.max_mileage ? parseInt(formData.max_mileage) : null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', editId)
+          .eq('user_id', user.id)
+          .select()
+          .single()
 
-      if (error) throw error
+        if (error) throw error
 
-      // Redirect to wanted page or paid features page based on if data was returned
-      if (data && data.length > 0) {
-        router.push(`/wanted-request/paid-features?new=true&request_id=${data[0].id}`)
+        // Redirect to profile with success message
+        router.push('/profile?updated=wanted-request')
       } else {
-        // Fallback if no data returned - just go to wanted page with success
-        router.push('/wanted?posted=success')
+        // Create new wanted request
+        const { data, error } = await supabase.from('wanted_requests').insert([
+          {
+            title: title,
+            description: formData.description.trim() || null,
+            min_budget: formData.min_budget ? parseFloat(formData.min_budget) : null,
+            max_budget: formData.max_budget ? parseFloat(formData.max_budget) : null,
+            make: formData.make === 'Other' ? (formData.customMake || 'Other') : (formData.make || null),
+            model: formData.model === 'Other' ? (formData.customModel || 'Other') : (formData.model || null),
+            min_year: formData.min_year ? parseInt(formData.min_year) : null,
+            max_year: formData.max_year ? parseInt(formData.max_year) : null,
+            location: locationString,
+            phone: formattedPhone,
+            fuel_type: formData.fuel_type || null,
+            transmission: formData.transmission || null,
+            max_mileage: formData.max_mileage ? parseInt(formData.max_mileage) : null,
+            status: 'pending',
+            is_active: false
+          },
+        ]).select()
+
+        if (error) throw error
+
+        // Redirect to wanted page or paid features page based on if data was returned
+        if (data && data.length > 0) {
+          router.push(`/wanted-request/paid-features?new=true&request_id=${data[0].id}`)
+        } else {
+          // Fallback if no data returned - just go to wanted page with success
+          router.push('/wanted?posted=success')
+        }
       }
     } catch (error) {
       alert('Error posting request. Please try again.')
@@ -380,8 +494,12 @@ export default function PostWantedPage() {
           <Link href="/wanted" className="text-blue-600 hover:text-blue-700 flex items-center gap-2 mb-4">
             <span>←</span> Back to Wanted Requests
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Post a Wanted Request</h1>
-          <p className="text-gray-600 mt-2">Let sellers know what vehicle you're looking for</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {isEditMode ? 'Edit Wanted Request' : 'Post a Wanted Request'}
+          </h1>
+          <p className="text-gray-600 mt-2">
+            {isEditMode ? 'Update your vehicle requirements' : 'Let sellers know what vehicle you\'re looking for'}
+          </p>
         </div>
 
         {/* Progress Steps */}
@@ -943,6 +1061,8 @@ export default function PostWantedPage() {
                         <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
                         Posting...
                       </span>
+                    ) : isEditMode ? (
+                      'Update Wanted Request'
                     ) : (
                       'Post Wanted Request'
                     )}

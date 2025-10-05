@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
       .update({
         status: 'sold',
         sold_at: now.toISOString(),
+        sold_date: now.toISOString(),
         updated_at: now.toISOString(),
         is_paused: false,  // Clear pause status if it was paused
         pause_date: null

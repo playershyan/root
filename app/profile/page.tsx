@@ -459,7 +459,7 @@ export default function ProfilePage() {
             takedownReason: listing.takedown_reason,
             reportCount: listing.report_count || 0,
             rejectionReason: listing.rejection_reason,
-            isPaused: listing.status === 'paused'
+            isPaused: listing.is_paused || false
           })) || []
 
           console.log('Transformed listings:', transformedListings)
@@ -1682,6 +1682,38 @@ export default function ProfilePage() {
     }
   }
 
+  const handleMarkAsFulfilled = async (requestId: string) => {
+    try {
+      const response = await fetch('/api/wanted-requests/mark-fulfilled', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ requestId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to mark wanted request as fulfilled')
+      }
+
+      // Update local state
+      setWantedRequests(prevRequests =>
+        prevRequests.map(request =>
+          request.id === requestId
+            ? { ...request, status: 'fulfilled' as const }
+            : request
+        )
+      )
+
+      alert(data.message || 'Wanted request marked as fulfilled successfully!')
+    } catch (error) {
+      console.error('Error marking wanted request as fulfilled:', error)
+      alert(error instanceof Error ? error.message : 'Failed to mark wanted request as fulfilled')
+    }
+  }
+
   // Helper function to calculate days until renewal for wanted requests
   const getDaysUntilWantedRequestRenewal = (postedDate: string) => {
     const posted = new Date(postedDate)
@@ -2578,8 +2610,7 @@ export default function ProfilePage() {
                                         </button>
                                       </>
                                     )}
-                                    <WantedRequestStatusMessage request={request} />
-                                    
+
                                     <WantedRequestActions
                                       request={request}
                                       onPause={(id) => handlePauseResumeWantedRequest(id, 'pause')}
@@ -2632,8 +2663,8 @@ export default function ProfilePage() {
                                           <Share2 className="w-4 h-4" />
                                           Share Request
                                         </button>
-                                        <Link 
-                                          href={`/wanted/edit/${request.id}`}
+                                        <Link
+                                          href={`/wanted/post?edit=${request.id}`}
                                           className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 block"
                                         >
                                           <Edit className="w-4 h-4" />
@@ -2645,39 +2676,60 @@ export default function ProfilePage() {
                                             <hr className="my-2" />
                                             {request.status === 'active' ? (
                                               <>
-                                                <button 
+                                                <button
                                                   onClick={() => handlePauseResumeWantedRequest(request.id, 'pause')}
                                                   className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
                                                 >
                                                   <Pause className="w-4 h-4" />
                                                   Pause Request
                                                 </button>
-                                                
-                                                <button 
+
+                                                <button
                                                   onClick={() => handleRenewWantedRequest(request.id)}
                                                   className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 ${
-                                                    getDaysUntilWantedRequestRenewal(request.postedDate) > 0 
-                                                      ? 'text-gray-400 cursor-not-allowed' 
+                                                    getDaysUntilWantedRequestRenewal(request.postedDate) > 0
+                                                      ? 'text-gray-400 cursor-not-allowed'
                                                       : 'text-gray-900'
                                                   }`}
                                                   disabled={getDaysUntilWantedRequestRenewal(request.postedDate) > 0}
                                                   title={
-                                                    getDaysUntilWantedRequestRenewal(request.postedDate) > 0 
+                                                    getDaysUntilWantedRequestRenewal(request.postedDate) > 0
                                                       ? `${getDaysUntilWantedRequestRenewal(request.postedDate)} days to renew`
                                                       : 'Renew request to boost visibility'
                                                   }
                                                 >
                                                   <RefreshCw className="w-4 h-4" />
-                                                  {getDaysUntilWantedRequestRenewal(request.postedDate) > 0 
+                                                  {getDaysUntilWantedRequestRenewal(request.postedDate) > 0
                                                     ? `${getDaysUntilWantedRequestRenewal(request.postedDate)} days to renew`
                                                     : 'Renew Request'
                                                   }
                                                 </button>
                                               </>
+                                            ) : request.status === 'paused' ? (
+                                              <button
+                                                onClick={() => handlePauseResumeWantedRequest(request.id, 'resume')}
+                                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                                              >
+                                                <Play className="w-4 h-4" />
+                                                Resume Request
+                                              </button>
                                             ) : null}
                                           </>
                                         )}
-                                        
+
+                                        {(request.status === 'active' || request.status === 'paused') && (
+                                          <>
+                                            <hr className="my-2" />
+                                            <button
+                                              onClick={() => handleMarkAsFulfilled(request.id)}
+                                              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-green-600"
+                                            >
+                                              <CheckCircle className="w-4 h-4" />
+                                              Mark as Fulfilled
+                                            </button>
+                                          </>
+                                        )}
+
                                         <hr className="my-2" />
                                         <button 
                                           onClick={() => handleDelete(request.id, 'wanted request')}

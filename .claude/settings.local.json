@@ -47,7 +47,8 @@
       "Bash(find:*)",
       "Bash(tasklist)",
       "mcp__supabase__get_project",
-      "mcp__supabase__get_organization"
+      "mcp__supabase__get_organization",
+      "Bash(tasklist:*)"
     ],
     "deny": []
   }

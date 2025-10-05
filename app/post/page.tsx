@@ -112,7 +112,10 @@ export default function EnhancedPostVehiclePage() {
   const { toasts, showError, removeToast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const vehicleDropdownRef = useRef<HTMLDivElement>(null)
-  
+
+  // Detect edit mode
+  const isEditMode = searchParams.get('edit') !== null
+
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<FormData>(initialFormData)
   const [selectedDistrict, setSelectedDistrict] = useState<string>('')
@@ -134,7 +137,134 @@ export default function EnhancedPostVehiclePage() {
       router.push('/?auth=true&redirect=/post')
     }
   }, [user, authLoading, router])
-  
+
+  // Load existing listing data when editing
+  useEffect(() => {
+    const editId = searchParams.get('edit')
+    if (editId && user && !authLoading) {
+      const loadListingForEdit = async () => {
+        try {
+          const { data: listing, error } = await supabase
+            .from('listings')
+            .select('*')
+            .eq('id', editId)
+            .eq('user_id', user.id)  // Ensure user owns the listing
+            .single()
+
+          if (error || !listing) {
+            console.error('Error loading listing for edit:', error)
+            showError('Listing not found or you do not have permission to edit it')
+            router.push('/profile')
+            return
+          }
+
+          // Transform the database listing to form data
+          const editFormData: FormData = {
+            // Basic information
+            vehicleType: (listing.vehicle_type as VehicleType) || '',
+            make: listing.make || '',
+            model: listing.model || '',
+            year: listing.year?.toString() || '',
+            price: listing.price?.toString() || '',
+
+            // Vehicle details
+            mileage: listing.mileage?.toString() || '',
+            fuelType: listing.fuel_type || '',
+            transmission: listing.transmission || '',
+            bodyType: listing.body_type || '',
+            engineCapacity: listing.engine_capacity?.toString() || '',
+            color: listing.color || '',
+
+            // Additional details
+            interiorColor: listing.interior_color || '',
+            registrationYear: listing.registration_year?.toString() || '',
+            vehicleConditionDetails: listing.vehicle_condition_details || '',
+            previousOwners: listing.previous_owners?.toString() || '',
+            includingFinanceCompanies: listing.including_finance_companies || false,
+            serviceRecordsAvailable: listing.service_records_available || false,
+            grade: listing.grade || '',
+
+            // Pricing and finance
+            pricingType: listing.pricing_type as PricingType || 'cash',
+            negotiable: listing.negotiable || false,
+            financeType: listing.finance_type || '',
+            financeProvider: listing.finance_provider || '',
+            originalAmount: listing.original_amount?.toString() || '',
+            outstandingBalance: listing.outstanding_balance?.toString() || '',
+            monthlyPayment: listing.monthly_payment?.toString() || '',
+            remainingTerm: listing.remaining_term || '',
+            earlySettlement: listing.early_settlement || '',
+
+            // Description and location
+            title: listing.title || '',
+            description: listing.description || listing.details || '',
+            location: listing.location || '',
+            city: listing.city || '',
+            district: listing.district || '',
+
+            // Contact information
+            phone: listing.phone || '',
+            whatsapp: listing.whatsapp || '',
+            email: listing.email || '',
+
+            // Form-specific fields
+            images: [],
+            imageUrls: [],
+            aiStyle: 'professional' as AIStyle,
+            whatsappSameAsPhone: listing.whatsapp === listing.phone,
+            preferredContact: 'phone' as 'phone' | 'whatsapp' | 'email',
+            bestTimeToCall: 'anytime',
+            showVehicleDropdown: false
+          }
+
+          // Set the form data
+          setFormData(editFormData)
+
+          // Set location dropdowns
+          if (listing.district) {
+            setSelectedDistrict(listing.district)
+            const cities = getCitiesByDistrictId(getDistrictByName(listing.district)?.id || '')
+            setAvailableCities(cities)
+          }
+
+          // Load existing images
+          if (listing.images) {
+            let imageUrls: string[] = []
+
+            if (Array.isArray(listing.images)) {
+              imageUrls = listing.images
+            } else if (typeof listing.images === 'object' && listing.images.urls) {
+              imageUrls = listing.images.urls
+            } else if (listing.image_urls) {
+              imageUrls = listing.image_urls
+            } else if (listing.primary_image_url) {
+              imageUrls = [listing.primary_image_url]
+            }
+
+            if (imageUrls.length > 0) {
+              setImagePreviews(imageUrls)
+              setFormData(prev => ({
+                ...prev,
+                imageUrls: imageUrls,
+                images: [] // Existing images are URLs, not files
+              }))
+            }
+          }
+
+          console.log('Loaded listing for edit:', listing)
+          console.log('Form data populated:', editFormData)
+
+        } catch (error) {
+          console.error('Error loading listing for edit:', error)
+          showError('Failed to load listing data')
+          router.push('/profile')
+        }
+      }
+
+      loadListingForEdit()
+    }
+  }, [searchParams, user, authLoading, router, showError])
+
   // Set mounted state
   useEffect(() => {
     setMounted(true)
@@ -579,7 +709,7 @@ export default function EnhancedPostVehiclePage() {
       }
 
       console.log('Required fields check:', requiredFields)
-      
+
       // Check for any undefined or null values that could cause constraint violations
       Object.entries(listingData).forEach(([key, value]) => {
         if (value === undefined) {
@@ -587,27 +717,80 @@ export default function EnhancedPostVehiclePage() {
         }
       })
 
-      const { data, error } = await supabase
-        .from('listings')
-        .insert([listingData])
-        .select()
-        .single()
+      // Check if we're in edit mode
+      const editId = searchParams.get('edit')
+      let data, error
 
-      if (error) {
-        console.error('Supabase error details:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        })
-        throw error
+      if (editId) {
+        // Update existing listing
+        console.log('Updating existing listing:', editId)
+
+        // Don't change the status when updating - preserve existing status
+        const updateData = { ...listingData }
+        delete updateData.status
+        delete updateData.user_id // Don't update user_id
+
+        // Update modified timestamp and posted date to move to top of listings
+        const now = new Date().toISOString()
+        updateData.updated_at = now
+        updateData.posted_date = now // Move to top of browse listings
+
+        const result = await supabase
+          .from('listings')
+          .update(updateData)
+          .eq('id', editId)
+          .eq('user_id', user.id) // Ensure user owns the listing
+          .select()
+          .single()
+
+        data = result.data
+        error = result.error
+
+        if (error) {
+          console.error('Supabase update error details:', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          })
+          throw error
+        }
+
+        console.log('Listing updated successfully:', data)
+
+        localStorage.removeItem('vehiclePostDraft')
+        // Redirect back to profile with success message
+        router.push('/profile?updated=true')
+
+      } else {
+        // Create new listing
+        console.log('Creating new listing')
+
+        const result = await supabase
+          .from('listings')
+          .insert([listingData])
+          .select()
+          .single()
+
+        data = result.data
+        error = result.error
+
+        if (error) {
+          console.error('Supabase error details:', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          })
+          throw error
+        }
+
+        console.log('Listing created successfully:', data)
+
+        localStorage.removeItem('vehiclePostDraft')
+        // Redirect to paid features page with success message
+        router.push(`/post/paid-features?new=true&listing_id=${data.id}`)
       }
-
-      console.log('Listing created successfully:', data)
-
-      localStorage.removeItem('vehiclePostDraft')
-      // Redirect to paid features page with success message
-      router.push(`/post/paid-features?new=true&listing_id=${data.id}`)
     } catch (error: any) {
       console.error('Error posting vehicle:', error)
       
@@ -684,7 +867,7 @@ export default function EnhancedPostVehiclePage() {
               Photos & Description
             </span>
             <span className={currentStep >= 3 ? 'text-gray-900 font-medium' : 'text-gray-400'}>
-              Contact & Publish
+              {isEditMode ? 'Contact & Update' : 'Contact & Publish'}
             </span>
           </div>
           
@@ -696,7 +879,7 @@ export default function EnhancedPostVehiclePage() {
             <div className="text-base font-semibold text-gray-900">
               {currentStep === 1 && 'Vehicle Details'}
               {currentStep === 2 && 'Photos & Description'}
-              {currentStep === 3 && 'Contact & Publish'}
+              {currentStep === 3 && (isEditMode ? 'Contact & Update' : 'Contact & Publish')}
             </div>
           </div>
         </div>
@@ -1039,7 +1222,7 @@ export default function EnhancedPostVehiclePage() {
             </div>
           )}
           
-          {/* Step 3: Contact & Publish */}
+          {/* Step 3: Contact & Publish/Update */}
           {currentStep === 3 && (
             <div className="space-y-8">
               <div className="border-b border-gray-200 pb-6">
@@ -1157,7 +1340,7 @@ export default function EnhancedPostVehiclePage() {
                   disabled={loading}
                   className="w-full px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50"
                 >
-                  {loading ? 'Publishing...' : 'Publish Listing'}
+                  {loading ? (isEditMode ? 'Updating...' : 'Publishing...') : (isEditMode ? 'Update Listing' : 'Publish Listing')}
                 </button>
               )}
               
@@ -1218,7 +1401,7 @@ export default function EnhancedPostVehiclePage() {
                   disabled={loading}
                   className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50"
                 >
-                  {loading ? 'Publishing...' : 'Publish Listing'}
+                  {loading ? (isEditMode ? 'Updating...' : 'Publishing...') : (isEditMode ? 'Update Listing' : 'Publish Listing')}
                 </button>
               )}
               </div>
