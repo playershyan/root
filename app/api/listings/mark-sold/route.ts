@@ -5,10 +5,12 @@ import { cookies } from 'next/headers'
 export async function POST(request: NextRequest) {
   try {
     const supabase = createRouteHandlerClient({ cookies })
-    
+
     // Get the authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
+
+    console.log('[MARK-SOLD API] Auth user:', user?.id, 'Auth error:', authError)
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -18,6 +20,7 @@ export async function POST(request: NextRequest) {
 
     // Get listing ID from request body
     const { listingId } = await request.json()
+    console.log('[MARK-SOLD API] Received listingId:', listingId, 'userId:', user.id)
     
     if (!listingId) {
       return NextResponse.json(
@@ -32,8 +35,11 @@ export async function POST(request: NextRequest) {
       .select('user_id, status')
       .eq('id', listingId)
       .single()
-    
+
+    console.log('[MARK-SOLD API] Database query result:', { listing, fetchError })
+
     if (fetchError || !listing) {
+      console.log('[MARK-SOLD API] Listing not found. Error:', fetchError)
       return NextResponse.json(
         { error: 'Listing not found' },
         { status: 404 }
@@ -41,7 +47,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify ownership
+    console.log('[MARK-SOLD API] Ownership check:', { listingUserId: listing.user_id, currentUserId: user.id })
     if (listing.user_id !== user.id) {
+      console.log('[MARK-SOLD API] Ownership verification failed')
       return NextResponse.json(
         { error: 'You do not have permission to modify this listing' },
         { status: 403 }

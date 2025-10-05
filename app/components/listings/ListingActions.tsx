@@ -1,15 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Edit2, Pause, Play, CheckCircle, Trash2, Eye, Share2, MoreVertical } from 'lucide-react'
-import { 
-  ListingData, 
-  canPauseListing, 
-  canResumeListing, 
-  canEditListing, 
+import {
+  ListingData,
+  canPauseListing,
+  canResumeListing,
+  canEditListing,
   canDeleteListing,
-  canMarkAsSold 
+  canMarkAsSold
 } from '@/lib/utils/listingStatus'
 
 interface ListingActionsProps {
@@ -32,11 +32,33 @@ export default function ListingActions({
   viewMode = 'desktop'
 }: ListingActionsProps) {
   const [showMenu, setShowMenu] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
+        setShowMenu(false)
+      }
+    }
+
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showMenu])
 
   if (viewMode === 'mobile') {
     return (
       <div className="relative">
         <button
+          ref={buttonRef}
           onClick={() => setShowMenu(!showMenu)}
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
         >
@@ -44,10 +66,10 @@ export default function ListingActions({
         </button>
         
         {showMenu && (
-          <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+          <div ref={menuRef} className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
             {canEditListing(listing) && (
               <Link
-                href={`/edit/${listing.id}`}
+                href={`/post?edit=${listing.id}`}
                 className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
               >
                 <Edit2 className="w-4 h-4" />

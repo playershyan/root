@@ -5,10 +5,12 @@ import { cookies } from 'next/headers'
 export async function POST(request: NextRequest) {
   try {
     const supabase = createRouteHandlerClient({ cookies })
-    
+
     // Get the authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
+
+    console.log('[PAUSE API] Auth user:', user?.id, 'Auth error:', authError)
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -18,6 +20,7 @@ export async function POST(request: NextRequest) {
 
     // Get listing ID and action from request body
     const { listingId, action } = await request.json()
+    console.log('[PAUSE API] Received:', { listingId, action, userId: user.id })
     
     if (!listingId || !action || !['pause', 'resume'].includes(action)) {
       return NextResponse.json(
@@ -32,8 +35,11 @@ export async function POST(request: NextRequest) {
       .select('user_id, status, is_paused, posted_date, pause_date')
       .eq('id', listingId)
       .single()
-    
+
+    console.log('[PAUSE API] Database query result:', { listing, fetchError })
+
     if (fetchError || !listing) {
+      console.log('[PAUSE API] Listing not found. Error:', fetchError)
       return NextResponse.json(
         { error: 'Listing not found' },
         { status: 404 }

@@ -443,6 +443,8 @@ export default function ProfilePage() {
           console.error('Error fetching user listings:', error)
           setListings([])
         } else {
+          console.log('Raw listings from database:', data)
+          console.log('First listing raw data:', data?.[0])
           // Transform database format to profile page format
           const transformedListings = data?.map(listing => ({
             id: listing.id,
@@ -460,6 +462,7 @@ export default function ProfilePage() {
             isPaused: listing.status === 'paused'
           })) || []
 
+          console.log('Transformed listings:', transformedListings)
           setListings(transformedListings)
         }
       } catch (error) {
@@ -1293,6 +1296,10 @@ export default function ProfilePage() {
 
   // Action handlers
   const handleMarkAsSold = async (listingId: string) => {
+    console.log('Marking listing as sold with ID:', listingId)
+    console.log('Current user:', user?.id)
+    console.log('All listings:', listings.map(l => ({ id: l.id, title: l.title })))
+
     try {
       const response = await fetch('/api/listings/mark-sold', {
         method: 'POST',
@@ -1412,6 +1419,9 @@ export default function ProfilePage() {
   }
 
   const handlePauseAd = async (listingId: string) => {
+    console.log('Pausing listing with ID:', listingId)
+    console.log('Current user:', user?.id)
+
     try {
       const response = await fetch('/api/listings/pause', {
         method: 'POST',
@@ -2832,8 +2842,8 @@ export default function ProfilePage() {
 
       {/* Click outside to close menus */}
       {showActionMenu && (
-        <div 
-          className="fixed inset-0 z-0" 
+        <div
+          className="fixed inset-0 z-40"
           onClick={() => setShowActionMenu(null)}
         />
       )}
