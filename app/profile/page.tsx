@@ -1087,6 +1087,20 @@ export default function ProfilePage() {
     }
   }
 
+  // Helper function to format listing date/time
+  const formatListingDate = (dateString: string): string => {
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return dateString
+
+    const hours = date.getHours().toString().padStart(2, '0')
+    const minutes = date.getMinutes().toString().padStart(2, '0')
+    const day = date.getDate().toString().padStart(2, '0')
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const year = date.getFullYear().toString().slice(-2)
+
+    return `${hours}:${minutes} ${day}/${month}/${year}`
+  }
+
   // Load conversations when messages tab is active
   useEffect(() => {
     if (activeTab === 'messages') {
@@ -2235,7 +2249,7 @@ export default function ProfilePage() {
                               <td className="px-4 py-4">
                                 <ListingStatusBadge listing={listing} showReason={true} />
                               </td>
-                              <td className="px-4 py-4 text-sm text-gray-600">{listing.postedDate}</td>
+                              <td className="px-4 py-4 text-sm text-gray-600">{formatListingDate(listing.postedDate)}</td>
                               <td className="px-4 py-4">
                                 <div className="flex items-center gap-2">
                                   {listing.status === 'active' && (
@@ -2298,32 +2312,35 @@ export default function ProfilePage() {
                       {/* Mobile Card View */}
                       <div className="md:hidden space-y-4">
                         {filteredListings.map((listing) => (
-                          <div key={listing.id} className="bg-white border rounded-lg shadow-sm">
+                          <div key={listing.id} className="bg-white border rounded-lg shadow-sm overflow-hidden">
                             {/* Card Header with Image and Title */}
                             <div className="p-4">
                               <div className="flex gap-3">
-                                <div className="w-20 h-16 bg-gray-200 rounded flex items-center justify-center text-gray-500 flex-shrink-0">
-                                  <Camera className="w-6 h-6" />
+                                <div className="min-w-[64px] w-16 h-14 bg-gray-200 rounded flex items-center justify-center text-gray-500 flex-shrink-0">
+                                  <Camera className="w-5 h-5" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <Link 
-                                    href={`/listings/${listing.id}`}
-                                    className="font-medium text-blue-600 hover:text-blue-700 block"
-                                  >
-                                    {listing.title}
-                                  </Link>
-                                  <p className="text-sm text-gray-600 mt-1 line-clamp-2">{listing.details}</p>
-                                  <div className="flex items-center justify-between mt-2">
-                                    <span className="text-lg font-bold text-gray-900">Rs. {listing.price.toLocaleString()}</span>
-                                    <ListingActions
-                                      listing={listing}
-                                      onPause={handlePauseAd}
-                                      onResume={handleResumeAd}
-                                      onMarkAsSold={handleMarkAsSold}
-                                      onDelete={(id) => handleDelete(id, 'listing')}
-                                      onShare={handleShare}
-                                      viewMode="mobile"
-                                    />
+                                  <div className="flex items-start justify-between gap-2">
+                                    <Link
+                                      href={`/listings/${listing.id}`}
+                                      className="text-sm font-medium text-blue-600 hover:text-blue-700 block line-clamp-2 break-words"
+                                    >
+                                      {listing.title}
+                                    </Link>
+                                    <div className="flex-shrink-0">
+                                      <ListingActions
+                                        listing={listing}
+                                        onPause={handlePauseAd}
+                                        onResume={handleResumeAd}
+                                        onMarkAsSold={handleMarkAsSold}
+                                        onDelete={(id) => handleDelete(id, 'listing')}
+                                        onShare={handleShare}
+                                        viewMode="mobile"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="mt-2">
+                                    <span className="text-base font-semibold text-gray-900">Rs. {listing.price.toLocaleString()}</span>
                                   </div>
                                 </div>
                               </div>
@@ -2331,12 +2348,12 @@ export default function ProfilePage() {
 
                             {/* Card Info */}
                             <div className="px-4 pb-4">
-                              <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
+                              <div className="flex items-center justify-between text-xs text-gray-600 mb-3">
                                 <span className="flex items-center gap-1">
-                                  <Eye className="w-4 h-4" />
+                                  <Eye className="w-3.5 h-3.5" />
                                   {listing.views} views
                                 </span>
-                                <span>{listing.postedDate}</span>
+                                <span>{formatListingDate(listing.postedDate)}</span>
                               </div>
 
                               {/* Status */}
@@ -2513,7 +2530,7 @@ export default function ProfilePage() {
                                 <td className="px-4 py-4">
                                   <WantedRequestStatusBadge request={request} />
                                 </td>
-                                <td className="px-4 py-4 text-sm text-gray-600">{request.postedDate}</td>
+                                <td className="px-4 py-4 text-sm text-gray-600">{formatListingDate(request.postedDate)}</td>
                                 <td className="px-4 py-4">
                                   <div className="flex items-center gap-2">
                                     {request.status === 'active' && (
@@ -2575,20 +2592,19 @@ export default function ProfilePage() {
                         {/* Mobile Card View */}
                         <div className="md:hidden space-y-4">
                           {wantedRequests.map((request) => (
-                            <div key={request.id} className="bg-white border rounded-lg shadow-sm">
+                            <div key={request.id} className="bg-white border rounded-lg shadow-sm overflow-hidden">
                               {/* Card Header */}
                               <div className="p-4">
                                 <div className="flex justify-between items-start mb-3">
                                   <div className="flex-1 min-w-0">
-                                    <Link 
+                                    <Link
                                       href={`/wanted/${request.id}`}
-                                      className="font-medium text-blue-600 hover:text-blue-700 block"
+                                      className="text-sm font-medium text-blue-600 hover:text-blue-700 block line-clamp-2 break-words"
                                     >
                                       {request.title}
                                     </Link>
-                                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">{request.description}</p>
                                   </div>
-                                  <div className="relative ml-3 overflow-visible">
+                                  <div className="relative ml-3 flex-shrink-0">
                                     <button
                                       data-dropdown-id={request.id}
                                       onClick={() => setShowActionMenu(showActionMenu === request.id ? null : request.id)}
@@ -2671,17 +2687,17 @@ export default function ProfilePage() {
 
                                 {/* Card Info */}
                                 <div className="space-y-3">
-                                  <div className="flex items-center justify-between text-sm">
-                                    <span className="text-lg font-bold text-gray-900">Rs. {request.budget.toLocaleString()}</span>
-                                    <span className="text-gray-600">{request.responses} responses</span>
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-base font-semibold text-gray-900">Rs. {request.budget.toLocaleString()}</span>
+                                    <span className="text-xs text-gray-600">{request.responses} responses</span>
                                   </div>
 
-                                  <div className="flex items-center justify-between text-sm text-gray-600">
+                                  <div className="flex items-center justify-between text-xs text-gray-600">
                                     <span className="flex items-center gap-1">
-                                      <MapPin className="w-4 h-4" />
+                                      <MapPin className="w-3.5 h-3.5" />
                                       {request.location}
                                     </span>
-                                    <span>{request.postedDate}</span>
+                                    <span>{formatListingDate(request.postedDate)}</span>
                                   </div>
 
                                   {/* Status */}
