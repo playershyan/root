@@ -2213,7 +2213,7 @@ export default function ProfilePage() {
                     ) : (
                       <>
                         {/* Desktop Table View */}
-                        <div className="hidden md:block overflow-hidden">
+                        <div className="hidden md:block">
                         <table className="w-full">
                           <thead className="bg-gray-50 border-b">
                             <tr>
@@ -2494,7 +2494,7 @@ export default function ProfilePage() {
                     ) : (
                       <>
                         {/* Desktop Table View */}
-                        <div className="hidden md:block overflow-hidden">
+                        <div className="hidden md:block">
                           <table className="w-full">
                             <thead className="bg-gray-50 border-b">
                               <tr>
