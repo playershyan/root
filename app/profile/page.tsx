@@ -2234,13 +2234,12 @@ export default function ProfilePage() {
                                     <Camera className="w-5 h-5" />
                                   </div>
                                   <div>
-                                    <Link 
+                                    <Link
                                       href={`/listings/${listing.id}`}
                                       className="font-medium text-blue-600 hover:text-blue-700"
                                     >
                                       {listing.title}
                                     </Link>
-                                    <div className="text-sm text-gray-600">{listing.details}</div>
                                   </div>
                                 </div>
                               </td>
@@ -2310,9 +2309,9 @@ export default function ProfilePage() {
                       </div>
 
                       {/* Mobile Card View */}
-                      <div className="md:hidden space-y-4">
+                      <div className="md:hidden space-y-4 relative">
                         {filteredListings.map((listing) => (
-                          <div key={listing.id} className="bg-white border rounded-lg shadow-sm">
+                          <div key={listing.id} className="bg-white border rounded-lg shadow-sm relative">
                             {/* Card Header with Image and Title */}
                             <div className="p-4">
                               <div className="flex gap-3">
@@ -2589,9 +2588,9 @@ export default function ProfilePage() {
                         </div>
 
                         {/* Mobile Card View */}
-                        <div className="md:hidden space-y-4">
+                        <div className="md:hidden space-y-4 relative">
                           {wantedRequests.map((request) => (
-                            <div key={request.id} className="bg-white border rounded-lg shadow-sm">
+                            <div key={request.id} className="bg-white border rounded-lg shadow-sm relative">
                               {/* Card Header */}
                               <div className="p-4">
                                 <div className="flex items-start justify-between gap-2">
