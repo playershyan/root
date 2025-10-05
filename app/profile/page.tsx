@@ -2312,7 +2312,7 @@ export default function ProfilePage() {
                       {/* Mobile Card View */}
                       <div className="md:hidden space-y-4">
                         {filteredListings.map((listing) => (
-                          <div key={listing.id} className="bg-white border rounded-lg shadow-sm overflow-hidden">
+                          <div key={listing.id} className="bg-white border rounded-lg shadow-sm">
                             {/* Card Header with Image and Title */}
                             <div className="p-4">
                               <div className="flex gap-3">
@@ -2518,7 +2518,6 @@ export default function ProfilePage() {
                                     >
                                       {request.title}
                                     </Link>
-                                    <div className="text-sm text-gray-600 mt-1 line-clamp-2">{request.description}</div>
                                     <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                                       <MapPin className="w-3 h-3" />
                                       {request.location}
@@ -2592,19 +2591,17 @@ export default function ProfilePage() {
                         {/* Mobile Card View */}
                         <div className="md:hidden space-y-4">
                           {wantedRequests.map((request) => (
-                            <div key={request.id} className="bg-white border rounded-lg shadow-sm overflow-hidden">
+                            <div key={request.id} className="bg-white border rounded-lg shadow-sm">
                               {/* Card Header */}
                               <div className="p-4">
-                                <div className="flex justify-between items-start mb-3">
-                                  <div className="flex-1 min-w-0">
-                                    <Link
-                                      href={`/wanted/${request.id}`}
-                                      className="text-sm font-medium text-blue-600 hover:text-blue-700 block line-clamp-2 break-words"
-                                    >
-                                      {request.title}
-                                    </Link>
-                                  </div>
-                                  <div className="relative ml-3 flex-shrink-0">
+                                <div className="flex items-start justify-between gap-2">
+                                  <Link
+                                    href={`/wanted/${request.id}`}
+                                    className="text-sm font-medium text-blue-600 hover:text-blue-700 block line-clamp-2 break-words flex-1 min-w-0"
+                                  >
+                                    {request.title}
+                                  </Link>
+                                  <div className="relative flex-shrink-0">
                                     <button
                                       data-dropdown-id={request.id}
                                       onClick={() => setShowActionMenu(showActionMenu === request.id ? null : request.id)}
