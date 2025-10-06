@@ -230,7 +230,7 @@ export default function WantedRequestsPage() {
         .from('wanted_requests')
         .select(`
           *,
-          profiles!wanted_requests_user_id_fkey (
+          profiles (
             id,
             name,
             phone,
@@ -241,6 +241,7 @@ export default function WantedRequestsPage() {
               id,
               business_name,
               phone,
+              whatsapp,
               address,
               is_active
             )
@@ -252,7 +253,7 @@ export default function WantedRequestsPage() {
 
       if (error) throw error
 
-      // Process requests with proper contact logic
+      // Process requests with proper contact logic, handling both profile and non-profile cases
       const enhancedRequests = (data || []).map((req) => {
         const profile = req.profiles
 
@@ -285,10 +286,14 @@ export default function WantedRequestsPage() {
           }
         }
 
+        // Fallback for missing data
         return {
           ...req,
-          ...contactInfo,
-          user_name: profile?.name || req.user_name || `User ${req.id.slice(0, 4)}`,
+          phone: contactInfo.phone || req.phone || 'Contact via platform',
+          whatsapp: contactInfo.whatsapp || req.whatsapp || contactInfo.phone,
+          email: contactInfo.email || req.email || '',
+          location: contactInfo.location || req.location || 'Location not specified',
+          user_name: profile?.name || req.user_name || `User ${req.id?.slice(0, 4) || 'Unknown'}`,
           user_avatar: (profile?.name || req.user_name || 'U').slice(0, 2).toUpperCase()
         }
       })

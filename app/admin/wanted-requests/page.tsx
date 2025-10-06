@@ -8,6 +8,7 @@ interface WantedRequest {
   id: string
   title: string
   description?: string
+  vehicle_type?: string
   min_budget?: number
   max_budget?: number
   make?: string
@@ -19,7 +20,7 @@ interface WantedRequest {
   fuel_type?: string
   transmission?: string
   max_mileage?: number
-  status: 'active' | 'paused' | 'deleted' | 'fulfilled'
+  status: 'pending' | 'active' | 'paused' | 'deleted' | 'fulfilled'
   urgency?: 'high' | 'medium' | 'low'
   created_at: string
   approved_at?: string
@@ -259,7 +260,7 @@ export default function WantedRequestsManagement() {
         </div>
         <div className="bg-white rounded-lg border p-4">
           <div className="text-2xl font-bold text-yellow-600">
-            {requests.filter(r => !r.approved_at).length}
+            {requests.filter(r => !r.approved_at && r.status === 'pending').length}
           </div>
           <div className="text-sm text-gray-600">Pending Approval</div>
         </div>
@@ -282,7 +283,7 @@ export default function WantedRequestsManagement() {
         <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
           <div className="flex gap-2">
             {[
-              { key: 'pending', label: 'Pending Approval', count: requests.filter(r => !r.approved_at).length },
+              { key: 'pending', label: 'Pending Approval', count: requests.filter(r => !r.approved_at && r.status === 'pending').length },
               { key: 'active', label: 'Active', count: requests.filter(r => r.status === 'active').length },
               { key: 'reported', label: 'Reported', count: requests.filter(r => r.report_count > 0).length },
               { key: 'all', label: 'All', count: totalCount }

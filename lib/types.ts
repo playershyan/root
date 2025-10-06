@@ -91,6 +91,7 @@ export interface WantedRequest {
   user_id: string
   title: string
   description: string
+  vehicle_type?: string
   make?: string
   model?: string
   min_year?: number
@@ -106,6 +107,10 @@ export interface WantedRequest {
   email?: string
   urgency?: 'high'
   is_active: boolean
+  status?: 'pending' | 'active' | 'paused' | 'deleted' | 'fulfilled'
+  approved_at?: string
+  approved_by?: string
+  rejection_reason?: string
   expires_at?: string
   created_at: string
   updated_at: string

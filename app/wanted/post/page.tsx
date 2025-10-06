@@ -417,6 +417,7 @@ export default function PostWantedPage() {
           .update({
             title: title,
             description: formData.description.trim() || null,
+            vehicle_type: formData.vehicleType || null,
             min_budget: formData.min_budget ? parseFloat(formData.min_budget) : null,
             max_budget: formData.max_budget ? parseFloat(formData.max_budget) : null,
             make: formData.make === 'Other' ? (formData.customMake || 'Other') : (formData.make || null),
@@ -445,6 +446,7 @@ export default function PostWantedPage() {
           {
             title: title,
             description: formData.description.trim() || null,
+            vehicle_type: formData.vehicleType || null,
             min_budget: formData.min_budget ? parseFloat(formData.min_budget) : null,
             max_budget: formData.max_budget ? parseFloat(formData.max_budget) : null,
             make: formData.make === 'Other' ? (formData.customMake || 'Other') : (formData.make || null),
