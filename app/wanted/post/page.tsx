@@ -443,6 +443,7 @@ export default function PostWantedPage() {
         // Create new wanted request
         const { data, error } = await supabase.from('wanted_requests').insert([
           {
+            user_id: user.id,
             title: title,
             description: formData.description.trim() || null,
             min_budget: formData.min_budget ? parseFloat(formData.min_budget) : null,
