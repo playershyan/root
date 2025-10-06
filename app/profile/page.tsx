@@ -476,73 +476,40 @@ export default function ProfilePage() {
     loadListings()
   }, [user])
 
-  // Load user wanted requests (sample data for now)
+  // Load user wanted requests from database
   useEffect(() => {
     const loadWantedRequests = async () => {
       if (!user) return
-      
+
       try {
-        // For now, we'll use sample data since wanted_requests table doesn't exist yet
-        const sampleWantedRequests: WantedRequest[] = [
-          {
-            id: '1',
-            title: 'Looking for Toyota Prius 2018-2020',
-            description: 'Need a well-maintained Toyota Prius, preferably white or silver color. Low mileage preferred.',
-            budget: 3500000,
-            status: 'active',
-            postedDate: '2025-07-10', // 41 days ago - can be renewed
-            responses: 12,
-            location: 'Colombo',
-          },
-          {
-            id: '2', 
-            title: 'Honda Vezel or HR-V under 4M',
-            description: 'Looking for Honda Vezel or HR-V in good condition. Any color acceptable. Must be within 4 million budget.',
-            budget: 4000000,
-            status: 'active',
-            postedDate: '2025-08-15', // 5 days ago - cannot be renewed (13 days remaining)
-            responses: 8,
-            location: 'Kandy',
-          },
-          {
-            id: '3',
-            title: 'BMW 3 Series F30 - 2015 onwards',
-            description: 'Searching for BMW 3 Series F30 model, 2015 or newer. Prefer automatic transmission.',
-            budget: 8500000,
-            status: 'paused',
-            postedDate: '2025-07-25', // 26 days ago - can be renewed
-            responses: 5,
-            location: 'Galle',
-          },
-          {
-            id: '4',
-            title: 'Looking for Mercedes-Benz C-Class',
-            description: 'Need C200 or C250, must be in excellent condition with AMG package',
-            budget: 12000000,
-            status: 'deleted',
-            postedDate: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-            responses: 15,
-            location: 'Colombo',
-            isReportedTakedown: true,
-            rejectionReason: 'Multiple reports: Suspected fraudulent payment terms'
-          },
-          {
-            id: '5',
-            title: 'Urgent: Need any SUV under 5M',
-            description: 'Looking for any SUV in good condition, prefer Japanese brands',
-            budget: 5000000,
-            status: 'deleted',
-            postedDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-            responses: 7,
-            location: 'Matara',
-            isReportedTakedown: true,
-            rejectionReason: 'Reported: Suspicious contact information provided'
-          }
-        ]
-        
-        setWantedRequests(sampleWantedRequests)
+        const { data: wantedRequests, error } = await supabase
+          .from('wanted_requests')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+
+        if (error) {
+          console.error('Error fetching wanted requests:', error)
+          setWantedRequests([])
+        } else {
+          const formattedRequests = wantedRequests?.map(request => ({
+            id: request.id,
+            title: request.title,
+            description: request.description,
+            budget: request.budget,
+            status: request.status,
+            postedDate: new Date(request.created_at).toLocaleDateString(),
+            responses: request.response_count || 0,
+            location: request.location,
+            isReportedTakedown: request.is_reported || false,
+            rejectionReason: request.rejection_reason || undefined
+          })) || []
+
+          setWantedRequests(formattedRequests)
+        }
       } catch (error) {
         console.error('Error loading wanted requests:', error)
+        setWantedRequests([])
       } finally {
         setWantedRequestsLoading(false)
       }
