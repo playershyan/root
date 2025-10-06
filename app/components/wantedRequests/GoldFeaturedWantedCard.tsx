@@ -9,7 +9,7 @@ interface GoldFeaturedWantedCardProps {
   request: {
     id: string
     title: string
-    description: string
+    description: string | null
     budget: number
     location: string
     make?: string
@@ -52,7 +52,8 @@ export default function GoldFeaturedWantedCard({ request, size = 'regular' }: Go
     return `${diffInMonths} months ago`
   }
 
-  const truncateDescription = (text: string, maxLength: number) => {
+  const truncateDescription = (text: string | null, maxLength: number) => {
+    if (!text) return 'No description available'
     if (text.length <= maxLength) return text
     return text.substring(0, maxLength) + '...'
   }

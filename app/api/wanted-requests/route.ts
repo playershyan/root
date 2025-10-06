@@ -25,25 +25,7 @@ export async function GET(request: NextRequest) {
     // Build query
     let query = supabase
       .from('wanted_requests')
-      .select(`
-        *,
-        profiles!wanted_requests_user_id_fkey (
-          id,
-          name,
-          phone,
-          email,
-          location,
-          avatar_url,
-          business_profiles (
-            id,
-            business_name,
-            phone,
-            whatsapp,
-            address,
-            is_active
-          )
-        )
-      `, { count: 'exact' })
+      .select('*', { count: 'exact' })
       .eq('status', 'active')
       .eq('is_active', true)
 
@@ -109,46 +91,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch wanted requests' }, { status: 500 })
     }
 
-    // Process requests to include proper contact info
-    const enhancedRequests = (requests || []).map((req) => {
-      const profile = req.profiles
-
-      // Determine contact info based on business profile status
-      let contactInfo = {
-        phone: req.phone,
-        whatsapp: req.whatsapp,
-        email: req.email,
-        location: req.location
-      }
-
-      if (profile) {
-        // Check if user has active business profile
-        if (profile.business_profiles && profile.business_profiles.is_active) {
-          const businessProfile = profile.business_profiles
-          contactInfo = {
-            phone: businessProfile.phone || profile.phone || req.phone,
-            whatsapp: businessProfile.whatsapp || businessProfile.phone || profile.whatsapp || profile.phone || req.whatsapp,
-            email: profile.email || req.email,
-            location: businessProfile.address || profile.location || req.location
-          }
-        } else {
-          // Use individual profile contact info
-          contactInfo = {
-            phone: profile.phone || req.phone,
-            whatsapp: profile.whatsapp || profile.phone || req.whatsapp,
-            email: profile.email || req.email,
-            location: profile.location || req.location
-          }
-        }
-      }
-
-      return {
-        ...req,
-        ...contactInfo,
-        user_name: profile?.name || req.user_name || `User ${req.id.slice(0, 4)}`,
-        user_avatar: (profile?.name || req.user_name || 'U').slice(0, 2).toUpperCase()
-      }
-    })
+    const enhancedRequests = requests || []
 
     return NextResponse.json({
       requests: enhancedRequests,

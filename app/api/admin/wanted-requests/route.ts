@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (pending) {
-      query = query.is('approved_at', null).eq('status', 'pending')
+      query = query.eq('status', 'active')
     }
 
     if (reported) {

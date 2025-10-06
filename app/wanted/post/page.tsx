@@ -112,7 +112,7 @@ export default function PostWantedPage() {
             // Map database fields to form fields
             setFormData({
               description: data.description || '',
-              vehicleType: data.vehicle_type || '',
+              vehicleType: '',
               min_budget: data.min_budget ? data.min_budget.toString() : '',
               max_budget: data.max_budget ? data.max_budget.toString() : '',
               make: data.make || '',
@@ -417,7 +417,6 @@ export default function PostWantedPage() {
           .update({
             title: title,
             description: formData.description.trim() || null,
-            vehicle_type: formData.vehicleType || null,
             min_budget: formData.min_budget ? parseFloat(formData.min_budget) : null,
             max_budget: formData.max_budget ? parseFloat(formData.max_budget) : null,
             make: formData.make === 'Other' ? (formData.customMake || 'Other') : (formData.make || null),
@@ -446,7 +445,6 @@ export default function PostWantedPage() {
           {
             title: title,
             description: formData.description.trim() || null,
-            vehicle_type: formData.vehicleType || null,
             min_budget: formData.min_budget ? parseFloat(formData.min_budget) : null,
             max_budget: formData.max_budget ? parseFloat(formData.max_budget) : null,
             make: formData.make === 'Other' ? (formData.customMake || 'Other') : (formData.make || null),
