@@ -13,6 +13,7 @@ export interface BaseVehicleFormData {
   transmission?: string
   color?: string
   trim?: string
+  grade?: string
   district: string
   city: string
   pricingType?: 'cash' | 'finance'

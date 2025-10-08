@@ -169,9 +169,9 @@ export default function EnhancedPostVehiclePage() {
 
             // Vehicle details
             mileage: listing.mileage?.toString() || '',
+            condition: listing.condition || 'Used',
             fuelType: listing.fuel_type || '',
             transmission: listing.transmission || '',
-            bodyType: listing.body_type || '',
             engineCapacity: listing.engine_capacity?.toString() || '',
             color: listing.color || '',
 
@@ -182,6 +182,7 @@ export default function EnhancedPostVehiclePage() {
             previousOwners: listing.previous_owners?.toString() || '',
             includingFinanceCompanies: listing.including_finance_companies || false,
             serviceRecordsAvailable: listing.service_records_available || false,
+            trim: listing.trim || listing.grade || '',
             grade: listing.grade || '',
 
             // Pricing and finance
@@ -198,7 +199,6 @@ export default function EnhancedPostVehiclePage() {
             // Description and location
             title: listing.title || '',
             description: listing.description || listing.details || '',
-            location: listing.location || '',
             city: listing.city || '',
             district: listing.district || '',
 
@@ -223,8 +223,11 @@ export default function EnhancedPostVehiclePage() {
           // Set location dropdowns
           if (listing.district) {
             setSelectedDistrict(listing.district)
-            const cities = getCitiesByDistrictId(getDistrictByName(listing.district)?.id || '')
-            setAvailableCities(cities)
+            const district = getDistrictByName(listing.district)
+            if (district) {
+              const cities = getCitiesByDistrictId(district.id)
+              setAvailableCities(cities.map(c => c.name))
+            }
           }
 
           // Load existing images
@@ -642,7 +645,7 @@ export default function EnhancedPostVehiclePage() {
       }
 
       // Prepare the listing data according to the database schema
-      const listingData = {
+      const listingData: any = {
         user_id: user.id,
         title: formData.title,
         description: formData.description,

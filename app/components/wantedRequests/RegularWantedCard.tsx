@@ -27,8 +27,8 @@ interface RegularWantedCardProps {
 }
 
 export default function RegularWantedCard({ request }: RegularWantedCardProps) {
-  const formatPrice = (price: number) => {
-    return `Rs. ${price.toLocaleString()}`
+  const formatPrice = (price: number | null | undefined) => {
+    return `Rs. ${price?.toLocaleString() || '0'}`
   }
 
   const getTimeAgo = (date: string) => {
@@ -103,7 +103,7 @@ export default function RegularWantedCard({ request }: RegularWantedCardProps) {
             {request.max_mileage && (
               <span className="flex items-center gap-1">
                 <i className="fas fa-tachometer-alt text-blue-500 text-xs"></i>
-                Max {request.max_mileage.toLocaleString()} km
+                Max {request.max_mileage?.toLocaleString() || '0'} km
               </span>
             )}
             {request.fuel_type && (

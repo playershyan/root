@@ -29,8 +29,8 @@ interface UrgentWantedCardProps {
 }
 
 export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
-  const formatPrice = (price: number) => {
-    return `Rs. ${price.toLocaleString()}`
+  const formatPrice = (price: number | null | undefined) => {
+    return `Rs. ${price?.toLocaleString() || '0'}`
   }
 
   const getTimeAgo = (date: string) => {
@@ -108,7 +108,7 @@ export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
             {request.mileage_max && (
               <span className="flex items-center gap-1">
                 <i className="fas fa-tachometer-alt text-red-500 text-xs"></i>
-                Max {request.mileage_max.toLocaleString()} km
+                Max {request.mileage_max?.toLocaleString() || '0'} km
               </span>
             )}
             {request.fuel_type && (

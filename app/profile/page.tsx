@@ -75,7 +75,7 @@ interface WantedRequest {
   title: string
   description: string
   budget: number
-  status: 'active' | 'paused' | 'closed' | 'deleted'
+  status: 'active' | 'paused' | 'closed' | 'deleted' | 'fulfilled'
   postedDate: string
   responses: number
   location: string
@@ -2252,7 +2252,7 @@ export default function ProfilePage() {
                                   </div>
                                 </div>
                               </td>
-                              <td className="px-4 py-4">Rs. {listing.price.toLocaleString()}</td>
+                              <td className="px-4 py-4">Rs. {listing.price?.toLocaleString() || '0'}</td>
                               <td className="px-4 py-4">{listing.views}</td>
                               <td className="px-4 py-4">
                                 <ListingStatusBadge listing={listing} showReason={true} />
@@ -2348,7 +2348,7 @@ export default function ProfilePage() {
                                     </div>
                                   </div>
                                   <div className="mt-2">
-                                    <span className="text-base font-semibold text-gray-900">Rs. {listing.price.toLocaleString()}</span>
+                                    <span className="text-base font-semibold text-gray-900">Rs. {listing.price?.toLocaleString() || '0'}</span>
                                   </div>
                                 </div>
                               </div>
@@ -2532,7 +2532,7 @@ export default function ProfilePage() {
                                     </div>
                                   </div>
                                 </td>
-                                <td className="px-4 py-4">Rs. {request.budget.toLocaleString()}</td>
+                                <td className="px-4 py-4">Rs. {request.budget?.toLocaleString() || '0'}</td>
                                 <td className="px-4 py-4">{request.responses}</td>
                                 <td className="px-4 py-4">
                                   <WantedRequestStatusBadge request={request} />
@@ -2713,7 +2713,7 @@ export default function ProfilePage() {
                                 {/* Card Info */}
                                 <div className="space-y-3">
                                   <div className="flex items-center justify-between">
-                                    <span className="text-base font-semibold text-gray-900">Rs. {request.budget.toLocaleString()}</span>
+                                    <span className="text-base font-semibold text-gray-900">Rs. {request.budget?.toLocaleString() || '0'}</span>
                                     <span className="text-xs text-gray-600">{request.responses} responses</span>
                                   </div>
 
