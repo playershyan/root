@@ -10,7 +10,9 @@ interface BoostedWantedCardProps {
     id: string
     title: string
     description: string
-    budget: number
+    budget?: number | null
+    min_budget?: number | null
+    max_budget?: number | null
     location: string
     make?: string
     model?: string
@@ -31,6 +33,22 @@ interface BoostedWantedCardProps {
 export default function BoostedWantedCard({ request }: BoostedWantedCardProps) {
   const formatPrice = (price: number | null | undefined) => {
     return `Rs. ${price?.toLocaleString() || '0'}`
+  }
+
+  const formatBudgetRange = () => {
+    if (request.min_budget && request.max_budget) {
+      return `Rs. ${request.min_budget.toLocaleString()} - ${request.max_budget.toLocaleString()}`
+    }
+    if (request.max_budget) {
+      return `Up to Rs. ${request.max_budget.toLocaleString()}`
+    }
+    if (request.min_budget) {
+      return `From Rs. ${request.min_budget.toLocaleString()}`
+    }
+    if (request.budget) {
+      return formatPrice(request.budget)
+    }
+    return 'Budget not specified'
   }
 
   const getTimeAgo = (date: string) => {
@@ -134,7 +152,7 @@ export default function BoostedWantedCard({ request }: BoostedWantedCardProps) {
           <div className="mb-4">
             <div className="text-sm text-blue-700 font-medium mb-1">Budget Range</div>
             <div className="font-bold text-2xl text-blue-600">
-              {formatPrice(request.budget)}
+              {formatBudgetRange()}
             </div>
           </div>
 
