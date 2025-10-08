@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { MapPin, Calendar, TrendingUp, MessageCircle, Eye, Phone, Zap } from 'lucide-react'
+import { MapPin, Calendar, TrendingUp, MessageCircle, Zap, Star } from 'lucide-react'
 import FavoriteButton from '@/app/components/FavoriteButton'
 
 interface BoostedWantedCardProps {
@@ -31,10 +31,6 @@ interface BoostedWantedCardProps {
 }
 
 export default function BoostedWantedCard({ request }: BoostedWantedCardProps) {
-  const formatPrice = (price: number | null | undefined) => {
-    return `Rs. ${price?.toLocaleString() || '0'}`
-  }
-
   const formatBudgetRange = () => {
     if (request.min_budget && request.max_budget) {
       return `Rs. ${request.min_budget.toLocaleString()} - ${request.max_budget.toLocaleString()}`
@@ -46,7 +42,7 @@ export default function BoostedWantedCard({ request }: BoostedWantedCardProps) {
       return `From Rs. ${request.min_budget.toLocaleString()}`
     }
     if (request.budget) {
-      return formatPrice(request.budget)
+      return `Rs. ${request.budget.toLocaleString()}`
     }
     return 'Budget not specified'
   }
@@ -66,11 +62,6 @@ export default function BoostedWantedCard({ request }: BoostedWantedCardProps) {
     return `${diffInMonths} months ago`
   }
 
-  const truncateDescription = (text: string, maxLength: number) => {
-    if (text.length <= maxLength) return text
-    return text.substring(0, maxLength) + '...'
-  }
-
   const getYearRange = () => {
     if (request.min_year && request.max_year) {
       return `${request.min_year} - ${request.max_year}`
@@ -83,165 +74,159 @@ export default function BoostedWantedCard({ request }: BoostedWantedCardProps) {
   }
 
   return (
-    <div className="relative rounded-xl overflow-hidden transition-all duration-300 group cursor-pointer bg-gradient-to-br from-blue-50 via-white to-blue-50 border-2 border-blue-200 hover:border-blue-300 shadow-lg hover:shadow-xl hover:shadow-blue-200/50 hover:-translate-y-1">
-      {/* Boost Badge */}
-      <div className="absolute top-4 left-4 z-20">
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
-          <TrendingUp className="w-4 h-4" />
-          <span className="text-sm font-bold tracking-wide">BOOSTED</span>
+    <div className="
+      relative rounded-xl overflow-hidden
+      bg-gradient-to-br from-blue-50 via-white to-blue-50/50
+      border-2 border-blue-300
+      shadow-xl shadow-blue-200/40
+      hover:shadow-2xl hover:shadow-blue-300/50
+      transition-all duration-300
+      hover:-translate-y-1
+    ">
+      {/* Shimmer Effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-50/30 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+
+      {/* Top Badges Row */}
+      <div className="absolute top-0 left-0 right-0 p-3 flex items-start justify-between z-20">
+        {/* Boosted Badge */}
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2">
+          <TrendingUp className="w-3.5 h-3.5" />
+          <span className="text-xs font-bold tracking-wide">BOOSTED</span>
         </div>
       </div>
 
-      {/* Boost Glow Effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-100/20 via-transparent to-blue-100/20 pointer-events-none"></div>
+      {/* Favorite Button - Top Right Corner */}
+      <div className="absolute top-3 right-3 z-30">
+        <FavoriteButton
+          listingId={request.id}
+          className="bg-white hover:bg-blue-50 shadow-md border border-blue-200 hover:border-blue-300 transition-colors"
+        />
+      </div>
 
       <Link href={`/wanted/${request.id}`} className="block">
-        <div className="p-6 mt-12 bg-gradient-to-br from-white via-blue-50/30 to-white">
-          {/* Header */}
+        <div className="relative pt-12 pb-5 px-5">
+
+          {/* Title & Vehicle Info */}
           <div className="mb-4">
-            <h3 className="font-bold text-xl text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-700 transition-colors">
+            <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 hover:text-blue-700 transition-colors text-lg">
               {request.title}
             </h3>
 
-            {/* Vehicle Specifications */}
+            {/* Vehicle Specs Pills */}
             {(request.make || request.model || getYearRange()) && (
-              <div className="flex flex-wrap gap-3 text-sm text-blue-700 mb-3 font-medium">
-                {request.make && <span>{request.make}</span>}
-                {request.model && <span>{request.model}</span>}
-                {getYearRange() && <span>{getYearRange()}</span>}
-                {request.fuel_type && <span>{request.fuel_type}</span>}
-                {request.transmission && <span>{request.transmission}</span>}
+              <div className="flex flex-wrap gap-2 mb-3">
+                {request.make && (
+                  <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">
+                    {request.make}
+                  </span>
+                )}
+                {request.model && (
+                  <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">
+                    {request.model}
+                  </span>
+                )}
+                {getYearRange() && (
+                  <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">
+                    {getYearRange()}
+                  </span>
+                )}
               </div>
             )}
           </div>
 
           {/* Description */}
-          <p className="text-gray-600 mb-4 text-sm line-clamp-3">
-            {truncateDescription(request.description, 140)}
-          </p>
+          {request.description && (
+            <p className="text-gray-600 mb-4 leading-relaxed text-sm line-clamp-2">
+              {request.description}
+            </p>
+          )}
 
-          {/* Requirements */}
-          <div className="flex flex-wrap gap-3 text-sm text-gray-600 mb-4">
+          {/* Requirements Grid */}
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            {/* Location */}
+            <div className="flex items-center gap-2 text-gray-700">
+              <MapPin className="w-4 h-4 text-blue-500 flex-shrink-0" />
+              <span className="text-sm truncate">{request.location}</span>
+            </div>
+
+            {/* Mileage */}
             {request.max_mileage && (
-              <span className="flex items-center gap-1">
-                <i className="fas fa-tachometer-alt text-blue-500 text-xs"></i>
-                Max {request.max_mileage?.toLocaleString() || '0'} km
-              </span>
+              <div className="flex items-center gap-2 text-gray-700">
+                <TrendingUp className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                <span className="text-sm">Max {request.max_mileage.toLocaleString()} km</span>
+              </div>
             )}
+
+            {/* Fuel Type */}
             {request.fuel_type && (
-              <span className="flex items-center gap-1">
-                <i className="fas fa-gas-pump text-blue-500 text-xs"></i>
-                {request.fuel_type}
-              </span>
+              <div className="flex items-center gap-2 text-gray-700">
+                <i className="fas fa-gas-pump text-blue-500 text-sm w-4 text-center flex-shrink-0"></i>
+                <span className="text-sm">{request.fuel_type}</span>
+              </div>
             )}
+
+            {/* Transmission */}
             {request.transmission && (
-              <span className="flex items-center gap-1">
-                <i className="fas fa-cogs text-blue-500 text-xs"></i>
-                {request.transmission}
-              </span>
+              <div className="flex items-center gap-2 text-gray-700">
+                <i className="fas fa-cogs text-blue-500 text-sm w-4 text-center flex-shrink-0"></i>
+                <span className="text-sm">{request.transmission}</span>
+              </div>
             )}
           </div>
 
-          {/* Location */}
-          <div className="flex items-center gap-2 text-gray-600 mb-4">
-            <MapPin className="w-4 h-4 text-blue-500" />
-            <span className="text-sm">{request.location}</span>
-          </div>
-
-          {/* Budget */}
-          <div className="mb-4">
-            <div className="text-sm text-blue-700 font-medium mb-1">Budget Range</div>
-            <div className="font-bold text-2xl text-blue-600">
+          {/* Budget Section */}
+          <div className="bg-gradient-to-br from-blue-100/60 to-blue-50/50 rounded-lg p-3 mb-4 border border-blue-200/50">
+            <div className="text-xs text-blue-700 font-semibold mb-1 uppercase tracking-wide">Budget Range</div>
+            <div className="font-bold text-blue-600 text-xl">
               {formatBudgetRange()}
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="flex gap-4 text-xs text-gray-500 mb-4">
-            <span className="flex items-center gap-1">
-              <Eye className="w-3 h-3" />
-              {request.views || 0} views
-            </span>
-            <span className="flex items-center gap-1">
-              <MessageCircle className="w-3 h-3" />
-              {request.responses || 0} responses
-            </span>
-            <span className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
-              {getTimeAgo(request.created_at)}
-            </span>
-          </div>
-
-          {/* Boost Features */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Zap className="w-4 h-4 text-blue-600" />
-              <span className="text-sm font-semibold text-blue-800">Boosted Benefits</span>
+          {/* Stats Bar */}
+          <div className="flex items-center justify-between py-3 border-t border-blue-200/50">
+            <div className="flex items-center gap-4 text-xs text-gray-500">
+              <span className="flex items-center gap-1.5">
+                <MessageCircle className="w-3.5 h-3.5" />
+                {request.responses || 0} responses
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5" />
+                {getTimeAgo(request.created_at)}
+              </span>
             </div>
-            <div className="text-xs text-blue-700 space-y-1">
-              <div className="flex items-center gap-1">
-                <span className="w-1 h-1 bg-blue-500 rounded-full"></span>
-                <span>Higher visibility in search results</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="w-1 h-1 bg-blue-500 rounded-full"></span>
-                <span>Daily repositioning to top of listings</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="w-1 h-1 bg-blue-500 rounded-full"></span>
-                <span>Up to 8x more responses</span>
-              </div>
+
+            {/* Boost Indicator */}
+            <div className="flex items-center gap-1 text-xs text-blue-700 font-medium">
+              <Zap className="w-3 h-3 fill-blue-500" />
+              Enhanced
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2 pt-3 border-t border-blue-100">
+          {/* CTA Button */}
+          <div className="pt-3">
             <button
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                // Handle priority response action
+                window.location.href = `/wanted/${request.id}`
               }}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 shadow-md"
+              className="
+                w-full bg-gradient-to-r from-blue-600 to-blue-700
+                hover:from-blue-700 hover:to-blue-800
+                text-white font-bold rounded-lg
+                transition-all duration-200
+                flex items-center justify-center gap-2
+                shadow-md hover:shadow-lg
+                py-2.5 text-sm
+              "
             >
               <MessageCircle className="w-4 h-4" />
               Priority Response
             </button>
-            <button
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                // Handle contact action
-              }}
-              className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-4 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2"
-            >
-              <Phone className="w-4 h-4" />
-              Contact
-            </button>
           </div>
 
-          {/* Boost Status */}
-          <div className="mt-4 pt-3 border-t border-blue-200">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-blue-700 font-medium flex items-center gap-1">
-                <TrendingUp className="w-3 h-3 text-blue-500" />
-                Boosted Request • Enhanced Visibility
-              </span>
-              <span className="text-xs text-gray-500">
-                Verified Buyer
-              </span>
-            </div>
-          </div>
         </div>
       </Link>
-
-      {/* Favorite Button */}
-      <div className="absolute top-16 right-4 z-10">
-        <FavoriteButton
-          listingId={request.id}
-          className="bg-white/90 hover:bg-white shadow-lg border border-blue-200"
-        />
-      </div>
     </div>
   )
 }

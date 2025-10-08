@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { MapPin, Calendar, MessageCircle, Eye, Phone } from 'lucide-react'
+import { MapPin, Calendar, MessageCircle, TrendingUp } from 'lucide-react'
 import FavoriteButton from '@/app/components/FavoriteButton'
 
 interface RegularWantedCardProps {
@@ -29,10 +29,6 @@ interface RegularWantedCardProps {
 }
 
 export default function RegularWantedCard({ request }: RegularWantedCardProps) {
-  const formatPrice = (price: number | null | undefined) => {
-    return `Rs. ${price?.toLocaleString() || '0'}`
-  }
-
   const formatBudgetRange = () => {
     if (request.min_budget && request.max_budget) {
       return `Rs. ${request.min_budget.toLocaleString()} - ${request.max_budget.toLocaleString()}`
@@ -44,7 +40,7 @@ export default function RegularWantedCard({ request }: RegularWantedCardProps) {
       return `From Rs. ${request.min_budget.toLocaleString()}`
     }
     if (request.budget) {
-      return formatPrice(request.budget)
+      return `Rs. ${request.budget.toLocaleString()}`
     }
     return 'Budget not specified'
   }
@@ -64,11 +60,6 @@ export default function RegularWantedCard({ request }: RegularWantedCardProps) {
     return `${diffInMonths} months ago`
   }
 
-  const truncateDescription = (text: string, maxLength: number) => {
-    if (text.length <= maxLength) return text
-    return text.substring(0, maxLength) + '...'
-  }
-
   const getYearRange = () => {
     if (request.min_year && request.max_year) {
       return `${request.min_year} - ${request.max_year}`
@@ -80,147 +71,155 @@ export default function RegularWantedCard({ request }: RegularWantedCardProps) {
     return null
   }
 
-  const getUrgencyColor = () => {
-    switch (request.urgency) {
-      case 'high': return 'text-orange-600'
-      case 'medium': return 'text-yellow-600'
-      case 'low': return 'text-green-600'
-      default: return 'text-gray-600'
-    }
-  }
-
   return (
-    <div className="relative rounded-lg overflow-hidden transition-all duration-300 group cursor-pointer bg-white border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-md">
+    <div className="
+      relative rounded-xl overflow-hidden
+      bg-white
+      border border-gray-200
+      shadow-md hover:shadow-lg
+      transition-all duration-300
+      hover:-translate-y-1
+    ">
+      {/* Favorite Button - Top Right Corner */}
+      <div className="absolute top-3 right-3 z-30">
+        <FavoriteButton
+          listingId={request.id}
+          className="bg-white hover:bg-gray-50 shadow-md border border-gray-200 hover:border-gray-300 transition-colors"
+        />
+      </div>
+
       <Link href={`/wanted/${request.id}`} className="block">
-        <div className="p-5">
-          {/* Header */}
-          <div className="mb-4">
-            <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-700 transition-colors">
+        <div className="relative p-5">
+
+          {/* Title & Vehicle Info */}
+          <div className="mb-4 pr-8">
+            <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 hover:text-blue-600 transition-colors text-lg">
               {request.title}
             </h3>
 
-            {/* Vehicle Specifications */}
+            {/* Vehicle Specs Pills */}
             {(request.make || request.model || getYearRange()) && (
-              <div className="flex flex-wrap gap-3 text-sm text-gray-600 mb-3 font-medium">
-                {request.make && <span>{request.make}</span>}
-                {request.model && <span>{request.model}</span>}
-                {getYearRange() && <span>{getYearRange()}</span>}
-                {request.fuel_type && <span>{request.fuel_type}</span>}
-                {request.transmission && <span>{request.transmission}</span>}
+              <div className="flex flex-wrap gap-2 mb-3">
+                {request.make && (
+                  <span className="bg-gray-100 text-gray-800 text-xs font-semibold px-3 py-1 rounded-full">
+                    {request.make}
+                  </span>
+                )}
+                {request.model && (
+                  <span className="bg-gray-100 text-gray-800 text-xs font-semibold px-3 py-1 rounded-full">
+                    {request.model}
+                  </span>
+                )}
+                {getYearRange() && (
+                  <span className="bg-gray-100 text-gray-800 text-xs font-semibold px-3 py-1 rounded-full">
+                    {getYearRange()}
+                  </span>
+                )}
               </div>
             )}
           </div>
 
           {/* Description */}
-          <p className="text-gray-600 mb-4 text-sm line-clamp-3">
-            {truncateDescription(request.description, 150)}
-          </p>
+          {request.description && (
+            <p className="text-gray-600 mb-4 leading-relaxed text-sm line-clamp-2">
+              {request.description}
+            </p>
+          )}
 
-          {/* Requirements */}
-          <div className="flex flex-wrap gap-3 text-sm text-gray-600 mb-4">
+          {/* Requirements Grid */}
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            {/* Location */}
+            <div className="flex items-center gap-2 text-gray-700">
+              <MapPin className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <span className="text-sm truncate">{request.location}</span>
+            </div>
+
+            {/* Mileage */}
             {request.max_mileage && (
-              <span className="flex items-center gap-1">
-                <i className="fas fa-tachometer-alt text-blue-500 text-xs"></i>
-                Max {request.max_mileage?.toLocaleString() || '0'} km
-              </span>
+              <div className="flex items-center gap-2 text-gray-700">
+                <TrendingUp className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                <span className="text-sm">Max {request.max_mileage.toLocaleString()} km</span>
+              </div>
             )}
+
+            {/* Fuel Type */}
             {request.fuel_type && (
-              <span className="flex items-center gap-1">
-                <i className="fas fa-gas-pump text-blue-500 text-xs"></i>
-                {request.fuel_type}
-              </span>
+              <div className="flex items-center gap-2 text-gray-700">
+                <i className="fas fa-gas-pump text-gray-500 text-sm w-4 text-center flex-shrink-0"></i>
+                <span className="text-sm">{request.fuel_type}</span>
+              </div>
             )}
+
+            {/* Transmission */}
             {request.transmission && (
-              <span className="flex items-center gap-1">
-                <i className="fas fa-cogs text-blue-500 text-xs"></i>
-                {request.transmission}
-              </span>
+              <div className="flex items-center gap-2 text-gray-700">
+                <i className="fas fa-cogs text-gray-500 text-sm w-4 text-center flex-shrink-0"></i>
+                <span className="text-sm">{request.transmission}</span>
+              </div>
             )}
           </div>
 
-          {/* Location */}
-          <div className="flex items-center gap-2 text-gray-600 mb-4">
-            <MapPin className="w-4 h-4 text-gray-400" />
-            <span className="text-sm">{request.location}</span>
-          </div>
-
-          {/* Budget */}
-          <div className="mb-4">
-            <div className="text-sm text-gray-500 font-medium mb-1">Budget Range</div>
-            <div className="font-bold text-2xl text-gray-900">
+          {/* Budget Section */}
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-lg p-3 mb-4 border border-gray-200/50">
+            <div className="text-xs text-gray-600 font-semibold mb-1 uppercase tracking-wide">Budget Range</div>
+            <div className="font-bold text-gray-900 text-xl">
               {formatBudgetRange()}
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="flex gap-4 text-xs text-gray-500 mb-4">
-            <span className="flex items-center gap-1">
-              <Eye className="w-3 h-3" />
-              {request.views || 0} views
-            </span>
-            <span className="flex items-center gap-1">
-              <MessageCircle className="w-3 h-3" />
-              {request.responses || 0} responses
-            </span>
-            <span className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
-              {getTimeAgo(request.created_at)}
-            </span>
+          {/* Stats Bar */}
+          <div className="flex items-center justify-between py-3 border-t border-gray-200/50">
+            <div className="flex items-center gap-4 text-xs text-gray-500">
+              <span className="flex items-center gap-1.5">
+                <MessageCircle className="w-3.5 h-3.5" />
+                {request.responses || 0} responses
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5" />
+                {getTimeAgo(request.created_at)}
+              </span>
+            </div>
+
+            {/* Verified Badge */}
+            {request.urgency && (
+              <div className={`text-xs font-medium flex items-center gap-1 ${
+                request.urgency === 'high' ? 'text-orange-600' :
+                request.urgency === 'medium' ? 'text-yellow-600' : 'text-green-600'
+              }`}>
+                <span className={`w-2 h-2 rounded-full ${
+                  request.urgency === 'high' ? 'bg-orange-500' :
+                  request.urgency === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                }`}></span>
+                {request.urgency.charAt(0).toUpperCase() + request.urgency.slice(1)}
+              </div>
+            )}
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2 pt-3 border-t border-gray-100">
+          {/* CTA Button */}
+          <div className="pt-3">
             <button
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                // Handle response action
+                window.location.href = `/wanted/${request.id}`
               }}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+              className="
+                w-full bg-blue-600
+                hover:bg-blue-700
+                text-white font-semibold rounded-lg
+                transition-all duration-200
+                flex items-center justify-center gap-2
+                shadow-sm hover:shadow-md
+                py-2.5 text-sm
+              "
             >
               <MessageCircle className="w-4 h-4" />
-              Respond
-            </button>
-            <button
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                // Handle contact action
-              }}
-              className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2"
-            >
-              <Phone className="w-4 h-4" />
-              Contact
+              Respond to Request
             </button>
           </div>
 
-          {/* Urgency Indicator */}
-          {request.urgency && (
-            <div className="mt-3 pt-3 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <span className={`text-xs font-medium flex items-center gap-1 ${getUrgencyColor()}`}>
-                  <span className={`w-2 h-2 rounded-full ${
-                    request.urgency === 'high' ? 'bg-orange-500' :
-                    request.urgency === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
-                  }`}></span>
-                  {request.urgency.charAt(0).toUpperCase() + request.urgency.slice(1)} Priority
-                </span>
-                <span className="text-xs text-gray-500">
-                  Verified Buyer
-                </span>
-              </div>
-            </div>
-          )}
         </div>
       </Link>
-
-      {/* Favorite Button */}
-      <div className="absolute top-4 right-4 z-10">
-        <FavoriteButton
-          listingId={request.id}
-          className="bg-white/90 hover:bg-white shadow-md border border-gray-200"
-        />
-      </div>
     </div>
   )
 }

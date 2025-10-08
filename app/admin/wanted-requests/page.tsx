@@ -415,10 +415,6 @@ export default function WantedRequestsManagement() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-600">
-                        <div className="flex items-center gap-1 mb-1">
-                          <Eye className="w-3 h-3" />
-                          {request.view_count} views
-                        </div>
                         <div className="flex items-center gap-1">
                           <MessageSquare className="w-3 h-3" />
                           {request.response_count} responses
