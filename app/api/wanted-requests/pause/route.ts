@@ -100,19 +100,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Log the action
-    const { error: logError } = await supabase
-      .from('wanted_request_actions')
-      .insert({
-        wanted_request_id: requestId,
-        user_id: user.id,
-        action: action === 'pause' ? 'paused' : 'resumed',
-        created_at: now.toISOString()
-      })
-    
-    if (logError) {
-      console.error(`Failed to log ${action} action:`, logError)
-    }
+    // Note: wanted_request_actions table does not exist in database
+    // Action logging removed until table is created via migration
 
     return NextResponse.json({
       success: true,

@@ -48,8 +48,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if request is already closed
-    if (wantedRequest.status === 'closed') {
+    // Check if request is already closed/fulfilled
+    if (wantedRequest.status === 'fulfilled') {
       return NextResponse.json(
         { error: 'Wanted request is already closed' },
         { status: 400 }
@@ -58,11 +58,11 @@ export async function POST(request: NextRequest) {
 
     const now = new Date()
 
-    // Update the wanted request status to closed
+    // Update the wanted request status to fulfilled (closed)
     const { data: updatedRequest, error: updateError } = await supabase
       .from('wanted_requests')
       .update({
-        status: 'closed',
+        status: 'fulfilled',
         closed_at: now.toISOString(),
         updated_at: now.toISOString()
       })
@@ -79,19 +79,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Log the close action
-    const { error: logError } = await supabase
-      .from('wanted_request_actions')
-      .insert({
-        wanted_request_id: requestId,
-        user_id: user.id,
-        action: 'closed',
-        created_at: now.toISOString()
-      })
-    
-    if (logError) {
-      console.error('Failed to log close action:', logError)
-    }
+    // Note: wanted_request_actions table does not exist in database
+    // Action logging removed until table is created via migration
 
     return NextResponse.json({
       success: true,
