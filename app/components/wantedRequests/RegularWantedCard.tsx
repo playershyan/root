@@ -24,13 +24,32 @@ interface RegularWantedCardProps {
     transmission?: string
     created_at: string
     views?: number
-    responses?: number
+    clicks?: number
     urgency?: 'low' | 'medium' | 'high'
   }
 }
 
 export default function RegularWantedCard({ request }: RegularWantedCardProps) {
   const [showContactModal, setShowContactModal] = useState(false)
+
+  const handleRespondClick = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    // Track click in database
+    try {
+      await fetch('/api/wanted-requests/track-click', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId: request.id })
+      })
+    } catch (error) {
+      console.error('Failed to track click:', error)
+    }
+
+    // Open modal
+    setShowContactModal(true)
+  }
 
   const formatBudgetRange = () => {
     if (request.min_budget && request.max_budget) {
@@ -176,7 +195,7 @@ export default function RegularWantedCard({ request }: RegularWantedCardProps) {
             <div className="flex items-center gap-4 text-xs text-gray-500">
               <span className="flex items-center gap-1.5">
                 <MessageCircle className="w-3.5 h-3.5" />
-                {request.responses || 0} responses
+                {request.clicks || 0} clicks
               </span>
               <span className="flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5" />
@@ -202,11 +221,7 @@ export default function RegularWantedCard({ request }: RegularWantedCardProps) {
           {/* CTA Button */}
           <div className="pt-3">
             <button
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                setShowContactModal(true)
-              }}
+              onClick={handleRespondClick}
               className="
                 w-full bg-blue-600
                 hover:bg-blue-700

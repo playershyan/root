@@ -48,7 +48,7 @@ interface WantedRequest {
   high_priority_until?: string
   boosted_until?: string
   views?: number
-  responses?: number
+  clicks?: number
 }
 
 interface FilterState {

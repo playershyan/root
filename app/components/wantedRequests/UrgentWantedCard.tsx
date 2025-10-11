@@ -24,7 +24,7 @@ interface UrgentWantedCardProps {
     transmission?: string
     created_at: string
     views?: number
-    responses?: number
+    clicks?: number
     is_urgent: true
     urgent_until?: string
     urgency?: 'urgent' | 'high'
@@ -33,6 +33,25 @@ interface UrgentWantedCardProps {
 
 export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
   const [showContactModal, setShowContactModal] = useState(false)
+
+  const handleRespondClick = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    // Track click in database
+    try {
+      await fetch('/api/wanted-requests/track-click', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId: request.id })
+      })
+    } catch (error) {
+      console.error('Failed to track click:', error)
+    }
+
+    // Open modal
+    setShowContactModal(true)
+  }
 
   const formatBudgetRange = () => {
     if (request.min_budget && request.max_budget) {
@@ -191,7 +210,7 @@ export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
             <div className="flex items-center gap-4 text-xs text-gray-500">
               <span className="flex items-center gap-1.5">
                 <MessageCircle className="w-3.5 h-3.5" />
-                {request.responses || 0} responses
+                {request.clicks || 0} clicks
               </span>
               <span className="flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5" />
@@ -209,11 +228,7 @@ export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
           {/* CTA Button */}
           <div className="pt-3">
             <button
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                setShowContactModal(true)
-              }}
+              onClick={handleRespondClick}
               className="
                 w-full bg-gradient-to-r from-red-600 to-red-700
                 hover:from-red-700 hover:to-red-800
