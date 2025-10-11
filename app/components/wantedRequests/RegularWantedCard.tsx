@@ -36,15 +36,24 @@ export default function RegularWantedCard({ request }: RegularWantedCardProps) {
     e.preventDefault()
     e.stopPropagation()
 
+    console.log('[WantedCard] Tracking click for request:', request.id)
+
     // Track click in database
     try {
-      await fetch('/api/wanted-requests/track-click', {
+      const response = await fetch('/api/wanted-requests/track-click', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requestId: request.id })
       })
+
+      const result = await response.json()
+      console.log('[WantedCard] Track click response:', result)
+
+      if (!response.ok) {
+        console.error('[WantedCard] Track click failed:', result)
+      }
     } catch (error) {
-      console.error('Failed to track click:', error)
+      console.error('[WantedCard] Failed to track click:', error)
     }
 
     // Open modal
