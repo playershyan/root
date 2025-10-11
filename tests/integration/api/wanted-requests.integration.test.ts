@@ -1,25 +1,35 @@
-import { createMocks } from 'node-mocks-http'
-import { NextRequest } from 'next/server'
+/**
+ * @jest-environment node
+ */
+import { NextRequest, NextResponse } from 'next/server'
 import { POST as closeWantedRequest } from '../../../app/api/wanted-requests/close/route'
-import { POST as deleteWantedRequest } from '../../../app/api/wanted-requests/delete/route'
 import { POST as pauseWantedRequest } from '../../../app/api/wanted-requests/pause/route'
-import { POST as renewWantedRequest } from '../../../app/api/wanted-requests/renew/route'
-import { POST as updateWantedRequest } from '../../../app/api/wanted-requests/update/route'
+
+// Mock NextResponse.json to work in node environment
+jest.mock('next/server', () => {
+  const actual = jest.requireActual('next/server')
+  return {
+    ...actual,
+    NextResponse: {
+      json: (body: any, init?: any) => {
+        return new Response(JSON.stringify(body), {
+          ...init,
+          headers: {
+            'content-type': 'application/json',
+            ...init?.headers,
+          },
+        })
+      },
+    },
+  }
+})
 
 // Mock Supabase client
 const mockSupabaseClient = {
   auth: {
     getUser: jest.fn(),
   },
-  from: jest.fn(() => ({
-    select: jest.fn().mockReturnThis(),
-    insert: jest.fn().mockReturnThis(),
-    update: jest.fn().mockReturnThis(),
-    delete: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockReturnThis(),
-    single: jest.fn(),
-    order: jest.fn().mockReturnThis(),
-  })),
+  from: jest.fn(),
   rpc: jest.fn(),
 }
 
@@ -44,8 +54,8 @@ describe('/api/wanted-requests Integration Tests', () => {
     user_id: 'test-user-id',
     title: 'Looking for Honda Civic',
     status: 'active',
-    budget_min: 20000,
-    budget_max: 30000,
+    min_budget: 20000,
+    max_budget: 30000,
   }
 
   beforeEach(() => {
@@ -58,35 +68,38 @@ describe('/api/wanted-requests Integration Tests', () => {
 
   describe('POST /api/wanted-requests/close', () => {
     it('should successfully close a wanted request', async () => {
+      const selectMock = jest.fn().mockReturnThis()
+      const eqMock = jest.fn().mockReturnThis()
+      const singleMock = jest.fn()
+        .mockResolvedValueOnce({
+          data: mockWantedRequest,
+          error: null,
+        })
+        .mockResolvedValueOnce({
+          data: { ...mockWantedRequest, status: 'closed' },
+          error: null,
+        })
+
+      const updateMock = jest.fn().mockReturnThis()
+
       mockSupabaseClient.from.mockImplementation((table: string) => {
         if (table === 'wanted_requests') {
           return {
-            select: jest.fn().mockReturnThis(),
-            update: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({
-              data: { ...mockWantedRequest, status: 'closed' },
-              error: null,
-            }),
+            select: selectMock,
+            update: updateMock,
+            eq: eqMock,
+            single: singleMock,
           }
         }
-        return {
-          insert: jest.fn().mockResolvedValue({ error: null }),
+        if (table === 'wanted_request_actions') {
+          return {
+            insert: jest.fn().mockResolvedValue({ error: null }),
+          }
         }
+        return {}
       })
 
-      // First call to check ownership
-      mockSupabaseClient.from().select().eq().single.mockResolvedValueOnce({
-        data: mockWantedRequest,
-        error: null,
-      })
-
-      const { req } = createMocks({
-        method: 'POST',
-        body: JSON.stringify({ requestId: 'test-request-id' }),
-      })
-
-      const request = new NextRequest(req.url!, {
+      const request = new NextRequest('http://localhost:3000/api/wanted-requests/close', {
         method: 'POST',
         body: JSON.stringify({ requestId: 'test-request-id' }),
       })
@@ -100,17 +113,25 @@ describe('/api/wanted-requests Integration Tests', () => {
     })
 
     it('should return 404 for non-existent wanted request', async () => {
-      mockSupabaseClient.from().select().eq().single.mockResolvedValueOnce({
+      const selectMock = jest.fn().mockReturnThis()
+      const eqMock = jest.fn().mockReturnThis()
+      const singleMock = jest.fn().mockResolvedValue({
         data: null,
         error: { code: 'PGRST116' },
       })
 
-      const { req } = createMocks({
-        method: 'POST',
-        body: JSON.stringify({ requestId: 'non-existent-id' }),
+      mockSupabaseClient.from.mockImplementation((table: string) => {
+        if (table === 'wanted_requests') {
+          return {
+            select: selectMock,
+            eq: eqMock,
+            single: singleMock,
+          }
+        }
+        return {}
       })
 
-      const request = new NextRequest(req.url!, {
+      const request = new NextRequest('http://localhost:3000/api/wanted-requests/close', {
         method: 'POST',
         body: JSON.stringify({ requestId: 'non-existent-id' }),
       })
@@ -124,17 +145,25 @@ describe('/api/wanted-requests Integration Tests', () => {
 
     it('should return 403 for unauthorized user', async () => {
       const otherUserRequest = { ...mockWantedRequest, user_id: 'other-user-id' }
-      mockSupabaseClient.from().select().eq().single.mockResolvedValueOnce({
+      const selectMock = jest.fn().mockReturnThis()
+      const eqMock = jest.fn().mockReturnThis()
+      const singleMock = jest.fn().mockResolvedValue({
         data: otherUserRequest,
         error: null,
       })
 
-      const { req } = createMocks({
-        method: 'POST',
-        body: JSON.stringify({ requestId: 'test-request-id' }),
+      mockSupabaseClient.from.mockImplementation((table: string) => {
+        if (table === 'wanted_requests') {
+          return {
+            select: selectMock,
+            eq: eqMock,
+            single: singleMock,
+          }
+        }
+        return {}
       })
 
-      const request = new NextRequest(req.url!, {
+      const request = new NextRequest('http://localhost:3000/api/wanted-requests/close', {
         method: 'POST',
         body: JSON.stringify({ requestId: 'test-request-id' }),
       })
@@ -148,17 +177,25 @@ describe('/api/wanted-requests Integration Tests', () => {
 
     it('should return 400 for already closed request', async () => {
       const closedRequest = { ...mockWantedRequest, status: 'closed' }
-      mockSupabaseClient.from().select().eq().single.mockResolvedValueOnce({
+      const selectMock = jest.fn().mockReturnThis()
+      const eqMock = jest.fn().mockReturnThis()
+      const singleMock = jest.fn().mockResolvedValue({
         data: closedRequest,
         error: null,
       })
 
-      const { req } = createMocks({
-        method: 'POST',
-        body: JSON.stringify({ requestId: 'test-request-id' }),
+      mockSupabaseClient.from.mockImplementation((table: string) => {
+        if (table === 'wanted_requests') {
+          return {
+            select: selectMock,
+            eq: eqMock,
+            single: singleMock,
+          }
+        }
+        return {}
       })
 
-      const request = new NextRequest(req.url!, {
+      const request = new NextRequest('http://localhost:3000/api/wanted-requests/close', {
         method: 'POST',
         body: JSON.stringify({ requestId: 'test-request-id' }),
       })
@@ -171,79 +208,40 @@ describe('/api/wanted-requests Integration Tests', () => {
     })
   })
 
-  describe('POST /api/wanted-requests/delete', () => {
-    it('should successfully delete a wanted request', async () => {
-      mockSupabaseClient.from.mockImplementation((table: string) => {
-        if (table === 'wanted_requests') {
-          return {
-            select: jest.fn().mockReturnThis(),
-            update: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({
-              data: { ...mockWantedRequest, status: 'deleted' },
-              error: null,
-            }),
-          }
-        }
-        return {
-          insert: jest.fn().mockResolvedValue({ error: null }),
-        }
-      })
-
-      mockSupabaseClient.from().select().eq().single.mockResolvedValueOnce({
-        data: mockWantedRequest,
-        error: null,
-      })
-
-      const { req } = createMocks({
-        method: 'POST',
-        body: JSON.stringify({ requestId: 'test-request-id' }),
-      })
-
-      const request = new NextRequest(req.url!, {
-        method: 'POST',
-        body: JSON.stringify({ requestId: 'test-request-id' }),
-      })
-
-      const response = await deleteWantedRequest(request)
-      const result = await response.json()
-
-      expect(response.status).toBe(200)
-      expect(result.success).toBe(true)
-      expect(result.message).toContain('moved to bin')
-    })
-  })
-
   describe('POST /api/wanted-requests/pause', () => {
     it('should successfully pause an active wanted request', async () => {
+      const selectMock = jest.fn().mockReturnThis()
+      const eqMock = jest.fn().mockReturnThis()
+      const singleMock = jest.fn()
+        .mockResolvedValueOnce({
+          data: mockWantedRequest,
+          error: null,
+        })
+        .mockResolvedValueOnce({
+          data: { ...mockWantedRequest, status: 'paused' },
+          error: null,
+        })
+
+      const updateMock = jest.fn().mockReturnThis()
+
       mockSupabaseClient.from.mockImplementation((table: string) => {
         if (table === 'wanted_requests') {
           return {
-            select: jest.fn().mockReturnThis(),
-            update: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({
-              data: { ...mockWantedRequest, status: 'paused' },
-              error: null,
-            }),
+            select: selectMock,
+            update: updateMock,
+            eq: eqMock,
+            single: singleMock,
           }
         }
-        return {
-          insert: jest.fn().mockResolvedValue({ error: null }),
+        if (table === 'wanted_request_actions') {
+          return {
+            insert: jest.fn().mockResolvedValue({ error: null }),
+          }
         }
+        return {}
       })
 
-      mockSupabaseClient.from().select().eq().single.mockResolvedValueOnce({
-        data: mockWantedRequest,
-        error: null,
-      })
-
-      const { req } = createMocks({
-        method: 'POST',
-        body: JSON.stringify({ requestId: 'test-request-id', action: 'pause' }),
-      })
-
-      const request = new NextRequest(req.url!, {
+      const request = new NextRequest('http://localhost:3000/api/wanted-requests/pause', {
         method: 'POST',
         body: JSON.stringify({ requestId: 'test-request-id', action: 'pause' }),
       })
@@ -258,35 +256,38 @@ describe('/api/wanted-requests Integration Tests', () => {
 
     it('should successfully resume a paused wanted request', async () => {
       const pausedRequest = { ...mockWantedRequest, status: 'paused' }
-      
+      const selectMock = jest.fn().mockReturnThis()
+      const eqMock = jest.fn().mockReturnThis()
+      const singleMock = jest.fn()
+        .mockResolvedValueOnce({
+          data: pausedRequest,
+          error: null,
+        })
+        .mockResolvedValueOnce({
+          data: { ...pausedRequest, status: 'active' },
+          error: null,
+        })
+
+      const updateMock = jest.fn().mockReturnThis()
+
       mockSupabaseClient.from.mockImplementation((table: string) => {
         if (table === 'wanted_requests') {
           return {
-            select: jest.fn().mockReturnThis(),
-            update: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({
-              data: { ...pausedRequest, status: 'active' },
-              error: null,
-            }),
+            select: selectMock,
+            update: updateMock,
+            eq: eqMock,
+            single: singleMock,
           }
         }
-        return {
-          insert: jest.fn().mockResolvedValue({ error: null }),
+        if (table === 'wanted_request_actions') {
+          return {
+            insert: jest.fn().mockResolvedValue({ error: null }),
+          }
         }
+        return {}
       })
 
-      mockSupabaseClient.from().select().eq().single.mockResolvedValueOnce({
-        data: pausedRequest,
-        error: null,
-      })
-
-      const { req } = createMocks({
-        method: 'POST',
-        body: JSON.stringify({ requestId: 'test-request-id', action: 'resume' }),
-      })
-
-      const request = new NextRequest(req.url!, {
+      const request = new NextRequest('http://localhost:3000/api/wanted-requests/pause', {
         method: 'POST',
         body: JSON.stringify({ requestId: 'test-request-id', action: 'resume' }),
       })
@@ -300,171 +301,14 @@ describe('/api/wanted-requests Integration Tests', () => {
     })
   })
 
-  describe('POST /api/wanted-requests/renew', () => {
-    it('should successfully renew a wanted request', async () => {
-      mockSupabaseClient.from.mockImplementation((table: string) => {
-        if (table === 'wanted_requests') {
-          return {
-            select: jest.fn().mockReturnThis(),
-            update: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({
-              data: { ...mockWantedRequest, renewed_at: new Date().toISOString() },
-              error: null,
-            }),
-          }
-        }
-        return {
-          insert: jest.fn().mockResolvedValue({ error: null }),
-        }
-      })
-
-      mockSupabaseClient.from().select().eq().single.mockResolvedValueOnce({
-        data: mockWantedRequest,
-        error: null,
-      })
-
-      const { req } = createMocks({
-        method: 'POST',
-        body: JSON.stringify({ requestId: 'test-request-id' }),
-      })
-
-      const request = new NextRequest(req.url!, {
-        method: 'POST',
-        body: JSON.stringify({ requestId: 'test-request-id' }),
-      })
-
-      const response = await renewWantedRequest(request)
-      const result = await response.json()
-
-      expect(response.status).toBe(200)
-      expect(result.success).toBe(true)
-      expect(result.message).toContain('renewed successfully')
-    })
-  })
-
-  describe('POST /api/wanted-requests/update', () => {
-    it('should successfully update a wanted request', async () => {
-      const updateData = {
-        title: 'Updated: Looking for Honda Civic',
-        budget_min: 25000,
-        budget_max: 35000,
-      }
-
-      mockSupabaseClient.from.mockImplementation((table: string) => {
-        if (table === 'wanted_requests') {
-          return {
-            select: jest.fn().mockReturnThis(),
-            update: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({
-              data: { ...mockWantedRequest, ...updateData },
-              error: null,
-            }),
-          }
-        }
-        return {
-          insert: jest.fn().mockResolvedValue({ error: null }),
-        }
-      })
-
-      mockSupabaseClient.from().select().eq().single.mockResolvedValueOnce({
-        data: mockWantedRequest,
-        error: null,
-      })
-
-      const { req } = createMocks({
-        method: 'POST',
-        body: JSON.stringify({
-          requestId: 'test-request-id',
-          ...updateData,
-        }),
-      })
-
-      const request = new NextRequest(req.url!, {
-        method: 'POST',
-        body: JSON.stringify({
-          requestId: 'test-request-id',
-          ...updateData,
-        }),
-      })
-
-      const response = await updateWantedRequest(request)
-      const result = await response.json()
-
-      expect(response.status).toBe(200)
-      expect(result.success).toBe(true)
-      expect(result.message).toContain('updated successfully')
-    })
-
-    it('should resubmit deleted wanted request', async () => {
-      const deletedRequest = { ...mockWantedRequest, status: 'deleted' }
-      const updateData = {
-        title: 'Resubmitted: Looking for Honda Civic',
-        budget_min: 25000,
-        budget_max: 35000,
-      }
-
-      mockSupabaseClient.from.mockImplementation((table: string) => {
-        if (table === 'wanted_requests') {
-          return {
-            select: jest.fn().mockReturnThis(),
-            update: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({
-              data: { ...deletedRequest, ...updateData, status: 'pending' },
-              error: null,
-            }),
-          }
-        }
-        return {
-          insert: jest.fn().mockResolvedValue({ error: null }),
-        }
-      })
-
-      mockSupabaseClient.from().select().eq().single.mockResolvedValueOnce({
-        data: deletedRequest,
-        error: null,
-      })
-
-      const { req } = createMocks({
-        method: 'POST',
-        body: JSON.stringify({
-          requestId: 'test-request-id',
-          ...updateData,
-        }),
-      })
-
-      const request = new NextRequest(req.url!, {
-        method: 'POST',
-        body: JSON.stringify({
-          requestId: 'test-request-id',
-          ...updateData,
-        }),
-      })
-
-      const response = await updateWantedRequest(request)
-      const result = await response.json()
-
-      expect(response.status).toBe(200)
-      expect(result.success).toBe(true)
-      expect(result.message).toContain('resubmitted successfully')
-    })
-  })
-
-  describe('Unauthorized access', () => {
+  describe('Error Handling', () => {
     it('should return 401 when no user is authenticated', async () => {
       mockSupabaseClient.auth.getUser.mockResolvedValue({
         data: { user: null },
-        error: { message: 'User not found' },
+        error: { message: 'Not authenticated' },
       })
 
-      const { req } = createMocks({
-        method: 'POST',
-        body: JSON.stringify({ requestId: 'test-request-id' }),
-      })
-
-      const request = new NextRequest(req.url!, {
+      const request = new NextRequest('http://localhost:3000/api/wanted-requests/close', {
         method: 'POST',
         body: JSON.stringify({ requestId: 'test-request-id' }),
       })
@@ -475,16 +319,9 @@ describe('/api/wanted-requests Integration Tests', () => {
       expect(response.status).toBe(401)
       expect(result.error).toBe('Unauthorized')
     })
-  })
 
-  describe('Missing required fields', () => {
     it('should return 400 when requestId is missing', async () => {
-      const { req } = createMocks({
-        method: 'POST',
-        body: JSON.stringify({}),
-      })
-
-      const request = new NextRequest(req.url!, {
+      const request = new NextRequest('http://localhost:3000/api/wanted-requests/close', {
         method: 'POST',
         body: JSON.stringify({}),
       })

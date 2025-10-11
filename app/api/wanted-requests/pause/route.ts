@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     // First, check if the wanted request belongs to the user
     const { data: wantedRequest, error: fetchError } = await supabase
       .from('wanted_requests')
-      .select('user_id, status, posted_date, pause_date')
+      .select('user_id, status')
       .eq('id', requestId)
       .single()
     
@@ -71,7 +71,6 @@ export async function POST(request: NextRequest) {
       }
 
       updateData.status = 'paused'
-      updateData.pause_date = now.toISOString()
     } else { // resume
       // Check if request is currently paused
       if (wantedRequest.status !== 'paused') {
@@ -82,8 +81,6 @@ export async function POST(request: NextRequest) {
       }
 
       updateData.status = 'active'
-      updateData.pause_date = null
-      // Note: We don't update posted_date for resume (unlike renew)
     }
 
     // Update the wanted request

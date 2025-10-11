@@ -48,7 +48,8 @@
       "Bash(tasklist)",
       "mcp__supabase__get_project",
       "mcp__supabase__get_organization",
-      "Bash(tasklist:*)"
+      "Bash(tasklist:*)",
+      "Bash(npm test:*)"
     ],
     "deny": []
   }
