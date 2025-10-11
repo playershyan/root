@@ -2509,7 +2509,7 @@ export default function ProfilePage() {
                               <tr>
                                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Request</th>
                                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Budget</th>
-                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Responses</th>
+                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Clicks</th>
                                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
                                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Posted</th>
                                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
