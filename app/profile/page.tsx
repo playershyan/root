@@ -520,11 +520,11 @@ export default function ProfilePage() {
     }
   }, [user, loading])
 
-  // Load user favorites from database
+  // Load user favorites from database and localStorage
   useEffect(() => {
     const loadFavorites = async () => {
       if (!user) return
-      
+
       try {
         // Fetch favorited listings from API
         const response = await fetch('/api/favorites/listings')
@@ -545,18 +545,89 @@ export default function ProfilePage() {
           // Fallback to empty array if API fails
           setFavoritedAds([])
         }
-        
-        // For now, set wanted requests to empty (can be implemented later)
-        setFavoritedWantedRequests([])
+
+        // Load wanted requests from localStorage
+        loadWantedRequestsFromLocalStorage()
       } catch (error) {
         console.error('Error loading favorites:', error)
       } finally {
         setFavoritesLoading(false)
       }
     }
-    
+
+    const loadWantedRequestsFromLocalStorage = async () => {
+      if (typeof window === 'undefined') return
+
+      try {
+        const savedIds = localStorage.getItem('savedWantedRequests')
+        if (!savedIds) {
+          setFavoritedWantedRequests([])
+          return
+        }
+
+        const requestIds = JSON.parse(savedIds)
+        if (!Array.isArray(requestIds) || requestIds.length === 0) {
+          setFavoritedWantedRequests([])
+          return
+        }
+
+        // Fetch full data for each saved wanted request
+        const requests = await Promise.all(
+          requestIds.map(async (id: string) => {
+            try {
+              const { data, error } = await supabase
+                .from('wanted_requests')
+                .select('*')
+                .eq('id', id)
+                .single()
+
+              if (error || !data) return null
+
+              return {
+                id: data.id,
+                title: data.title,
+                description: data.description || '',
+                price: data.max_budget || data.min_budget || 0,
+                location: data.location,
+                postedDate: new Date(data.created_at).toLocaleDateString()
+              }
+            } catch (err) {
+              console.error('Error fetching wanted request:', id, err)
+              return null
+            }
+          })
+        )
+
+        // Filter out null values and update state
+        const validRequests = requests.filter((req): req is Favorite => req !== null)
+        setFavoritedWantedRequests(validRequests)
+      } catch (error) {
+        console.error('Error loading wanted requests from localStorage:', error)
+        setFavoritedWantedRequests([])
+      }
+    }
+
+    // Listen for storage changes (from other tabs or same tab)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'savedWantedRequests') {
+        loadWantedRequestsFromLocalStorage()
+      }
+    }
+
+    const handleWantedFavoritesUpdate = () => {
+      loadWantedRequestsFromLocalStorage()
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('wanted-favorites-updated', handleWantedFavoritesUpdate)
+
     if (!loading && user) {
       loadFavorites()
+    }
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('wanted-favorites-updated', handleWantedFavoritesUpdate)
     }
   }, [user, loading])
 
@@ -1716,7 +1787,25 @@ export default function ProfilePage() {
           alert('Failed to remove from favorites')
         }
       } else {
+        // Optimistically update UI
         setFavoritedWantedRequests(prevRequests => prevRequests.filter(request => request.id !== itemId))
+
+        try {
+          // Remove from localStorage
+          if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('savedWantedRequests')
+            if (saved) {
+              const savedSet = new Set(JSON.parse(saved))
+              savedSet.delete(itemId)
+              localStorage.setItem('savedWantedRequests', JSON.stringify(Array.from(savedSet)))
+
+              // Trigger update event for other components
+              window.dispatchEvent(new Event('wanted-favorites-updated'))
+            }
+          }
+        } catch (error) {
+          console.error('Error removing wanted request from localStorage:', error)
+        }
       }
       alert('Removed from favorites successfully!')
     }
