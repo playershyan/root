@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/app/contexts/AuthContext'
-import { ArrowLeft, MapPin, Calendar, Eye, Edit, Share2, Flag, Zap, TrendingUp } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, Eye, Edit, Share2, Flag, Zap, TrendingUp, Heart, HeartOff } from 'lucide-react'
+import ContactModal from '@/app/components/modals/ContactModal'
 
 interface WantedRequest {
   id: string
@@ -42,12 +43,15 @@ export default function WantedRequestDetailPage() {
   const [request, setRequest] = useState<WantedRequest | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isSaved, setIsSaved] = useState(false)
+  const [showContactModal, setShowContactModal] = useState(false)
+  const [isOwner, setIsOwner] = useState(false)
 
   useEffect(() => {
-    if (params.id && user) {
+    if (params.id) {
       fetchRequest()
-    } else if (!user && !loading) {
-      router.push('/auth/signin')
+      incrementViews()
+      checkIfSaved()
     }
   }, [params.id, user])
 
@@ -55,26 +59,83 @@ export default function WantedRequestDetailPage() {
     try {
       const { data, error } = await supabase
         .from('wanted_requests')
-        .select('*')
+        .select(`
+          *,
+          profiles (
+            id,
+            name,
+            phone,
+            email,
+            location,
+            avatar_url,
+            business_profiles (
+              id,
+              business_name,
+              phone,
+              whatsapp,
+              address,
+              is_active
+            )
+          )
+        `)
         .eq('id', params.id)
-        .eq('user_id', user?.id)
         .single()
 
       if (error) {
         if (error.code === 'PGRST116') {
-          setError('Wanted request not found or you do not have permission to view it')
+          setError('Wanted request not found')
         } else {
           throw error
         }
         return
       }
 
-      if (!data) {
-        setError('Wanted request not found')
+      if (!data || data.status !== 'active') {
+        setError('This wanted request is no longer available')
         return
       }
 
-      setRequest(data)
+      const profile = data.profiles
+
+      // Check if current user is the owner
+      setIsOwner(user?.id === data.user_id)
+
+      // Determine contact info based on business profile status
+      let contactInfo = {
+        phone: data.phone,
+        whatsapp: data.whatsapp,
+        email: data.email,
+        location: data.location
+      }
+
+      if (profile) {
+        if (profile.business_profiles && profile.business_profiles.is_active) {
+          const businessProfile = profile.business_profiles
+          contactInfo = {
+            phone: businessProfile.phone || profile.phone || data.phone,
+            whatsapp: businessProfile.whatsapp || businessProfile.phone || profile.whatsapp || profile.phone || data.whatsapp,
+            email: profile.email || data.email,
+            location: businessProfile.address || profile.location || data.location
+          }
+        } else {
+          contactInfo = {
+            phone: profile.phone || data.phone,
+            whatsapp: profile.whatsapp || profile.phone || data.whatsapp,
+            email: profile.email || data.email,
+            location: profile.location || data.location
+          }
+        }
+      }
+
+      setRequest({
+        ...data,
+        phone: contactInfo.phone || data.phone || 'Contact via platform',
+        whatsapp: contactInfo.whatsapp || data.whatsapp || contactInfo.phone,
+        email: contactInfo.email || data.email || '',
+        location: contactInfo.location || data.location || 'Location not specified',
+        user_name: profile?.name || data.user_name || `User ${data.id?.slice(0, 4) || 'Unknown'}`,
+        user_avatar: (profile?.name || data.user_name || 'U').slice(0, 2).toUpperCase()
+      })
     } catch (error) {
       console.error('Error fetching wanted request:', error)
       setError('Failed to load wanted request')
@@ -83,17 +144,95 @@ export default function WantedRequestDetailPage() {
     }
   }
 
+  const incrementViews = async () => {
+    try {
+      await supabase.rpc('increment_wanted_request_views', {
+        request_id: params.id
+      })
+    } catch (error) {
+      // Silently fail if function doesn't exist
+      console.debug('Views increment not available:', error)
+    }
+  }
+
+  const checkIfSaved = () => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('savedWantedRequests')
+      if (saved) {
+        const savedSet = new Set(JSON.parse(saved))
+        setIsSaved(savedSet.has(params.id))
+      }
+    }
+  }
+
+  const toggleSave = () => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('savedWantedRequests')
+      const savedSet = saved ? new Set(JSON.parse(saved)) : new Set()
+
+      if (savedSet.has(params.id)) {
+        savedSet.delete(params.id)
+        setIsSaved(false)
+
+        // Remove from full data
+        const existingData = localStorage.getItem('favoriteWantedRequestsData')
+        if (existingData) {
+          const currentData = JSON.parse(existingData)
+          const updatedData = currentData.filter((item: any) => item.id !== params.id)
+          localStorage.setItem('favoriteWantedRequestsData', JSON.stringify(updatedData))
+        }
+      } else {
+        savedSet.add(params.id)
+        setIsSaved(true)
+
+        // Save full data
+        if (request) {
+          const existingData = localStorage.getItem('favoriteWantedRequestsData')
+          const currentData = existingData ? JSON.parse(existingData) : []
+          const newData = [...currentData, {
+            id: request.id,
+            title: request.title,
+            description: request.description,
+            price: request.max_budget || request.min_budget || 0,
+            location: request.location,
+            postedDate: request.created_at,
+            minBudget: request.min_budget,
+            maxBudget: request.max_budget,
+            make: request.make,
+            model: request.model,
+            user_name: request.user_name
+          }]
+          localStorage.setItem('favoriteWantedRequestsData', JSON.stringify(newData))
+        }
+      }
+
+      localStorage.setItem('savedWantedRequests', JSON.stringify(Array.from(savedSet)))
+    }
+  }
+
   const handleShare = () => {
-    const publicUrl = `${window.location.origin}/wanted/public/${params.id}`
     if (navigator.share) {
       navigator.share({
         title: request?.title,
         text: request?.description,
-        url: publicUrl
+        url: window.location.href
       })
     } else {
-      navigator.clipboard.writeText(publicUrl)
+      navigator.clipboard.writeText(window.location.href)
       alert('Link copied to clipboard!')
+    }
+  }
+
+  const handleContact = async () => {
+    setShowContactModal(true)
+
+    // Increment clicks
+    try {
+      await supabase.rpc('increment_wanted_request_clicks', {
+        request_id: params.id
+      })
+    } catch (error) {
+      console.debug('Clicks increment not available:', error)
     }
   }
 
@@ -141,9 +280,9 @@ export default function WantedRequestDetailPage() {
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 py-12">
           <div className="bg-white rounded-lg shadow-md p-8 text-center">
-            <div className="text-6xl mb-4">🔒</div>
+            <div className="text-6xl mb-4">😕</div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">{error || 'Request Not Found'}</h1>
-            <p className="text-gray-600 mb-6">You do not have permission to view this wanted request.</p>
+            <p className="text-gray-600 mb-6">The wanted request you're looking for doesn't exist or has been removed.</p>
             <div className="flex gap-4 justify-center">
               <button
                 onClick={() => router.back()}
@@ -152,10 +291,10 @@ export default function WantedRequestDetailPage() {
                 Go Back
               </button>
               <Link
-                href="/profile"
+                href="/wanted"
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
               >
-                My Profile
+                Browse Wanted Requests
               </Link>
             </div>
           </div>
@@ -163,6 +302,42 @@ export default function WantedRequestDetailPage() {
       </div>
     )
   }
+
+  // Determine tier styling
+  const isGoldFeatured = request.urgency === 'high'
+  const isHighPriority = request.is_high_priority
+  const isBoosted = request.is_boosted
+
+  const getTierStyles = () => {
+    if (isHighPriority) {
+      return {
+        containerClass: 'bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50',
+        borderClass: 'border-2 border-red-300',
+        accentColor: 'red'
+      }
+    }
+    if (isGoldFeatured) {
+      return {
+        containerClass: 'bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50',
+        borderClass: 'border-2 border-yellow-400',
+        accentColor: 'yellow'
+      }
+    }
+    if (isBoosted) {
+      return {
+        containerClass: 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50',
+        borderClass: 'border-2 border-blue-300',
+        accentColor: 'blue'
+      }
+    }
+    return {
+      containerClass: 'bg-white',
+      borderClass: 'border border-gray-200',
+      accentColor: 'gray'
+    }
+  }
+
+  const tierStyles = getTierStyles()
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -185,22 +360,25 @@ export default function WantedRequestDetailPage() {
           {/* Main Details */}
           <div className="lg:col-span-2 space-y-6">
             {/* Title and Priority Badge */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              {/* Status Badge */}
-              <div className="mb-4 flex items-center gap-2">
-                <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold ${
-                  request.status === 'active' ? 'bg-green-100 text-green-700' :
-                  request.status === 'paused' ? 'bg-yellow-100 text-yellow-700' :
-                  request.status === 'fulfilled' ? 'bg-blue-100 text-blue-700' :
-                  request.status === 'pending' ? 'bg-gray-100 text-gray-700' :
-                  'bg-red-100 text-red-700'
-                }`}>
-                  {request.status.toUpperCase()}
-                </span>
-                {request.is_high_priority && (
-                  <span className="inline-flex items-center gap-2 px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-semibold">
-                    <Zap className="w-4 h-4 fill-current" />
-                    HIGH PRIORITY
+            <div className={`rounded-lg shadow-md p-6 ${tierStyles.containerClass} ${tierStyles.borderClass}`}>
+              {/* Tier Badges */}
+              <div className="mb-4 flex flex-wrap items-center gap-2">
+                {isHighPriority && (
+                  <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-full text-sm font-bold shadow-lg animate-pulse">
+                    <Zap className="w-5 h-5 fill-current" />
+                    URGENT REQUEST
+                  </span>
+                )}
+                {isGoldFeatured && !isHighPriority && (
+                  <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-amber-500 text-white rounded-full text-sm font-bold shadow-md">
+                    <i className="fas fa-star"></i>
+                    FEATURED
+                  </span>
+                )}
+                {isBoosted && !isHighPriority && !isGoldFeatured && (
+                  <span className="inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full text-sm font-semibold shadow-md">
+                    <TrendingUp className="w-4 h-4" />
+                    BOOSTED
                   </span>
                 )}
               </div>
@@ -212,13 +390,13 @@ export default function WantedRequestDetailPage() {
                   <Calendar className="w-4 h-4" />
                   {formatTimeAgo(request.created_at)}
                 </div>
-                {request.views !== undefined && (
+                {request.views !== undefined && request.views > 0 && (
                   <div className="flex items-center gap-1">
                     <Eye className="w-4 h-4" />
                     {request.views} views
                   </div>
                 )}
-                {request.clicks !== undefined && (
+                {request.clicks !== undefined && request.clicks > 0 && (
                   <div className="flex items-center gap-1">
                     <TrendingUp className="w-4 h-4" />
                     {request.clicks} responses
@@ -231,9 +409,19 @@ export default function WantedRequestDetailPage() {
               </div>
 
               {/* Budget */}
-              <div className="bg-blue-50 border-l-4 border-blue-600 p-4 rounded">
+              <div className={`rounded-lg p-4 border-l-4 ${
+                isHighPriority ? 'bg-red-100 border-red-600' :
+                isGoldFeatured ? 'bg-yellow-100 border-yellow-600' :
+                isBoosted ? 'bg-blue-100 border-blue-600' :
+                'bg-blue-50 border-blue-600'
+              }`}>
                 <div className="font-semibold text-gray-700 mb-1">Budget Range</div>
-                <div className="text-2xl font-bold text-blue-600">
+                <div className={`text-2xl font-bold ${
+                  isHighPriority ? 'text-red-700' :
+                  isGoldFeatured ? 'text-yellow-700' :
+                  isBoosted ? 'text-blue-700' :
+                  'text-blue-600'
+                }`}>
                   Rs. {formatBudget(request.min_budget)} - {formatBudget(request.max_budget)}
                 </div>
               </div>
@@ -241,14 +429,22 @@ export default function WantedRequestDetailPage() {
 
             {/* Description */}
             {request.description && (
-              <div className="bg-white rounded-lg shadow-md p-6">
+              <div className={`rounded-lg shadow-md p-6 ${
+                isHighPriority || isGoldFeatured || isBoosted ? tierStyles.containerClass : 'bg-white'
+              } ${
+                isHighPriority || isGoldFeatured || isBoosted ? tierStyles.borderClass : ''
+              }`}>
                 <h2 className="text-xl font-bold text-gray-900 mb-3">Description</h2>
                 <p className="text-gray-700 whitespace-pre-wrap">{request.description}</p>
               </div>
             )}
 
             {/* Vehicle Preferences */}
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className={`rounded-lg shadow-md p-6 ${
+              isHighPriority || isGoldFeatured || isBoosted ? tierStyles.containerClass : 'bg-white'
+            } ${
+              isHighPriority || isGoldFeatured || isBoosted ? tierStyles.borderClass : ''
+            }`}>
               <h2 className="text-xl font-bold text-gray-900 mb-4">Vehicle Preferences</h2>
               <div className="grid grid-cols-2 gap-4">
                 {request.make && (
@@ -295,54 +491,143 @@ export default function WantedRequestDetailPage() {
 
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Actions Card */}
-            <div className="bg-white rounded-lg shadow-md p-6 sticky top-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Manage Request</h3>
+            {/* Contact/Actions Card */}
+            <div className={`rounded-lg shadow-md p-6 sticky top-6 ${
+              isHighPriority || isGoldFeatured || isBoosted ? tierStyles.containerClass : 'bg-white'
+            } ${
+              isHighPriority || isGoldFeatured || isBoosted ? tierStyles.borderClass : ''
+            }`}>
+              {isOwner ? (
+                <>
+                  <h3 className="font-semibold text-gray-900 mb-4">Manage Request</h3>
+                  <div className="space-y-2">
+                    <Link
+                      href={`/wanted/edit/${request.id}`}
+                      className={`w-full flex items-center justify-center gap-2 py-3 rounded-lg text-white hover:opacity-90 transition font-semibold ${
+                        isHighPriority ? 'bg-gradient-to-r from-red-600 to-orange-600' :
+                        isGoldFeatured ? 'bg-gradient-to-r from-yellow-600 to-amber-600' :
+                        isBoosted ? 'bg-gradient-to-r from-blue-600 to-indigo-600' :
+                        'bg-blue-600 hover:bg-blue-700'
+                      }`}
+                    >
+                      <Edit className="w-4 h-4" />
+                      Edit Request
+                    </Link>
 
-              <div className="space-y-2">
-                <Link
-                  href={`/wanted/edit/${request.id}`}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition font-semibold"
-                >
-                  <Edit className="w-4 h-4" />
-                  Edit Request
-                </Link>
+                    <button
+                      onClick={handleShare}
+                      className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+                    >
+                      <Share2 className="w-4 h-4" />
+                      Share
+                    </button>
 
-                <button
-                  onClick={handleShare}
-                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
-                >
-                  <Share2 className="w-4 h-4" />
-                  Share
-                </button>
+                    <Link
+                      href="/profile"
+                      className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+                    >
+                      Back to Profile
+                    </Link>
+                  </div>
 
-                <Link
-                  href="/profile"
-                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
-                >
-                  Back to Profile
-                </Link>
-              </div>
-            </div>
+                  {/* Stats for owner */}
+                  <div className="mt-6 pt-6 border-t">
+                    <h4 className="font-semibold text-gray-900 mb-3">Performance</h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Views</span>
+                        <span className="font-semibold text-gray-900">{request.views || 0}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Responses</span>
+                        <span className="font-semibold text-gray-900">{request.clicks || 0}</span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-center mb-4">
+                    <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-3">
+                      {request.user_avatar}
+                    </div>
+                    <h3 className="font-semibold text-gray-900">{request.user_name}</h3>
+                  </div>
 
-            {/* Stats Card */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Performance</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Views</span>
-                  <span className="font-semibold text-gray-900">{request.views || 0}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Responses</span>
-                  <span className="font-semibold text-gray-900">{request.clicks || 0}</span>
-                </div>
-              </div>
+                  <button
+                    onClick={handleContact}
+                    className={`w-full text-white py-3 rounded-lg hover:opacity-90 transition font-semibold mb-3 ${
+                      isHighPriority ? 'bg-gradient-to-r from-red-600 to-orange-600 animate-pulse' :
+                      isGoldFeatured ? 'bg-gradient-to-r from-yellow-600 to-amber-600' :
+                      isBoosted ? 'bg-gradient-to-r from-blue-600 to-indigo-600' :
+                      'bg-blue-600 hover:bg-blue-700'
+                    }`}
+                  >
+                    Respond to Request
+                  </button>
+
+                  <div className="space-y-2">
+                    <button
+                      onClick={toggleSave}
+                      className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg transition ${
+                        isSaved
+                          ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {isSaved ? (
+                        <>
+                          <HeartOff className="w-4 h-4" />
+                          Unsave
+                        </>
+                      ) : (
+                        <>
+                          <Heart className="w-4 h-4" />
+                          Save
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={handleShare}
+                      className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+                    >
+                      <Share2 className="w-4 h-4" />
+                      Share
+                    </button>
+
+                    <button
+                      className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+                    >
+                      <Flag className="w-4 h-4" />
+                      Report
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
       </div>
 
+      {/* Contact Modal */}
+      {request && !isOwner && (
+        <ContactModal
+          isOpen={showContactModal}
+          onClose={() => setShowContactModal(false)}
+          listing={{
+            id: request.id,
+            title: request.title,
+            phone: request.phone,
+            whatsapp: request.whatsapp,
+            price: request.max_budget || request.min_budget || 0,
+            location: request.location,
+            make: request.make,
+            model: request.model,
+            year: request.max_year || request.min_year
+          }}
+        />
+      )}
     </div>
   )
 }
