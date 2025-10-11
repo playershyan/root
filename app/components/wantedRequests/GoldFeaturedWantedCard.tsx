@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { MapPin, Calendar, Star, MessageCircle, AlertTriangle, TrendingUp } from 'lucide-react'
 import FavoriteButton from '@/app/components/FavoriteButton'
+import ContactModal from '@/app/components/modals/ContactModal'
 
 interface GoldFeaturedWantedCardProps {
   request: {
@@ -33,6 +34,7 @@ interface GoldFeaturedWantedCardProps {
 }
 
 export default function GoldFeaturedWantedCard({ request, size = 'regular' }: GoldFeaturedWantedCardProps) {
+  const [showContactModal, setShowContactModal] = useState(false)
   const isLarge = size === 'large'
 
   const formatBudgetRange = () => {
@@ -78,44 +80,45 @@ export default function GoldFeaturedWantedCard({ request, size = 'regular' }: Go
   }
 
   return (
-    <div className={`
-      relative rounded-xl overflow-hidden
-      bg-gradient-to-br from-amber-50 via-yellow-50/80 to-white
-      border-2 border-amber-300/50
-      shadow-xl shadow-amber-200/30
-      hover:shadow-2xl hover:shadow-amber-300/40
-      transition-all duration-300
-      hover:-translate-y-1
-    `}>
-      {/* Shimmer Effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+    <>
+      <div className={`
+        relative rounded-xl overflow-hidden
+        bg-gradient-to-br from-amber-50 via-yellow-50/80 to-white
+        border-2 border-amber-300/50
+        shadow-xl shadow-amber-200/30
+        hover:shadow-2xl hover:shadow-amber-300/40
+        transition-all duration-300
+        hover:-translate-y-1
+      `}>
+        {/* Shimmer Effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
 
-      {/* Top Badges Row */}
-      <div className="absolute top-0 left-0 right-0 p-3 flex items-start justify-between z-20">
-        {/* Featured Badge */}
-        <div className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2">
-          <Star className="w-3.5 h-3.5 fill-white" />
-          <span className="text-xs font-bold tracking-wide">FEATURED</span>
+        {/* Top Badges Row */}
+        <div className="absolute top-0 left-0 right-0 p-3 flex items-start justify-between z-20">
+          {/* Featured Badge */}
+          <div className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2">
+            <Star className="w-3.5 h-3.5 fill-white" />
+            <span className="text-xs font-bold tracking-wide">FEATURED</span>
+          </div>
+
+          {/* Urgent Badge */}
+          {request.is_urgent && (
+            <div className="bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
+              <AlertTriangle className="w-3 h-3" />
+              <span className="text-xs font-bold">URGENT</span>
+            </div>
+          )}
         </div>
 
-        {/* Urgent Badge */}
-        {request.is_urgent && (
-          <div className="bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
-            <AlertTriangle className="w-3 h-3" />
-            <span className="text-xs font-bold">URGENT</span>
-          </div>
-        )}
-      </div>
+        {/* Favorite Button - Top Right Corner */}
+        <div className="absolute top-3 right-3 z-30">
+          <FavoriteButton
+            listingId={request.id}
+            className="bg-white hover:bg-amber-50 shadow-md border border-amber-200 hover:border-amber-300 transition-colors"
+          />
+        </div>
 
-      {/* Favorite Button - Top Right Corner */}
-      <div className="absolute top-3 right-3 z-30">
-        <FavoriteButton
-          listingId={request.id}
-          className="bg-white hover:bg-amber-50 shadow-md border border-amber-200 hover:border-amber-300 transition-colors"
-        />
-      </div>
-
-      <Link href={`/wanted/${request.id}`} className="block">
+        <Link href={`/wanted/${request.id}`} className="block">
         <div className={`relative pt-12 pb-5 px-5 ${isLarge ? 'lg:px-8' : ''}`}>
 
           {/* Title & Vehicle Info */}
@@ -222,7 +225,7 @@ export default function GoldFeaturedWantedCard({ request, size = 'regular' }: Go
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                window.location.href = `/wanted/${request.id}`
+                setShowContactModal(true)
               }}
               className="
                 w-full bg-gradient-to-r from-amber-500 to-yellow-500
@@ -240,7 +243,25 @@ export default function GoldFeaturedWantedCard({ request, size = 'regular' }: Go
           </div>
 
         </div>
-      </Link>
-    </div>
+        </Link>
+      </div>
+
+      {/* Contact Modal */}
+      <ContactModal
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        listing={{
+          id: request.id,
+          title: request.title,
+          phone: request.phone,
+          whatsapp: request.whatsapp,
+          price: request.max_budget || request.min_budget || 0,
+          location: request.location,
+          make: request.make,
+          model: request.model,
+          year: request.year_max || request.year_min
+        }}
+      />
+    </>
   )
 }

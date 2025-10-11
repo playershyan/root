@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { MapPin, Calendar, AlertTriangle, MessageCircle, TrendingUp } from 'lucide-react'
 import FavoriteButton from '@/app/components/FavoriteButton'
+import ContactModal from '@/app/components/modals/ContactModal'
 
 interface UrgentWantedCardProps {
   request: {
@@ -31,6 +32,8 @@ interface UrgentWantedCardProps {
 }
 
 export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
+  const [showContactModal, setShowContactModal] = useState(false)
+
   const formatBudgetRange = () => {
     if (request.min_budget && request.max_budget) {
       return `Rs. ${request.min_budget.toLocaleString()} - ${request.max_budget.toLocaleString()}`
@@ -74,36 +77,37 @@ export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
   }
 
   return (
-    <div className="
-      relative rounded-xl overflow-hidden
-      bg-gradient-to-br from-red-50 via-white to-red-50/50
-      border-2 border-red-300
-      shadow-xl shadow-red-200/40
-      hover:shadow-2xl hover:shadow-red-300/50
-      transition-all duration-300
-      hover:-translate-y-1
-    ">
-      {/* Subtle Pulse Effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-50/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+    <>
+      <div className="
+        relative rounded-xl overflow-hidden
+        bg-gradient-to-br from-red-50 via-white to-red-50/50
+        border-2 border-red-300
+        shadow-xl shadow-red-200/40
+        hover:shadow-2xl hover:shadow-red-300/50
+        transition-all duration-300
+        hover:-translate-y-1
+      ">
+        {/* Subtle Pulse Effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-50/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
 
-      {/* Top Badges Row */}
-      <div className="absolute top-0 left-0 right-0 p-3 flex items-start justify-between z-20">
-        {/* Urgent Badge */}
-        <div className="bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2">
-          <AlertTriangle className="w-3.5 h-3.5" />
-          <span className="text-xs font-bold tracking-wide">URGENT</span>
+        {/* Top Badges Row */}
+        <div className="absolute top-0 left-0 right-0 p-3 flex items-start justify-between z-20">
+          {/* Urgent Badge */}
+          <div className="bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2">
+            <AlertTriangle className="w-3.5 h-3.5" />
+            <span className="text-xs font-bold tracking-wide">URGENT</span>
+          </div>
         </div>
-      </div>
 
-      {/* Favorite Button - Top Right Corner */}
-      <div className="absolute top-3 right-3 z-30">
-        <FavoriteButton
-          listingId={request.id}
-          className="bg-white hover:bg-red-50 shadow-md border border-red-200 hover:border-red-300 transition-colors"
-        />
-      </div>
+        {/* Favorite Button - Top Right Corner */}
+        <div className="absolute top-3 right-3 z-30">
+          <FavoriteButton
+            listingId={request.id}
+            className="bg-white hover:bg-red-50 shadow-md border border-red-200 hover:border-red-300 transition-colors"
+          />
+        </div>
 
-      <Link href={`/wanted/${request.id}`} className="block">
+        <Link href={`/wanted/${request.id}`} className="block">
         <div className="relative pt-12 pb-5 px-5">
 
           {/* Title & Vehicle Info */}
@@ -208,7 +212,7 @@ export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                window.location.href = `/wanted/${request.id}`
+                setShowContactModal(true)
               }}
               className="
                 w-full bg-gradient-to-r from-red-600 to-red-700
@@ -226,7 +230,25 @@ export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
           </div>
 
         </div>
-      </Link>
-    </div>
+        </Link>
+      </div>
+
+      {/* Contact Modal */}
+      <ContactModal
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        listing={{
+          id: request.id,
+          title: request.title,
+          phone: request.phone,
+          whatsapp: request.whatsapp,
+          price: request.max_budget || request.min_budget || 0,
+          location: request.location,
+          make: request.make,
+          model: request.model,
+          year: request.year_max || request.year_min
+        }}
+      />
+    </>
   )
 }

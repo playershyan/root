@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { MapPin, Calendar, MessageCircle, TrendingUp } from 'lucide-react'
 import FavoriteButton from '@/app/components/FavoriteButton'
+import ContactModal from '@/app/components/modals/ContactModal'
 
 interface RegularWantedCardProps {
   request: {
@@ -29,6 +30,8 @@ interface RegularWantedCardProps {
 }
 
 export default function RegularWantedCard({ request }: RegularWantedCardProps) {
+  const [showContactModal, setShowContactModal] = useState(false)
+
   const formatBudgetRange = () => {
     if (request.min_budget && request.max_budget) {
       return `Rs. ${request.min_budget.toLocaleString()} - ${request.max_budget.toLocaleString()}`
@@ -72,23 +75,24 @@ export default function RegularWantedCard({ request }: RegularWantedCardProps) {
   }
 
   return (
-    <div className="
-      relative rounded-xl overflow-hidden
-      bg-white
-      border border-gray-200
-      shadow-md hover:shadow-lg
-      transition-all duration-300
-      hover:-translate-y-1
-    ">
-      {/* Favorite Button - Top Right Corner */}
-      <div className="absolute top-3 right-3 z-30">
-        <FavoriteButton
-          listingId={request.id}
-          className="bg-white hover:bg-gray-50 shadow-md border border-gray-200 hover:border-gray-300 transition-colors"
-        />
-      </div>
+    <>
+      <div className="
+        relative rounded-xl overflow-hidden
+        bg-white
+        border border-gray-200
+        shadow-md hover:shadow-lg
+        transition-all duration-300
+        hover:-translate-y-1
+      ">
+        {/* Favorite Button - Top Right Corner */}
+        <div className="absolute top-3 right-3 z-30">
+          <FavoriteButton
+            listingId={request.id}
+            className="bg-white hover:bg-gray-50 shadow-md border border-gray-200 hover:border-gray-300 transition-colors"
+          />
+        </div>
 
-      <Link href={`/wanted/${request.id}`} className="block">
+        <Link href={`/wanted/${request.id}`} className="block">
         <div className="relative p-5">
 
           {/* Title & Vehicle Info */}
@@ -201,7 +205,7 @@ export default function RegularWantedCard({ request }: RegularWantedCardProps) {
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                window.location.href = `/wanted/${request.id}`
+                setShowContactModal(true)
               }}
               className="
                 w-full bg-blue-600
@@ -219,7 +223,25 @@ export default function RegularWantedCard({ request }: RegularWantedCardProps) {
           </div>
 
         </div>
-      </Link>
-    </div>
+        </Link>
+      </div>
+
+      {/* Contact Modal */}
+      <ContactModal
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        listing={{
+          id: request.id,
+          title: request.title,
+          phone: request.phone,
+          whatsapp: request.whatsapp,
+          price: request.max_budget || request.min_budget || 0,
+          location: request.location,
+          make: request.make,
+          model: request.model,
+          year: request.max_year || request.min_year
+        }}
+      />
+    </>
   )
 }
