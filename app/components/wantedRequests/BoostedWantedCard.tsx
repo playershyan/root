@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { MapPin, Calendar, TrendingUp, MessageCircle, Zap, Star } from 'lucide-react'
-import FavoriteButton from '@/app/components/FavoriteButton'
+import WantedRequestFavoriteButton from '@/app/components/WantedRequestFavoriteButton'
 import ContactModal from '@/app/components/modals/ContactModal'
 
 interface BoostedWantedCardProps {
@@ -120,8 +120,8 @@ export default function BoostedWantedCard({ request }: BoostedWantedCardProps) {
 
         {/* Favorite Button - Top Right Corner */}
         <div className="absolute top-3 right-3 z-30">
-          <FavoriteButton
-            listingId={request.id}
+          <WantedRequestFavoriteButton
+            requestId={request.id}
             className="bg-white hover:bg-blue-50 shadow-md border border-blue-200 hover:border-blue-300 transition-colors"
           />
         </div>

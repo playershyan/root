@@ -5,8 +5,9 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/app/contexts/AuthContext'
-import { ArrowLeft, MapPin, Calendar, Eye, Edit, Share2, Flag, Zap, TrendingUp, Heart, HeartOff } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, Eye, Edit, Share2, Flag, Zap, TrendingUp } from 'lucide-react'
 import ContactModal from '@/app/components/modals/ContactModal'
+import WantedRequestFavoriteButton from '@/app/components/WantedRequestFavoriteButton'
 
 interface WantedRequest {
   id: string
@@ -43,7 +44,6 @@ export default function WantedRequestDetailPage() {
   const [request, setRequest] = useState<WantedRequest | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isSaved, setIsSaved] = useState(false)
   const [showContactModal, setShowContactModal] = useState(false)
   const [isOwner, setIsOwner] = useState(false)
 
@@ -51,7 +51,6 @@ export default function WantedRequestDetailPage() {
     if (params.id) {
       fetchRequest()
       incrementViews()
-      checkIfSaved()
     }
   }, [params.id, user])
 
@@ -152,61 +151,6 @@ export default function WantedRequestDetailPage() {
     } catch (error) {
       // Silently fail if function doesn't exist
       console.debug('Views increment not available:', error)
-    }
-  }
-
-  const checkIfSaved = () => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('savedWantedRequests')
-      if (saved) {
-        const savedSet = new Set(JSON.parse(saved))
-        setIsSaved(savedSet.has(params.id))
-      }
-    }
-  }
-
-  const toggleSave = () => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('savedWantedRequests')
-      const savedSet = saved ? new Set(JSON.parse(saved)) : new Set()
-
-      if (savedSet.has(params.id)) {
-        savedSet.delete(params.id)
-        setIsSaved(false)
-
-        // Remove from full data
-        const existingData = localStorage.getItem('favoriteWantedRequestsData')
-        if (existingData) {
-          const currentData = JSON.parse(existingData)
-          const updatedData = currentData.filter((item: any) => item.id !== params.id)
-          localStorage.setItem('favoriteWantedRequestsData', JSON.stringify(updatedData))
-        }
-      } else {
-        savedSet.add(params.id)
-        setIsSaved(true)
-
-        // Save full data
-        if (request) {
-          const existingData = localStorage.getItem('favoriteWantedRequestsData')
-          const currentData = existingData ? JSON.parse(existingData) : []
-          const newData = [...currentData, {
-            id: request.id,
-            title: request.title,
-            description: request.description,
-            price: request.max_budget || request.min_budget || 0,
-            location: request.location,
-            postedDate: request.created_at,
-            minBudget: request.min_budget,
-            maxBudget: request.max_budget,
-            make: request.make,
-            model: request.model,
-            user_name: request.user_name
-          }]
-          localStorage.setItem('favoriteWantedRequestsData', JSON.stringify(newData))
-        }
-      }
-
-      localStorage.setItem('savedWantedRequests', JSON.stringify(Array.from(savedSet)))
     }
   }
 
@@ -567,26 +511,12 @@ export default function WantedRequestDetailPage() {
                   </button>
 
                   <div className="space-y-2">
-                    <button
-                      onClick={toggleSave}
-                      className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg transition ${
-                        isSaved
-                          ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      {isSaved ? (
-                        <>
-                          <HeartOff className="w-4 h-4" />
-                          Unsave
-                        </>
-                      ) : (
-                        <>
-                          <Heart className="w-4 h-4" />
-                          Save
-                        </>
-                      )}
-                    </button>
+                    <WantedRequestFavoriteButton
+                      requestId={request.id}
+                      showText={true}
+                      size="large"
+                      className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+                    />
 
                     <button
                       onClick={handleShare}

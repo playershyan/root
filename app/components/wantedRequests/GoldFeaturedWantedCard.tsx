@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { MapPin, Calendar, Star, MessageCircle, AlertTriangle, TrendingUp } from 'lucide-react'
-import FavoriteButton from '@/app/components/FavoriteButton'
+import WantedRequestFavoriteButton from '@/app/components/WantedRequestFavoriteButton'
 import ContactModal from '@/app/components/modals/ContactModal'
 
 interface GoldFeaturedWantedCardProps {
@@ -131,9 +131,9 @@ export default function GoldFeaturedWantedCard({ request, size = 'regular' }: Go
 
         {/* Favorite Button - Top Right Corner */}
         <div className="absolute top-3 right-3 z-30">
-          <FavoriteButton
-            listingId={request.id}
-            className="bg-white hover:bg-amber-50 shadow-md border border-amber-200 hover:border-amber-300 transition-colors"
+          <WantedRequestFavoriteButton
+            requestId={request.id}
+            className="bg-white hover:bg-amber-50 shadow-md border border-amber-200 hover:border-amber-300 transition-colors rounded-full"
           />
         </div>
 
