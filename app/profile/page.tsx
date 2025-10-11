@@ -77,7 +77,7 @@ interface WantedRequest {
   budget: number
   status: 'active' | 'paused' | 'closed' | 'deleted' | 'fulfilled'
   postedDate: string
-  responses: number
+  clicks: number
   location: string
   isReportedTakedown?: boolean
   rejectionReason?: string
@@ -499,7 +499,7 @@ export default function ProfilePage() {
             budget: request.budget,
             status: request.status,
             postedDate: new Date(request.created_at).toLocaleDateString(),
-            responses: request.response_count || 0,
+            clicks: request.clicks || 0,
             location: request.location,
             isReportedTakedown: request.is_reported || false,
             rejectionReason: request.rejection_reason || undefined
@@ -660,17 +660,17 @@ export default function ProfilePage() {
             budget: 3500000,
             status: 'active',
             postedDate: '2025-07-10', // 41 days ago - can be renewed
-            responses: 12,
+            clicks: 12,
             location: 'Colombo',
           },
           {
-            id: '2', 
+            id: '2',
             title: 'Honda Vezel or HR-V under 4M',
             description: 'Looking for Honda Vezel or HR-V in good condition. Any color acceptable. Must be within 4 million budget.',
             budget: 4000000,
             status: 'active',
             postedDate: '2025-08-15', // 5 days ago - cannot be renewed (13 days remaining)
-            responses: 8,
+            clicks: 8,
             location: 'Kandy',
           },
           {
@@ -680,7 +680,7 @@ export default function ProfilePage() {
             budget: 8500000,
             status: 'paused',
             postedDate: '2025-07-25', // 26 days ago - can be renewed
-            responses: 5,
+            clicks: 5,
             location: 'Galle',
           },
           {
@@ -690,7 +690,7 @@ export default function ProfilePage() {
             budget: 12000000,
             status: 'deleted',
             postedDate: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-            responses: 15,
+            clicks: 15,
             location: 'Colombo',
             isReportedTakedown: true,
             rejectionReason: 'Multiple reports: Suspected fraudulent payment terms'
@@ -702,7 +702,7 @@ export default function ProfilePage() {
             budget: 5000000,
             status: 'deleted',
             postedDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-            responses: 7,
+            clicks: 7,
             location: 'Matara',
             isReportedTakedown: true,
             rejectionReason: 'Reported: Suspicious contact information provided'
@@ -2533,7 +2533,7 @@ export default function ProfilePage() {
                                   </div>
                                 </td>
                                 <td className="px-4 py-4">Rs. {request.budget?.toLocaleString() || '0'}</td>
-                                <td className="px-4 py-4">{request.responses}</td>
+                                <td className="px-4 py-4">{request.clicks}</td>
                                 <td className="px-4 py-4">
                                   <WantedRequestStatusBadge request={request} />
                                 </td>
@@ -2714,7 +2714,7 @@ export default function ProfilePage() {
                                 <div className="space-y-3">
                                   <div className="flex items-center justify-between">
                                     <span className="text-base font-semibold text-gray-900">Rs. {request.budget?.toLocaleString() || '0'}</span>
-                                    <span className="text-xs text-gray-600">{request.responses} responses</span>
+                                    <span className="text-xs text-gray-600">{request.clicks} clicks</span>
                                   </div>
 
                                   <div className="flex items-center justify-between text-xs text-gray-600">

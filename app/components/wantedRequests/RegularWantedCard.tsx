@@ -192,16 +192,10 @@ export default function RegularWantedCard({ request }: RegularWantedCardProps) {
 
           {/* Stats Bar */}
           <div className="flex items-center justify-between py-3 border-t border-gray-200/50">
-            <div className="flex items-center gap-4 text-xs text-gray-500">
-              <span className="flex items-center gap-1.5">
-                <MessageCircle className="w-3.5 h-3.5" />
-                {request.clicks || 0} clicks
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5" />
-                {getTimeAgo(request.created_at)}
-              </span>
-            </div>
+            <span className="flex items-center gap-1.5 text-xs text-gray-500">
+              <Calendar className="w-3.5 h-3.5" />
+              {getTimeAgo(request.created_at)}
+            </span>
 
             {/* Verified Badge */}
             {request.urgency && (
