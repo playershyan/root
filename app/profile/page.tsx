@@ -300,127 +300,21 @@ export default function ProfilePage() {
   // Load bin items - moved here to follow Rules of Hooks
   const loadBinItems = useCallback(async () => {
     if (!user) return
-    
+
     setBinLoading(true)
     try {
-      // Sample data for testing the bin functionality
-      const sampleBinData = [
-        // Deleted Listings
-        {
-          id: 'listing-1',
-          item_type: 'listing',
-          title: '2019 Toyota Prius - Hybrid',
-          deleted_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
-          deletion_reason: 'Sold the vehicle',
-          can_restore: true,
-          days_until_permanent_deletion: 25,
-          original_data: {
-            price: 8500000,
-            location: 'Colombo'
-          }
-        },
-        {
-          id: 'listing-2',
-          item_type: 'listing',
-          title: '2015 Honda Vezel RS',
-          deleted_at: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString(), // 28 days ago
-          deletion_reason: 'Listing expired',
-          can_restore: true,
-          days_until_permanent_deletion: 2, // Expiring soon!
-          original_data: {
-            price: 5200000,
-            location: 'Kandy'
-          }
-        },
-        
-        // Deleted Messages
-        {
-          id: 'message-1',
-          item_type: 'message',
-          title: 'Inquiry about Toyota Aqua',
-          deleted_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago
-          deletion_reason: 'Cleaned up conversation',
-          can_restore: true,
-          days_until_permanent_deletion: 20,
-          original_data: {
-            conversation_with: 'John Doe',
-            last_message: 'Is the vehicle still available?'
-          }
-        },
-        {
-          id: 'message-2',
-          item_type: 'message',
-          title: 'Price negotiation for Nissan Leaf',
-          deleted_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
-          deletion_reason: 'Accidental deletion',
-          can_restore: true,
-          days_until_permanent_deletion: 27,
-          original_data: {
-            conversation_with: 'Sarah Smith',
-            last_message: 'Can you do 4.5M?'
-          }
-        },
-        
-        // Deleted Wanted Requests
-        {
-          id: 'wanted-1',
-          item_type: 'wanted_request',
-          title: 'Looking for Honda Fit 2018-2020',
-          deleted_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
-          deletion_reason: 'Found a vehicle',
-          can_restore: true,
-          days_until_permanent_deletion: 23,
-          original_data: {
-            budget: 4000000,
-            location: 'Anywhere in Sri Lanka'
-          }
-        },
-        {
-          id: 'wanted-2',
-          item_type: 'wanted_request',
-          title: 'Need Toyota Axio Hybrid under 5M',
-          deleted_at: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000).toISOString(), // 29 days ago
-          deletion_reason: 'Request expired',
-          can_restore: true,
-          days_until_permanent_deletion: 1, // Critical - expiring tomorrow!
-          original_data: {
-            budget: 5000000,
-            location: 'Western Province'
-          }
-        },
-        {
-          id: 'wanted-3',
-          item_type: 'wanted_request',
-          title: 'Mercedes Benz C200 2015+',
-          deleted_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days ago
-          deletion_reason: 'No longer needed',
-          can_restore: true,
-          days_until_permanent_deletion: 15,
-          original_data: {
-            budget: 12000000,
-            location: 'Colombo'
-          }
+      const { data: { session } } = await supabase.auth.getSession()
+      const response = await fetch('/api/user/bin', {
+        headers: {
+          'Authorization': `Bearer ${session?.access_token}`,
+          'Content-Type': 'application/json',
         }
-      ]
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      setBinItems(sampleBinData)
-      
-      // Uncomment below to use actual API instead of sample data
-      // const { data: { session } } = await supabase.auth.getSession()
-      // const response = await fetch('/api/user/bin', {
-      //   headers: {
-      //     'Authorization': `Bearer ${session?.access_token}`,
-      //     'Content-Type': 'application/json',
-      //   }
-      // })
-      // 
-      // if (!response.ok) throw new Error('Failed to load bin items')
-      // 
-      // const data = await response.json()
-      // setBinItems(data.all_items || [])
+      })
+
+      if (!response.ok) throw new Error('Failed to load bin items')
+
+      const data = await response.json()
+      setBinItems(data.all_items || [])
     } catch (error) {
       console.error('Error loading bin items:', error)
       alert('Failed to load bin items')
@@ -1223,66 +1117,37 @@ export default function ProfilePage() {
   // Handle item restoration
   const handleRestoreItem = async (itemType: string, itemId: string) => {
     if (!user) return
-    
+
     setRestoring(itemId)
     try {
-      // Simulate restoration for demo purposes
-      await new Promise(resolve => setTimeout(resolve, 1500)) // Simulate API delay
-      
-      // Find the item being restored
-      const item = binItems.find(i => i.id === itemId)
-      if (!item) {
-        throw new Error('Item not found')
+      // Extract actual item_id from the composite id (format: 'listing-UUID' or 'wanted-UUID')
+      const actualItemId = itemId.includes('-') ? itemId.split('-').slice(1).join('-') : itemId
+
+      const { data: { session } } = await supabase.auth.getSession()
+      const response = await fetch('/api/user/bin', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session?.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'restore',
+          item_type: itemType,
+          item_id: actualItemId
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to restore item')
       }
-      
-      // Show success message based on item type
-      let message = ''
-      let nextSteps = ''
-      
-      if (itemType === 'listing') {
-        message = `Successfully restored listing: "${item.title || 'Untitled'}"`
-        nextSteps = 'Your listing has been restored but is currently paused. Please review and activate it in your listings management.'
-      } else if (itemType === 'message') {
-        message = `Successfully restored message: "${item.title || 'Untitled'}"`
-        nextSteps = 'Your message has been restored and is now visible in the conversation.'
-      } else if (itemType === 'wanted_request') {
-        message = `Successfully restored wanted request: "${item.title || 'Untitled'}"`
-        nextSteps = 'Your wanted request has been restored but is currently paused. Please review and activate it in your wanted requests management.'
-      }
-      
-      alert(message + '\n\n' + nextSteps)
-      
-      // Remove the restored item from the bin (for demo)
-      setBinItems(prevItems => prevItems.filter(i => i.id !== itemId))
-      
-      console.log('Next steps:', nextSteps)
-      
-      // Uncomment below to use actual API instead of sample behavior
-      // const { data: { session } } = await supabase.auth.getSession()
-      // const response = await fetch('/api/user/bin', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': `Bearer ${session?.access_token}`,
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({
-      //     action: 'restore',
-      //     item_type: itemType,
-      //     item_id: itemId
-      //   })
-      // })
-      // 
-      // if (!response.ok) {
-      //   const errorData = await response.json()
-      //   throw new Error(errorData.error || 'Failed to restore item')
-      // }
-      // 
-      // const data = await response.json()
-      // alert(data.message)
-      // 
-      // // Reload bin items to reflect changes
-      // await loadBinItems()
-      
+
+      const data = await response.json()
+      alert(data.message + '\n\n' + data.next_steps)
+
+      // Reload bin items to reflect changes
+      await loadBinItems()
+
     } catch (error) {
       console.error('Error restoring item:', error)
       alert(error instanceof Error ? error.message : 'Failed to restore item')

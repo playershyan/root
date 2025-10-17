@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
 
     // Get user's bin items
     const { data: binItems, error: binError } = await supabase
-      .rpc('get_user_bin_items', { user_id: user.id })
+      .rpc('get_user_bin_items', { p_user_id: user.id })
 
     if (binError) {
       console.error('Error fetching bin items:', binError)
@@ -122,9 +122,9 @@ export async function POST(request: NextRequest) {
     // Restore the item
     const { data: restoreResult, error: restoreError } = await supabase
       .rpc('restore_user_item', {
-        item_type,
-        item_id,
-        user_id: user.id
+        p_user_id: user.id,
+        p_item_type: item_type,
+        p_item_id: item_id
       })
 
     if (restoreError) {
@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
     }
 
     const result = restoreResult?.[0]
-    
+
     if (!result?.success) {
       return NextResponse.json(
         { error: result?.message || 'Restore failed' },
