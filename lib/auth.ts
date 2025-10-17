@@ -27,56 +27,6 @@ export async function signInWithOTP(phone: string): Promise<{ success: boolean; 
   }
 }
 
-export async function signInWithEmailOTP(email: string): Promise<{ success: boolean; error?: AuthError }> {
-  try {
-    const res = await fetch('/api/auth/send-email-otp', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email }),
-    })
-
-    const data = await res.json()
-
-    if (!res.ok) {
-      return { success: false, error: { message: data.error } }
-    }
-
-    return { success: true }
-  } catch (error) {
-    return { 
-      success: false, 
-      error: { message: 'Failed to send email OTP. Please try again.' }
-    }
-  }
-}
-
-export async function verifyEmailOTP(email: string, token: string): Promise<{ success: boolean; error?: AuthError; user?: any }> {
-  try {
-    const res = await fetch('/api/auth/verify-email-otp', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, token }),
-    })
-
-    const data = await res.json()
-
-    if (!res.ok) {
-      return { success: false, error: { message: data.error } }
-    }
-
-    return { success: true, user: data.user }
-  } catch (error) {
-    return { 
-      success: false, 
-      error: { message: 'Invalid OTP. Please try again.' }
-    }
-  }
-}
-
 export async function verifyOTP(phone: string, token: string): Promise<{ success: boolean; error?: AuthError; user?: any }> {
   try {
     const { data, error } = await supabase.auth.verifyOtp({

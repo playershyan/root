@@ -7,12 +7,11 @@ import GoogleSignInButton from './GoogleSignInButton'
 import EmailAuthForm from './EmailAuthForm'
 import PhoneAuthForm from './PhoneAuthForm'
 import OTPVerification from './OTPVerification'
-import MultiStepEmailSignup from './MultiStepEmailSignup'
 import SimpleForgotPassword from './SimpleForgotPassword'
 import StreamlinedSignup from './StreamlinedSignup'
 import type { AuthModalProps, AuthResult } from './types'
 
-type AuthView = 'main' | 'email' | 'phone' | 'otp-verify' | 'email-signup' | 'forgot-password' | 'streamlined-signup'
+type AuthView = 'main' | 'email' | 'phone' | 'otp-verify' | 'forgot-password' | 'streamlined-signup'
 
 export default function AuthModal({
   isOpen,
@@ -307,20 +306,6 @@ export default function AuthModal({
               onResendOTP={handleResendOTP}
             />
           </div>
-        )
-
-      case 'email-signup':
-        return (
-          <MultiStepEmailSignup
-            onSuccess={handleAuthSuccess}
-            onError={handleAuthError}
-            onBack={() => setCurrentView('main')}
-            onSwitchToLogin={() => {
-              setAuthType('login')
-              setCurrentView('email')
-            }}
-            loading={loading}
-          />
         )
 
       case 'forgot-password':

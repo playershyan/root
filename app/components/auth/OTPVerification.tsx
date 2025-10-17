@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
 import { authConfig } from '@/lib/config/auth.config'
-import { verifyOTP, signInWithEmailOTP } from '@/lib/auth'
+import { verifyOTP } from '@/lib/auth'
 import type { OTPVerificationProps, AuthResult } from './types'
 
 export default function OTPVerification({
@@ -103,17 +103,11 @@ export default function OTPVerification({
     setError('')
     
     try {
-      let result
-
-      if (phone) {
-        result = await verifyOTP(phone, code)
-      } else if (email) {
-        result = await signInWithEmailOTP(email) // This would need to be implemented
-        // For now, assume email OTP verification uses the same flow
-        result = await verifyOTP(email, code)
-      } else {
-        throw new Error('No phone or email provided for verification')
+      if (!phone) {
+        throw new Error('OTP verification currently only supports phone numbers')
       }
+
+      const result = await verifyOTP(phone, code)
       
       if (result.success) {
         await refreshUser()
