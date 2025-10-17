@@ -18,6 +18,8 @@ interface SecurityTabProps {
   twoFactorData?: TwoFactorAuthData
   sessions?: SecuritySession[]
   userEmail?: string
+  hasExistingPassword?: boolean
+  authProvider?: 'email' | 'google' | 'phone'
   onEmailUpdate?: (data: any) => Promise<void>
   onPasswordUpdate?: (data: any) => Promise<void>
   onTwoFactorUpdate?: (data: any) => Promise<void>
@@ -31,6 +33,8 @@ export default function SecurityTab({
   twoFactorData,
   sessions,
   userEmail,
+  hasExistingPassword = false,
+  authProvider = 'email',
   onEmailUpdate,
   onPasswordUpdate,
   onTwoFactorUpdate,
@@ -157,6 +161,8 @@ export default function SecurityTab({
 
             {/* Password Settings */}
             <PasswordSecurityCard
+              hasExistingPassword={hasExistingPassword}
+              authProvider={authProvider}
               onUpdate={(data) => handleUpdate('Password', onPasswordUpdate, data)}
               loading={loading}
             />

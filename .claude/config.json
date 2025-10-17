@@ -1,0 +1,8 @@
+{
+    "hooks": {
+      "post_change": "@auto-log",
+      "session_start": "@init-log"
+    },
+    "auto_save": true,
+    "log_directory": "D:\\projects\\root\\change-logs"
+  }

@@ -8,8 +8,10 @@ import {
 } from '@/lib/utils/securityUtils'
 
 interface PasswordSecurityCardProps {
+  hasExistingPassword: boolean
+  authProvider?: 'email' | 'google' | 'phone'
   onUpdate: (data: {
-    currentPassword: string
+    currentPassword?: string
     newPassword: string
     confirmPassword: string
   }) => Promise<void>
@@ -17,6 +19,8 @@ interface PasswordSecurityCardProps {
 }
 
 export default function PasswordSecurityCard({
+  hasExistingPassword,
+  authProvider = 'email',
   onUpdate,
   loading = false
 }: PasswordSecurityCardProps) {
@@ -68,9 +72,9 @@ export default function PasswordSecurityCard({
 
   const handleSubmit = async () => {
     setErrors([])
-    
+
     // Validation
-    if (!formData.currentPassword) {
+    if (hasExistingPassword && !formData.currentPassword) {
       setErrors(['Current password is required'])
       return
     }
@@ -81,7 +85,7 @@ export default function PasswordSecurityCard({
       return
     }
 
-    if (formData.newPassword === formData.currentPassword) {
+    if (hasExistingPassword && formData.newPassword === formData.currentPassword) {
       setErrors(['New password must be different from current password'])
       return
     }
@@ -121,11 +125,29 @@ export default function PasswordSecurityCard({
       </div>
 
       <div className="space-y-4 max-w-md">
-        {/* Current Password */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Current Password
-          </label>
+        {/* Informational Banner for Password Creation */}
+        {!hasExistingPassword && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start gap-2">
+              <Shield className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-blue-800">Create a Password</p>
+                <p className="text-sm text-blue-700 mt-1">
+                  You signed up with {authProvider === 'google' ? 'Google' : 'Phone OTP'}.
+                  Setting a password will allow you to sign in using email and password
+                  in addition to {authProvider === 'google' ? 'Google' : 'Phone OTP'}.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Current Password - only show if password exists */}
+        {hasExistingPassword && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Current Password
+            </label>
           <div className="relative">
             <input
               type={showPassword.current ? 'text' : 'password'}
@@ -264,13 +286,13 @@ export default function PasswordSecurityCard({
         )}
         
         {/* Submit Button */}
-        <button 
+        <button
           onClick={handleSubmit}
           disabled={
-            submitting || 
-            loading || 
-            !formData.currentPassword || 
-            !formData.newPassword || 
+            submitting ||
+            loading ||
+            (hasExistingPassword && !formData.currentPassword) ||
+            !formData.newPassword ||
             !formData.confirmPassword ||
             formData.newPassword !== formData.confirmPassword ||
             passwordStrength.strength === 'weak'
@@ -280,9 +302,9 @@ export default function PasswordSecurityCard({
           {submitting ? (
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              Updating Password...
+              {hasExistingPassword ? 'Updating Password...' : 'Creating Password...'}
             </div>
-          ) : 'Update Password'}
+          ) : (hasExistingPassword ? 'Update Password' : 'Create Password')}
         </button>
 
         {/* Security Tips */}

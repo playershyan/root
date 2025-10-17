@@ -264,6 +264,39 @@ export default function ProfilePage() {
     revokeAllOtherSessions
   } = useSessionManager()
 
+  // Authentication provider detection for password management
+  const [hasExistingPassword, setHasExistingPassword] = useState(false)
+  const [authProvider, setAuthProvider] = useState<'email' | 'google' | 'phone'>('email')
+
+  // Detect authentication providers on mount
+  useEffect(() => {
+    const detectAuthProviders = async () => {
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        if (authUser?.identities) {
+          const providers = authUser.identities.map(i => i.provider)
+          const hasEmailProvider = providers.includes('email')
+          setHasExistingPassword(hasEmailProvider)
+
+          // Set primary provider
+          if (providers.includes('google')) {
+            setAuthProvider('google')
+          } else if (providers.includes('phone')) {
+            setAuthProvider('phone')
+          } else {
+            setAuthProvider('email')
+          }
+        }
+      } catch (error) {
+        console.error('Error detecting auth providers:', error)
+      }
+    }
+
+    if (user) {
+      detectAuthProviders()
+    }
+  }, [user])
+
   // Load bin items - moved here to follow Rules of Hooks
   const loadBinItems = useCallback(async () => {
     if (!user) return
@@ -1924,6 +1957,38 @@ export default function ProfilePage() {
     }
   }
 
+  // Password update handler
+  const handlePasswordUpdate = async (data: {
+    currentPassword?: string
+    newPassword: string
+    confirmPassword: string
+  }) => {
+    try {
+      const response = await fetch('/api/user/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword: data.currentPassword,
+          newPassword: data.newPassword
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to update password')
+      }
+
+      // Update hasExistingPassword if this was a password creation
+      if (!hasExistingPassword) {
+        setHasExistingPassword(true)
+      }
+
+      return response.json()
+    } catch (error) {
+      console.error('Error updating password:', error)
+      throw error
+    }
+  }
 
   // Phone verification functions
   const handlePhoneChange = (newPhone: string) => {
@@ -2879,13 +2944,12 @@ export default function ProfilePage() {
                     method: 'sms'
                   }}
                   sessions={sessions}
+                  hasExistingPassword={hasExistingPassword}
+                  authProvider={authProvider}
                   onEmailUpdate={async (data) => {
                     await handleEmailUpdate()
                   }}
-                  onPasswordUpdate={async (data) => {
-                    console.log('Password update:', data)
-                    // Handle password update
-                  }}
+                  onPasswordUpdate={handlePasswordUpdate}
                   onTwoFactorUpdate={async (data) => {
                     console.log('2FA update:', data)
                     // Handle 2FA update

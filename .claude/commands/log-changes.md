@@ -75,7 +75,7 @@ Format:
 
 7. SAVE THE LOG AUTOMATICALLY
    - ALWAYS create a NEW file, NEVER append to existing files
-   - Filename format: changelog-[YYYY-MM-DD].txt (e.g., changelog-2025-10-11.txt)
+   - Filename format: changelog-[YYYY-MM-DD].md (e.g., changelog-2025-10-11.md)
    - Each day gets exactly ONE changelog file
    - If running multiple times in the same day, OVERWRITE the existing file for that day
    - This ensures each day has the most complete and up-to-date log
