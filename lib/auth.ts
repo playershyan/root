@@ -280,10 +280,31 @@ export async function signInWithPassword(email: string, password: string): Promi
       return { success: false, error: { message: error.message, code: error.code } }
     }
 
+    // Sync email to profiles table on successful login
+    if (data.user?.id && data.user?.email) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert(
+          {
+            id: data.user.id,
+            email: data.user.email
+          },
+          {
+            onConflict: 'id',
+            ignoreDuplicates: false
+          }
+        )
+
+      if (profileError) {
+        console.error('Failed to sync email to profile:', profileError)
+        // Non-blocking error - login still succeeds
+      }
+    }
+
     return { success: true, user: data.user }
   } catch (error: any) {
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: { message: 'Failed to sign in. Please try again.' }
     }
   }

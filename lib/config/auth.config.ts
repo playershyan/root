@@ -38,7 +38,7 @@ export const authConfig: AuthConfig = {
     }
   },
   email: {
-    enabled: false, // TEMPORARILY DISABLED
+    enabled: true, // TEMPORARILY DISABLED
   },
   phone: {
     enabled: true,

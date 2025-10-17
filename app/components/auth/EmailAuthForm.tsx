@@ -42,6 +42,21 @@ export default function EmailAuthForm({
     )
   }
 
+  const checkEmailExists = async (email: string): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/auth/check-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const data = await response.json()
+      return data.exists
+    } catch (error) {
+      console.error('Email check failed:', error)
+      return false // Fail open - allow registration attempt
+    }
+  }
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}
 
@@ -74,16 +89,27 @@ export default function EmailAuthForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (loading || externalLoading || disabled) return
     if (!validateForm()) return
 
     setLoading(true)
-    
+
     try {
       let result
 
       if (type === 'register') {
+        // Check if email already exists before attempting signup
+        const emailExists = await checkEmailExists(email)
+
+        if (emailExists) {
+          setErrors({
+            email: 'This email is already registered. Please log in instead.'
+          })
+          setLoading(false)
+          return
+        }
+
         result = await signUp(email, password, name)
       } else {
         result = await signInWithPassword(email, password)
