@@ -3,7 +3,7 @@
 ## Email Authentication Enhancement & Cleanup
 
 ### Summary
-Comprehensive assessment, fixes, and cleanup of email authentication system. Resolved data consistency issues, improved UX, and removed orphaned OTP email authentication code.
+Comprehensive assessment, fixes, and cleanup of email authentication system. Resolved data consistency issues, improved UX, and removed orphaned OTP email authentication code. Implemented context-aware password management for multi-provider authentication.
 
 ---
 
@@ -357,9 +357,238 @@ All changes production-ready:
 
 ---
 
+---
+
+## Issue 4: Context-Aware Password Management ✅ IMPLEMENTED
+
+[10:06] - 🆕 NEW FEATURE: Context-Aware Password Management
+
+**Problem:** Users who signed up via Google OAuth or Phone OTP had no way to add password login capability. The password change UI required a "current password" field that these users couldn't fill out, blocking them from creating a password.
+
+**Impact:**
+- Google/Phone users locked into single auth method
+- No fallback login option if OAuth/SMS unavailable
+- Reduced account security flexibility
+- Poor user experience for multi-device users
+
+**Solution Implemented:**
+Dynamic password form that adapts based on user's authentication method:
+
+### 1. Authentication Provider Detection
+**File:** `app/profile/page.tsx:267-298`
+
+Added `useEffect` hook to detect user's auth providers:
+```typescript
+const { data: { user: authUser } } = await supabase.auth.getUser()
+const providers = authUser.identities.map(i => i.provider)
+const hasEmailProvider = providers.includes('email')
+setHasExistingPassword(hasEmailProvider)
+```
+
+**Detection Logic:**
+- Check `user.identities` array for 'email' provider
+- Email provider present = user has password
+- No email provider = user signed up via OAuth/Phone
+- Primary provider stored for UI messaging
+
+### 2. Updated Component Signatures
+**Files:**
+- `app/components/security/SecurityTab.tsx:21-22, 36-37`
+- `app/components/security/PasswordSecurityCard.tsx:11-19`
+
+Added new props:
+- `hasExistingPassword: boolean` - Controls field visibility
+- `authProvider: 'email' | 'google' | 'phone'` - For messaging
+
+Made `currentPassword` optional in API contract:
+```typescript
+onUpdate: (data: {
+  currentPassword?: string  // Now optional
+  newPassword: string
+  confirmPassword: string
+}) => Promise<void>
+```
+
+### 3. Conditional UI Rendering
+**File:** `app/components/security/PasswordSecurityCard.tsx:129-143, 146-151`
+
+**For Google/Phone users (no password):**
+- Show informational banner explaining password creation
+- Display only 2 fields: "New Password" + "Confirm Password"
+- Button text: "Create Password"
+- No current password field
+
+**For Email users (has password):**
+- Show all 3 fields: "Current" + "New" + "Confirm"
+- Button text: "Update Password"
+- Require current password verification
+
+**Banner Message:**
+```
+You signed up with Google/Phone OTP. Setting a password will allow you
+to sign in using email and password in addition to Google/Phone OTP.
+```
+
+### 4. Validation Logic Updates
+**File:** `app/components/security/PasswordSecurityCard.tsx:73-91`
+
+Conditional validation:
+```typescript
+// Only require current password if user has one
+if (hasExistingPassword && !formData.currentPassword) {
+  setErrors(['Current password is required'])
+  return
+}
+
+// Only prevent reuse if changing existing password
+if (hasExistingPassword && formData.newPassword === formData.currentPassword) {
+  setErrors(['New password must be different from current password'])
+  return
+}
+```
+
+### 5. API Endpoint - Dual-Mode Handler
+**File:** `app/api/user/password/route.ts` (new file)
+
+**Flow A - Password Creation** (Google/Phone users):
+1. Detect no email provider in `user.identities`
+2. Skip current password verification
+3. Call `supabase.auth.updateUser({ password: newPassword })`
+4. Log to `security_audit_log`:
+   ```json
+   {
+     "audit_type": "password_created",
+     "status": "success",
+     "details": {
+       "original_provider": "google",
+       "email": "user@example.com"
+     }
+   }
+   ```
+
+**Flow B - Password Change** (Email users):
+1. Detect email provider exists
+2. Verify current password via `signInWithPassword()`
+3. If verification fails → 403 error
+4. If passes → Update password
+5. Log to `security_audit_log`:
+   ```json
+   {
+     "audit_type": "password_changed",
+     "status": "success",
+     "details": { "provider": "email" }
+   }
+   ```
+
+**Error Handling:**
+- 400: Missing required fields
+- 401: Unauthorized (no session)
+- 403: Current password incorrect
+- 500: Update failed
+
+### 6. Audit Logging
+**Table:** `security_audit_log` (existing table)
+
+**Schema:**
+```sql
+- audit_type: varchar ('password_created' | 'password_changed')
+- status: varchar ('success' | 'failure')
+- details: jsonb (provider metadata)
+- performed_by: uuid → auth.users.id
+- performed_at: timestamptz (auto)
+- validation_passed: boolean
+```
+
+**Benefits:**
+- Security compliance tracking
+- User activity monitoring
+- Forensic analysis capability
+- Admin audit trail
+
+### 7. State Management
+**File:** `app/profile/page.tsx:1960-1991`
+
+Password update handler:
+```typescript
+const handlePasswordUpdate = async (data) => {
+  const response = await fetch('/api/user/password', {
+    method: 'POST',
+    body: JSON.stringify({
+      currentPassword: data.currentPassword,  // Optional
+      newPassword: data.newPassword
+    })
+  })
+
+  // Update state after successful creation
+  if (!hasExistingPassword) {
+    setHasExistingPassword(true)
+  }
+}
+```
+
+**State Transition:**
+- Google user creates password → `hasExistingPassword` changes to `true`
+- UI automatically switches to "change password" mode
+- User can now use both Google and email/password to login
+
+### Identity Merging Behavior
+**Scenario:** Google user (`user@gmail.com`) creates password
+
+**Supabase behavior:**
+```typescript
+user.identities = [
+  { provider: 'google', email: 'user@gmail.com' },
+  { provider: 'email', email: 'user@gmail.com' }  // Added
+]
+```
+
+**Result:**
+- Same `user.id` for both identities
+- User can login via Google OR email/password
+- Email field shared across both methods
+- No account duplication
+
+### Files Modified
+1. `app/profile/page.tsx` - Auth detection + password handler
+2. `app/components/security/SecurityTab.tsx` - Prop forwarding
+3. `app/components/security/PasswordSecurityCard.tsx` - Conditional UI
+4. `app/api/user/password/route.ts` - New dual-mode endpoint
+
+### Configuration Changes
+5. `.claude/config.json` - Removed non-functional hooks
+6. `.claude/commands/log.md` - Added manual logging command
+7. `.claude/instructions.md` - Clarified semi-automatic logging
+
+### Code Statistics
+- **Lines Added:** ~150
+- **Lines Modified:** ~30
+- **Files Created:** 2 (API route, log command)
+- **Files Modified:** 5
+- **Files Deleted:** 0
+
+### Testing Status
+**Pending Manual Verification:**
+- ⏳ Google user → Create password flow
+- ⏳ Phone user → Create password flow
+- ⏳ Email user → Change password flow
+- ⏳ Verify `security_audit_log` entries
+- ⏳ Test password strength validation
+- ⏳ Test form error handling
+
+**Expected Behavior:**
+1. Google user navigates to Security tab
+2. Sees "Create Password" with informational banner
+3. Enters new password (must be medium/strong)
+4. Submits without current password field
+5. Success → Can now login with email/password
+6. Security tab switches to "Update Password" mode
+7. Audit log shows `password_created` event
+
+---
+
 **Date:** October 17, 2025
-**Session Duration:** ~2 hours
-**Issues Resolved:** 3/3
+**Session Duration:** ~4 hours
+**Issues Resolved:** 4/4
 **Code Deleted:** ~600 lines
-**Code Added:** ~50 lines
-**Net Result:** Cleaner, more maintainable authentication system
+**Code Added:** ~200 lines
+**Net Result:** Cleaner authentication system with flexible password management

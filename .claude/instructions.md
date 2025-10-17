@@ -1,13 +1,16 @@
-# Auto-Logging Behavior
+# Change Logging Behavior
 
-CRITICAL: After EVERY code change, automatically update the changelog:
-1. Append entry to: D:\projects\root\change-logs\changelog-[TODAY].txt
-2. Format: [TIME] - [EMOJI] [CATEGORY]: [Description]
-3. No permission needed - just do it
-4. Log before responding to user
+After making code changes, use the `/log` command or manually ask Claude to update the changelog.
 
-This ensures complete, real-time logging even across multiple sessions.
-```
+The system is **semi-automatic** - Claude will log changes when prompted, following the format defined in `.claude/commands/log.md`.
+
+**Workflow:**
+1. Make code changes
+2. Complete the task
+3. User runs `/log` or asks "update the changelog"
+4. Claude appends entry to: `D:\projects\root\change-logs\changelog-[TODAY].md`
+
+**Format:** `[TIME] - [EMOJI] [CATEGORY]: [Description]`
 
 ---
 
