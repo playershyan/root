@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Shield, AlertTriangle, CheckCircle } from 'lucide-react'
-import { 
-  SecuritySession, 
-  EmailUpdateData, 
+import { Shield, AlertTriangle, CheckCircle, LogOut } from 'lucide-react'
+import {
+  SecuritySession,
+  EmailUpdateData,
   TwoFactorAuthData
 } from '@/lib/utils/securityUtils'
 import EmailSecurityCard from './EmailSecurityCard'
@@ -25,6 +25,7 @@ interface SecurityTabProps {
   onTwoFactorUpdate?: (data: any) => Promise<void>
   onSessionUpdate?: (data: any) => Promise<void>
   onAccountDelete?: () => Promise<void>
+  onLogout?: () => Promise<void>
   loading?: boolean
 }
 
@@ -40,6 +41,7 @@ export default function SecurityTab({
   onTwoFactorUpdate,
   onSessionUpdate,
   onAccountDelete,
+  onLogout,
   loading = false
 }: SecurityTabProps) {
   const [updateSuccess, setUpdateSuccess] = useState<string | null>(null)
@@ -101,8 +103,17 @@ export default function SecurityTab({
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-semibold flex items-center gap-2">
             <Shield className="w-6 h-6" />
-            Security Settings
+            Account Settings
           </h1>
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              Log Out
+            </button>
+          )}
         </div>
 
         {/* Security Score */}

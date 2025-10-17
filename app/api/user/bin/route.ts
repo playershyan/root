@@ -164,18 +164,14 @@ export async function POST(request: NextRequest) {
 function getNextStepsMessage(itemType: string, status: string): string {
   switch (itemType) {
     case 'listing':
-      return status === 'pending' 
-        ? 'Your listing has been restored but is currently pending. Please review and activate it in your listings management.'
-        : 'Your listing has been restored.'
-    
+      return 'Your listing has been restored and is currently paused. Resume it from your listings page to make it visible to buyers again.'
+
     case 'wanted_request':
-      return status === 'paused'
-        ? 'Your wanted request has been restored but is currently paused. Please review and activate it in your wanted requests management.'
-        : 'Your wanted request has been restored.'
-    
+      return 'Your wanted request has been restored and is currently paused. Resume it from your wanted requests page to make it active again.'
+
     case 'message':
       return 'Your message has been restored and is now visible in the conversation.'
-    
+
     default:
       return 'Item has been restored successfully.'
   }

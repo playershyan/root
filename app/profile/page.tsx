@@ -210,7 +210,7 @@ export default function ProfilePage() {
     { id: 'wanted', label: 'My Wanted Requests', icon: Search },
     { id: 'messages', label: 'Messages', icon: MessageSquare },
     { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'security', label: 'Security', icon: Shield },
+    { id: 'security', label: 'Account Settings', icon: Shield },
     { id: 'bin', label: 'Bin', icon: Trash2 }
   ]
   
@@ -2827,6 +2827,10 @@ export default function ProfilePage() {
                     } else if (data.action === 'revokeAll') {
                       await revokeAllOtherSessions()
                     }
+                  }}
+                  onLogout={async () => {
+                    await supabase.auth.signOut()
+                    router.push('/browse')
                   }}
                   loading={sessionsLoading}
                 />
