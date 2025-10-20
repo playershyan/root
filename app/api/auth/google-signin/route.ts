@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { OAuth2Client } from 'google-auth-library'
+import { log } from '../../../../lib/utils/logger'
 
 const client = new OAuth2Client(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID)
 
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (error) {
-      console.error('Supabase auth error:', error)
+      log.auth.error('Google sign-in with Supabase', error)
       
       // If provider not enabled error
       if (error.message?.includes('provider is not enabled')) {
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, user: data.user })
 
   } catch (error) {
-    console.error('Google Sign-in error:', error)
+    log.auth.error('Google Sign-in error', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

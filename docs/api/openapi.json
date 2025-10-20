@@ -1,0 +1,736 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Vera.lk API",
+    "description": "API documentation for Vera.lk - Sri Lankan vehicle marketplace platform",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Vera.lk API Support",
+      "email": "api@vera.lk"
+    },
+    "license": {
+      "name": "Proprietary",
+      "url": "https://vera.lk/license"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://vera.lk/api",
+      "description": "Production server"
+    },
+    {
+      "url": "https://vera-lk-staging.vercel.app/api",
+      "description": "Staging server"
+    },
+    {
+      "url": "http://localhost:3000/api",
+      "description": "Development server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "User authentication and authorization"
+    },
+    {
+      "name": "Listings",
+      "description": "Vehicle listings management"
+    },
+    {
+      "name": "Wanted Requests",
+      "description": "Wanted vehicle requests management"
+    },
+    {
+      "name": "Admin",
+      "description": "Administrative operations"
+    },
+    {
+      "name": "Profiles",
+      "description": "User profiles and business profiles"
+    },
+    {
+      "name": "System",
+      "description": "System health and monitoring"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["System"],
+        "summary": "Health check endpoint",
+        "description": "Returns the health status of the application and its dependencies",
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "System is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "System is unhealthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/google-signin": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Google OAuth sign-in",
+        "description": "Authenticate user with Google OAuth credentials",
+        "operationId": "googleSignIn",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoogleSignInRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authentication successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthSuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid credentials or provider not enabled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/listings": {
+      "get": {
+        "tags": ["Listings"],
+        "summary": "Get vehicle listings",
+        "description": "Retrieve a paginated list of vehicle listings with optional filters",
+        "operationId": "getListings",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number (1-based)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of listings per page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "make",
+            "in": "query",
+            "description": "Filter by vehicle make",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "model",
+            "in": "query",
+            "description": "Filter by vehicle model",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "minPrice",
+            "in": "query",
+            "description": "Minimum price filter",
+            "schema": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "maxPrice",
+            "in": "query",
+            "description": "Maximum price filter",
+            "schema": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Listings retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListingsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/listings/delete": {
+      "post": {
+        "tags": ["Listings"],
+        "summary": "Delete a listing",
+        "description": "Soft delete a vehicle listing (move to bin)",
+        "operationId": "deleteListing",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteListingRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Listing deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Not the listing owner",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Listing not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/listings/mark-sold": {
+      "post": {
+        "tags": ["Listings"],
+        "summary": "Mark listing as sold",
+        "description": "Mark a vehicle listing as sold",
+        "operationId": "markListingAsSold",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkSoldRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Listing marked as sold successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Already sold or invalid listing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Not the listing owner",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/listings/reject": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Reject a listing",
+        "description": "Reject a pending listing with a reason",
+        "operationId": "rejectListing",
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectListingRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Listing rejected successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Missing required fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Supabase JWT token"
+      },
+      "AdminAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Admin JWT token with elevated permissions"
+      }
+    },
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "required": ["timestamp", "status", "version", "environment", "checks"],
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp of the health check"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["healthy", "unhealthy"],
+            "description": "Overall health status"
+          },
+          "version": {
+            "type": "string",
+            "description": "Application version"
+          },
+          "environment": {
+            "type": "string",
+            "enum": ["development", "staging", "production"],
+            "description": "Current environment"
+          },
+          "checks": {
+            "type": "object",
+            "properties": {
+              "database": {
+                "type": "string",
+                "enum": ["healthy", "unhealthy", "checking"]
+              },
+              "auth": {
+                "type": "string",
+                "enum": ["healthy", "unhealthy", "checking"]
+              },
+              "api": {
+                "type": "string",
+                "enum": ["healthy", "unhealthy"]
+              }
+            }
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message if status is unhealthy"
+          }
+        }
+      },
+      "GoogleSignInRequest": {
+        "type": "object",
+        "required": ["credential"],
+        "properties": {
+          "credential": {
+            "type": "string",
+            "description": "Google OAuth ID token"
+          }
+        }
+      },
+      "AuthSuccessResponse": {
+        "type": "object",
+        "required": ["success", "user"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "required": ["id", "email"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "User unique identifier"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User email address"
+          },
+          "name": {
+            "type": "string",
+            "description": "User full name"
+          },
+          "avatar_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "User profile picture URL"
+          }
+        }
+      },
+      "ListingsResponse": {
+        "type": "object",
+        "required": ["success", "listings", "pagination"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "listings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Listing"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "Listing": {
+        "type": "object",
+        "required": ["id", "title", "price", "status", "created_at"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "description": "Vehicle title"
+          },
+          "description": {
+            "type": "string",
+            "description": "Vehicle description"
+          },
+          "price": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Vehicle price in LKR"
+          },
+          "make": {
+            "type": "string",
+            "description": "Vehicle manufacturer"
+          },
+          "model": {
+            "type": "string",
+            "description": "Vehicle model"
+          },
+          "year": {
+            "type": "integer",
+            "minimum": 1900,
+            "maximum": 2030,
+            "description": "Vehicle year"
+          },
+          "mileage": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Vehicle mileage in km"
+          },
+          "fuel_type": {
+            "type": "string",
+            "enum": ["petrol", "diesel", "hybrid", "electric"],
+            "description": "Vehicle fuel type"
+          },
+          "transmission": {
+            "type": "string",
+            "enum": ["manual", "automatic", "cvt"],
+            "description": "Transmission type"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "pending", "sold", "deleted"],
+            "description": "Listing status"
+          },
+          "views": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of views"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Vehicle image URLs"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "required": ["page", "limit", "total", "pages"],
+        "properties": {
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Current page number"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Items per page"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of items"
+          },
+          "pages": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of pages"
+          }
+        }
+      },
+      "DeleteListingRequest": {
+        "type": "object",
+        "required": ["listingId"],
+        "properties": {
+          "listingId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID of the listing to delete"
+          }
+        }
+      },
+      "MarkSoldRequest": {
+        "type": "object",
+        "required": ["listingId"],
+        "properties": {
+          "listingId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID of the listing to mark as sold"
+          }
+        }
+      },
+      "RejectListingRequest": {
+        "type": "object",
+        "required": ["listingId", "rejectionReason"],
+        "properties": {
+          "listingId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID of the listing to reject"
+          },
+          "rejectionReason": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 500,
+            "description": "Reason for rejection"
+          }
+        }
+      },
+      "SuccessResponse": {
+        "type": "object",
+        "required": ["success"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "description": "Success message"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "code": {
+            "type": "string",
+            "description": "Error code for programmatic handling"
+          },
+          "details": {
+            "type": "string",
+            "description": "Additional error details"
+          }
+        }
+      }
+    }
+  }
+}

@@ -8,9 +8,9 @@ export async function POST(request: NextRequest) {
     const notificationData: Record<string, string> = {}
     
     // Convert form data to object
-    for (const [key, value] of formData.entries()) {
+    formData.forEach((value, key) => {
       notificationData[key] = value
-    }
+    })
 
     console.log('PayHere notification received:', notificationData)
 

@@ -17,10 +17,27 @@ export interface ListingStatusInfo {
 }
 
 export interface ListingData {
+  id: string
+  title: string
+  details?: string
+  description?: string
+  price: number
+  views: number
   status: 'active' | 'pending' | 'deleted' | 'sold'
+  postedDate?: string
+  created_at?: string
+  image?: string
+  image_url?: string
+  image_urls?: string[]
+  primary_image_url?: string
   isPaused?: boolean
   isReportedTakedown?: boolean
+  is_reported_takedown?: boolean
   rejectionReason?: string
+  takedownReason?: string
+  takedown_reason?: string
+  pause_date?: string
+  pauseDate?: string
 }
 
 export function getListingStatus(listing: ListingData): ListingStatusType {

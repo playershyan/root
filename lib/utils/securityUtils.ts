@@ -93,10 +93,13 @@ export function getDeviceIcon(deviceName: string, osName: string): string {
   const device = deviceName.toLowerCase()
   const os = osName.toLowerCase()
   
-  if (device.includes('mobile') || device.includes('phone') || os.includes('android') || os.includes('ios')) {
-    return 'Smartphone'
-  } else if (device.includes('tablet') || device.includes('ipad')) {
+  // Check for tablets first (more specific)
+  if (device.includes('tablet') || device.includes('ipad')) {
     return 'Tablet'
+  } else if (device.includes('mobile') || device.includes('phone') || 
+             (os.includes('android') && !device.includes('tablet')) || 
+             (os.includes('ios') && !device.includes('ipad'))) {
+    return 'Smartphone'
   } else if (os.includes('mac') || os.includes('windows') || os.includes('linux')) {
     return 'Laptop'
   } else {

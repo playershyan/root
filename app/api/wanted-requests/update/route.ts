@@ -81,7 +81,7 @@ export async function PUT(request: NextRequest) {
 
     // Log the action
     const actionType = existingRequest.status === 'deleted' ? 'resubmitted' : 'updated'
-    await supabase
+    const { error: logError } = await supabase
       .from('wanted_request_actions')
       .insert({
         wanted_request_id: requestId,
@@ -89,7 +89,10 @@ export async function PUT(request: NextRequest) {
         action: actionType,
         created_at: now.toISOString()
       })
-      .catch(err => console.error('Failed to log update action:', err))
+    
+    if (logError) {
+      console.error('Failed to log update action:', logError)
+    }
 
     return NextResponse.json({
       success: true,

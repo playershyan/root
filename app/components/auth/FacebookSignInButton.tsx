@@ -42,7 +42,7 @@ export default function FacebookSignInButton({
       
       if (result.success) {
         await refreshUser()
-        const authResult: AuthResult = { success: true, user: result.user }
+        const authResult: AuthResult = { success: true }
         onSuccess?.(authResult)
         router.push(authConfig.redirectUrls.afterLogin)
       } else {

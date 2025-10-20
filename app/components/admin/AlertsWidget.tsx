@@ -293,9 +293,9 @@ export default function AlertsWidget({ className = "" }: AlertsWidgetProps) {
                   </div>
                   <div className="flex-shrink-0">
                     {alert.sent_successfully ? (
-                      <CheckCircle className="w-4 h-4 text-green-600" title="Alert sent successfully" />
+                      <CheckCircle className="w-4 h-4 text-green-600" aria-label="Alert sent successfully" />
                     ) : (
-                      <XCircle className="w-4 h-4 text-gray-400" title="Alert not sent" />
+                      <XCircle className="w-4 h-4 text-gray-400" aria-label="Alert not sent" />
                     )}
                   </div>
                 </div>

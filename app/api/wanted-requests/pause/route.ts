@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log the action
-    await supabase
+    const { error: logError } = await supabase
       .from('wanted_request_actions')
       .insert({
         wanted_request_id: requestId,
@@ -112,7 +112,10 @@ export async function POST(request: NextRequest) {
         action: action === 'pause' ? 'paused' : 'resumed',
         created_at: now.toISOString()
       })
-      .catch(err => console.error(`Failed to log ${action} action:`, err))
+    
+    if (logError) {
+      console.error(`Failed to log ${action} action:`, logError)
+    }
 
     return NextResponse.json({
       success: true,
@@ -121,7 +124,7 @@ export async function POST(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error(`Error in ${action} wanted request endpoint:`, error)
+    console.error('Error in pause/resume wanted request endpoint:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -1,10 +1,41 @@
 import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { withRateLimit, rateLimiters } from './lib/middleware/rateLimiter'
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   const supabase = createMiddlewareClient({ req, res })
+  
+  // Apply rate limiting to API routes
+  if (req.nextUrl.pathname.startsWith('/api')) {
+    // Determine which rate limiter to use based on the path
+    let rateLimiter = rateLimiters.api // Default API rate limit
+    
+    if (req.nextUrl.pathname.startsWith('/api/auth')) {
+      rateLimiter = rateLimiters.auth
+    } else if (req.nextUrl.pathname.startsWith('/api/search')) {
+      rateLimiter = rateLimiters.search
+    } else if (req.nextUrl.pathname.startsWith('/api/upload')) {
+      rateLimiter = rateLimiters.upload
+    } else if (req.nextUrl.pathname.startsWith('/api/messages') || 
+               req.nextUrl.pathname.startsWith('/api/messaging')) {
+      rateLimiter = rateLimiters.messaging
+    } else if (req.nextUrl.pathname.startsWith('/api/ai-') || 
+               req.nextUrl.pathname.startsWith('/api/generate-ai')) {
+      rateLimiter = rateLimiters.ai
+    } else if (req.nextUrl.pathname.startsWith('/api/admin')) {
+      rateLimiter = rateLimiters.admin
+    } else if (req.nextUrl.pathname.includes('/delete') || 
+               req.nextUrl.pathname.includes('/delete-account')) {
+      rateLimiter = rateLimiters.strict
+    }
+    
+    const rateLimitResponse = await withRateLimit(req, rateLimiter)
+    if (rateLimitResponse) {
+      return rateLimitResponse
+    }
+  }
 
   const {
     data: { session },
@@ -16,13 +47,18 @@ export async function middleware(req: NextRequest) {
 
   const path = req.nextUrl.pathname
 
-  console.log('Middleware - Path:', path)
-  console.log('Middleware - Session exists:', !!session)
-  console.log('Middleware - Session user:', session?.user?.email)
+  // Remove console.log statements in production
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('Middleware - Path:', path)
+    console.log('Middleware - Session exists:', !!session)
+    console.log('Middleware - Session user:', session?.user?.email)
+  }
 
   // If user is not logged in and trying to access protected route
   if (!session && protectedRoutes.some(route => path.startsWith(route))) {
-    console.log('Middleware - Redirecting to login, no session found')
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Middleware - Redirecting to login, no session found')
+    }
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
@@ -35,5 +71,14 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/profile/:path*', '/post/:path*', '/wanted/:path*', '/messages/:path*', '/admin/:path*', '/login', '/register']
+  matcher: [
+    '/api/:path*',
+    '/profile/:path*', 
+    '/post/:path*', 
+    '/wanted/:path*', 
+    '/messages/:path*', 
+    '/admin/:path*', 
+    '/login', 
+    '/register'
+  ]
 }
