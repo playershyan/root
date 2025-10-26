@@ -14,6 +14,7 @@ const EmailVerificationAlert = dynamicImport(() => import('./components/EmailVer
 })
 
 import FeaturedListingsSSR from './components/homepage/FeaturedListingsSSR'
+import AnimatedHeroHeading from './components/hero/AnimatedHeroHeading'
 
 export const revalidate = 60 // Refresh every minute
 export const dynamic = 'force-dynamic'
@@ -35,9 +36,7 @@ export default async function HomePage() {
         />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-gray-900">
-            AI-Powered Vehicle Marketplace
-          </h1>
+          <AnimatedHeroHeading />
           <p className="text-lg md:text-xl mb-8 text-gray-600 max-w-3xl mx-auto">
             Sri Lanka's first intelligent car buying platform. Let AI find your perfect match, generate descriptions, and ensure fair pricing.
           </p>

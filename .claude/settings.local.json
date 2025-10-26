@@ -55,7 +55,8 @@
       "WebFetch(domain:www.autotrader.co.uk)",
       "WebSearch",
       "WebFetch(domain:www.autoxloo.com)",
-      "WebFetch(domain:www.icecubedigital.com)"
+      "WebFetch(domain:www.icecubedigital.com)",
+      "Bash(npx kill-port:*)"
     ],
     "deny": []
   }
