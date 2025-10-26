@@ -42,27 +42,27 @@ export default async function HomePage() {
           </p>
 
           {/* AI Features Badges */}
-          <div className="flex flex-wrap gap-4 justify-center mb-8 max-w-4xl mx-auto">
-            <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-lg border border-blue-200 text-sm font-medium text-blue-700">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex flex-wrap gap-2 md:gap-4 justify-center mb-8 max-w-4xl mx-auto">
+            <div className="flex items-center gap-1 md:gap-2 bg-blue-50 px-2 py-1.5 md:px-4 md:py-2 rounded-lg border border-blue-200 text-xs md:text-sm font-medium text-blue-700">
+              <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               Smart Matching
             </div>
-            <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-lg border border-blue-200 text-sm font-medium text-blue-700">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-center gap-1 md:gap-2 bg-blue-50 px-2 py-1.5 md:px-4 md:py-2 rounded-lg border border-blue-200 text-xs md:text-sm font-medium text-blue-700">
+              <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
               AI Descriptions
             </div>
-            <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-lg border border-blue-200 text-sm font-medium text-blue-700">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-center gap-1 md:gap-2 bg-blue-50 px-2 py-1.5 md:px-4 md:py-2 rounded-lg border border-blue-200 text-xs md:text-sm font-medium text-blue-700">
+              <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               Fair Pricing
             </div>
-            <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-lg border border-blue-200 text-sm font-medium text-blue-700">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-center gap-1 md:gap-2 bg-blue-50 px-2 py-1.5 md:px-4 md:py-2 rounded-lg border border-blue-200 text-xs md:text-sm font-medium text-blue-700">
+              <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
               Auto Verification
@@ -96,26 +96,26 @@ export default async function HomePage() {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
-            <div className="text-center p-6 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="text-4xl font-bold text-blue-600 mb-2">500+</div>
-              <div className="text-base font-medium text-gray-900 mb-3">AI-Enhanced Listings</div>
-              <div className="text-sm text-gray-500">Smart descriptions generated automatically</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-16">
+            <div className="text-center p-3 md:p-6 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="text-2xl md:text-4xl font-bold text-blue-600 mb-1 md:mb-2">500+</div>
+              <div className="text-xs md:text-base font-medium text-gray-900 mb-1.5 md:mb-3">AI-Enhanced Listings</div>
+              <div className="text-xs md:text-sm text-gray-500 hidden sm:block">Smart descriptions generated automatically</div>
             </div>
-            <div className="text-center p-6 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="text-4xl font-bold text-blue-600 mb-2">50+</div>
-              <div className="text-base font-medium text-gray-900 mb-3">Daily AI Matches</div>
-              <div className="text-sm text-gray-500">Perfect buyer-seller connections</div>
+            <div className="text-center p-3 md:p-6 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="text-2xl md:text-4xl font-bold text-blue-600 mb-1 md:mb-2">50+</div>
+              <div className="text-xs md:text-base font-medium text-gray-900 mb-1.5 md:mb-3">Daily AI Matches</div>
+              <div className="text-xs md:text-sm text-gray-500 hidden sm:block">Perfect buyer-seller connections</div>
             </div>
-            <div className="text-center p-6 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="text-4xl font-bold text-blue-600 mb-2">AI</div>
-              <div className="text-base font-medium text-gray-900 mb-3">Price Intelligence</div>
-              <div className="text-sm text-gray-500">Fair market value analysis</div>
+            <div className="text-center p-3 md:p-6 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="text-2xl md:text-4xl font-bold text-blue-600 mb-1 md:mb-2">AI</div>
+              <div className="text-xs md:text-base font-medium text-gray-900 mb-1.5 md:mb-3">Price Intelligence</div>
+              <div className="text-xs md:text-sm text-gray-500 hidden sm:block">Fair market value analysis</div>
             </div>
-            <div className="text-center p-6 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="text-4xl font-bold text-blue-600 mb-2">24/7</div>
-              <div className="text-base font-medium text-gray-900 mb-3">AI Monitoring</div>
-              <div className="text-sm text-gray-500">Continuous fraud detection</div>
+            <div className="text-center p-3 md:p-6 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="text-2xl md:text-4xl font-bold text-blue-600 mb-1 md:mb-2">24/7</div>
+              <div className="text-xs md:text-base font-medium text-gray-900 mb-1.5 md:mb-3">AI Monitoring</div>
+              <div className="text-xs md:text-sm text-gray-500 hidden sm:block">Continuous fraud detection</div>
             </div>
           </div>
 
