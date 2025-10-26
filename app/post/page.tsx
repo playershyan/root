@@ -593,44 +593,38 @@ export default function EnhancedPostVehiclePage() {
   }
   
   const uploadImages = async (images: File[], userId: string): Promise<string[]> => {
-    const uploadedUrls: string[] = []
+    try {
+      // Create FormData with all images
+      const formData = new FormData()
+      images.forEach(image => {
+        formData.append('images', image)
+      })
+      formData.append('listingId', userId) // Use userId as temporary listingId
 
-    for (const image of images) {
-      try {
-        // Convert File to ArrayBuffer and then to Buffer
-        const arrayBuffer = await image.arrayBuffer()
-        const buffer = Buffer.from(arrayBuffer)
+      console.log('Uploading images to Cloudinary...', images.length)
 
-        // Upload to Cloudinary
-        const response = await fetch('/api/upload/cloudinary', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            image: buffer.toString('base64'),
-            fileName: image.name,
-            userId: userId,
-            fileType: image.type
-          })
-        })
+      // Upload to Cloudinary
+      const response = await fetch('/api/upload/cloudinary', {
+        method: 'POST',
+        body: formData // Send as FormData, not JSON
+      })
 
-        const result = await response.json()
+      const result = await response.json()
 
-        if (result.success && result.url) {
-          uploadedUrls.push(result.url)
-          console.log('Image uploaded to Cloudinary:', result.url)
-        } else {
-          console.error('Cloudinary upload failed:', result.error)
-          showError(`Failed to upload ${image.name}`)
-        }
-      } catch (error) {
-        console.error('Error processing image:', error)
-        showError(`Error uploading ${image.name}`)
+      if (result.success && result.images) {
+        const urls = result.images.map((img: any) => img.url)
+        console.log('Images uploaded to Cloudinary:', urls)
+        return urls
+      } else {
+        console.error('Cloudinary upload failed:', result.error)
+        showError(`Upload failed: ${result.error || 'Unknown error'}`)
+        return []
       }
+    } catch (error) {
+      console.error('Error uploading images:', error)
+      showError('Error uploading images')
+      return []
     }
-
-    return uploadedUrls
   }
   
   const handleSubmit = async () => {
