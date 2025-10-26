@@ -163,17 +163,6 @@ export default function AdvancedListingsPage() {
     }
   }, [selectedVehicleCategory])
 
-  // Initialize image loading states
-  useEffect(() => {
-    const initialLoadingState: Record<string, boolean> = {}
-    listings.forEach(listing => {
-      if (listing.image_urls && listing.image_urls.length > 0) {
-        initialLoadingState[listing.id] = true
-      }
-    })
-    setImageLoading(initialLoadingState)
-  }, [listings])
-
   // Generate AI guide when search changes with debouncing
   useEffect(() => {
     // Debounce the AI guide generation to avoid too many API calls

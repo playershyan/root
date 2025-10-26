@@ -11,6 +11,7 @@
         "lint": "next lint",
         "typecheck": "tsc --noEmit",
         "mcp:server": "node mcp-sentry.config.js",
+        "migrate:images": "npx tsx scripts/migrate-images-to-cloudinary.ts",
         "test": "jest",
         "test:watch": "jest --watch",
         "test:coverage": "jest --coverage",

@@ -92,22 +92,22 @@ export default function RegularAdCard({
         {/* Image Display */}
         {images.length > 0 ? (
           <>
-            {!imageLoading && !imageError && (
-              <img
-                src={images[activeImageIndex]}
-                alt={listing.title}
-                className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                onLoad={onImageLoad}
-                onError={onImageError}
-              />
-            )}
+            <img
+              src={images[activeImageIndex]}
+              alt={listing.title}
+              className="w-full h-full object-cover transition-transform group-hover:scale-105"
+              loading="lazy"
+              onLoad={onImageLoad}
+              onError={onImageError}
+              style={{ display: imageLoading || imageError ? 'none' : 'block' }}
+            />
             {imageLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
             )}
             {imageError && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-500 text-sm">
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-500 text-sm flex-col">
                 <i className="fas fa-image text-2xl mb-2"></i>
                 <p>Image unavailable</p>
               </div>

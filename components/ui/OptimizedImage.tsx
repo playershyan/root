@@ -56,20 +56,21 @@ export default function OptimizedImage({
   const optimizeCDNUrl = (url: string, width?: number, quality?: number, watermark?: boolean) => {
     if (!url) return url
 
-    // Check if it's a Supabase storage URL
-    if (url.includes('supabase.co/storage/v1/object/public/')) {
-      // Supabase Storage doesn't support URL-based transformations
-      // Return the original URL as-is
-      return url
-    }
-
-    // For Cloudinary URLs - use client-safe method
+    // For Cloudinary URLs - use client-safe method with optimizations
     if (url.includes('cloudinary.com')) {
       return getOptimizedCloudinaryUrl(url, {
         width,
         quality,
         watermark
       })
+    }
+
+    // Check if it's a Supabase storage URL
+    // Still supported for backwards compatibility during migration
+    if (url.includes('supabase.co/storage/v1/object/public/')) {
+      // Supabase Storage doesn't support URL-based transformations
+      // Return the original URL as-is
+      return url
     }
 
     return url

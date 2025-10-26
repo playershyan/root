@@ -594,31 +594,42 @@ export default function EnhancedPostVehiclePage() {
   
   const uploadImages = async (images: File[], userId: string): Promise<string[]> => {
     const uploadedUrls: string[] = []
-    
+
     for (const image of images) {
       try {
-        const fileExt = image.name.split('.').pop()
-        const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
-        
-        const { data, error } = await supabase.storage
-          .from('listings')
-          .upload(fileName, image)
-        
-        if (error) {
-          console.error('Error uploading image:', error)
-          continue
+        // Convert File to ArrayBuffer and then to Buffer
+        const arrayBuffer = await image.arrayBuffer()
+        const buffer = Buffer.from(arrayBuffer)
+
+        // Upload to Cloudinary
+        const response = await fetch('/api/upload/cloudinary', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            image: buffer.toString('base64'),
+            fileName: image.name,
+            userId: userId,
+            fileType: image.type
+          })
+        })
+
+        const result = await response.json()
+
+        if (result.success && result.url) {
+          uploadedUrls.push(result.url)
+          console.log('Image uploaded to Cloudinary:', result.url)
+        } else {
+          console.error('Cloudinary upload failed:', result.error)
+          showError(`Failed to upload ${image.name}`)
         }
-        
-        const { data: { publicUrl } } = supabase.storage
-          .from('listings')
-          .getPublicUrl(fileName)
-        
-        uploadedUrls.push(publicUrl)
       } catch (error) {
         console.error('Error processing image:', error)
+        showError(`Error uploading ${image.name}`)
       }
     }
-    
+
     return uploadedUrls
   }
   
