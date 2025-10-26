@@ -66,6 +66,11 @@ export default function VehicleFormFactory(props: VehicleFormFactoryProps) {
     return !['bicycle', 'motorcycle', 'three-wheeler', 'plant-machinery', 'tractor', 'boat'].includes(vehicleType)
   }
 
+  // Determine if additional information section should be shown
+  const shouldShowAdditionalInformation = () => {
+    return ['car', 'van'].includes(vehicleType)
+  }
+
   if (!vehicleType) {
     return null
   }
@@ -86,12 +91,14 @@ export default function VehicleFormFactory(props: VehicleFormFactoryProps) {
         {getFormComponent()}
       </div>
 
-      {/* Additional Information Section */}
-      <AdditionalInformationSection
-        formData={formData}
-        setFormData={setFormData}
-        errors={errors}
-      />
+      {/* Additional Information Section - Only for cars and vans */}
+      {shouldShowAdditionalInformation() && (
+        <AdditionalInformationSection
+          formData={formData}
+          setFormData={setFormData}
+          errors={errors}
+        />
+      )}
 
       {/* Pricing Section */}
       <PricingSection 

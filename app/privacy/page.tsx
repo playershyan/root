@@ -32,21 +32,22 @@ export default function PrivacyPolicyPage() {
                 <li><strong>Listing Information:</strong> vehicle details, photographs, pricing, and descriptions.</li>
                 <li><strong>Communication Data:</strong> messages exchanged between users.</li>
                 <li><strong>Usage Information:</strong> log data, IP addresses, search queries, device data, browser information.</li>
-                <li><strong>Verification Data:</strong> identity documents where required for fraud prevention or regulatory compliance.</li>
+                <li><strong>Verification Data:</strong> identity documents when required for fraud prevention or regulatory compliance.</li>
               </ul>
             </section>
 
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">2. How We Use Your Information</h2>
+              <p className="text-gray-700 mb-4">We use your information to:</p>
               <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-2">
-                <li>Operating, maintaining, and improving the Platform.</li>
-                <li>Processing listings and managing user accounts.</li>
-                <li>Facilitating communication between buyers and sellers.</li>
-                <li>Account verification, authentication, and security.</li>
-                <li>Detecting and preventing fraud or illegal activities.</li>
-                <li>Personalising experience and recommending listings.</li>
-                <li>Sending service updates, legal notices, and security alerts.</li>
-                <li>Complying with obligations imposed by the laws of the <strong>Democratic Socialist Republic of Sri Lanka</strong>.</li>
+                <li>Operate, maintain, and improve the Platform</li>
+                <li>Process listings and manage user accounts</li>
+                <li>Facilitate communication between buyers and sellers</li>
+                <li>Verify accounts, authenticate users, and ensure security</li>
+                <li>Detect and prevent fraud or illegal activities</li>
+                <li>Personalise user experience and recommend listings</li>
+                <li>Send service updates, legal notices, and security alerts</li>
+                <li>Comply with obligations under the laws of the Democratic Socialist Republic of Sri Lanka</li>
               </ul>
             </section>
 
@@ -54,65 +55,65 @@ export default function PrivacyPolicyPage() {
               <h2 className="text-xl font-semibold text-gray-900 mb-4">3. Information Sharing</h2>
               <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-2">
                 <li><strong>Public Listings:</strong> all listing content is publicly visible.</li>
-                <li><strong>User Communication:</strong> limited details may be disclosed between transacting users.</li>
-                <li><strong>Service Providers:</strong> third parties assisting in hosting, analytics, or payments.</li>
-                <li><strong>Legal Requirements:</strong> courts, regulators, or law enforcement of the <strong>Democratic Socialist Republic of Sri Lanka</strong>.</li>
-                <li><strong>Business Transfers:</strong> transfer of data if ownership of the Platform changes.</li>
+                <li><strong>User Communication:</strong> limited details may be shared between transacting users.</li>
+                <li><strong>Service Providers:</strong> third parties assisting with hosting, analytics, or payment processing.</li>
+                <li><strong>Legal Requirements:</strong> disclosure to courts, regulators, or law enforcement as required by law.</li>
+                <li><strong>Business Transfers:</strong> data may be transferred if ownership of the Platform changes.</li>
               </ul>
             </section>
 
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">4. Data Security</h2>
               <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-2">
-                <li>SSL/TLS encryption.</li>
-                <li>Restricted and authenticated access.</li>
-                <li>Regular security audits.</li>
-                <li>Secure hosting with reputable providers.</li>
+                <li>SSL/TLS encryption to protect data in transit</li>
+                <li>Restricted and authenticated access to sensitive information</li>
+                <li>Regular security audits</li>
+                <li>Hosting with reputable, secure providers</li>
               </ul>
             </section>
 
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">5. User Rights</h2>
               <p className="text-gray-700 mb-4">
-                Access, correction, deletion, portability, and restriction subject to the laws of the <strong>Democratic Socialist Republic of Sri Lanka</strong>.
+                Users may request access, correction, deletion, portability, or restriction of their personal data, subject to applicable laws.
               </p>
               <p className="text-gray-700">
-                Requests: <a href="mailto:support@vera.lk" className="text-blue-600 hover:underline">support@vera.lk</a>
+                Requests should be sent to <a href="mailto:support@vera.lk" className="text-blue-600 hover:underline">support@vera.lk</a>.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">6. Cookies and Tracking</h2>
               <p className="text-gray-700 mb-4">
-                Cookies are used for authentication, analytics, and improving performance.
+                Cookies and similar technologies are used for authentication, analytics, and improving Platform performance.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">7. Third-Party Services</h2>
               <p className="text-gray-700 mb-4">
-                Not responsible for external sites or integrations.
+                VERA is not responsible for privacy practices or content on external sites or services integrated with the Platform.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">8. Data Retention</h2>
               <p className="text-gray-700 mb-4">
-                Data retained as long as necessary for business and legal compliance.
+                Data is retained only as long as necessary to operate the Platform and comply with legal obligations.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">9. International Transfers</h2>
               <p className="text-gray-700 mb-4">
-                Data may be processed outside the <strong>Democratic Socialist Republic of Sri Lanka</strong>, subject to safeguards.
+                User data may be processed outside the Democratic Socialist Republic of Sri Lanka, with safeguards to ensure adequate protection.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">10. Changes</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">10. Changes to this Policy</h2>
               <p className="text-gray-700 mb-4">
-                We may update this Privacy Policy. Continued use means acceptance.
+                We may update this Privacy Policy at any time. Continued use of the Platform constitutes acceptance of the updated policy.
               </p>
             </section>
 
@@ -121,7 +122,7 @@ export default function PrivacyPolicyPage() {
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-gray-700">
                   <strong>Email:</strong> <a href="mailto:support@vera.lk" className="text-blue-600 hover:underline">support@vera.lk</a><br />
-                  We usually respond within 24-48 hours during business days.
+                  Responses typically provided within 24–48 business hours.
                 </p>
               </div>
             </section>

@@ -21,14 +21,14 @@ export default function MembershipPage() {
         <h1 className="text-2xl font-bold text-gray-900 mb-4">
           Membership
         </h1>
-        
+
         <p className="text-gray-600 mb-6">
-          This feature will be available soon
+          Coming Soon
         </p>
-        
+
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <p className="text-sm text-yellow-800">
-            We're working hard to bring you an enhanced membership experience. Stay tuned!
+            We're building an enhanced membership experience to give you more value and exclusive benefits. Stay tuned for the launch.
           </p>
         </div>
       </div>

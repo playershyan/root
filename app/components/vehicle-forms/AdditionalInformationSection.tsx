@@ -36,6 +36,9 @@ export default function AdditionalInformationSection({
       if (formData.includingFinanceCompanies) {
         updates.includingFinanceCompanies = false
       }
+      if (formData.registrationYear) {
+        updates.registrationYear = ''
+      }
       if (Object.keys(updates).length > 0) {
         setFormData(prev => ({ ...prev, ...updates }))
       }
@@ -75,27 +78,29 @@ export default function AdditionalInformationSection({
             )}
           </div>
 
-          {/* Year of Registration */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Year of Registration
-            </label>
-            <input
-              type="number"
-              name="registrationYear"
-              value={formData.registrationYear || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, registrationYear: e.target.value }))}
-              placeholder="e.g., 2020"
-              min="1900"
-              max={new Date().getFullYear()}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
-                errors?.registrationYear ? 'border-red-300' : 'border-gray-300'
-              }`}
-            />
-            {errors?.registrationYear && (
-              <p className="text-red-600 text-sm mt-1">{errors.registrationYear}</p>
-            )}
-          </div>
+          {/* Year of Registration - Only show if main condition is not "new" */}
+          {formData.condition !== 'New' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Year of Registration
+              </label>
+              <input
+                type="number"
+                name="registrationYear"
+                value={formData.registrationYear || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, registrationYear: e.target.value }))}
+                placeholder="e.g., 2020"
+                min="1900"
+                max={new Date().getFullYear()}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
+                  errors?.registrationYear ? 'border-red-300' : 'border-gray-300'
+                }`}
+              />
+              {errors?.registrationYear && (
+                <p className="text-red-600 text-sm mt-1">{errors.registrationYear}</p>
+              )}
+            </div>
+          )}
 
           {/* Vehicle Condition - Only show if main condition is not "new" */}
           {formData.condition !== 'New' && (
