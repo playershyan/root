@@ -13,30 +13,30 @@ export default function Footer() {
 
             {/* From VERA Section */}
             <div>
-              <h3 className="text-lg font-semibold mb-4 text-gray-900">From VERA</h3>
-              <ul className="space-y-3">
+              <h3 className="text-sm font-semibold mb-3 text-gray-900">From VERA</h3>
+              <ul className="space-y-2">
                 <li>
-                  <Link href="/sell" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  <Link href="/post" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
                     Sell your vehicle
                   </Link>
                 </li>
                 <li>
-                  <Link href="/wanted" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  <Link href="/wanted" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
                     Wanted requests
                   </Link>
                 </li>
                 <li>
-                  <Link href="/ai-features" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  <Link href="/ai-features" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
                     AI features
                   </Link>
                 </li>
                 <li>
-                  <Link href="/promote" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  <Link href="/post/paid-features" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
                     Promote ad
                   </Link>
                 </li>
                 <li>
-                  <Link href="/membership" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  <Link href="/membership" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
                     Membership
                   </Link>
                 </li>
@@ -45,20 +45,20 @@ export default function Footer() {
 
             {/* Help and Support Section */}
             <div>
-              <h3 className="text-lg font-semibold mb-4 text-gray-900">Help and Support</h3>
-              <ul className="space-y-3">
+              <h3 className="text-sm font-semibold mb-3 text-gray-900">Help and Support</h3>
+              <ul className="space-y-2">
                 <li>
-                  <Link href="/faq" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  <Link href="/faq" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
                     FAQ
                   </Link>
                 </li>
                 <li>
-                  <Link href="/safety" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  <Link href="/safety" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
                     Safety & fraud detection
                   </Link>
                 </li>
                 <li>
-                  <Link href="/contact" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  <Link href="/contact" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
                     Contact us
                   </Link>
                 </li>
@@ -67,40 +67,40 @@ export default function Footer() {
 
             {/* About VERA Section */}
             <div>
-              <h3 className="text-lg font-semibold mb-4 text-gray-900">About VERA</h3>
-              <ul className="space-y-3">
+              <h3 className="text-sm font-semibold mb-3 text-gray-900">About VERA</h3>
+              <ul className="space-y-2">
                 <li>
-                  <Link href="/about" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  <Link href="/about" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
                     About us
                   </Link>
                 </li>
                 <li>
-                  <Link href="/careers" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  <Link href="/careers" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
                     Careers
                   </Link>
                 </li>
                 <li>
-                  <Link href="/terms" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  <Link href="/terms" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
                     Terms and conditions
                   </Link>
                 </li>
                 <li>
-                  <Link href="/privacy" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  <Link href="/privacy" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
                     Privacy policy
                   </Link>
                 </li>
                 <li>
-                  <Link href="/refund-policy" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  <Link href="/refund-policy" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
                     Refund policy
                   </Link>
                 </li>
                 <li>
-                  <Link href="/disclaimer" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  <Link href="/disclaimer" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
                     Disclaimer
                   </Link>
                 </li>
                 <li>
-                  <Link href="/sitemap" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  <Link href="/sitemap" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
                     Sitemap
                   </Link>
                 </li>
@@ -208,31 +208,31 @@ export default function Footer() {
             {/* Logo and Copyright */}
             <div className="flex items-center space-x-4 mb-4 md:mb-0">
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
                   </svg>
                 </div>
-                <span className="text-xl font-bold text-gray-900">VERA</span>
+                <span className="text-lg font-bold text-gray-900">VERA</span>
               </div>
-              <div className="hidden md:block text-gray-500 text-sm">
+              <div className="hidden md:block text-gray-500 text-xs">
                 © {new Date().getFullYear()} VERA. All rights reserved.
               </div>
             </div>
 
             {/* Additional Info */}
-            <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6 text-sm text-gray-500">
+            <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6 text-xs text-gray-500">
               <div className="md:hidden">
                 © {new Date().getFullYear()} VERA. All rights reserved.
               </div>
               <div className="flex items-center space-x-1">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                 </svg>
                 <span>Made in Sri Lanka</span>
               </div>
               <div className="flex items-center space-x-1">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1M10 17L6 13L7.41 11.59L10 14.17L16.59 7.58L18 9L10 17Z"/>
                 </svg>
                 <span>Secure & Trusted</span>
@@ -245,10 +245,10 @@ export default function Footer() {
       {/* Back to Top Button */}
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className="fixed bottom-6 right-6 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-colors z-50"
+        className="fixed bottom-6 right-6 bg-blue-600 text-white p-2.5 rounded-full shadow-lg hover:bg-blue-700 transition-colors z-50"
         aria-label="Back to top"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
         </svg>
       </button>

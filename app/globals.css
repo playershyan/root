@@ -70,7 +70,7 @@
   
   /* Primary Button - Main CTAs like "Sell Vehicle", "Post Ad" */
   .btn-primary {
-    @apply bg-blue-600 text-white px-6 py-3 rounded-md font-medium hover:bg-blue-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+    @apply bg-blue-600 text-white px-6 py-3 rounded-full font-medium hover:bg-blue-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
   }
   
   /* Secondary Button - Important but less prominent like "Make Offer" */

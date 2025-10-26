@@ -153,9 +153,9 @@ export default function Header() {
                 )}
               </Link>
               
-              <Link 
-                href="/post" 
-                className="bg-blue-600 text-white px-2 py-2 rounded-lg hover:bg-blue-700 font-medium text-xs flex items-center gap-1"
+              <Link
+                href="/post"
+                className="bg-blue-600 text-white px-2 py-2 rounded-full hover:bg-blue-700 font-medium text-xs flex items-center gap-1"
               >
                 <Car className="w-4 h-4" />
                 <span>Sell</span>
