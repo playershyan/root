@@ -50,7 +50,12 @@
       "mcp__supabase__get_organization",
       "Bash(tasklist:*)",
       "Bash(npm test:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(claude mcp add:*)",
+      "WebFetch(domain:www.autotrader.co.uk)",
+      "WebSearch",
+      "WebFetch(domain:www.autoxloo.com)",
+      "WebFetch(domain:www.icecubedigital.com)"
     ],
     "deny": []
   }

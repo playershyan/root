@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VERA - Vehicle Marketplace Sri Lanka</title>
+    <style>
+        /* ========================================
+           CSS RESET & BASE STYLES
+           ======================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Neutral grayscale palette */
+            --color-black: #000000;
+            --color-gray-900: #0f0f0f;
+            --color-gray-800: #1a1a1a;
+            --color-gray-700: #2d2d2d;
+            --color-gray-600: #666666;
+            --color-gray-500: #808080;
+            --color-gray-400: #999999;
+            --color-gray-300: #cccccc;
+            --color-gray-200: #e5e5e5;
+            --color-gray-100: #f5f5f5;
+            --color-white: #ffffff;
+
+            /* Minimal accent color - used sparingly */
+            --color-accent: #1a1a1a;
+            --color-accent-hover: #000000;
+
+            /* Typography */
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            --font-weight-regular: 400;
+            --font-weight-medium: 500;
+            --font-weight-semibold: 600;
+
+            /* Spacing scale */
+            --space-xs: 0.5rem;
+            --space-sm: 1rem;
+            --space-md: 1.5rem;
+            --space-lg: 2rem;
+            --space-xl: 3rem;
+            --space-2xl: 4rem;
+            --space-3xl: 6rem;
+            --space-4xl: 8rem;
+
+            /* Border radius */
+            --radius-sm: 2px;
+            --radius-md: 4px;
+
+            /* Transitions */
+            --transition-fast: 150ms ease;
+            --transition-base: 250ms ease;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--color-gray-900);
+            background: var(--color-white);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ========================================
+           TYPOGRAPHY SYSTEM
+           ======================================== */
+        h1 {
+            font-size: 3rem;
+            font-weight: var(--font-weight-regular);
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: var(--font-weight-regular);
+            letter-spacing: -0.01em;
+            line-height: 1.2;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: var(--font-weight-medium);
+            line-height: 1.3;
+        }
+
+        p {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--color-gray-600);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* ========================================
+           LAYOUT UTILITIES
+           ======================================== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--space-lg);
+        }
+
+        .container-wide {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 var(--space-lg);
+        }
+
+        /* ========================================
+           BUTTON SYSTEM
+           ======================================== */
+        .btn {
+            display: inline-block;
+            padding: 0.875rem 1.75rem;
+            font-size: 0.9375rem;
+            font-weight: var(--font-weight-medium);
+            border: 1px solid var(--color-gray-900);
+            background: transparent;
+            color: var(--color-gray-900);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            letter-spacing: 0.01em;
+        }
+
+        .btn:hover {
+            background: var(--color-gray-900);
+            color: var(--color-white);
+        }
+
+        .btn-primary {
+            background: var(--color-gray-900);
+            color: var(--color-white);
+        }
+
+        .btn-primary:hover {
+            background: var(--color-black);
+        }
+
+        .btn-text {
+            border: none;
+            padding: 0.5rem 1rem;
+            color: var(--color-gray-700);
+        }
+
+        .btn-text:hover {
+            background: transparent;
+            color: var(--color-gray-900);
+        }
+
+        /* ========================================
+           HEADER - MINIMAL & FUNCTIONAL
+           ======================================== */
+        .header {
+            position: sticky;
+            top: 0;
+            background: var(--color-white);
+            border-bottom: 1px solid var(--color-gray-200);
+            z-index: 100;
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 72px;
+        }
+
+        .header-logo {
+            font-size: 1.125rem;
+            font-weight: var(--font-weight-semibold);
+            letter-spacing: 0.05em;
+            color: var(--color-gray-900);
+        }
+
+        .header-nav {
+            display: flex;
+            gap: var(--space-xl);
+        }
+
+        .header-nav a {
+            font-size: 0.9375rem;
+            color: var(--color-gray-600);
+            transition: color var(--transition-fast);
+        }
+
+        .header-nav a:hover {
+            color: var(--color-gray-900);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: var(--space-md);
+            align-items: center;
+        }
+
+        /* Mobile menu toggle (hidden in desktop) */
+        .mobile-menu-toggle {
+            display: none;
+        }
+
+        /* ========================================
+           HERO SECTION - WHITESPACE FOCUSED
+           ======================================== */
+        .hero {
+            padding: var(--space-4xl) 0;
+            border-bottom: 1px solid var(--color-gray-200);
+        }
+
+        .hero-content {
+            max-width: 720px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .hero h1 {
+            margin-bottom: var(--space-md);
+        }
+
+        .hero p {
+            font-size: 1.125rem;
+            margin-bottom: var(--space-xl);
+            color: var(--color-gray-600);
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: var(--space-md);
+            justify-content: center;
+        }
+
+        /* ========================================
+           FEATURED LISTINGS SECTION
+           ======================================== */
+        .featured-section {
+            padding: var(--space-4xl) 0;
+            border-bottom: 1px solid var(--color-gray-200);
+        }
+
+        .section-header {
+            margin-bottom: var(--space-2xl);
+        }
+
+        .section-title {
+            margin-bottom: var(--space-sm);
+        }
+
+        .section-subtitle {
+            color: var(--color-gray-600);
+        }
+
+        .listings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: var(--space-lg);
+        }
+
+        .listing-card {
+            border: 1px solid var(--color-gray-200);
+            transition: border-color var(--transition-base);
+        }
+
+        .listing-card:hover {
+            border-color: var(--color-gray-900);
+        }
+
+        .listing-image {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: var(--color-gray-100);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-gray-400);
+            font-size: 0.875rem;
+        }
+
+        .listing-content {
+            padding: var(--space-md);
+        }
+
+        .listing-title {
+            font-size: 1rem;
+            font-weight: var(--font-weight-medium);
+            margin-bottom: var(--space-xs);
+            color: var(--color-gray-900);
+        }
+
+        .listing-price {
+            font-size: 1.125rem;
+            font-weight: var(--font-weight-semibold);
+            margin-bottom: var(--space-sm);
+            color: var(--color-gray-900);
+        }
+
+        .listing-meta {
+            font-size: 0.875rem;
+            color: var(--color-gray-600);
+            display: flex;
+            gap: var(--space-md);
+        }
+
+        /* ========================================
+           CTA SECTION - SUBTLE & RESTRAINED
+           ======================================== */
+        .cta-section {
+            padding: var(--space-4xl) 0;
+            background: var(--color-gray-100);
+        }
+
+        .cta-content {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .cta-content h2 {
+            margin-bottom: var(--space-md);
+        }
+
+        .cta-content p {
+            margin-bottom: var(--space-xl);
+        }
+
+        /* ========================================
+           FOOTER - CLEAN HIERARCHY
+           ======================================== */
+        .footer {
+            border-top: 1px solid var(--color-gray-200);
+            background: var(--color-white);
+        }
+
+        .footer-main {
+            padding: var(--space-3xl) 0;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-3xl);
+        }
+
+        .footer-column h3 {
+            font-size: 0.875rem;
+            font-weight: var(--font-weight-semibold);
+            margin-bottom: var(--space-md);
+            color: var(--color-gray-900);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: var(--space-sm);
+        }
+
+        .footer-links a {
+            font-size: 0.9375rem;
+            color: var(--color-gray-600);
+            transition: color var(--transition-fast);
+        }
+
+        .footer-links a:hover {
+            color: var(--color-gray-900);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--color-gray-200);
+            padding: var(--space-lg) 0;
+        }
+
+        .footer-bottom-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-copyright {
+            font-size: 0.875rem;
+            color: var(--color-gray-600);
+        }
+
+        .footer-social {
+            display: flex;
+            gap: var(--space-md);
+        }
+
+        .footer-social a {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--color-gray-300);
+            transition: all var(--transition-fast);
+        }
+
+        .footer-social a:hover {
+            border-color: var(--color-gray-900);
+            background: var(--color-gray-900);
+            color: var(--color-white);
+        }
+
+        /* ========================================
+           RESPONSIVE DESIGN
+           ======================================== */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            .header-nav {
+                display: none;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                cursor: pointer;
+                color: var(--color-gray-900);
+            }
+
+            .hero {
+                padding: var(--space-2xl) 0;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+            }
+
+            .hero-actions .btn {
+                width: 100%;
+            }
+
+            .featured-section {
+                padding: var(--space-2xl) 0;
+            }
+
+            .listings-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-section {
+                padding: var(--space-2xl) 0;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: var(--space-xl);
+            }
+
+            .footer-bottom-inner {
+                flex-direction: column;
+                gap: var(--space-md);
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ========================================
+         HEADER
+         ======================================== -->
+    <header class="header">
+        <div class="container">
+            <div class="header-inner">
+                <a href="/" class="header-logo">VERA</a>
+
+                <nav class="header-nav">
+                    <a href="/listings">Browse</a>
+                    <a href="/dealers">Dealers</a>
+                    <a href="/wanted">Wanted</a>
+                </nav>
+
+                <div class="header-actions">
+                    <a href="/post" class="btn btn-text">Sell</a>
+                    <a href="/auth" class="btn btn-primary">Sign In</a>
+                </div>
+
+                <button class="mobile-menu-toggle" aria-label="Menu">☰</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ========================================
+         HERO SECTION
+         ======================================== -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Vehicle Marketplace<br>Sri Lanka</h1>
+                <p>Buy and sell vehicles with confidence. AI-assisted descriptions, verified dealers, transparent pricing.</p>
+                <div class="hero-actions">
+                    <a href="/listings" class="btn">Browse Vehicles</a>
+                    <a href="/post" class="btn btn-primary">Sell Your Vehicle</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================
+         FEATURED LISTINGS
+         ======================================== -->
+    <section class="featured-section">
+        <div class="container-wide">
+            <div class="section-header">
+                <h2 class="section-title">Featured Listings</h2>
+                <p class="section-subtitle">Curated selection of verified vehicles</p>
+            </div>
+
+            <div class="listings-grid">
+                <!-- Listing Card 1 -->
+                <div class="listing-card">
+                    <div class="listing-image">[Vehicle Image]</div>
+                    <div class="listing-content">
+                        <h3 class="listing-title">Toyota Aqua G 2019</h3>
+                        <div class="listing-price">LKR 5,250,000</div>
+                        <div class="listing-meta">
+                            <span>2019</span>
+                            <span>35,000 km</span>
+                            <span>Auto</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Listing Card 2 -->
+                <div class="listing-card">
+                    <div class="listing-image">[Vehicle Image]</div>
+                    <div class="listing-content">
+                        <h3 class="listing-title">Honda Vezel Z 2018</h3>
+                        <div class="listing-price">LKR 7,800,000</div>
+                        <div class="listing-meta">
+                            <span>2018</span>
+                            <span>42,000 km</span>
+                            <span>Auto</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Listing Card 3 -->
+                <div class="listing-card">
+                    <div class="listing-image">[Vehicle Image]</div>
+                    <div class="listing-content">
+                        <h3 class="listing-title">Nissan Leaf X 2017</h3>
+                        <div class="listing-price">LKR 4,500,000</div>
+                        <div class="listing-meta">
+                            <span>2017</span>
+                            <span>28,000 km</span>
+                            <span>Auto</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Listing Card 4 -->
+                <div class="listing-card">
+                    <div class="listing-image">[Vehicle Image]</div>
+                    <div class="listing-content">
+                        <h3 class="listing-title">Suzuki Wagon R 2020</h3>
+                        <div class="listing-price">LKR 3,200,000</div>
+                        <div class="listing-meta">
+                            <span>2020</span>
+                            <span>18,000 km</span>
+                            <span>Auto</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Listing Card 5 -->
+                <div class="listing-card">
+                    <div class="listing-image">[Vehicle Image]</div>
+                    <div class="listing-content">
+                        <h3 class="listing-title">BMW 318i 2016</h3>
+                        <div class="listing-price">LKR 9,500,000</div>
+                        <div class="listing-meta">
+                            <span>2016</span>
+                            <span>52,000 km</span>
+                            <span>Auto</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Listing Card 6 -->
+                <div class="listing-card">
+                    <div class="listing-image">[Vehicle Image]</div>
+                    <div class="listing-content">
+                        <h3 class="listing-title">Mazda Axela 2015</h3>
+                        <div class="listing-price">LKR 4,750,000</div>
+                        <div class="listing-meta">
+                            <span>2015</span>
+                            <span>65,000 km</span>
+                            <span>Auto</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================
+         CTA SECTION
+         ======================================== -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Looking for something specific?</h2>
+                <p>Post a wanted request and let verified sellers reach you with their best offers.</p>
+                <a href="/wanted/post" class="btn btn-primary">Post Wanted Request</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================
+         FOOTER
+         ======================================== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-main">
+                <div class="footer-grid">
+                    <!-- Platform -->
+                    <div class="footer-column">
+                        <h3>Platform</h3>
+                        <ul class="footer-links">
+                            <li><a href="/listings">Browse Vehicles</a></li>
+                            <li><a href="/dealers">Dealer Directory</a></li>
+                            <li><a href="/wanted">Wanted Requests</a></li>
+                            <li><a href="/post">Sell Vehicle</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Support -->
+                    <div class="footer-column">
+                        <h3>Support</h3>
+                        <ul class="footer-links">
+                            <li><a href="/help">Help Center</a></li>
+                            <li><a href="/safety">Safety Guidelines</a></li>
+                            <li><a href="/contact">Contact Us</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Company -->
+                    <div class="footer-column">
+                        <h3>Company</h3>
+                        <ul class="footer-links">
+                            <li><a href="/about">About VERA</a></li>
+                            <li><a href="/terms">Terms of Service</a></li>
+                            <li><a href="/privacy">Privacy Policy</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Connect -->
+                    <div class="footer-column">
+                        <h3>Connect</h3>
+                        <ul class="footer-links">
+                            <li><a href="/blog">Blog</a></li>
+                            <li><a href="/careers">Careers</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <div class="footer-bottom-inner">
+                    <div class="footer-copyright">
+                        © 2024 VERA. All rights reserved.
+                    </div>
+                    <div class="footer-social">
+                        <a href="#" aria-label="Facebook">f</a>
+                        <a href="#" aria-label="Instagram">in</a>
+                        <a href="#" aria-label="Twitter">tw</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

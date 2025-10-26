@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VERA - Buy & Sell Vehicles in Sri Lanka</title>
+    <script src="https://kit.fontawesome.com/5a82e6e998.js" crossorigin="anonymous"></script>
+    <style>
+        /* ========================================
+           RESET & BASE
+           ======================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* VERA BRAND COLORS - Preserved Blue Aesthetic */
+            --blue-50: #eff6ff;
+            --blue-100: #dbeafe;
+            --blue-200: #bfdbfe;
+            --blue-300: #93c5fd;
+            --blue-400: #60a5fa;
+            --blue-500: #3b82f6;
+            --blue-600: #2563eb;
+            --blue-700: #1d4ed8;
+            --blue-800: #1e40af;
+            --blue-900: #1e3a8a;
+
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+
+            --white: #ffffff;
+            --green-600: #16a34a;
+
+            /* TYPOGRAPHY */
+            --font-primary: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+            /* SPACING - Consistent 8px grid */
+            --space-1: 0.25rem;
+            --space-2: 0.5rem;
+            --space-3: 0.75rem;
+            --space-4: 1rem;
+            --space-5: 1.25rem;
+            --space-6: 1.5rem;
+            --space-8: 2rem;
+            --space-10: 2.5rem;
+            --space-12: 3rem;
+            --space-16: 4rem;
+            --space-20: 5rem;
+            --space-24: 6rem;
+            --space-32: 8rem;
+
+            /* BORDERS */
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+
+            /* SHADOWS */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+            /* TRANSITIONS */
+            --transition: 200ms ease;
+        }
+
+        body {
+            font-family: var(--font-primary);
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--gray-900);
+            background: var(--white);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ========================================
+           TYPOGRAPHY
+           ======================================== */
+        h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 700;
+            line-height: 1.1;
+            color: var(--gray-900);
+            margin-bottom: var(--space-6);
+        }
+
+        h2 {
+            font-size: clamp(1.875rem, 4vw, 2.5rem);
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--gray-900);
+            margin-bottom: var(--space-6);
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            line-height: 1.3;
+            color: var(--gray-800);
+            margin-bottom: var(--space-4);
+        }
+
+        p {
+            font-size: 1.125rem;
+            line-height: 1.7;
+            color: var(--gray-600);
+            margin-bottom: var(--space-4);
+        }
+
+        .text-large {
+            font-size: 1.25rem;
+            line-height: 1.6;
+        }
+
+        .text-small {
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        /* ========================================
+           BUTTONS
+           ======================================== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-3) var(--space-6);
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: all var(--transition);
+            cursor: pointer;
+            border: none;
+            min-height: 48px;
+        }
+
+        .btn-primary {
+            background: var(--blue-600);
+            color: var(--white);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:hover {
+            background: var(--blue-700);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--blue-600);
+            border: 2px solid var(--blue-600);
+        }
+
+        .btn-secondary:hover {
+            background: var(--blue-50);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--gray-600);
+            border: 1px solid var(--gray-300);
+        }
+
+        .btn-outline:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-400);
+        }
+
+        .btn-lg {
+            padding: var(--space-4) var(--space-8);
+            font-size: 1.125rem;
+        }
+
+        /* ========================================
+           LAYOUT
+           ======================================== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--space-4);
+        }
+
+        .section {
+            padding: var(--space-24) 0;
+        }
+
+        .section-sm {
+            padding: var(--space-16) 0;
+        }
+
+        .section-lg {
+            padding: var(--space-32) 0;
+        }
+
+        /* ========================================
+           HERO SECTION
+           ======================================== */
+        .hero {
+            background: var(--white);
+            color: var(--gray-900);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(37,99,235,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.5;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--gray-600);
+            margin-bottom: var(--space-6);
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .ai-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-4);
+            justify-content: center;
+            margin-bottom: var(--space-8);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .ai-feature {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            background: var(--blue-50);
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--blue-200);
+            font-size: 0.875rem;
+            color: var(--blue-700);
+            font-weight: 500;
+        }
+
+        .ai-feature::before {
+            font-size: 1rem;
+        }
+
+        .ai-feature.match::before {
+            content: "🎯";
+        }
+
+        .ai-feature.descriptions::before {
+            content: "✍️";
+        }
+
+        .ai-feature.pricing::before {
+            content: "💰";
+        }
+
+        .ai-feature.verification::before {
+            content: "🔍";
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: var(--space-4);
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: var(--space-8);
+        }
+
+        /* ========================================
+           FEATURED LISTINGS
+           ======================================== */
+        .featured-section {
+            background: var(--white);
+            padding: var(--space-16) 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: var(--space-8);
+        }
+
+        .section-subtitle {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .listings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-6);
+            margin-bottom: var(--space-12);
+        }
+
+        .listing-card {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            transition: all 300ms ease;
+            border: 1px solid var(--gray-200);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .listing-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-color: var(--blue-300);
+        }
+
+        .featured-badge {
+            position: absolute;
+            top: var(--space-4);
+            left: var(--space-4);
+            z-index: 10;
+            background: linear-gradient(135deg, var(--blue-500) 0%, var(--blue-600) 100%);
+            color: var(--white);
+            padding: var(--space-1) var(--space-3);
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+        }
+
+        .featured-badge::before {
+            content: "★";
+            color: var(--white);
+            font-size: 0.75rem;
+        }
+
+        .listing-image {
+            position: relative;
+            width: 100%;
+            height: 192px;
+            background: var(--gray-200);
+            overflow: hidden;
+        }
+
+        .listing-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 500ms ease;
+        }
+
+        .listing-card:hover .listing-image img {
+            transform: scale(1.1);
+        }
+
+        .listing-image-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-200) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-400);
+            font-size: 0.875rem;
+        }
+
+        .image-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.2) 0%, transparent 100%);
+        }
+
+        .listing-content {
+            padding: var(--space-6);
+        }
+
+        .listing-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: var(--space-2);
+            line-height: 1.4;
+            transition: color var(--transition);
+        }
+
+        .listing-card:hover .listing-title {
+            color: var(--blue-600);
+        }
+
+        .listing-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+            margin-bottom: var(--space-2);
+        }
+
+        .listing-detail {
+            background: var(--gray-100);
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            color: var(--gray-500);
+        }
+
+        .listing-location {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            margin-bottom: var(--space-3);
+        }
+
+        .listing-location::before {
+            content: "📍";
+            font-size: 0.75rem;
+        }
+
+        .listing-footer {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+        }
+
+        .listing-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--blue-600);
+            margin-bottom: var(--space-1);
+        }
+
+        .listing-stats {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            font-size: 0.75rem;
+            color: var(--gray-500);
+        }
+
+        .listing-stat {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+        }
+
+        .listing-stat::before {
+            font-size: 0.75rem;
+        }
+
+        .listing-stat.views::before {
+            content: "👁";
+        }
+
+        .listing-stat.time::before {
+            content: "📅";
+        }
+
+        .view-button {
+            background: var(--blue-600);
+            color: var(--white);
+            padding: var(--space-2);
+            border-radius: 50%;
+            transition: background var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .listing-card:hover .view-button {
+            background: var(--blue-700);
+        }
+
+        .view-button::after {
+            content: "→";
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .view-all {
+            text-align: center;
+        }
+
+        /* ========================================
+           TRUST SECTION
+           ======================================== */
+        .trust-section {
+            background: var(--white);
+        }
+
+        .trust-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-8);
+            margin-bottom: var(--space-12);
+        }
+
+        .trust-item {
+            text-align: center;
+            padding: var(--space-6);
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+        }
+
+        .trust-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--blue-600);
+            margin-bottom: var(--space-2);
+        }
+
+        .trust-label {
+            font-size: 1rem;
+            color: var(--gray-600);
+            margin-bottom: var(--space-3);
+        }
+
+        .trust-description {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+            line-height: 1.5;
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-8);
+            margin-top: var(--space-16);
+        }
+
+        .benefit-item {
+            display: flex;
+            gap: var(--space-4);
+            align-items: flex-start;
+        }
+
+        .benefit-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--blue-100);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--blue-600);
+            flex-shrink: 0;
+        }
+
+        .benefit-content h4 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: var(--space-2);
+        }
+
+        .benefit-content p {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            margin-bottom: 0;
+        }
+
+        /* ========================================
+           SECONDARY CTA
+           ======================================== */
+        .cta-section {
+            background: var(--white);
+            text-align: center;
+        }
+
+        .cta-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .cta-subtitle {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            margin-bottom: var(--space-8);
+        }
+
+        /* ========================================
+           ABOUT SECTION
+           ======================================== */
+        .about-section {
+            background: var(--white);
+        }
+
+        .about-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .about-text {
+            font-size: 1.125rem;
+            line-height: 1.7;
+            color: var(--gray-600);
+            margin-bottom: var(--space-8);
+        }
+
+        .about-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-6);
+            margin-top: var(--space-12);
+        }
+
+        .about-feature {
+            text-align: center;
+            padding: var(--space-4);
+        }
+
+        .about-feature-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--blue-100);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--blue-600);
+            margin: 0 auto var(--space-3);
+        }
+
+        .about-feature h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: var(--space-2);
+        }
+
+        .about-feature p {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            margin-bottom: 0;
+        }
+
+        /* ========================================
+           RESPONSIVE DESIGN
+           ======================================== */
+        @media (max-width: 768px) {
+            .hero-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .listings-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .trust-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .benefits-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .about-features {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .trust-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .about-features {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ========================================
+           HEADER STYLES
+           ======================================== */
+        .header {
+            background: var(--white);
+            box-shadow: var(--shadow-sm);
+            border-bottom: 1px solid var(--gray-200);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--space-4);
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 64px;
+            position: relative;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            flex: 1;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            padding: var(--space-2);
+            color: var(--gray-600);
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .mobile-menu-btn:hover {
+            color: var(--gray-900);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--blue-600);
+            text-decoration: none;
+        }
+
+        .nav-center {
+            display: flex;
+            align-items: center;
+            gap: var(--space-8);
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .nav-link {
+            color: var(--gray-700);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color var(--transition);
+        }
+
+        .nav-link:hover {
+            color: var(--blue-600);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+
+        .nav-action {
+            color: var(--blue-600);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color var(--transition);
+        }
+
+        .nav-action:hover {
+            color: var(--blue-700);
+        }
+
+        .nav-btn {
+            background: var(--blue-600);
+            color: var(--white);
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            font-weight: 500;
+            transition: background var(--transition);
+        }
+
+        .nav-btn:hover {
+            background: var(--blue-700);
+        }
+
+        /* ========================================
+           FOOTER STYLES
+           ======================================== */
+        .footer {
+            background: var(--gray-900);
+            color: var(--white);
+        }
+
+        .footer-main {
+            padding: var(--space-12) 0;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-8);
+        }
+
+        .footer-section h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: var(--space-4);
+            color: var(--white);
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: var(--space-3);
+        }
+
+        .footer-links a {
+            color: var(--gray-300);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: var(--white);
+        }
+
+        .app-badges {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        .app-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-3);
+            background: var(--black);
+            border: 1px solid var(--gray-600);
+            border-radius: var(--radius-lg);
+            padding: var(--space-2);
+            text-decoration: none;
+            transition: all var(--transition);
+        }
+
+        .app-badge:hover {
+            transform: scale(1.05);
+            border-color: var(--gray-500);
+        }
+
+        .app-badge-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--white);
+        }
+
+        .app-badge-text {
+            text-align: left;
+        }
+
+        .app-badge-text .small {
+            font-size: 0.75rem;
+            color: var(--gray-400);
+        }
+
+        .app-badge-text .large {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--white);
+        }
+
+        .social-links {
+            display: flex;
+            gap: var(--space-4);
+            margin-top: var(--space-6);
+        }
+
+        .social-link {
+            color: var(--gray-400);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+
+        .social-link:hover {
+            color: var(--white);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--gray-800);
+            padding: var(--space-6) 0;
+        }
+
+        .footer-bottom-content {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+            align-items: center;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .footer-logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--blue-600);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+        }
+
+        .footer-logo-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--white);
+        }
+
+        .footer-info {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+            align-items: center;
+            font-size: 0.875rem;
+            color: var(--gray-400);
+        }
+
+        .footer-info-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: var(--space-6);
+            right: var(--space-6);
+            background: var(--blue-600);
+            color: var(--white);
+            padding: var(--space-3);
+            border-radius: 50%;
+            box-shadow: var(--shadow-lg);
+            border: none;
+            cursor: pointer;
+            transition: background var(--transition);
+            z-index: 50;
+        }
+
+        .back-to-top:hover {
+            background: var(--blue-700);
+        }
+
+        /* ========================================
+           RESPONSIVE HEADER & FOOTER
+           ======================================== */
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .nav-center {
+                display: none;
+            }
+
+            .nav-right .nav-action {
+                display: none;
+            }
+
+            .footer-bottom-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .footer-info {
+                flex-direction: column;
+                gap: var(--space-2);
+            }
+        }
+
+        /* ========================================
+           UTILITIES
+           ======================================== */
+        .text-center { text-align: center; }
+        .mb-0 { margin-bottom: 0; }
+        .mt-0 { margin-top: 0; }
+        .hidden { display: none; }
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <nav class="nav-container">
+            <div class="nav-content">
+                <!-- Left side - Mobile menu, Logo -->
+                <div class="nav-left">
+                    <button class="mobile-menu-btn">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <a href="/" class="logo">VERA</a>
+                </div>
+                
+                <!-- Center Navigation - Desktop Only -->
+                <div class="nav-center">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/listings" class="nav-link">Browse Vehicles</a>
+                    <a href="/dealers" class="nav-link">Dealer Directory</a>
+                    <a href="/wanted" class="nav-link">Wanted Requests</a>
+                </div>
+                
+                <!-- Right side actions -->
+                <div class="nav-right">
+                    <a href="/wanted/post" class="nav-action">Post Wanted</a>
+                    <a href="/post" class="nav-btn">Sell Vehicle</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <!-- HERO SECTION -->
+    <section class="hero section-lg">
+        <div class="container">
+            <div class="hero-content">
+                <h1>AI-Powered Vehicle Marketplace</h1>
+                <p class="hero-subtitle">
+                    Sri Lanka's first intelligent car buying platform. Let AI find your perfect match, generate descriptions, and ensure fair pricing.
+                </p>
+                
+                <!-- AI Features -->
+                <div class="ai-features">
+                    <div class="ai-feature match">Smart Matching</div>
+                    <div class="ai-feature descriptions">AI Descriptions</div>
+                    <div class="ai-feature pricing">Fair Pricing</div>
+                    <div class="ai-feature verification">Auto Verification</div>
+                </div>
+                
+                <div class="hero-actions">
+                    <a href="/listings" class="btn btn-primary btn-lg">Browse AI-Matched Vehicles</a>
+                    <a href="/post" class="btn btn-secondary btn-lg">Sell with AI Help</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURED LISTINGS -->
+    <section class="featured-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Featured Listings</h2>
+            </div>
+            
+            <div class="listings-grid">
+                <div class="listing-card">
+                    <!-- Featured Badge -->
+                    <div class="featured-badge">FEATURED</div>
+                    
+                    <!-- Image -->
+                    <div class="listing-image">
+                        <img src="https://images.unsplash.com/photo-1549317336-206569e8475c?w=400&h=300&fit=crop&crop=center" alt="Toyota Corolla 2020" />
+                        <div class="image-overlay"></div>
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="listing-content">
+                        <h3 class="listing-title">Toyota Corolla 2020 - Excellent Condition</h3>
+                        
+                        <!-- Vehicle details -->
+                        <div class="listing-details">
+                            <span class="listing-detail">2020</span>
+                            <span class="listing-detail">45,000 km</span>
+                            <span class="listing-detail">Petrol</span>
+                        </div>
+                        
+                        <!-- Location -->
+                        <div class="listing-location">Colombo</div>
+                        
+                        <!-- Price and stats -->
+                        <div class="listing-footer">
+                            <div>
+                                <div class="listing-price">Rs. 4,500,000</div>
+                                <div class="listing-stats">
+                                    <span class="listing-stat views">127</span>
+                                    <span class="listing-stat time">2 days ago</span>
+                                </div>
+                            </div>
+                            <div class="view-button"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="listing-card">
+                    <!-- Featured Badge -->
+                    <div class="featured-badge">FEATURED</div>
+                    
+                    <!-- Image -->
+                    <div class="listing-image">
+                        <img src="https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=300&fit=crop&crop=center" alt="Honda Civic 2019" />
+                        <div class="image-overlay"></div>
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="listing-content">
+                        <h3 class="listing-title">Honda Civic 2019 - Well Maintained</h3>
+                        
+                        <!-- Vehicle details -->
+                        <div class="listing-details">
+                            <span class="listing-detail">2019</span>
+                            <span class="listing-detail">38,000 km</span>
+                            <span class="listing-detail">Petrol</span>
+                        </div>
+                        
+                        <!-- Location -->
+                        <div class="listing-location">Kandy</div>
+                        
+                        <!-- Price and stats -->
+                        <div class="listing-footer">
+                            <div>
+                                <div class="listing-price">Rs. 3,800,000</div>
+                                <div class="listing-stats">
+                                    <span class="listing-stat views">89</span>
+                                    <span class="listing-stat time">1 day ago</span>
+                                </div>
+                            </div>
+                            <div class="view-button"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="listing-card">
+                    <!-- Featured Badge -->
+                    <div class="featured-badge">FEATURED</div>
+                    
+                    <!-- Image -->
+                    <div class="listing-image">
+                        <img src="https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=400&h=300&fit=crop&crop=center" alt="Nissan Sunny 2021" />
+                        <div class="image-overlay"></div>
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="listing-content">
+                        <h3 class="listing-title">Nissan Sunny 2021 - Low Mileage</h3>
+                        
+                        <!-- Vehicle details -->
+                        <div class="listing-details">
+                            <span class="listing-detail">2021</span>
+                            <span class="listing-detail">25,000 km</span>
+                            <span class="listing-detail">Petrol</span>
+                        </div>
+                        
+                        <!-- Location -->
+                        <div class="listing-location">Galle</div>
+                        
+                        <!-- Price and stats -->
+                        <div class="listing-footer">
+                            <div>
+                                <div class="listing-price">Rs. 2,900,000</div>
+                                <div class="listing-stats">
+                                    <span class="listing-stat views">156</span>
+                                    <span class="listing-stat time">3 hours ago</span>
+                                </div>
+                            </div>
+                            <div class="view-button"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="view-all">
+                <a href="/listings" class="btn btn-outline">View All Vehicles</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- TRUST & BENEFITS SECTION -->
+    <section class="trust-section section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Powered by Advanced AI</h2>
+                <p class="section-subtitle">
+                    Experience the future of vehicle trading with intelligent automation
+                </p>
+            </div>
+            
+            <div class="trust-grid">
+                <div class="trust-item">
+                    <div class="trust-number">500+</div>
+                    <div class="trust-label">AI-Enhanced Listings</div>
+                    <div class="trust-description">Smart descriptions generated automatically</div>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-number">50+</div>
+                    <div class="trust-label">Daily AI Matches</div>
+                    <div class="trust-description">Perfect buyer-seller connections</div>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-number">AI</div>
+                    <div class="trust-label">Price Intelligence</div>
+                    <div class="trust-description">Fair market value analysis</div>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-number">24/7</div>
+                    <div class="trust-label">AI Monitoring</div>
+                    <div class="trust-description">Continuous fraud detection</div>
+                </div>
+            </div>
+            
+            <div class="benefits-grid">
+                <div class="benefit-item">
+                    <div class="benefit-icon">🤖</div>
+                    <div class="benefit-content">
+                        <h4>AI-Powered Matching</h4>
+                        <p>Our intelligent algorithm connects buyers with their perfect vehicle based on preferences, budget, and location</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">✍️</div>
+                    <div class="benefit-content">
+                        <h4>Smart Descriptions</h4>
+                        <p>AI generates compelling, accurate vehicle descriptions automatically, saving time and improving listing quality</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">💰</div>
+                    <div class="benefit-content">
+                        <h4>Fair Pricing Intelligence</h4>
+                        <p>Get real-time market analysis and pricing suggestions to ensure fair deals for both buyers and sellers</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECONDARY CTA -->
+    <section class="cta-section section-sm">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Can't Find Your Perfect Vehicle?</h2>
+                <p class="cta-subtitle">
+                    Post a wanted request and let sellers come to you with their best offers
+                </p>
+                <a href="/wanted/post" class="btn btn-outline">Post Wanted Request</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section class="about-section section">
+        <div class="container">
+            <div class="about-content">
+                <h2>About VERA</h2>
+                <p class="about-text">
+                    VERA is Sri Lanka's first AI-powered vehicle marketplace, revolutionizing how people buy and sell cars. 
+                    Our intelligent platform uses advanced machine learning to create perfect matches, generate compelling descriptions, 
+                    and ensure fair pricing for everyone.
+                </p>
+                
+                <div class="about-features">
+                    <div class="about-feature">
+                        <div class="about-feature-icon">🤖</div>
+                        <h4>AI Matching</h4>
+                        <p>Intelligent buyer-seller connections</p>
+                    </div>
+                    <div class="about-feature">
+                        <div class="about-feature-icon">✍️</div>
+                        <h4>Auto Descriptions</h4>
+                        <p>AI-generated listing content</p>
+                    </div>
+                    <div class="about-feature">
+                        <div class="about-feature-icon">📊</div>
+                        <h4>Smart Pricing</h4>
+                        <p>Real-time market analysis</p>
+                    </div>
+                    <div class="about-feature">
+                        <div class="about-feature-icon">🛡️</div>
+                        <h4>AI Security</h4>
+                        <p>Automated fraud detection</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="nav-container">
+            <!-- Main Footer Content -->
+            <div class="footer-main">
+                <div class="footer-grid">
+                    
+                    <!-- From VERA Section -->
+                    <div class="footer-section">
+                        <h3>From VERA</h3>
+                        <ul class="footer-links">
+                            <li><a href="/sell">Sell your vehicle</a></li>
+                            <li><a href="/wanted">Wanted requests</a></li>
+                            <li><a href="/ai-features">AI features</a></li>
+                            <li><a href="/promote">Promote ad</a></li>
+                            <li><a href="/membership">Membership</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Help and Support Section -->
+                    <div class="footer-section">
+                        <h3>Help and Support</h3>
+                        <ul class="footer-links">
+                            <li><a href="/faq">FAQ</a></li>
+                            <li><a href="/safety">Safety & fraud detection</a></li>
+                            <li><a href="/contact">Contact us</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- About VERA Section -->
+                    <div class="footer-section">
+                        <h3>About VERA</h3>
+                        <ul class="footer-links">
+                            <li><a href="/about">About us</a></li>
+                            <li><a href="/careers">Careers</a></li>
+                            <li><a href="/terms">Terms and conditions</a></li>
+                            <li><a href="/privacy">Privacy policy</a></li>
+                            <li><a href="/refund-policy">Refund policy</a></li>
+                            <li><a href="/disclaimer">Disclaimer</a></li>
+                            <li><a href="/sitemap">Sitemap</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Download App Section -->
+                    <div class="footer-section">
+                        <h3>Download our app</h3>
+                        <div class="app-badges">
+                            <!-- Google Play Store Badge -->
+                            <a href="#" class="app-badge" aria-label="Download on Google Play">
+                                <svg class="app-badge-icon" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.61 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z"/>
+                                </svg>
+                                <div class="app-badge-text">
+                                    <div class="small">GET IT ON</div>
+                                    <div class="large">Google Play</div>
+                                </div>
+                            </a>
+
+                            <!-- App Store Badge -->
+                            <a href="#" class="app-badge" aria-label="Download on the App Store">
+                                <svg class="app-badge-icon" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M18.71,19.5C17.88,20.74 17,21.95 15.66,21.97C14.32,22 13.89,21.18 12.37,21.18C10.84,21.18 10.37,21.95 9.1,22C7.79,22.05 6.8,20.68 5.96,19.47C4.25,17 2.94,12.45 4.7,9.39C5.57,7.87 7.13,6.91 8.82,6.88C10.1,6.86 11.32,7.75 12.11,7.75C12.89,7.75 14.37,6.68 15.92,6.84C16.57,6.87 18.39,7.1 19.56,8.82C19.47,8.88 17.39,10.1 17.41,12.63C17.44,15.65 20.06,16.66 20.09,16.67C20.06,16.74 19.67,18.11 18.71,19.5M13,3.5C13.73,2.67 14.94,2.04 15.94,2C16.07,3.17 15.6,4.35 14.9,5.19C14.21,6.04 13.07,6.7 11.95,6.61C11.8,5.46 12.36,4.26 13,3.5Z"/>
+                                </svg>
+                                <div class="app-badge-text">
+                                    <div class="small">Download on the</div>
+                                    <div class="large">App Store</div>
+                                </div>
+                            </a>
+                        </div>
+
+                        <!-- Social Media Links -->
+                        <div class="social-links">
+                            <h4 style="font-size: 0.875rem; font-weight: 500; margin-bottom: var(--space-3);">Follow us</h4>
+                            <div style="display: flex; gap: var(--space-4);">
+                                <a href="#" class="social-link" aria-label="Facebook">
+                                    <span class="sr-only">Facebook</span>
+                                    <svg style="width: 20px; height: 20px;" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                    </svg>
+                                </a>
+                                <a href="#" class="social-link" aria-label="Instagram">
+                                    <span class="sr-only">Instagram</span>
+                                    <svg style="width: 20px; height: 20px;" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 6.62 5.367 11.987 11.988 11.987s11.987-5.367 11.987-11.987C24.014 5.367 18.637.001 12.017.001zM8.449 16.988c-1.297 0-2.448-.49-3.328-1.297L6.46 14.353c.548.548 1.297.911 2.131.911 1.663 0 3.011-1.348 3.011-3.011 0-.834-.363-1.583-.911-2.131L11.987 8.785c1.297.88 1.297 2.031 1.297 3.328 0 2.775-2.245 5.02-5.02 5.02-.834 0-1.583-.363-2.131-.911l1.336-1.234z"/>
+                                    </svg>
+                                </a>
+                                <a href="#" class="social-link" aria-label="Twitter">
+                                    <span class="sr-only">Twitter</span>
+                                    <svg style="width: 20px; height: 20px;" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                                    </svg>
+                                </a>
+                                <a href="#" class="social-link" aria-label="YouTube">
+                                    <span class="sr-only">YouTube</span>
+                                    <svg style="width: 20px; height: 20px;" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Footer -->
+            <div class="footer-bottom">
+                <div class="footer-bottom-content">
+                    <!-- Logo and Copyright -->
+                    <div class="footer-logo">
+                        <div class="footer-logo-icon">
+                            <svg style="width: 20px; height: 20px;" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+                            </svg>
+                        </div>
+                        <span class="footer-logo-text">VERA</span>
+                    </div>
+                    
+                    <!-- Additional Info -->
+                    <div class="footer-info">
+                        <div>© 2024 VERA. All rights reserved.</div>
+                        <div class="footer-info-item">
+                            <svg style="width: 16px; height: 16px;" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                            </svg>
+                            <span>Made in Sri Lanka</span>
+                        </div>
+                        <div class="footer-info-item">
+                            <svg style="width: 16px; height: 16px;" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1M10 17L6 13L7.41 11.59L10 14.17L16.59 7.58L18 9L10 17Z"/>
+                            </svg>
+                            <span>Secure & Trusted</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back to Top Button -->
+        <button class="back-to-top" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })" aria-label="Back to top">
+            <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            </svg>
+        </button>
+    </footer>
+</body>
+</html>
