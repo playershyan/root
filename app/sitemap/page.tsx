@@ -33,8 +33,7 @@ export default function SitemapPage() {
               <div className="text-gray-700 font-medium mb-1">├── Buy & Browse</div>
               <div className="ml-4 space-y-1">
                 <div>├── <Link href="/listings" className="text-blue-600 hover:underline">Browse All Listings</Link></div>
-                <div>├── <Link href="/wanted" className="text-blue-600 hover:underline">Wanted Requests</Link></div>
-                <div>└── <Link href="/dealers" className="text-blue-600 hover:underline">Verified Dealers</Link></div>
+                <div>└── <Link href="/wanted" className="text-blue-600 hover:underline">Wanted Requests</Link></div>
               </div>
             </div>
 

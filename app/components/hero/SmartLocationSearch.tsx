@@ -11,9 +11,26 @@ interface SmartLocationSearchProps {
 interface SearchResult {
   id: string
   name: string
+  name_si?: string | null
+  name_ta?: string | null
   type: 'district' | 'city' | 'popular'
   context?: string
   score: number
+}
+
+// Helper function to format multilingual names
+const formatMultilingualName = (name: string, name_si?: string | null, name_ta?: string | null): string => {
+  const parts = [name]
+  
+  if (name_si && name_si.trim()) {
+    parts.push(name_si.trim())
+  }
+  
+  if (name_ta && name_ta.trim()) {
+    parts.push(name_ta.trim())
+  }
+  
+  return parts.join(' • ')
 }
 
 // Fuzzy matching algorithm (Levenshtein distance)
@@ -61,6 +78,8 @@ const SmartLocationSearch = ({ selectedLocation, onLocationChange }: SmartLocati
         results.push({
           id: `district-${district.id}`,
           name: district.name,
+          name_si: district.name_si,
+          name_ta: district.name_ta,
           type: 'district',
           context: district.province,
           score: 100
@@ -74,6 +93,8 @@ const SmartLocationSearch = ({ selectedLocation, onLocationChange }: SmartLocati
         results.push({
           id: `city-${city.id}`,
           name: city.name,
+          name_si: city.name_si,
+          name_ta: city.name_ta,
           type: 'city',
           context: district?.name,
           score: 95
@@ -87,6 +108,8 @@ const SmartLocationSearch = ({ selectedLocation, onLocationChange }: SmartLocati
         results.push({
           id: `district-${district.id}`,
           name: district.name,
+          name_si: district.name_si,
+          name_ta: district.name_ta,
           type: 'district',
           context: district.province,
           score: 90
@@ -100,6 +123,8 @@ const SmartLocationSearch = ({ selectedLocation, onLocationChange }: SmartLocati
         results.push({
           id: `city-${city.id}`,
           name: city.name,
+          name_si: city.name_si,
+          name_ta: city.name_ta,
           type: 'city',
           context: district?.name,
           score: 85
@@ -115,6 +140,8 @@ const SmartLocationSearch = ({ selectedLocation, onLocationChange }: SmartLocati
           results.push({
             id: `district-${district.id}`,
             name: district.name,
+            name_si: district.name_si,
+            name_ta: district.name_ta,
             type: 'district',
             context: district.province,
             score: Math.round(fuzzyScore * 70)
@@ -131,6 +158,8 @@ const SmartLocationSearch = ({ selectedLocation, onLocationChange }: SmartLocati
           results.push({
             id: `city-${city.id}`,
             name: city.name,
+            name_si: city.name_si,
+            name_ta: city.name_ta,
             type: 'city',
             context: district?.name,
             score: Math.round(fuzzyScore * 65)
@@ -240,6 +269,11 @@ const SmartLocationSearch = ({ selectedLocation, onLocationChange }: SmartLocati
                       <div className="flex items-center justify-between">
                         <div>
                           <div className="font-medium text-gray-900">{result.name}</div>
+                          {(result.name_si || result.name_ta) && (
+                            <div className="text-sm text-gray-600 mt-1">
+                              {formatMultilingualName(result.name, result.name_si, result.name_ta)}
+                            </div>
+                          )}
                           <div className="text-sm text-gray-500">
                             {result.type === 'district' ? 'District' : 'City'}
                             {result.context && ` • ${result.context}`}
@@ -307,21 +341,35 @@ const SmartLocationSearch = ({ selectedLocation, onLocationChange }: SmartLocati
       <div>
         <div className="text-xs font-semibold text-gray-500 mb-2">QUICK ACCESS</div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {['All of Sri Lanka', ...POPULAR_LOCATIONS.slice(0, 7)].map((location) => (
-            <button
-              key={location}
-              onClick={() => handleSelectLocation(location)}
-              className={`
-                px-3 py-2 rounded-lg border transition-all text-sm font-medium
-                ${selectedLocation === location
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
-                }
-              `}
-            >
-              {location}
-            </button>
-          ))}
+          {POPULAR_LOCATIONS.slice(0, 8).map((location) => {
+            // Find multilingual data for this location
+            const district = DISTRICTS.find(d => d.name.toLowerCase() === location.toLowerCase())
+            const city = CITIES.find(c => c.name.toLowerCase() === location.toLowerCase())
+            const locationData = district || city
+            
+            return (
+              <button
+                key={location}
+                onClick={() => handleSelectLocation(location)}
+                className={`
+                  px-3 py-2 rounded-lg border transition-all text-sm font-medium text-left
+                  ${selectedLocation === location
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                  }
+                `}
+              >
+                <div>
+                  <div className="font-medium">{location}</div>
+                  {locationData && (locationData.name_si || locationData.name_ta) && (
+                    <div className="text-xs opacity-75 mt-0.5">
+                      {formatMultilingualName(location, locationData.name_si, locationData.name_ta).split(' • ').slice(1).join(' • ')}
+                    </div>
+                  )}
+                </div>
+              </button>
+            )
+          })}
         </div>
       </div>
 

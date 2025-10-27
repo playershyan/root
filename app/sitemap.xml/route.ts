@@ -12,7 +12,6 @@ export async function GET() {
     '/about',             // About us
     '/listings',          // Vehicle listings
     '/wanted',            // Wanted requests
-    '/dealers',           // Dealers directory
     '/ai-features',       // AI features page
     '/careers',           // Careers page
     '/safety',            // Safety page
@@ -39,7 +38,6 @@ export async function GET() {
     '/wanted-request/paid-features',
     '/wanted/edit',
     '/business',
-    '/dealer',
   ]
 
   const currentDate = new Date().toISOString()

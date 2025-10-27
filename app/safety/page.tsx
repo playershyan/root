@@ -1,401 +1,331 @@
 import Link from 'next/link'
-import { Shield, AlertTriangle, CheckCircle, Phone, Mail, Clock, AlertCircle, Eye, Ban, UserCheck, TrendingUp, Database, Users } from 'lucide-react'
+import { Shield, AlertTriangle, CheckCircle, Phone, Mail, Clock, AlertCircle, Eye, Ban, UserCheck, TrendingUp, Database, Users, Lock } from 'lucide-react'
 
 export default function SafetyPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="bg-white border-b border-gray-200 py-12 sm:py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <Shield className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-blue-600" />
-            <h1 className="text-3xl sm:text-4xl font-bold mb-4 text-black">Safety & Fraud Detection</h1>
-            <p className="text-lg sm:text-xl max-w-3xl mx-auto text-gray-600">
-              Your Security is Our Priority
-            </p>
+      <section className="relative bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16 md:py-24 overflow-hidden">
+        {/* Grid Pattern Background */}
+        <div
+          className="absolute inset-0 opacity-50 pointer-events-none"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3Cpattern id='grid' width='10' height='10' patternUnits='userSpaceOnUse'%3E%3Cpath d='M 10 0 L 0 0 0 10' fill='none' stroke='rgba(255,255,255,0.1)' stroke-width='0.5'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100' height='100' fill='url(%23grid)'/%3E%3C/svg%3E")`
+          }}
+        />
+        
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <Shield className="w-4 h-4" />
+            AI-Powered Security
           </div>
+          
+          <h1 className="text-4xl md:text-5xl font-bold mb-6">
+            Safety & Fraud Detection
+          </h1>
+          <p className="text-xl text-blue-100 max-w-3xl mx-auto">
+            Advanced AI monitoring and community protection keep your transactions secure
+          </p>
         </div>
-      </div>
+      </section>
 
       {/* Introduction */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="bg-white rounded-lg shadow-sm p-6 sm:p-8">
-          <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
-            At VERA.lk, we're committed to creating the safest possible environment for buying and selling vehicles. 
-            Our advanced monitoring systems, combined with community reporting tools, work around the clock to protect 
-            our users from fraud and ensure legitimate transactions.
-          </p>
-        </div>
-      </div>
-
-      {/* How We Keep You Safe */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 sm:pb-12">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">How We Keep You Safe</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow duration-300">
-            <div className="flex items-start gap-3 sm:gap-4">
-              <div className="bg-blue-100 p-2 sm:p-3 rounded-lg flex-shrink-0">
-                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="text-lg sm:text-xl font-semibold mb-2">Advanced Fraud Detection</h3>
-                <p className="text-sm sm:text-base text-gray-600">
-                  Our sophisticated monitoring systems continuously scan for suspicious activity, fake listings, 
-                  and fraudulent behavior patterns. We use machine learning algorithms to identify and block 
-                  potential scams before they reach our users.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow duration-300">
-            <div className="flex items-start gap-4">
-              <div className="bg-gray-100 p-3 rounded-lg">
-                <AlertCircle className="w-6 h-6 text-black" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold mb-2">Report Ad Feature</h3>
-                <p className="text-gray-600">
-                  Every listing includes a "Report Ad" button that allows our community to flag suspicious 
-                  content immediately. Our dedicated safety team reviews every report within hours, taking 
-                  swift action when necessary.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow duration-300">
-            <div className="flex items-start gap-4">
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <Ban className="w-6 h-6 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold mb-2">Repeat Offender Prevention</h3>
-                <p className="text-gray-600">
-                  We maintain a comprehensive database of fraudulent users and their behavior patterns. 
-                  Our system automatically blocks repeat offenders from creating new accounts, using advanced 
-                  tracking methods to prevent them from returning to our platform.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow duration-300">
-            <div className="flex items-start gap-4">
-              <div className="bg-gray-100 p-3 rounded-lg">
-                <UserCheck className="w-6 h-6 text-black" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold mb-2">Identity Verification</h3>
-                <p className="text-gray-600">
-                  We verify seller information and cross-reference it with official databases to ensure 
-                  legitimacy. Verified sellers receive special badges, giving buyers additional confidence 
-                  in their transactions.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Smart Buying Tips */}
-      <div className="bg-blue-50 py-8 sm:py-12">
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">Smart Buying Tips for Vehicle Purchases</h2>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-            {/* Before You Buy */}
-            <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
-              <h3 className="text-lg sm:text-xl font-semibold mb-4 text-blue-600">Before You Buy</h3>
-              <ul className="space-y-2 sm:space-y-3">
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 mt-1 flex-shrink-0" />
-                  <span className="text-sm sm:text-base text-gray-700"><strong>Always inspect the vehicle in person</strong> during daylight hours at a safe, public location</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700"><strong>Verify the seller's identity</strong> and match it with official documentation</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700"><strong>Check vehicle history reports</strong> using the VIN number</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700"><strong>Confirm ownership documents</strong> are legitimate and match the seller's identity</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700"><strong>Research market prices</strong> to ensure the asking price is realistic</span>
-                </li>
-              </ul>
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 md:p-12 text-center">
+            <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <Shield className="w-4 h-4" />
+              Trusted by Thousands
             </div>
-
-            {/* During the Transaction */}
-            <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow duration-300">
-              <h3 className="text-xl font-semibold mb-4 text-blue-600">During the Transaction</h3>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700"><strong>Meet in safe, public locations</strong> such as bank parking lots or police station visitor areas</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700"><strong>Bring a knowledgeable friend</strong> or consider hiring a qualified mechanic for inspection</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700"><strong>Test drive thoroughly</strong> and check all vehicle systems</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700"><strong>Exchange payment and title simultaneously</strong> - never pay before receiving proper documentation</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700"><strong>Use secure payment methods</strong> such as cashier's checks or bank transfers for large amounts</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Payment Security */}
-            <div className="bg-red-50 border border-red-200 rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow duration-300">
-              <h3 className="text-xl font-semibold mb-4 text-red-700">Payment Security</h3>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-2">
-                  <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700"><strong>Avoid cash transactions</strong> for high-value vehicles</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700"><strong>Never wire money</strong> to unknown parties</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700"><strong>Don't provide financial information</strong> until you've verified the seller and vehicle</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700"><strong>Use escrow services</strong> for expensive vehicles when possible</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Red Flags */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">Red Flags to Watch For</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-          {/* Suspicious Listing Behaviors */}
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 sm:p-6">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 text-red-700">
-              <AlertTriangle className="inline-block w-5 h-5 sm:w-6 sm:h-6 mr-2 text-red-600" />
-              Suspicious Listing Behaviors
-            </h3>
-            <ul className="space-y-1 sm:space-y-2 text-sm sm:text-base text-gray-700">
-              <li>• Prices significantly below market value</li>
-              <li>• Sellers who refuse to meet in person</li>
-              <li>• Requests for immediate payment or deposits</li>
-              <li>• Poor quality or limited photos</li>
-              <li>• Sellers who avoid phone conversations</li>
-              <li>• Pressure to "act fast" or limited-time offers</li>
-            </ul>
-          </div>
-
-          {/* Common Vehicle Scams */}
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-            <h3 className="text-xl font-semibold mb-4 text-red-700">
-              <AlertTriangle className="inline-block w-6 h-6 mr-2 text-red-600" />
-              Common Vehicle Scams
-            </h3>
-            <ul className="space-y-2 text-gray-700">
-              <li><strong>Title washing</strong> - vehicles with hidden damage history</li>
-              <li><strong>Curbstoning</strong> - unlicensed dealers posing as private sellers</li>
-              <li><strong>Phantom vehicles</strong> - listings for vehicles that don't exist</li>
-              <li><strong>Overpayment scams</strong> - fake buyers offering to overpay with bad checks</li>
-              <li><strong>Shipping scams</strong> - requests to ship vehicles sight unseen</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* Our Monitoring Technology */}
-      <div className="bg-gray-100 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Our Monitoring Technology</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow duration-300">
-              <Eye className="w-10 h-10 text-blue-600 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Real-Time Detection</h3>
-              <p className="text-gray-600">
-                Our systems monitor listings 24/7, automatically flagging content that matches known fraud patterns. 
-                Suspicious listings are immediately reviewed by our safety team and removed if necessary.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow duration-300">
-              <Database className="w-10 h-10 text-black mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Pattern Recognition</h3>
-              <p className="text-gray-600">
-                We track user behavior across our platform, identifying suspicious patterns such as multiple accounts, 
-                rapid listing creation, or communication that matches known scam scripts.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow duration-300">
-              <Users className="w-10 h-10 text-blue-600 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Database Cross-Referencing</h3>
-              <p className="text-gray-600">
-                We maintain connections with law enforcement databases and industry fraud prevention services to 
-                identify known fraudulent vehicles and sellers before they can harm our users.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* What to Do If You Encounter Fraud */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h2 className="text-3xl font-bold text-gray-900 mb-8">What to Do If You Encounter Fraud</h2>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Immediate Actions */}
-          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow duration-300">
-            <h3 className="text-xl font-semibold mb-4 text-red-700">Immediate Actions</h3>
-            <ol className="space-y-3">
-              <li className="flex gap-3">
-                <span className="bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">1</span>
-                <span className="text-gray-700"><strong>Stop all communication</strong> with the suspected fraudster</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">2</span>
-                <span className="text-gray-700"><strong>Save all evidence</strong> including messages, emails, and screenshots</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">3</span>
-                <span className="text-gray-700"><strong>Report the incident</strong> using our Report Ad feature</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">4</span>
-                <span className="text-gray-700"><strong>Contact local law enforcement</strong> if money has been exchanged</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">5</span>
-                <span className="text-gray-700"><strong>Notify your bank</strong> if you've provided any financial information</span>
-              </li>
-            </ol>
-          </div>
-
-          {/* How to Report */}
-          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow duration-300">
-            <h3 className="text-xl font-semibold mb-4 text-blue-600">How to Report</h3>
-            <ul className="space-y-3">
-              <li className="text-gray-700">• Click the "Report Ad" button on any suspicious listing</li>
-              <li className="text-gray-700">• Use our dedicated fraud reporting email: <a href="mailto:safety@vera.lk" className="text-blue-600 hover:underline hover:text-blue-800 transition-colors duration-200">safety@vera.lk</a></li>
-              <li className="text-gray-700">• Call our safety hotline: <strong>+94 11 234 5678</strong></li>
-              <li className="text-gray-700">• Provide detailed information about the incident</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* Legal Cooperation */}
-      <div className="bg-blue-50 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-lg shadow-sm p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Legal Cooperation</h2>
-            <p className="text-gray-700 leading-relaxed">
-              We take fraud seriously and maintain full cooperation with law enforcement agencies. When criminal 
-              activity is suspected, we provide all necessary information to help investigate and prosecute offenders. 
-              Our legal team works closely with local and federal authorities to ensure justice is served.
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">
+              Your Security is Our Priority
+            </h2>
+            <p className="text-lg text-gray-700 max-w-4xl mx-auto leading-relaxed">
+              At VERA.lk, we're committed to creating the safest possible environment for buying and selling vehicles. 
+              Our advanced AI-powered monitoring systems, combined with community reporting tools, work around the clock 
+              to protect our users from fraud and ensure legitimate transactions.
             </p>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Additional Safety Resources */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h2 className="text-3xl font-bold text-gray-900 mb-8">Additional Safety Resources</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* For Sellers */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-            <h3 className="text-xl font-semibold mb-4 text-gray-900">For Sellers</h3>
-            <ul className="space-y-2 text-gray-700">
-              <li>• <strong>Price your vehicle realistically</strong> based on market research</li>
-              <li>• <strong>Provide complete, accurate descriptions</strong> and high-quality photos</li>
-              <li>• <strong>Meet buyers in safe, public locations</strong> only</li>
-              <li>• <strong>Verify buyer payment</strong> before transferring ownership</li>
-              <li>• <strong>Keep detailed records</strong> of all communications and transactions</li>
-            </ul>
-          </div>
-
-          {/* For Buyers */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-            <h3 className="text-xl font-semibold mb-4 text-gray-900">For Buyers</h3>
-            <ul className="space-y-2 text-gray-700">
-              <li>• <strong>Research extensively</strong> before making any commitment</li>
-              <li>• <strong>Arrange independent inspections</strong> for valuable vehicles</li>
-              <li>• <strong>Verify all documentation</strong> before payment</li>
-              <li>• <strong>Trust your instincts</strong> - if something feels wrong, walk away</li>
-              <li>• <strong>Use our verification tools</strong> to check seller credibility</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* Contact Our Safety Team */}
-      <div className="bg-gray-900 text-white py-8 sm:py-12">
+      {/* Red Flags Section - Prevention First */}
+      <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Contact Our Safety Team</h2>
-            <p className="text-base sm:text-lg mb-6 sm:mb-8">Our dedicated safety specialists are available to help with any concerns:</p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 max-w-3xl mx-auto">
-              <div className="bg-gray-800 rounded-lg p-4 sm:p-6 hover:bg-gray-700 transition-colors duration-300">
-                <Phone className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 sm:mb-3 text-blue-600" />
-                <h3 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">Safety Hotline</h3>
-                <p className="text-gray-300 text-sm sm:text-base">+94 11 234 5678</p>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              How to Stay Safe
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Learn to recognize scams and protect yourself from fraud
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Common Scams */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-xl">
+                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900">Red Flags to Watch For</h3>
               </div>
-              
-              <div className="bg-gray-800 rounded-lg p-4 sm:p-6 hover:bg-gray-700 transition-colors duration-300">
-                <Mail className="w-8 h-8 mx-auto mb-3 text-blue-600" />
-                <h3 className="font-semibold mb-2">Email</h3>
-                <p className="text-gray-300">safety@vera.lk</p>
-              </div>
-              
-              <div className="bg-gray-800 rounded-lg p-4 sm:p-6 hover:bg-gray-700 transition-colors duration-300">
-                <Clock className="w-8 h-8 mx-auto mb-3 text-black" />
-                <h3 className="font-semibold mb-2">Hours</h3>
-                <p className="text-gray-300 text-sm">Mon-Fri 8AM-8PM<br/>Weekend Emergency Support</p>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <p className="text-gray-700"><strong>Too good to be true prices</strong> - Extremely low prices for high-value vehicles</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <p className="text-gray-700"><strong>Pressure to pay quickly</strong> - Urgent requests for immediate payment</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <p className="text-gray-700"><strong>Poor quality photos</strong> - Blurry or stock images instead of real photos</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <p className="text-gray-700"><strong>Vague descriptions</strong> - Lack of specific details about the vehicle</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <p className="text-gray-700"><strong>Refusal to meet</strong> - Avoiding in-person meetings or inspections</p>
+                </div>
               </div>
             </div>
 
-            <div className="mt-6 sm:mt-8 p-4 sm:p-6 bg-red-600 rounded-lg max-w-3xl mx-auto">
-              <p className="text-base sm:text-lg font-semibold">
-                <AlertTriangle className="inline-block w-5 h-5 sm:w-6 sm:h-6 mr-2" />
-                Remember: If you feel unsafe at any point during a transaction, trust your instincts 
-                and remove yourself from the situation. No vehicle purchase is worth your personal safety.
+            {/* What to Do */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-xl">
+                  <CheckCircle className="w-6 h-6 text-green-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900">Safe Practices</h3>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <p className="text-gray-700"><strong>Always inspect the vehicle</strong> in person before making any payment</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <p className="text-gray-700"><strong>Verify seller identity</strong> and ask for proper documentation</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <p className="text-gray-700"><strong>Use secure payment methods</strong> and avoid wire transfers</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <p className="text-gray-700"><strong>Trust your instincts</strong> - if something feels wrong, walk away</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <p className="text-gray-700"><strong>Report suspicious activity</strong> immediately to our safety team</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How We Keep You Safe */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              How We Protect You
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Multi-layered protection powered by advanced AI and human expertise
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Advanced Fraud Detection */}
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 p-8 group">
+              <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-2xl mb-6 group-hover:bg-blue-200 transition-colors">
+                <TrendingUp className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">AI Fraud Detection</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Our sophisticated AI systems continuously scan for suspicious activity, fake listings, 
+                and fraudulent behavior patterns using machine learning algorithms.
+              </p>
+            </div>
+
+            {/* Community Reporting */}
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 p-8 group">
+              <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-2xl mb-6 group-hover:bg-blue-200 transition-colors">
+                <Users className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Community Reporting</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Our active community helps identify and report suspicious activities. 
+                Every report is reviewed by our safety team within 24 hours.
+              </p>
+            </div>
+
+            {/* Identity Verification */}
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 p-8 group">
+              <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-2xl mb-6 group-hover:bg-blue-200 transition-colors">
+                <UserCheck className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Identity Verification</h3>
+              <p className="text-gray-600 leading-relaxed">
+                We verify seller identities and vehicle information to ensure authenticity. 
+                Verified sellers receive special badges for transparency.
+              </p>
+            </div>
+
+            {/* Real-time Monitoring */}
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 p-8 group">
+              <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-2xl mb-6 group-hover:bg-blue-200 transition-colors">
+                <Eye className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">24/7 Monitoring</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Our systems monitor all platform activity around the clock, 
+                automatically flagging and removing suspicious content.
+              </p>
+            </div>
+
+            {/* Secure Transactions */}
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 p-8 group">
+              <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-2xl mb-6 group-hover:bg-blue-200 transition-colors">
+                <Lock className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Secure Communication</h3>
+              <p className="text-gray-600 leading-relaxed">
+                All communications are encrypted and monitored. 
+                We never share your personal information with third parties.
+              </p>
+            </div>
+
+            {/* Data Protection */}
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 p-8 group">
+              <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-2xl mb-6 group-hover:bg-blue-200 transition-colors">
+                <Database className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Data Protection</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Your personal data is protected with industry-standard encryption 
+                and security measures, compliant with international standards.
               </p>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Footer Note */}
-      <div className="bg-gray-100 py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-600">
-          <p>
-            <em>Last updated: {new Date().toLocaleDateString()} | We continuously update our safety measures 
-            and recommend reviewing this page regularly for the latest protection information.</em>
-          </p>
+      {/* Emergency Response */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 md:p-12">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
+                <AlertCircle className="w-4 h-4" />
+                Emergency Response
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                If You've Been Scammed
+              </h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Take immediate action to protect yourself and help us catch the perpetrators
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Immediate Actions */}
+              <div className="space-y-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Immediate Actions</h3>
+                <ol className="space-y-4">
+                  <li className="flex gap-3">
+                    <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">1</span>
+                    <span className="text-gray-700"><strong>Stop all communication</strong> with the scammer immediately</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">2</span>
+                    <span className="text-gray-700"><strong>Document everything</strong> - save screenshots, messages, and transaction details</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">3</span>
+                    <span className="text-gray-700"><strong>Report to VERA</strong> using our dedicated fraud reporting system</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">4</span>
+                    <span className="text-gray-700"><strong>Contact local authorities</strong> and file a police report</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm font-bold">5</span>
+                    <span className="text-gray-700"><strong>Notify your bank</strong> if you've provided any financial information</span>
+                  </li>
+                </ol>
+              </div>
+
+              {/* How to Report */}
+              <div className="space-y-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">How to Report</h3>
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-900 mb-2">Online Reporting</h4>
+                    <p className="text-gray-600 text-sm mb-2">Click the "Report Ad" button on any suspicious listing</p>
+                    <a href="mailto:safety@vera.lk" className="text-blue-600 hover:underline text-sm">safety@vera.lk</a>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-900 mb-2">Phone Support</h4>
+                    <p className="text-gray-600 text-sm mb-2">Call our safety hotline for immediate assistance</p>
+                    <a href="tel:+94112345678" className="text-blue-600 hover:underline text-sm font-semibold">+94 11 234 5678</a>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-900 mb-2">What to Include</h4>
+                    <ul className="text-gray-600 text-sm space-y-1">
+                      <li>• Screenshots of conversations</li>
+                      <li>• Transaction details</li>
+                      <li>• Seller information</li>
+                      <li>• Timeline of events</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* Legal Cooperation */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gray-50 rounded-2xl p-8 md:p-12 text-center">
+            <div className="inline-flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <Shield className="w-4 h-4" />
+              Legal Cooperation
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">
+              Working with Law Enforcement
+            </h2>
+            <p className="text-lg text-gray-700 max-w-4xl mx-auto leading-relaxed mb-8">
+              We work closely with law enforcement agencies to investigate fraud cases and bring perpetrators to justice. 
+              All fraud reports are shared with relevant authorities when necessary.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                <h3 className="font-semibold text-gray-900 mb-3">Our Commitment</h3>
+                <p className="text-gray-600 text-sm">
+                  We maintain detailed records of all fraudulent activities and cooperate fully with 
+                  law enforcement investigations to protect our community.
+                </p>
+              </div>
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                <h3 className="font-semibold text-gray-900 mb-3">Your Privacy</h3>
+                <p className="text-gray-600 text-sm">
+                  Your personal information is protected and only shared with authorities 
+                  when legally required for fraud investigations.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }

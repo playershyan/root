@@ -7,7 +7,6 @@ export async function GET() {
 Allow: /
 Allow: /listings
 Allow: /wanted
-Allow: /dealers
 Allow: /about
 Allow: /ai-features
 Allow: /safety
@@ -34,7 +33,6 @@ Disallow: /wanted/post/boost
 Disallow: /wanted-request/paid-features
 Disallow: /wanted/edit/
 Disallow: /business/
-Disallow: /dealer/
 
 # Allow specific API endpoints that might be useful for crawlers
 Allow: /api/search

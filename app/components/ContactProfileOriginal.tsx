@@ -47,12 +47,9 @@ function DealerProfile({ dealer, listing }: {
           {dealer.name.split(' ').map(n => n[0]).join('')}
         </div>
         <div className="flex-1">
-          <Link 
-            href={`/dealers/${encodeURIComponent(dealer.name.toLowerCase().replace(/\s+/g, '-'))}`}
-            className="font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-          >
+          <div className="font-semibold text-gray-900">
             {dealer.name}
-          </Link>
+          </div>
           <div className="flex items-center gap-1 text-sm">
             <div className="flex text-yellow-400">
               {[...Array(5)].map((_, i) => (

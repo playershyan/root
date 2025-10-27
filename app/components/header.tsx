@@ -3,10 +3,10 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
-import { 
-  Heart, User, Search, Menu, X, Bell, 
+import {
+  Heart, User, Search, Menu, X, Bell,
   Car, MessageSquare, Settings, LogOut,
-  Crown, Shield, FileText, HelpCircle, Plus
+  Crown, Shield, FileText, Plus
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { AuthModal } from './auth'
@@ -171,9 +171,6 @@ export default function Header() {
             <Link href="/listings" className="text-gray-700 hover:text-blue-600 font-medium">
               Browse Vehicles
             </Link>
-            <Link href="/dealers" className="text-gray-700 hover:text-blue-600 font-medium">
-              Dealer Directory
-            </Link>
             <Link href="/wanted" className="text-gray-700 hover:text-blue-600 font-medium relative">
               Wanted Requests
               {wantedNotificationCount > 0 && (
@@ -261,14 +258,6 @@ export default function Header() {
                       >
                         <Shield className="w-4 h-4" />
                         Security
-                      </Link>
-                      
-                      <Link
-                        href="/help"
-                        className="block px-4 py-2 text-gray-700 hover:bg-gray-50 flex items-center gap-3"
-                      >
-                        <HelpCircle className="w-4 h-4" />
-                        Help & Support
                       </Link>
 
                       <hr className="my-2" />
@@ -397,13 +386,6 @@ export default function Header() {
                 Browse Vehicles
               </Link>
               <Link
-                href="/dealers"
-                className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Dealer Directory
-              </Link>
-              <Link
                 href="/wanted"
                 className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium relative"
                 onClick={() => setMobileMenuOpen(false)}
@@ -492,24 +474,15 @@ export default function Header() {
                   <div className="border-t my-4" />
                   
                   
-                  <Link 
-                    href="/profile?tab=security" 
+                  <Link
+                    href="/profile?tab=security"
                     className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg flex items-center gap-3"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <Shield className="w-5 h-5" />
                     Security Settings
                   </Link>
-                  
-                  <Link 
-                    href="/help" 
-                    className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg flex items-center gap-3"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <HelpCircle className="w-5 h-5" />
-                    Help & Support
-                  </Link>
-                  
+
                   <div className="border-t my-4" />
                   
                   <button
