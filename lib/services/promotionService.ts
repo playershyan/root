@@ -40,6 +40,9 @@ export interface PromotedListing {
   email?: string
   image_url?: string
   image_urls: string[]
+  primary_image_url?: string
+  posted_date?: string
+  user_id?: string
   ai_generated_description?: string
   ai_summary?: string
   is_featured: boolean

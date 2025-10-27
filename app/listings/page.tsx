@@ -1184,7 +1184,10 @@ export default function AdvancedListingsPage() {
                       {featuredAds.map(listing => (
                         <FeaturedAdCard
                           key={listing.id}
-                          listing={listing}
+                          listing={{
+                            ...listing,
+                            user_id: listing.user_id || 'unknown'
+                          }}
                           promotionType="featured"
                         />
                       ))}
@@ -1209,20 +1212,9 @@ export default function AdvancedListingsPage() {
                           listing={{
                             ...listing,
                             is_top_spot: true,
+                            user_id: listing.user_id || 'unknown',
                             created_at: listing.created_at || new Date().toISOString(),
-                            primary_image_url: listing.image_url,
-                            posted_date: listing.created_at || new Date().toISOString()
-                          }}
-                          isSaved={savedListings.includes(listing.id)}
-                          onToggleSaved={() => toggleSavedListing(listing.id)}
-                          activeImageIndex={activeImageIndex[listing.id] || 0}
-                          onImageNavigate={(direction: 'prev' | 'next') => navigateImage(listing.id, direction, listing.image_urls?.length || 1)}
-                          imageLoading={imageLoading[listing.id] || false}
-                          imageError={imageError[listing.id] || false}
-                          onImageLoad={() => setImageLoading(prev => ({ ...prev, [listing.id]: false }))}
-                          onImageError={() => {
-                            setImageLoading(prev => ({ ...prev, [listing.id]: false }))
-                            setImageError(prev => ({ ...prev, [listing.id]: true }))
+                            primary_image_url: listing.image_url
                           }}
                         />
                       ))}
@@ -1265,17 +1257,9 @@ export default function AdvancedListingsPage() {
                         {filteredListings.slice(0, 4).map((listing) => (
                           <RegularAdCard
                             key={listing.id}
-                            listing={listing}
-                            isSaved={savedListings.includes(listing.id)}
-                            onToggleSaved={() => toggleSavedListing(listing.id)}
-                            activeImageIndex={activeImageIndex[listing.id] || 0}
-                            onImageNavigate={(direction: 'prev' | 'next') => navigateImage(listing.id, direction, listing.image_urls?.length || 1)}
-                            imageLoading={imageLoading[listing.id] || false}
-                            imageError={imageError[listing.id] || false}
-                            onImageLoad={() => setImageLoading(prev => ({ ...prev, [listing.id]: false }))}
-                            onImageError={() => {
-                              setImageLoading(prev => ({ ...prev, [listing.id]: false }))
-                              setImageError(prev => ({ ...prev, [listing.id]: true }))
+                            listing={{
+                              ...listing,
+                              user_id: listing.user_id || 'unknown'
                             }}
                           />
                         ))}
@@ -1287,18 +1271,8 @@ export default function AdvancedListingsPage() {
                             listing={{
                               ...listing,
                               is_boosted: true,
+                              user_id: listing.user_id || 'unknown',
                               created_at: listing.created_at || new Date().toISOString()
-                            }}
-                            isSaved={savedListings.includes(listing.id)}
-                            onToggleSaved={() => toggleSavedListing(listing.id)}
-                            activeImageIndex={activeImageIndex[listing.id] || 0}
-                            onImageNavigate={(direction: 'prev' | 'next') => navigateImage(listing.id, direction, listing.image_urls?.length || 1)}
-                            imageLoading={imageLoading[listing.id] || false}
-                            imageError={imageError[listing.id] || false}
-                            onImageLoad={() => setImageLoading(prev => ({ ...prev, [listing.id]: false }))}
-                            onImageError={() => {
-                              setImageLoading(prev => ({ ...prev, [listing.id]: false }))
-                              setImageError(prev => ({ ...prev, [listing.id]: true }))
                             }}
                           />
                         ))}
@@ -1307,17 +1281,9 @@ export default function AdvancedListingsPage() {
                         {filteredListings.slice(4, 8).map((listing) => (
                           <RegularAdCard
                             key={listing.id}
-                            listing={listing}
-                            isSaved={savedListings.includes(listing.id)}
-                            onToggleSaved={() => toggleSavedListing(listing.id)}
-                            activeImageIndex={activeImageIndex[listing.id] || 0}
-                            onImageNavigate={(direction: 'prev' | 'next') => navigateImage(listing.id, direction, listing.image_urls?.length || 1)}
-                            imageLoading={imageLoading[listing.id] || false}
-                            imageError={imageError[listing.id] || false}
-                            onImageLoad={() => setImageLoading(prev => ({ ...prev, [listing.id]: false }))}
-                            onImageError={() => {
-                              setImageLoading(prev => ({ ...prev, [listing.id]: false }))
-                              setImageError(prev => ({ ...prev, [listing.id]: true }))
+                            listing={{
+                              ...listing,
+                              user_id: listing.user_id || 'unknown'
                             }}
                           />
                         ))}
@@ -1329,18 +1295,8 @@ export default function AdvancedListingsPage() {
                             listing={{
                               ...listing,
                               is_urgent: true,
+                              user_id: listing.user_id || 'unknown',
                               created_at: listing.created_at || new Date().toISOString()
-                            }}
-                            isSaved={savedListings.includes(listing.id)}
-                            onToggleSaved={() => toggleSavedListing(listing.id)}
-                            activeImageIndex={activeImageIndex[listing.id] || 0}
-                            onImageNavigate={(direction: 'prev' | 'next') => navigateImage(listing.id, direction, listing.image_urls?.length || 1)}
-                            imageLoading={imageLoading[listing.id] || false}
-                            imageError={imageError[listing.id] || false}
-                            onImageLoad={() => setImageLoading(prev => ({ ...prev, [listing.id]: false }))}
-                            onImageError={() => {
-                              setImageLoading(prev => ({ ...prev, [listing.id]: false }))
-                              setImageError(prev => ({ ...prev, [listing.id]: true }))
                             }}
                           />
                         ))}
@@ -1349,17 +1305,9 @@ export default function AdvancedListingsPage() {
                         {filteredListings.slice(8).map((listing) => (
                           <RegularAdCard
                             key={listing.id}
-                            listing={listing}
-                            isSaved={savedListings.includes(listing.id)}
-                            onToggleSaved={() => toggleSavedListing(listing.id)}
-                            activeImageIndex={activeImageIndex[listing.id] || 0}
-                            onImageNavigate={(direction: 'prev' | 'next') => navigateImage(listing.id, direction, listing.image_urls?.length || 1)}
-                            imageLoading={imageLoading[listing.id] || false}
-                            imageError={imageError[listing.id] || false}
-                            onImageLoad={() => setImageLoading(prev => ({ ...prev, [listing.id]: false }))}
-                            onImageError={() => {
-                              setImageLoading(prev => ({ ...prev, [listing.id]: false }))
-                              setImageError(prev => ({ ...prev, [listing.id]: true }))
+                            listing={{
+                              ...listing,
+                              user_id: listing.user_id || 'unknown'
                             }}
                           />
                         ))}

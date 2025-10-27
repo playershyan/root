@@ -56,6 +56,8 @@ export interface Listing {
   email?: string
   image_url?: string
   image_urls: string[]
+  primary_image_url?: string
+  posted_date?: string
   ai_generated_description?: string
   ai_summary?: string
   is_featured: boolean

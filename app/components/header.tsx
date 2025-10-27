@@ -6,7 +6,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import {
   Heart, User, Search, Menu, X, Bell,
   Car, MessageSquare, Settings, LogOut,
-  Crown, Shield, FileText, Plus
+  Crown, Shield, FileText, Plus, Globe
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { AuthModal } from './auth'
@@ -211,7 +211,7 @@ export default function Header() {
 
                 {/* User Dropdown Menu */}
                 {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border py-2 z-50">
+                  <div className="absolute right-0 mt-2 w-full max-w-xs sm:w-64 bg-white rounded-xl shadow-lg border py-2 z-50">
                     <div className="px-4 py-3 border-b">
                       <p className="font-medium text-gray-900">{user.name}</p>
                       <p className="text-sm text-gray-600">{user.email}</p>
@@ -220,7 +220,7 @@ export default function Header() {
                     <div className="py-2">
                       <Link
                         href="/profile"
-                        className="block px-4 py-2 text-gray-700 hover:bg-gray-50 flex items-center gap-3"
+                        className="block px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3 text-sm sm:text-base"
                         onClick={() => setUserMenuOpen(false)}
                       >
                         <User className="w-4 h-4" />
@@ -229,7 +229,7 @@ export default function Header() {
                       
                       <Link
                         href="/profile?tab=listings"
-                        className="block px-4 py-2 text-gray-700 hover:bg-gray-50 flex items-center gap-3"
+                        className="block px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3 text-sm sm:text-base"
                         onClick={() => setUserMenuOpen(false)}
                       >
                         <Car className="w-4 h-4" />
@@ -238,7 +238,7 @@ export default function Header() {
                       
                       <Link
                         href="/profile?tab=messages"
-                        className="block px-4 py-2 text-gray-700 hover:bg-gray-50 flex items-center gap-3"
+                        className="block px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3 text-sm sm:text-base"
                         onClick={() => setUserMenuOpen(false)}
                       >
                         <MessageSquare className="w-4 h-4" />
@@ -252,7 +252,7 @@ export default function Header() {
                       
                       <Link
                         href="/profile?tab=favorites"
-                        className="block px-4 py-2 text-gray-700 hover:bg-gray-50 flex items-center gap-3"
+                        className="block px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3 text-sm sm:text-base"
                         onClick={() => setUserMenuOpen(false)}
                       >
                         <Heart className="w-4 h-4" />
@@ -261,7 +261,7 @@ export default function Header() {
                       
                       <Link
                         href="/profile?tab=wanted"
-                        className="block px-4 py-2 text-gray-700 hover:bg-gray-50 flex items-center gap-3"
+                        className="block px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3 text-sm sm:text-base"
                         onClick={() => setUserMenuOpen(false)}
                       >
                         <FileText className="w-4 h-4" />
@@ -274,7 +274,7 @@ export default function Header() {
                     <div className="py-2">
                       <Link
                         href="/profile?tab=security"
-                        className="block px-4 py-2 text-gray-700 hover:bg-gray-50 flex items-center gap-3"
+                        className="block px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3 text-sm sm:text-base"
                         onClick={() => setUserMenuOpen(false)}
                       >
                         <Shield className="w-4 h-4" />
@@ -286,7 +286,7 @@ export default function Header() {
                           handleLogout()
                           setUserMenuOpen(false)
                         }}
-                        className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 flex items-center gap-3"
+                        className="block w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 flex items-center gap-3 text-sm sm:text-base"
                       >
                         <LogOut className="w-4 h-4" />
                         Sign Out
@@ -301,7 +301,7 @@ export default function Header() {
                   setAuthModalOpen(true)
                   setShowEmailLogin(false)
                 }}
-                className="p-2 text-gray-600 hover:text-blue-600 transition-colors rounded-lg hover:bg-gray-50"
+                className="hidden sm:flex p-2 text-gray-600 hover:text-blue-600 transition-colors rounded-lg hover:bg-gray-50"
                 title="Sign In / Sign Up"
               >
                 <User className="w-5 h-5" />
@@ -309,25 +309,42 @@ export default function Header() {
             )}
             
             {/* Action Buttons */}
-            <div className="flex items-center gap-2">
-              {/* Post Wanted Request */}
+            <div className="flex items-center gap-1">
+              {/* Post Wanted Request - Smaller on mobile */}
               <Link 
                 href="/wanted/post" 
-                className="text-blue-600 hover:text-blue-700 font-medium items-center gap-1 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors flex"
+                className="text-blue-600 hover:text-blue-700 font-medium items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-blue-50 transition-colors flex flex-col text-xs"
               >
-                <Search className="w-4 h-4" />
+                <Search className="w-3 h-3" />
                 <span className="hidden sm:inline">Post Wanted</span>
                 <span className="sm:hidden">Wanted</span>
               </Link>
               
-              {/* Primary CTA - Sell Vehicle */}
+              {/* Browse Button - Mobile Only */}
+              <Link 
+                href="/listings" 
+                className="sm:hidden text-gray-600 hover:text-blue-600 font-medium items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-gray-50 transition-colors flex flex-col text-xs"
+              >
+                <Globe className="w-3 h-3" />
+                <span>Browse</span>
+              </Link>
+              
+              {/* User Icon Button - Mobile Only */}
+              <button
+                onClick={() => setAuthModalOpen(true)}
+                className="sm:hidden text-gray-600 hover:text-blue-600 font-medium items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-gray-50 transition-colors flex flex-col text-xs"
+              >
+                <User className="w-3 h-3" />
+                <span>User</span>
+              </button>
+              
+              {/* Primary CTA - Sell Vehicle (Desktop Only) */}
               <Link 
                 href="/post" 
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium transition-colors flex items-center gap-2 shadow-sm hover:shadow-md"
+                className="hidden sm:flex bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium transition-colors items-center gap-2 shadow-sm hover:shadow-md"
               >
                 <Car className="w-4 h-4" />
-                <span className="hidden sm:inline">Sell Vehicle</span>
-                <span className="sm:hidden">Sell</span>
+                <span>Sell Vehicle</span>
               </Link>
             </div>
           </div>
