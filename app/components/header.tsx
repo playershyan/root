@@ -192,9 +192,9 @@ export default function Header() {
               </div>
             )}
             
-            {/* User Menu / Auth Button */}
+            {/* User Menu / Auth Button - Desktop Only */}
             {user ? (
-              <div className="relative" ref={userMenuRef}>
+              <div className="relative hidden sm:block" ref={userMenuRef}>
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-colors"
@@ -204,7 +204,7 @@ export default function Header() {
                       {user.name.split(' ').map(n => n[0]).join('')}
                     </span>
                   </div>
-                  <span className="hidden sm:block text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-gray-700">
                     {user.name.split(' ')[0]}
                   </span>
                 </button>
@@ -330,13 +330,115 @@ export default function Header() {
               </Link>
               
               {/* User Icon Button - Mobile Only */}
-              <button
-                onClick={() => setAuthModalOpen(true)}
-                className="sm:hidden text-gray-600 hover:text-blue-600 font-medium items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-gray-50 transition-colors flex flex-col text-xs"
-              >
-                <User className="w-3 h-3" />
-                <span>User</span>
-              </button>
+              {user ? (
+                <div className="relative sm:hidden" ref={userMenuRef}>
+                  <button
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    className="text-gray-600 hover:text-blue-600 font-medium items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-gray-50 transition-colors flex flex-col text-xs"
+                  >
+                    <div className="w-6 h-6 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center">
+                      <span className="text-white text-xs font-medium">
+                        {user.name.split(' ').map(n => n[0]).join('')}
+                      </span>
+                    </div>
+                    <span>Profile</span>
+                  </button>
+
+                  {/* User Dropdown Menu - Mobile */}
+                  {userMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-full max-w-xs bg-white rounded-xl shadow-lg border py-2 z-50">
+                      <div className="px-4 py-3 border-b">
+                        <p className="font-medium text-gray-900">{user.name}</p>
+                        <p className="text-sm text-gray-600">{user.email}</p>
+                      </div>
+                      
+                      <div className="py-2">
+                        <Link
+                          href="/profile"
+                          className="block px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3 text-sm"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          <User className="w-4 h-4" />
+                          My Profile
+                        </Link>
+                        
+                        <Link
+                          href="/profile?tab=listings"
+                          className="block px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3 text-sm"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          <Car className="w-4 h-4" />
+                          My Listings
+                        </Link>
+                        
+                        <Link
+                          href="/profile?tab=messages"
+                          className="block px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3 text-sm"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                          Messages
+                          {user.unreadMessages && user.unreadMessages > 0 && (
+                            <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
+                              {user.unreadMessages}
+                            </span>
+                          )}
+                        </Link>
+                        
+                        <Link
+                          href="/profile?tab=favorites"
+                          className="block px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3 text-sm"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          <Heart className="w-4 h-4" />
+                          Favorites
+                        </Link>
+                        
+                        <Link
+                          href="/profile?tab=wanted"
+                          className="block px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3 text-sm"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          <FileText className="w-4 h-4" />
+                          Wanted Requests
+                        </Link>
+                      </div>
+                      
+                      <hr className="my-2" />
+                      
+                      <div className="py-2">
+                        <Link
+                          href="/profile?tab=security"
+                          className="block px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3 text-sm"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          <Shield className="w-4 h-4" />
+                          Security
+                        </Link>
+                        
+                        <button
+                          onClick={() => {
+                            handleLogout()
+                            setUserMenuOpen(false)
+                          }}
+                          className="block w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 flex items-center gap-3 text-sm"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          Sign Out
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={() => setAuthModalOpen(true)}
+                  className="sm:hidden text-gray-600 hover:text-blue-600 font-medium items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-gray-50 transition-colors flex flex-col text-xs"
+                >
+                  <User className="w-3 h-3" />
+                  <span>User</span>
+                </button>
+              )}
               
               {/* Primary CTA - Sell Vehicle (Desktop Only) */}
               <Link 
