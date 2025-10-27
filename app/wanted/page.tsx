@@ -904,10 +904,10 @@ export default function WantedRequestsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 mb-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {filters.locations.length > 0 
-                  ? `Wanted Requests in ${filters.locations.join(', ')}`
-                  : 'Wanted Requests'
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-900">
+                {filters.locations.length > 0 && !filters.locations.includes('All of Sri Lanka')
+                  ? filters.locations.join(', ')
+                  : 'All of Sri Lanka'
                 }
               </h1>
             </div>
@@ -927,34 +927,35 @@ export default function WantedRequestsPage() {
               {/* Mobile Filter Button */}
               <button
                 onClick={() => setExpandedFilters(prev => ({ ...prev, mobile: true }))}
-                className="lg:hidden px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center justify-center"
+                className="lg:hidden px-3 py-3 bg-white border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50 flex items-center justify-center"
                 aria-label="Open filters"
               >
                 <i className="fas fa-filter"></i>
               </button>
-              
+
               {/* Search Input */}
               <div className="relative flex-1">
                 <input
                   type="text"
                   placeholder="Search by make, model, year, or location"
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                  className="w-full px-6 py-3 pr-12 border border-gray-300 rounded-full focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyPress={handleKeyPress}
                 />
-                <button 
+                <button
                   onClick={handleSearch}
-                  className="absolute right-1 top-1 p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors focus:outline-none"
+                  aria-label="Search"
                 >
-                  <i className="fas fa-search text-sm"></i>
+                  <i className="fas fa-search text-base"></i>
                 </button>
               </div>
             </div>
           </div>
 
           {/* Results Info */}
-          <div className="text-gray-600 text-sm">
+          <div className="text-gray-600 text-xs sm:text-sm">
             {filteredRequests.length} wanted requests found
             {searchTerm && ` for "${searchTerm}"`}
           </div>
@@ -983,10 +984,10 @@ export default function WantedRequestsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Filters Sidebar */}
           <div className="hidden lg:block lg:col-span-1">
-            <div className="bg-white rounded-lg shadow p-3">
+            <div className="bg-white rounded-lg shadow p-4 lg:p-6 sticky top-4">
               <div className="flex justify-between items-center mb-4 pb-3 border-b">
                 <h3 className="text-base font-bold text-gray-900">Filters</h3>
-                <button 
+                <button
                   onClick={clearFilters}
                   className="text-blue-600 hover:text-blue-700 text-xs font-medium"
                 >
@@ -1069,17 +1070,17 @@ export default function WantedRequestsPage() {
                 <i className="fas fa-times text-xl"></i>
               </button>
             </div>
-            <div className="p-4">
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-sm text-gray-600">
-                  {Object.values(filters).filter(f => 
-                    (Array.isArray(f) && f.length > 0) || 
+            <div className="p-3 sm:p-4">
+              <div className="flex justify-between items-center mb-3 sm:mb-4">
+                <span className="text-xs sm:text-sm text-gray-600 font-medium">
+                  {Object.values(filters).filter(f =>
+                    (Array.isArray(f) && f.length > 0) ||
                     (typeof f === 'string' && f)
                   ).length} filters applied
                 </span>
-                <button 
+                <button
                   onClick={clearFilters}
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  className="text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium whitespace-nowrap"
                 >
                   Clear all
                 </button>

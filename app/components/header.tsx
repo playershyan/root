@@ -308,17 +308,26 @@ export default function Header() {
             {/* Action Buttons */}
             <div className="flex items-center gap-4">
               {/* Post Wanted Request - Desktop only, blue text with outlined icon */}
-              <Link 
-                href="/wanted/post" 
+              <Link
+                href="/wanted/post"
                 className="hidden sm:flex text-blue-600 hover:text-blue-700 font-medium transition-colors items-center gap-2"
               >
                 <Search className="w-4 h-4" />
                 <span>Post Wanted</span>
               </Link>
-              
+
+              {/* Wanted Button - Mobile Only */}
+              <Link
+                href="/wanted"
+                className="sm:hidden text-gray-600 hover:text-blue-600 font-medium items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-gray-50 transition-colors flex flex-col text-xs"
+              >
+                <Search className="w-3 h-3" />
+                <span>Wanted</span>
+              </Link>
+
               {/* Browse Button - Mobile Only */}
-              <Link 
-                href="/listings" 
+              <Link
+                href="/listings"
                 className="sm:hidden text-gray-600 hover:text-blue-600 font-medium items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-gray-50 transition-colors flex flex-col text-xs"
               >
                 <Globe className="w-3 h-3" />

@@ -111,14 +111,28 @@ export default function AdvancedListingsPage() {
   const [searchInput, setSearchInput] = useState('')
   const [pendingSearch, setPendingSearch] = useState('')
 
+  // Debounced price/year for better performance
+  const [debouncedMinPrice, setDebouncedMinPrice] = useState(minPrice)
+  const [debouncedMaxPrice, setDebouncedMaxPrice] = useState(maxPrice)
+  const [debouncedMinYear, setDebouncedMinYear] = useState(minYear)
+  const [debouncedMaxYear, setDebouncedMaxYear] = useState(maxYear)
+
   // Carousel state
   const [activeImageIndex, setActiveImageIndex] = useState<Record<string, number>>({})
   const [imageLoading, setImageLoading] = useState<Record<string, boolean>>({})
   const [imageError, setImageError] = useState<Record<string, boolean>>({})
 
+  // Swipe gesture state for mobile filter panel
+  const [swipeState, setSwipeState] = useState({
+    startX: 0,
+    currentX: 0,
+    isDragging: false
+  })
+
   // Search input ref for focus
   const searchInputRef = useRef<HTMLInputElement>(null)
   const initializedFromQueryRef = useRef(false)
+  const mobileFilterPanelRef = useRef<HTMLDivElement>(null)
 
   // Animated placeholder effect
   useEffect(() => {
@@ -148,6 +162,44 @@ export default function AdvancedListingsPage() {
     fetchListings()
   }, [])
 
+  // Debounce price inputs
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedMinPrice(minPrice), 300)
+    return () => clearTimeout(timer)
+  }, [minPrice])
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedMaxPrice(maxPrice), 300)
+    return () => clearTimeout(timer)
+  }, [maxPrice])
+
+  // Debounce year inputs
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedMinYear(minYear), 300)
+    return () => clearTimeout(timer)
+  }, [minYear])
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedMaxYear(maxYear), 300)
+    return () => clearTimeout(timer)
+  }, [maxYear])
+
+  // Calculate active filter count
+  const activeFilterCount = useMemo(() => {
+    let count = 0
+    if (selectedVehicleCategory) count++
+    if (selectedLocation) count++
+    if (selectedMake !== 'All Makes') count++
+    if (selectedModel !== 'All Models') count++
+    if (minYear || maxYear) count++
+    if (minPrice || maxPrice) count++
+    if (fuelTypes.length > 0) count++
+    if (transmissionTypes.length > 0) count++
+    if (urgentOnly) count++
+    return count
+  }, [selectedVehicleCategory, selectedLocation, selectedMake, selectedModel,
+      minYear, maxYear, minPrice, maxPrice, fuelTypes, transmissionTypes, urgentOnly])
+
   // No longer needed - using direct state updates
 
   // Load promoted ads when category changes (or on initial load)
@@ -155,20 +207,16 @@ export default function AdvancedListingsPage() {
     loadPromotedAds()
   }, [selectedVehicleCategory])
 
-  // Apply filters when any filter changes
+  // Apply filters when any filter changes (using debounced price/year values)
   useEffect(() => {
     applyFilters()
-  }, [listings, searchTerm, selectedVehicleCategory, selectedLocation, selectedMake, selectedModel, 
-      minYear, maxYear, minPrice, maxPrice, fuelTypes, transmissionTypes, sortBy, urgentOnly])
+  }, [listings, searchTerm, selectedVehicleCategory, selectedLocation, selectedMake, selectedModel,
+      debouncedMinYear, debouncedMaxYear, debouncedMinPrice, debouncedMaxPrice, fuelTypes, transmissionTypes, sortBy, urgentOnly])
   
-  // Clear make/model filters when vehicle category changes and auto-collapse category filter
+  // Clear make/model filters when vehicle category changes
   useEffect(() => {
     setSelectedMake('All Makes')
     setSelectedModel('All Models')
-    // Auto-collapse category filter when a category is selected
-    if (selectedVehicleCategory) {
-      setExpandedFilters(prev => ({ ...prev, category: false }))
-    }
   }, [selectedVehicleCategory])
 
   // Generate AI guide when search changes with debouncing
@@ -624,13 +672,81 @@ export default function AdvancedListingsPage() {
   }
 
   const getPageTitle = () => {
-    const categoryInfo = selectedVehicleCategory ? getCategoryInfo(selectedVehicleCategory) : null
-    const categoryLabel = categoryInfo ? categoryInfo.label : 'Vehicles'
-    
     if (selectedLocation) {
-      return `${categoryLabel} for sale in ${selectedLocation}`
+      return selectedLocation
     }
-    return `${categoryLabel} for sale in all of Sri Lanka`
+    return 'All of Sri Lanka'
+  }
+
+  // Clear individual filter handlers
+  const clearCategory = () => setSelectedVehicleCategory('')
+  const clearLocation = () => setSelectedLocation(null)
+  const clearMake = () => {
+    setSelectedMake('All Makes')
+    setSelectedModel('All Models')
+  }
+  const clearModel = () => setSelectedModel('All Models')
+  const clearPrice = () => {
+    setMinPrice('')
+    setMaxPrice('')
+  }
+  const clearYear = () => {
+    setMinYear('')
+    setMaxYear('')
+  }
+  const clearFuel = () => setFuelTypes([])
+  const clearTransmission = () => setTransmissionTypes([])
+  const clearUrgent = () => setUrgentOnly(false)
+
+  // Swipe gesture handlers for mobile filter panel
+  // Implements swipe-to-dismiss: swipe right >= 100px to close panel
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setSwipeState({
+      startX: e.touches[0].clientX,
+      currentX: e.touches[0].clientX,
+      isDragging: true
+    })
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!swipeState.isDragging) return
+
+    const currentX = e.touches[0].clientX
+    const diff = currentX - swipeState.startX
+
+    // Only allow right swipe (dismiss direction)
+    // Panel slides from left edge, so right swipe = dismiss
+    if (diff > 0) {
+      setSwipeState(prev => ({
+        ...prev,
+        currentX
+      }))
+    }
+  }
+
+  const handleTouchEnd = () => {
+    if (!swipeState.isDragging) return
+
+    const diff = swipeState.currentX - swipeState.startX
+    const threshold = 100 // Minimum swipe distance to dismiss (100px)
+
+    if (diff > threshold) {
+      // Swipe distance exceeds threshold - close panel with animation
+      setExpandedFilters(prev => ({ ...prev, mobile: false }))
+    }
+
+    // Reset swipe state (panel snaps back if threshold not met)
+    setSwipeState({
+      startX: 0,
+      currentX: 0,
+      isDragging: false
+    })
+  }
+
+  const getSwipeTransform = () => {
+    if (!swipeState.isDragging) return 'translateX(0)'
+    const diff = Math.max(0, swipeState.currentX - swipeState.startX)
+    return `translateX(${diff}px)`
   }
 
   // Render filter content - reusable for both mobile and desktop (progressive loading)
@@ -638,13 +754,13 @@ export default function AdvancedListingsPage() {
     <>
       {/* Vehicle Category Filter - Always visible */}
       <div className="mb-6">
-        <div 
+        <div
           onClick={() => toggleFilterExpand('category')}
           className="flex justify-between items-center cursor-pointer py-2 hover:bg-gray-50 -mx-2 px-2 rounded"
         >
           <div className="flex items-center gap-2">
             <span className="font-semibold text-gray-700">
-              {selectedVehicleCategory ? 'Vehicle Category' : 'Choose Vehicle Category'}
+              {selectedVehicleCategory ? 'Vehicle Category' : 'Start by selecting a vehicle type'}
             </span>
             {selectedVehicleCategory && (
               <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded text-xs font-medium text-yellow-700 border border-yellow-300">
@@ -1016,13 +1132,17 @@ export default function AdvancedListingsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-900">
                 {getPageTitle()}
               </h1>
-              <p className="text-gray-600 text-sm mt-1">
+              <p className="text-gray-600 text-xs sm:text-sm mt-1">
                 Found {filteredListings.length} vehicles
                 {selectedVehicleCategory && ` in ${getCategoryInfo(selectedVehicleCategory)?.label}`}
-                {selectedLocation && ` in ${selectedLocation}`}
+                {activeFilterCount > 0 && (
+                  <span className="text-blue-600 font-medium ml-1">
+                    ({activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} applied)
+                  </span>
+                )}
               </p>
             </div>
             
@@ -1032,12 +1152,12 @@ export default function AdvancedListingsPage() {
                 {/* Mobile Filter Button */}
                 <button
                   onClick={() => setExpandedFilters(prev => ({ ...prev, mobile: true }))}
-                  className="lg:hidden px-3 py-3 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center justify-center"
+                  className="lg:hidden px-3 py-3 bg-white border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50 flex items-center justify-center"
                   aria-label="Open filters"
                 >
                   <i className="fas fa-filter"></i>
                 </button>
-                
+
                 {/* Search Input */}
                 <div className="relative flex-1">
                   <input
@@ -1047,13 +1167,14 @@ export default function AdvancedListingsPage() {
                     onChange={(e) => setSearchInput(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder={placeholderText}
-                    className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-full px-6 py-3 pr-12 border border-gray-300 rounded-full text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                   <button
                     onClick={handleSearch}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    className="absolute right-5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors focus:outline-none"
+                    aria-label="Search"
                   >
-                    <i className="fas fa-search text-sm"></i>
+                    <i className="fas fa-search text-base"></i>
                   </button>
                 </div>
               </div>
@@ -1080,14 +1201,167 @@ export default function AdvancedListingsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar Filters - Desktop Only */}
           <div className="hidden lg:block lg:col-span-1">
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h2 className="text-lg font-semibold mb-4">Filters</h2>
+            <div className="bg-white p-6 rounded-lg shadow-sm sticky top-4">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold">Filters</h2>
+                {activeFilterCount > 0 && (
+                  <span className="bg-blue-500 text-white rounded-full px-2.5 py-1 text-xs font-semibold">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </div>
               {renderFilterContent()}
             </div>
           </div>
           
           {/* Listings Content */}
           <div className="col-span-1 lg:col-span-3">
+            {/* Active Filter Summary Bar */}
+            {activeFilterCount > 0 && (
+              <div className="bg-white p-3 sm:p-4 rounded-lg shadow-sm mb-4 border border-gray-200">
+                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                  <h3 className="text-xs sm:text-sm font-semibold text-gray-700">
+                    Active Filters ({activeFilterCount})
+                  </h3>
+                  <button
+                    onClick={clearAllFilters}
+                    className="text-xs text-red-600 hover:text-red-700 font-medium flex items-center gap-1 whitespace-nowrap"
+                  >
+                    <i className="fas fa-times"></i>
+                    <span className="hidden xs:inline">Clear All</span>
+                    <span className="xs:hidden">Clear</span>
+                  </button>
+                </div>
+                <div className="flex gap-1.5 sm:gap-2 flex-wrap">
+                  {selectedVehicleCategory && (
+                    <span className="inline-flex items-center gap-1 sm:gap-1.5 bg-blue-50 text-blue-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium border border-blue-200">
+                      <i className={`${getCategoryInfo(selectedVehicleCategory)?.icon} text-xs`}></i>
+                      <span className="truncate max-w-[120px] sm:max-w-none">{getCategoryInfo(selectedVehicleCategory)?.label}</span>
+                      <button
+                        onClick={clearCategory}
+                        className="ml-0.5 sm:ml-1 hover:text-blue-900 flex-shrink-0"
+                        aria-label="Remove category filter"
+                      >
+                        <i className="fas fa-times text-xs"></i>
+                      </button>
+                    </span>
+                  )}
+                  {selectedLocation && (
+                    <span className="inline-flex items-center gap-1 sm:gap-1.5 bg-green-50 text-green-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium border border-green-200">
+                      <i className="fas fa-map-marker-alt text-xs"></i>
+                      <span className="truncate max-w-[100px] sm:max-w-none">{selectedLocation}</span>
+                      <button
+                        onClick={clearLocation}
+                        className="ml-0.5 sm:ml-1 hover:text-green-900 flex-shrink-0"
+                        aria-label="Remove location filter"
+                      >
+                        <i className="fas fa-times text-xs"></i>
+                      </button>
+                    </span>
+                  )}
+                  {selectedMake !== 'All Makes' && (
+                    <span className="inline-flex items-center gap-1 sm:gap-1.5 bg-purple-50 text-purple-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium border border-purple-200">
+                      <i className="fas fa-car text-xs"></i>
+                      <span className="truncate max-w-[80px] sm:max-w-none">{selectedMake}</span>
+                      <button
+                        onClick={clearMake}
+                        className="ml-0.5 sm:ml-1 hover:text-purple-900 flex-shrink-0"
+                        aria-label="Remove make filter"
+                      >
+                        <i className="fas fa-times text-xs"></i>
+                      </button>
+                    </span>
+                  )}
+                  {selectedModel !== 'All Models' && (
+                    <span className="inline-flex items-center gap-1 sm:gap-1.5 bg-indigo-50 text-indigo-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium border border-indigo-200">
+                      <i className="fas fa-car-side text-xs"></i>
+                      <span className="truncate max-w-[80px] sm:max-w-none">{selectedModel}</span>
+                      <button
+                        onClick={clearModel}
+                        className="ml-0.5 sm:ml-1 hover:text-indigo-900 flex-shrink-0"
+                        aria-label="Remove model filter"
+                      >
+                        <i className="fas fa-times text-xs"></i>
+                      </button>
+                    </span>
+                  )}
+                  {(minPrice || maxPrice) && (
+                    <span className="inline-flex items-center gap-1 sm:gap-1.5 bg-yellow-50 text-yellow-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium border border-yellow-200">
+                      <i className="fas fa-tag text-xs"></i>
+                      <span className="truncate max-w-[120px] sm:max-w-none">
+                        {minPrice && `Rs. ${parseInt(minPrice).toLocaleString()}`}
+                        {minPrice && maxPrice && ' - '}
+                        {maxPrice && `Rs. ${parseInt(maxPrice).toLocaleString()}`}
+                      </span>
+                      <button
+                        onClick={clearPrice}
+                        className="ml-0.5 sm:ml-1 hover:text-yellow-900 flex-shrink-0"
+                        aria-label="Remove price filter"
+                      >
+                        <i className="fas fa-times text-xs"></i>
+                      </button>
+                    </span>
+                  )}
+                  {(minYear || maxYear) && (
+                    <span className="inline-flex items-center gap-1 sm:gap-1.5 bg-orange-50 text-orange-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium border border-orange-200">
+                      <i className="fas fa-calendar text-xs"></i>
+                      <span className="whitespace-nowrap">
+                        {minYear && minYear}
+                        {minYear && maxYear && ' - '}
+                        {maxYear && maxYear}
+                      </span>
+                      <button
+                        onClick={clearYear}
+                        className="ml-0.5 sm:ml-1 hover:text-orange-900 flex-shrink-0"
+                        aria-label="Remove year filter"
+                      >
+                        <i className="fas fa-times text-xs"></i>
+                      </button>
+                    </span>
+                  )}
+                  {fuelTypes.length > 0 && (
+                    <span className="inline-flex items-center gap-1 sm:gap-1.5 bg-teal-50 text-teal-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium border border-teal-200">
+                      <i className="fas fa-gas-pump text-xs"></i>
+                      <span className="truncate max-w-[100px] sm:max-w-none">{fuelTypes.join(', ')}</span>
+                      <button
+                        onClick={clearFuel}
+                        className="ml-0.5 sm:ml-1 hover:text-teal-900 flex-shrink-0"
+                        aria-label="Remove fuel type filter"
+                      >
+                        <i className="fas fa-times text-xs"></i>
+                      </button>
+                    </span>
+                  )}
+                  {transmissionTypes.length > 0 && (
+                    <span className="inline-flex items-center gap-1 sm:gap-1.5 bg-pink-50 text-pink-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium border border-pink-200">
+                      <i className="fas fa-cog text-xs"></i>
+                      <span className="truncate max-w-[100px] sm:max-w-none">{transmissionTypes.join(', ')}</span>
+                      <button
+                        onClick={clearTransmission}
+                        className="ml-0.5 sm:ml-1 hover:text-pink-900 flex-shrink-0"
+                        aria-label="Remove transmission filter"
+                      >
+                        <i className="fas fa-times text-xs"></i>
+                      </button>
+                    </span>
+                  )}
+                  {urgentOnly && (
+                    <span className="inline-flex items-center gap-1 sm:gap-1.5 bg-red-50 text-red-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium border border-red-200">
+                      <i className="fas fa-star text-xs"></i>
+                      <span className="whitespace-nowrap">Urgent Only</span>
+                      <button
+                        onClick={clearUrgent}
+                        className="ml-0.5 sm:ml-1 hover:text-red-900 flex-shrink-0"
+                        aria-label="Remove urgent filter"
+                      >
+                        <i className="fas fa-times text-xs"></i>
+                      </button>
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* AI Guide Section */}
             {showAIGuide && (
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mb-6">
@@ -1211,7 +1485,19 @@ export default function AdvancedListingsPage() {
             )}
 
             <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h2 className="text-lg font-semibold mb-4">Vehicle Listings</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold">Vehicle Listings</h2>
+                {!loading && (
+                  <div className="text-sm text-gray-600">
+                    {filteredListings.length} {filteredListings.length === 1 ? 'vehicle' : 'vehicles'}
+                    {activeFilterCount > 0 && (
+                      <span className="text-blue-600 ml-1">
+                        (filtered)
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
               {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {[...Array(6)].map((_, i) => (
@@ -1222,21 +1508,27 @@ export default function AdvancedListingsPage() {
                 <>
                   {filteredListings.length === 0 ? (
                     <div className="text-center py-12 text-gray-500">
-                      <p className="text-xl mb-2">No vehicles found</p>
-                      <p>Try adjusting your search filters</p>
-                      <button
-                        onClick={clearAllFilters}
-                        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                      >
-                        Clear Filters
-                      </button>
+                      <i className="fas fa-search text-5xl mb-4 text-gray-300"></i>
+                      <p className="text-xl font-semibold mb-2">No vehicles found</p>
+                      <p className="mb-4">
+                        {activeFilterCount > 0
+                          ? 'Try adjusting your filters to see more results'
+                          : selectedVehicleCategory
+                            ? 'No listings match your criteria'
+                            : 'Start by selecting a vehicle category'}
+                      </p>
+                      {activeFilterCount > 0 && (
+                        <button
+                          onClick={clearAllFilters}
+                          className="mt-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          <i className="fas fa-redo mr-2"></i>
+                          Clear All Filters
+                        </button>
+                      )}
                     </div>
                   ) : (
                     <>
-                      <div className="mb-4 text-sm text-gray-600">
-                        Showing {filteredListings.length} vehicles
-                      </div>
-                      
                       {/* Mix in boosted and urgent ads with regular listings */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Show first few regular listings */}
@@ -1309,44 +1601,65 @@ export default function AdvancedListingsPage() {
 
       {/* Mobile Filter Panel */}
       {expandedFilters.mobile && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50">
-          <div className="absolute right-0 top-0 h-full w-full max-w-sm bg-white shadow-xl overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Filters</h3>
-              <button
-                onClick={() => setExpandedFilters(prev => ({ ...prev, mobile: false }))}
-                className="p-2 text-gray-500 hover:text-gray-700"
-              >
-                <i className="fas fa-times text-xl"></i>
-              </button>
-            </div>
-            <div className="p-4">
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-sm text-gray-600">
-                  {(() => {
-                    const activeFilters = [
-                      selectedVehicleCategory,
-                      selectedLocation,
-                      selectedMake !== 'All Makes' ? selectedMake : '',
-                      selectedModel !== 'All Models' ? selectedModel : '',
-                      minPrice,
-                      maxPrice,
-                      minYear,
-                      maxYear,
-                      fuelTypes.length > 0 ? 'fuel' : '',
-                      transmissionTypes.length > 0 ? 'transmission' : '',
-                      urgentOnly ? 'urgent' : ''
-                    ].filter(f => f && f !== '').length;
-                    return `${activeFilters} filters applied`;
-                  })()}
-                </span>
-                <button 
-                  onClick={clearAllFilters}
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+        <div
+          className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50"
+          onClick={(e) => {
+            // Close panel when clicking backdrop
+            if (e.target === e.currentTarget) {
+              setExpandedFilters(prev => ({ ...prev, mobile: false }))
+            }
+          }}
+        >
+          <div
+            ref={mobileFilterPanelRef}
+            className="absolute right-0 top-0 h-full w-full max-w-sm bg-white shadow-xl overflow-y-auto"
+            style={{
+              transform: getSwipeTransform(),
+              transition: swipeState.isDragging ? 'none' : 'transform 0.3s ease-out'
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {/* Swipe indicator */}
+            <div className="sticky top-0 bg-white z-10">
+              <div className="flex justify-center py-2">
+                <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
+              </div>
+              <div className="border-b px-4 py-3 flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-semibold">Filters</h3>
+                  {activeFilterCount > 0 && (
+                    <span className="bg-blue-500 text-white rounded-full px-2 py-0.5 text-xs font-semibold">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => setExpandedFilters(prev => ({ ...prev, mobile: false }))}
+                  className="p-2 text-gray-500 hover:text-gray-700"
                 >
-                  Clear all
+                  <i className="fas fa-times text-xl"></i>
                 </button>
               </div>
+            </div>
+            <div className="p-4">
+              {activeFilterCount > 0 && (
+                <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-blue-700">
+                      {activeFilterCount} {activeFilterCount === 1 ? 'filter' : 'filters'} active
+                    </span>
+                    <button
+                      onClick={clearAllFilters}
+                      className="text-red-600 hover:text-red-700 text-sm font-medium flex items-center gap-1"
+                    >
+                      <i className="fas fa-times"></i>
+                      Clear all
+                    </button>
+                  </div>
+                </div>
+              )}
               {renderFilterContent()}
             </div>
           </div>

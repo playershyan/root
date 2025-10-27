@@ -225,16 +225,17 @@ Replace number inputs with range slider:
 
 ## Mobile-Specific Improvements
 
-### Current Mobile Issues
-1. Filter count shown, but not which filters
-2. No quick access to clear filters
-3. Panel doesn't show active state
+### Current Mobile Issues (RESOLVED ✅)
+1. ~~Filter count shown, but not which filters~~ - FIXED
+2. ~~No quick access to clear filters~~ - FIXED
+3. ~~Panel doesn't show active state~~ - FIXED
+4. ~~No swipe gesture support~~ - FIXED
 
-### Recommendations
-1. **Show active filter summary** in mobile panel
-2. **Add sticky clear button** at top of mobile panel
-3. **Better visual hierarchy** - Larger touch targets
-4. **Swipe to dismiss** filter panel
+### Implemented Features ✅
+1. **Active filter summary** in mobile panel header (badge indicator)
+2. **Sticky clear button** at top of mobile panel with highlighted styling
+3. **Better visual hierarchy** - Larger touch targets and improved spacing
+4. **Swipe to dismiss** filter panel - Swipe right ≥100px to close with smooth animation
 
 ---
 
@@ -242,20 +243,24 @@ Replace number inputs with range slider:
 
 ### Phase 1 (Week 1) - Critical UX Fixes ✅
 - [x] Remove "Apply" button for price/year (COMPLETED)
-- [ ] Add active filter summary bar
-- [ ] Improve category selection UX
-- [ ] Add filter summary stats
+- [x] Add active filter summary bar (COMPLETED)
+- [x] Improve category selection UX (COMPLETED)
+- [x] Add filter summary stats (COMPLETED)
+- [x] Add debouncing to inputs (COMPLETED)
 
 ### Phase 2 (Week 2) - Enhanced UX
-- [ ] Add debouncing to inputs
 - [ ] Add filter presets
-- [ ] Improve empty states
-- [ ] Add filter count indicators
+- [x] Improve empty states (COMPLETED)
+- [x] Add filter count indicators (COMPLETED)
+- [x] Mobile-specific improvements (COMPLETED)
+  - [x] Swipe to dismiss panel
+  - [x] Active filter badge in header
+  - [x] Enhanced clear button
+  - [x] Better visual hierarchy
 
 ### Phase 3 (Week 3) - Advanced Features
 - [ ] Save filter combinations
 - [ ] Price slider
-- [ ] Mobile-specific improvements
 - [ ] Performance optimizations
 
 ---
