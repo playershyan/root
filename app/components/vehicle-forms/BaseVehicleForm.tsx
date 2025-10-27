@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { VehicleFormProps, FUEL_TYPES, TRANSMISSION_TYPES, VEHICLE_CONDITIONS, COLORS } from './types'
+import { VehicleFormProps, FUEL_TYPES, TRANSMISSION_TYPES, VEHICLE_CONDITIONS, COLORS, getFuelTypesByVehicleType } from './types'
 
 interface BaseVehicleFormConfig {
   showModel?: boolean
@@ -33,6 +33,16 @@ export default function BaseVehicleForm({
   getModelOptions,
   config 
 }: BaseVehicleFormExtendedProps) {
+
+  // Clear fuel type when vehicle type changes to avoid invalid selections
+  useEffect(() => {
+    if (formData.vehicleType && formData.fuelType) {
+      const availableFuelTypes = getFuelTypesByVehicleType(formData.vehicleType)
+      if (!availableFuelTypes.includes(formData.fuelType)) {
+        setFormData(prev => ({ ...prev, fuelType: '' }))
+      }
+    }
+  }, [formData.vehicleType, formData.fuelType, setFormData])
 
   const [makeSearch, setMakeSearch] = useState('')
   const [modelSearch, setModelSearch] = useState('')
@@ -404,7 +414,7 @@ export default function BaseVehicleForm({
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
             >
               <option value="">Select fuel type</option>
-              {FUEL_TYPES.map(fuel => (
+              {getFuelTypesByVehicleType(formData.vehicleType).map(fuel => (
                 <option key={fuel} value={fuel}>{fuel}</option>
               ))}
             </select>

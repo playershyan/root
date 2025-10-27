@@ -51,7 +51,35 @@ export interface VehicleFormProps {
   getModelOptions: () => string[]
 }
 
-export const FUEL_TYPES = ['Petrol', 'Diesel', 'Hybrid', 'Electric', 'CNG', 'LPG']
+export const FUEL_TYPES = ['Petrol', 'Diesel', 'Hybrid', 'Electric', 'CNG', 'LPG', 'Plug-in Hybrid']
+
+// Function to get fuel types based on vehicle type
+export const getFuelTypesByVehicleType = (vehicleType: string): string[] => {
+  switch (vehicleType) {
+    case 'motorcycle':
+      return ['Petrol', 'Electric']
+    case 'car':
+      return ['Petrol', 'Diesel', 'Hybrid', 'Electric', 'Plug-in Hybrid', 'Other']
+    case 'van':
+      return ['Petrol', 'Diesel', 'Hybrid', 'Electric', 'Other']
+    case 'truck':
+    case 'lorry':
+    case 'bus':
+      return ['Diesel', 'Petrol', 'Electric', 'CNG', 'LPG']
+    case 'three-wheeler':
+      return ['Petrol', 'Electric']
+    case 'bicycle':
+      return ['Electric'] // Only electric bicycles are typically listed
+    case 'boat':
+      return ['Petrol', 'Diesel', 'Electric', 'CNG', 'LPG']
+    case 'tractor':
+    case 'plant-machinery':
+      return ['Diesel', 'Petrol', 'CNG', 'LPG']
+    default:
+      return FUEL_TYPES
+  }
+}
+
 export const TRANSMISSION_TYPES = ['Manual', 'Automatic', 'CVT', 'Tiptronic']
 export const VEHICLE_CONDITIONS = ['New', 'Used', 'Reconditioned']
 export const COLORS = ['White', 'Black', 'Silver', 'Gray', 'Blue', 'Red', 'Brown', 'Green', 'Pearl', 'Other']
