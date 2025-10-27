@@ -163,7 +163,7 @@ export default function Header() {
             {user && (
               <div className="hidden md:flex items-center gap-2">
                 {/* Messages Notification */}
-                {user.unreadMessages && user.unreadMessages > 0 && (
+                {user.unreadMessages > 0 && (
                   <Link
                     href="/profile?tab=messages"
                     className="relative p-2 text-gray-600 hover:text-blue-600 rounded-lg hover:bg-gray-50 transition-colors"
@@ -240,7 +240,7 @@ export default function Header() {
                       >
                         <MessageSquare className="w-4 h-4" />
                         Messages
-                        {user.unreadMessages && user.unreadMessages > 0 && (
+                        {user.unreadMessages > 0 && (
                           <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
                             {user.unreadMessages}
                           </span>
@@ -482,7 +482,7 @@ export default function Header() {
                 >
                   <MessageSquare className="w-5 h-5" />
                   <span className="flex-1">Messages</span>
-                  {user.unreadMessages && user.unreadMessages > 0 && (
+                  {user.unreadMessages > 0 && (
                     <span className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
                       {user.unreadMessages}
                     </span>
