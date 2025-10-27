@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import LocationFilter from '@/app/components/LocationFilter'
+import SmartLocationSearch from './SmartLocationSearch'
 import { getVehicleCategories, getMakesByCategory } from '@/lib/constants/vehicleData'
 
 interface QuickFiltersProps {
@@ -33,8 +33,6 @@ export default function QuickFilters({
   hasFilters,
   onClearFilters
 }: QuickFiltersProps) {
-  const [showLocationFilter, setShowLocationFilter] = useState(false)
-
   const categories = getVehicleCategories()
   const makes = selectedCategory ? getMakesByCategory(selectedCategory) : []
   const models = selectedMake
@@ -104,48 +102,25 @@ export default function QuickFilters({
             <option key={year} value={year}>{year}</option>
           ))}
         </select>
+
       </div>
 
-      {/* Location Filter Row */}
-      <div className="mb-3">
-        <div className="relative">
-          <button
-            onClick={() => setShowLocationFilter(!showLocationFilter)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-left focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 bg-white flex items-center justify-between"
-          >
-            <span className={selectedLocation ? 'text-gray-900' : 'text-gray-500'}>
-              {selectedLocation || 'All Locations'}
-            </span>
-            <svg className={`w-4 h-4 transition-transform ${showLocationFilter ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-
-          {showLocationFilter && (
-            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-hidden">
-              <LocationFilter
-                selectedLocation={selectedLocation}
-                onLocationChange={(location) => {
-                  setSelectedLocation(location)
-                  setShowLocationFilter(false)
-                }}
-                expanded={true}
-                onToggleExpand={() => {}}
-                variant="compact"
-              />
-            </div>
-          )}
-        </div>
+      {/* Location Filter */}
+      <div className="mt-4">
+        <SmartLocationSearch
+          selectedLocation={selectedLocation}
+          onLocationChange={setSelectedLocation}
+        />
       </div>
 
       {/* Clear Button */}
       {hasFilters && (
-        <div className="flex justify-end">
+        <div className="flex justify-end mt-3">
           <button
             onClick={onClearFilters}
             className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
           >
-            Clear
+            Clear Filters
           </button>
         </div>
       )}

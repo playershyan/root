@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import QuickFilters from './QuickFilters'
+import { isValidLocation } from '@/lib/constants/locations'
 
 export default function HeroFiltersSection() {
   const router = useRouter()
@@ -17,7 +18,16 @@ export default function HeroFiltersSection() {
 
     if (selectedMake) params.append('make', selectedMake)
     if (selectedModel) params.append('model', selectedModel)
-    if (selectedLocation) params.append('location', selectedLocation)
+
+    // Validate location before adding to params
+    if (selectedLocation) {
+      // "All of Sri Lanka" is a valid special case
+      if (selectedLocation === 'All of Sri Lanka' || isValidLocation(selectedLocation)) {
+        params.append('location', selectedLocation)
+      }
+      // Invalid location is silently ignored - could add error notification here
+    }
+
     if (selectedYear) params.append('year', selectedYear)
     if (selectedCategory) params.append('category', selectedCategory)
 

@@ -28,7 +28,7 @@ export default async function HomePage() {
       <EmailVerificationAlert />
 
       {/* Hero Section - Mobile Optimized */}
-      <section className="relative bg-white text-gray-900 py-16 md:py-24 overflow-hidden">
+      <section className="relative bg-white text-gray-900 py-16 md:py-24">
         {/* Grid Pattern Background */}
         <div
           className="absolute inset-0 opacity-50 pointer-events-none"
