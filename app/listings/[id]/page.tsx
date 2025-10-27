@@ -244,12 +244,12 @@ export default async function ListingDetailPage({
     'Make': listing.make,
     'Model': listing.model,
     'Year': listing.year,
-    'Mileage': listing.mileage ? `${listing.mileage.toLocaleString()} km` : 'N/A',
-    'Fuel Type': listing.fuel_type || 'N/A',
-    'Transmission': listing.transmission || 'N/A',
   }
-  
-  // Add optional fields if they exist
+
+  // Add optional fields only if they have values
+  if (listing.mileage) specifications['Mileage'] = `${listing.mileage.toLocaleString()} km`
+  if (listing.fuel_type) specifications['Fuel Type'] = listing.fuel_type
+  if (listing.transmission) specifications['Transmission'] = listing.transmission
   if (listing.engine_capacity) specifications['Engine Capacity'] = `${listing.engine_capacity}cc`
   if (listing.color) specifications['Color'] = listing.color
   if (listing.condition) specifications['Condition'] = listing.condition

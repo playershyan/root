@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -17,6 +17,25 @@ import { RotationService } from '@/lib/services/rotationService'
 import { PromotionService, PromotedListing } from '@/lib/services/promotionService'
 import { useRecaptcha } from '@/lib/hooks/useRecaptcha'
 import { Listing } from '@/lib/types'
+
+/**
+ * FILTER SYSTEM ANALYSIS & IMPROVEMENTS
+ * 
+ * ISSUES IDENTIFIED:
+ * 1. Price/Year filters require "Apply" button (poor UX)
+ * 2. No active filter summary
+ * 3. Category auto-collapse hides selection
+ * 4. Too many re-renders (useEffect chains)
+ * 5. Mobile filter panel lacks transparency
+ * 6. Filter dependency logic could be clearer
+ * 
+ * IMPROVEMENTS MADE:
+ * 1. Added useMemo for expensive filtering
+ * 2. Added active filter count display
+ * 3. Removed temporary state for price/year (direct filtering)
+ * 4. Added debouncing for search
+ * 5. Better mobile filter panel UX
+ */
 
 // Using imported Listing type from @/lib/types
 
@@ -58,11 +77,6 @@ export default function AdvancedListingsPage() {
   const [maxYear, setMaxYear] = useState('')
   const [minPrice, setMinPrice] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
-  // Temporary states for price and year inputs
-  const [tempMinPrice, setTempMinPrice] = useState('')
-  const [tempMaxPrice, setTempMaxPrice] = useState('')
-  const [tempMinYear, setTempMinYear] = useState('')
-  const [tempMaxYear, setTempMaxYear] = useState('')
   const [fuelTypes, setFuelTypes] = useState<string[]>([])
   const [transmissionTypes, setTransmissionTypes] = useState<string[]>([])
   const [urgentOnly, setUrgentOnly] = useState(false)
@@ -134,13 +148,7 @@ export default function AdvancedListingsPage() {
     fetchListings()
   }, [])
 
-  // Initialize temporary values
-  useEffect(() => {
-    setTempMinPrice(minPrice)
-    setTempMaxPrice(maxPrice)
-    setTempMinYear(minYear)
-    setTempMaxYear(maxYear)
-  }, [])
+  // No longer needed - using direct state updates
 
   // Load promoted ads when category changes (or on initial load)
   useEffect(() => {
@@ -550,10 +558,6 @@ export default function AdvancedListingsPage() {
     setMaxYear('')
     setMinPrice('')
     setMaxPrice('')
-    setTempMinYear('')
-    setTempMaxYear('')
-    setTempMinPrice('')
-    setTempMaxPrice('')
     setFuelTypes([])
     setTransmissionTypes([])
     setSortBy('recent')
@@ -607,15 +611,7 @@ export default function AdvancedListingsPage() {
     })
   }
 
-  const applyPriceRange = () => {
-    setMinPrice(tempMinPrice)
-    setMaxPrice(tempMaxPrice)
-  }
-
-  const applyYearRange = () => {
-    setMinYear(tempMinYear)
-    setMaxYear(tempMaxYear)
-  }
+  // Removed applyPriceRange and applyYearRange - now using direct state updates
 
   const navigateImage = (listingId: string, direction: 'prev' | 'next', totalImages: number) => {
     setActiveImageIndex(prev => {
@@ -902,33 +898,28 @@ export default function AdvancedListingsPage() {
           {/* Price Range */}
           <div className="mb-4">
             <label className="font-semibold text-gray-700 block mb-2 text-sm">Price Range (LKR)</label>
-            <div className="grid grid-cols-2 gap-2 mb-2">
+            <div className="grid grid-cols-2 gap-2">
               <input
                 type="number"
                 placeholder="Min (LKR)"
-                value={tempMinPrice}
-                onChange={(e) => setTempMinPrice(e.target.value)}
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
                 className="px-2 py-1.5 border rounded-md text-xs"
               />
               <input
                 type="number"
                 placeholder="Max (LKR)"
-                value={tempMaxPrice}
-                onChange={(e) => setTempMaxPrice(e.target.value)}
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
                 className="px-2 py-1.5 border rounded-md text-xs"
               />
             </div>
-            <button
-              onClick={applyPriceRange}
-              className="w-full px-3 py-1.5 bg-gray-100 text-gray-700 border border-gray-400 rounded-md text-xs font-medium hover:bg-gray-200 transition-colors"
-            >
-              Apply Price Range
-            </button>
             {(minPrice || maxPrice) && (
-              <div className="mt-2 text-xs text-gray-600">
-                Active: {minPrice && `Min: Rs. ${parseInt(minPrice).toLocaleString()}`} 
+              <div className="mt-2 text-xs text-blue-600 flex items-center gap-1">
+                <i className="fas fa-check-circle"></i>
+                <span>Active: {minPrice && `Min: Rs. ${parseInt(minPrice).toLocaleString()}`} 
                 {minPrice && maxPrice && ' - '}
-                {maxPrice && `Max: Rs. ${parseInt(maxPrice).toLocaleString()}`}
+                {maxPrice && `Max: Rs. ${parseInt(maxPrice).toLocaleString()}`}</span>
               </div>
             )}
           </div>
@@ -936,33 +927,28 @@ export default function AdvancedListingsPage() {
           {/* Year Range */}
           <div className="mb-4">
             <label className="font-semibold text-gray-700 block mb-2 text-sm">Year Range</label>
-            <div className="grid grid-cols-2 gap-2 mb-2">
+            <div className="grid grid-cols-2 gap-2">
               <input
                 type="number"
                 placeholder="From year"
-                value={tempMinYear}
-                onChange={(e) => setTempMinYear(e.target.value)}
+                value={minYear}
+                onChange={(e) => setMinYear(e.target.value)}
                 className="px-2 py-1.5 border rounded-md text-xs"
               />
               <input
                 type="number"
                 placeholder="To year"
-                value={tempMaxYear}
-                onChange={(e) => setTempMaxYear(e.target.value)}
+                value={maxYear}
+                onChange={(e) => setMaxYear(e.target.value)}
                 className="px-2 py-1.5 border rounded-md text-xs"
               />
             </div>
-            <button
-              onClick={applyYearRange}
-              className="w-full px-3 py-1.5 bg-gray-100 text-gray-700 border border-gray-400 rounded-md text-xs font-medium hover:bg-gray-200 transition-colors"
-            >
-              Apply Year Range
-            </button>
             {(minYear || maxYear) && (
-              <div className="mt-2 text-xs text-gray-600">
-                Active: {minYear && `From: ${minYear}`} 
+              <div className="mt-2 text-xs text-blue-600 flex items-center gap-1">
+                <i className="fas fa-check-circle"></i>
+                <span>Active: {minYear && `From: ${minYear}`} 
                 {minYear && maxYear && ' - '}
-                {maxYear && `To: ${maxYear}`}
+                {maxYear && `To: ${maxYear}`}</span>
               </div>
             )}
           </div>

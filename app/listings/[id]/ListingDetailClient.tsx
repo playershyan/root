@@ -320,15 +320,21 @@ export default function ListingDetailClient({
               <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
                 <i className="fas fa-calendar-alt mr-1"></i> {listing.year}
               </span>
-              <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
-                <i className="fas fa-road mr-1"></i> {listing.mileage?.toLocaleString() || 'N/A'} km
-              </span>
-              <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
-                <i className="fas fa-gas-pump mr-1"></i> {listing.fuel_type || 'N/A'}
-              </span>
-              <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
-                <i className="fas fa-cog mr-1"></i> {listing.transmission || 'N/A'}
-              </span>
+              {listing.mileage && (
+                <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+                  <i className="fas fa-road mr-1"></i> {listing.mileage.toLocaleString()} km
+                </span>
+              )}
+              {listing.fuel_type && (
+                <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+                  <i className="fas fa-gas-pump mr-1"></i> {listing.fuel_type}
+                </span>
+              )}
+              {listing.transmission && (
+                <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+                  <i className="fas fa-cog mr-1"></i> {listing.transmission}
+                </span>
+              )}
               <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
                 <i className="fas fa-map-marker-alt mr-1"></i> {listing.location}
               </span>
