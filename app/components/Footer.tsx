@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { Car } from 'lucide-react'
 
 export default function Footer() {
   return (
@@ -240,16 +241,29 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Back to Top Button */}
-      <button
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className="fixed bottom-6 right-6 bg-blue-600 text-white p-2.5 rounded-full shadow-lg hover:bg-blue-700 transition-colors z-50"
-        aria-label="Back to top"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-        </svg>
-      </button>
+      {/* Floating Action Buttons */}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
+        {/* Mobile Sell Button */}
+        <Link
+          href="/post"
+          className="md:hidden bg-blue-600 text-white px-4 py-3 rounded-full shadow-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          aria-label="Sell Vehicle"
+        >
+          <Car className="w-4 h-4" />
+          <span className="text-sm font-medium">Sell</span>
+        </Link>
+        
+        {/* Desktop Back to Top Button */}
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="hidden md:block bg-gray-600 text-white p-2.5 rounded-full shadow-lg hover:bg-gray-700 transition-colors"
+          aria-label="Back to top"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+          </svg>
+        </button>
+      </div>
     </footer>
   )
 }

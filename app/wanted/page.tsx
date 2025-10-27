@@ -911,6 +911,7 @@ export default function WantedRequestsPage() {
                 }
               </h1>
             </div>
+            {/* Mobile Post Wanted Button */}
             <Link 
               href="/wanted/post" 
               className="inline-flex lg:hidden items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold text-sm"
