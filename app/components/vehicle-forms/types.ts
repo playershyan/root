@@ -20,12 +20,9 @@ export interface BaseVehicleFormData {
   price: string
   negotiable: boolean
   financeType?: string
-  financeProvider?: string
-  originalAmount?: string
   outstandingBalance?: string
   monthlyPayment?: string
   remainingTerm?: string
-  earlySettlement?: string
   askingPrice?: string
   features?: string[]
   images: File[]

@@ -3,26 +3,20 @@ import React from 'react'
 interface FinancePriceDisplayProps {
   price: number // This will be the outstanding balance
   financeType?: string
-  financeProvider?: string
-  originalAmount?: number
   outstandingBalance?: number
   askingPrice?: number
   monthlyPayment?: number
   remainingTerm?: string
-  earlySettlement?: string
   variant?: 'detail' | 'card'
 }
 
 export default function FinancePriceDisplay({
   price,
   financeType,
-  financeProvider,
-  originalAmount,
   outstandingBalance,
   askingPrice,
   monthlyPayment,
   remainingTerm,
-  earlySettlement,
   variant = 'detail'
 }: FinancePriceDisplayProps) {
   const displayBalance = outstandingBalance || price
@@ -50,9 +44,9 @@ export default function FinancePriceDisplay({
         <p className="text-sm font-semibold text-amber-800 mb-1">
           <i className="fas fa-handshake mr-1"></i> Finance/Lease Takeover
         </p>
-        {financeType && financeProvider && (
+        {financeType && (
           <p className="text-xs text-amber-700">
-            {financeType} - {financeProvider}
+            {financeType}
           </p>
         )}
       </div>
@@ -81,22 +75,6 @@ export default function FinancePriceDisplay({
           <div className="flex justify-between items-center">
             <span className="text-sm text-gray-600">Remaining Term:</span>
             <span className="text-sm font-medium text-gray-700">{remainingTerm}</span>
-          </div>
-        )}
-        {originalAmount && (
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">Original Loan Amount:</span>
-            <span className="text-sm text-gray-700">
-              Rs. {originalAmount.toLocaleString()}
-            </span>
-          </div>
-        )}
-        {earlySettlement && (
-          <div className="mt-3 p-2 bg-blue-50 rounded">
-            <p className="text-xs text-blue-700">
-              <i className="fas fa-info-circle mr-1"></i>
-              Early Settlement: {earlySettlement}
-            </p>
           </div>
         )}
       </div>

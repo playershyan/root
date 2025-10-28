@@ -392,11 +392,20 @@ export default function ListingDetailClient({
           {/* Specifications Section */}
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-xl font-semibold mb-4">Technical Specifications</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {Object.entries(specifications).map(([label, value]) => (
-                <div key={label} className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-1">{label}</p>
-                  <p className="font-semibold text-gray-900">{value}</p>
+                <div key={label} className="bg-gray-50 p-3 rounded-lg">
+                  {/* Mobile view: Title: value */}
+                  <div className="sm:hidden">
+                    <p className="text-sm text-gray-900">
+                      <span className="text-gray-600">{label}:</span> <span className="font-semibold">{value}</span>
+                    </p>
+                  </div>
+                  {/* Desktop view: Title above value */}
+                  <div className="hidden sm:block">
+                    <p className="text-sm text-gray-600 mb-1">{label}</p>
+                    <p className="font-semibold text-gray-900">{value}</p>
+                  </div>
                 </div>
               ))}
             </div>

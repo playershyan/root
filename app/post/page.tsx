@@ -73,12 +73,9 @@ const initialFormData: FormData = {
   price: '',
   negotiable: false,
   financeType: '',
-  financeProvider: '',
-  originalAmount: '',
   outstandingBalance: '',
   monthlyPayment: '',
   remainingTerm: '',
-  earlySettlement: '',
   askingPrice: '',
   features: [],
   images: [],
@@ -187,12 +184,9 @@ export default function EnhancedPostVehiclePage() {
             pricingType: listing.pricing_type as PricingType || 'cash',
             negotiable: listing.negotiable || false,
             financeType: listing.finance_type || '',
-            financeProvider: listing.finance_provider || '',
-            originalAmount: listing.original_amount?.toString() || '',
             outstandingBalance: listing.outstanding_balance?.toString() || '',
             monthlyPayment: listing.monthly_payment?.toString() || '',
             remainingTerm: listing.remaining_term || '',
-            earlySettlement: listing.early_settlement || '',
 
             // Description and location
             title: listing.title || '',
@@ -593,8 +587,8 @@ export default function EnhancedPostVehiclePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          make: formData.make,
-          model: formData.model,
+          make: formData.make === 'Other' ? formData.customMake : formData.make,
+          model: formData.model === 'Other' ? formData.customModel : formData.model,
           year: formData.year,
           mileage: formData.mileage,
           trim: formData.trim,
@@ -713,15 +707,11 @@ export default function EnhancedPostVehiclePage() {
         // Finance information
         pricing_type: formData.pricingType,
         finance_type: formData.pricingType === 'finance' ? formData.financeType : null,
-        finance_provider: formData.pricingType === 'finance' ? formData.financeProvider : null,
-        original_amount: formData.pricingType === 'finance' && formData.originalAmount 
-          ? parseFloat(formData.originalAmount) : null,
         outstanding_balance: formData.pricingType === 'finance' && formData.outstandingBalance 
           ? parseFloat(formData.outstandingBalance) : null,
         monthly_payment: formData.pricingType === 'finance' && formData.monthlyPayment 
           ? parseFloat(formData.monthlyPayment) : null,
         remaining_term: formData.pricingType === 'finance' ? formData.remainingTerm : null,
-        early_settlement: formData.pricingType === 'finance' ? formData.earlySettlement : null,
         asking_price: formData.pricingType === 'finance' && formData.askingPrice
           ? parseFloat(formData.askingPrice) : null,
         // Additional information
@@ -1344,7 +1334,7 @@ export default function EnhancedPostVehiclePage() {
                 <h3 className="font-medium text-gray-900 mb-4">Listing Preview</h3>
                 <div className="space-y-2 text-sm text-gray-600">
                   <p><strong className="text-gray-900">Title:</strong> {formData.title || 'Not set'}</p>
-                  <p><strong className="text-gray-900">Vehicle:</strong> {formData.year} {formData.make} {formData.model}</p>
+                  <p><strong className="text-gray-900">Vehicle:</strong> {formData.year} {formData.make === 'Other' ? formData.customMake : formData.make} {formData.model === 'Other' ? formData.customModel : formData.model}</p>
                   <p><strong className="text-gray-900">
                     {formData.pricingType === 'finance' ? 'Asking Price:' : 'Price:'}
                   </strong> Rs. {

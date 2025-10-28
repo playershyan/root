@@ -7,13 +7,10 @@ export interface PriceDisplayProps {
   price: number
   negotiable?: boolean
   financeType?: string
-  financeProvider?: string
-  originalAmount?: number
   outstandingBalance?: number
   askingPrice?: number
   monthlyPayment?: number
   remainingTerm?: string
-  earlySettlement?: string
   showFinanceCalculator?: boolean
   calculatedMonthlyPayment?: number | null
   variant?: 'detail' | 'card'
@@ -25,13 +22,10 @@ export default function PriceDisplay(props: PriceDisplayProps) {
     price,
     negotiable,
     financeType,
-    financeProvider,
-    originalAmount,
     outstandingBalance,
     askingPrice,
     monthlyPayment,
     remainingTerm,
-    earlySettlement,
     showFinanceCalculator = true,
     calculatedMonthlyPayment,
     variant = 'detail'
@@ -42,13 +36,10 @@ export default function PriceDisplay(props: PriceDisplayProps) {
       <FinancePriceDisplay
         price={price}
         financeType={financeType}
-        financeProvider={financeProvider}
-        originalAmount={originalAmount}
         outstandingBalance={outstandingBalance}
         askingPrice={askingPrice}
         monthlyPayment={monthlyPayment}
         remainingTerm={remainingTerm}
-        earlySettlement={earlySettlement}
         variant={variant}
       />
     )

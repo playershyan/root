@@ -103,38 +103,24 @@ export default function PricingSection({ formData, setFormData, errors, showPric
               <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
                 <span className="text-white text-xs font-bold">1</span>
               </div>
-              Finance Provider Information
+              Finance Information
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Finance Type <span className="text-red-500">*</span></label>
-                <select
-                  name="financeType"
-                  value={formData.financeType || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, financeType: e.target.value }))}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
-                    errors.financeType ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                >
-                  <option value="">Select Type</option>
-                  <option value="Bank Loan">Bank Loan</option>
-                  <option value="Lease">Lease</option>
-                  <option value="Hire Purchase">Hire Purchase</option>
-                </select>
-                {errors.financeType && <p className="text-red-600 text-sm mt-1">{errors.financeType}</p>}
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Finance Provider</label>
-                <input
-                  type="text"
-                  name="financeProvider"
-                  value={formData.financeProvider || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, financeProvider: e.target.value }))}
-                  placeholder="e.g., Commercial Bank, People's Leasing"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Finance Type <span className="text-red-500">*</span></label>
+              <select
+                name="financeType"
+                value={formData.financeType || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, financeType: e.target.value }))}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
+                  errors.financeType ? 'border-red-300' : 'border-gray-300'
+                }`}
+              >
+                <option value="">Select Type</option>
+                <option value="Bank Loan">Bank Loan</option>
+                <option value="Lease">Lease</option>
+                <option value="Hire Purchase">Hire Purchase</option>
+              </select>
+              {errors.financeType && <p className="text-red-600 text-sm mt-1">{errors.financeType}</p>}
             </div>
           </div>
 
@@ -240,38 +226,6 @@ export default function PricingSection({ formData, setFormData, errors, showPric
                   What you're asking for the takeover
                 </p>
                 {errors.askingPrice && <p className="text-red-600 text-sm mt-1">{errors.askingPrice}</p>}
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Original Loan Amount</label>
-                <input
-                  type="number"
-                  name="originalAmount"
-                  value={formData.originalAmount || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, originalAmount: e.target.value }))}
-                  placeholder="e.g., 6000000"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Original amount financed (optional)
-                </p>
-              </div>
-            </div>
-            
-            <div className="mt-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Early Settlement Terms</label>
-                <textarea
-                  name="earlySettlement"
-                  value={formData.earlySettlement || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, earlySettlement: e.target.value }))}
-                  placeholder="e.g., Allowed with 2% penalty, No penalty after 6 months, Contact bank for settlement amount"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                  rows={2}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Early settlement conditions or penalties (optional)
-                </p>
               </div>
             </div>
           </div>

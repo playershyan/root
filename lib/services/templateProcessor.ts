@@ -223,8 +223,14 @@ export class TemplateProcessor {
    */
   private static formatOutput(text: string): string {
     return text
-      // Remove extra whitespace
-      .replace(/\s+/g, ' ')
+      // Remove extra whitespace but preserve line breaks
+      .replace(/[ \t]+/g, ' ')
+      // Remove leading/trailing whitespace from each line
+      .split('\n')
+      .map(line => line.trim())
+      .join('\n')
+      // Remove empty lines
+      .replace(/\n\s*\n/g, '\n')
       // Remove leading/trailing whitespace
       .trim()
       // Fix punctuation spacing

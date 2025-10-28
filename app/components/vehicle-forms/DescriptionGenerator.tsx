@@ -169,10 +169,11 @@ const DescriptionGenerator = forwardRef<DescriptionGeneratorRef, DescriptionGene
                 value={formData.description}
                 onChange={(e) => setFormData((prev: any) => ({ ...prev, description: e.target.value }))}
                 placeholder="Describe your vehicle in detail... Include key features, condition, maintenance history, and why it's a great purchase."
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all ${
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all resize-y ${
                   errors?.description ? 'border-red-300' : 'border-gray-300'
                 } ${isGenerating ? 'bg-gray-50' : 'bg-white'}`}
                 disabled={isGenerating}
+                style={{ whiteSpace: 'pre-wrap' }}
               />
 
               {/* Character count and status */}

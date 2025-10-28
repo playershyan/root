@@ -71,9 +71,10 @@ export default function RegularAdCard({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100">
-      {/* Image Section */}
-      <div className="relative h-48 bg-gray-200 rounded-t-lg overflow-hidden group">
+    <Link href={`/listings/${listing.id}`} className="block">
+      <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100 group cursor-pointer">
+        {/* Image Section */}
+        <div className="relative h-48 bg-gray-200 rounded-t-lg overflow-hidden group">
         {/* Promotion Badge */}
         {getPromotionBadge() && (
           <div className="absolute top-2 left-2 z-10">
@@ -158,7 +159,7 @@ export default function RegularAdCard({
       </div>
       
       {/* Content Section */}
-      <Link href={`/listings/${listing.id}`} className="block p-4 hover:bg-gray-50 transition-colors">
+      <div className="p-4 hover:bg-gray-50 transition-colors">
         <div className="space-y-3">
           {/* Title */}
           <h3 className="font-semibold text-lg text-gray-900 line-clamp-2 hover:text-blue-600 transition-colors">
@@ -262,6 +263,7 @@ export default function RegularAdCard({
           user_id: listing.user_id
         }}
       />
-    </div>
+      </div>
+    </Link>
   )
 }
