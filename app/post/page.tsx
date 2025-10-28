@@ -864,16 +864,16 @@ export default function EnhancedPostVehiclePage() {
   
   
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 lg:py-8">
+      <div className="lg:max-w-4xl lg:mx-auto lg:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-semibold text-gray-900 mb-2">Sell Your Vehicle</h1>
-          <p className="text-gray-600">Reach thousands of potential buyers across Sri Lanka</p>
+        <div className="text-center mb-6 lg:mb-8 px-4 lg:px-0 py-4 lg:py-0 bg-white lg:bg-transparent border-b lg:border-0">
+          <h1 className="text-2xl lg:text-3xl font-semibold text-gray-900 mb-2">Sell Your Vehicle</h1>
+          <p className="text-sm lg:text-base text-gray-600">Reach thousands of potential buyers across Sri Lanka</p>
         </div>
-        
+
         {/* Progress Steps */}
-        <div className="mb-8">
+        <div className="mb-4 lg:mb-8 px-4 lg:px-0 py-4 lg:py-0 bg-white lg:bg-transparent border-b lg:border-0">
           <div className="flex items-center justify-center">
             {[1, 2, 3].map((step) => (
               <div key={step} className="flex items-center">
@@ -919,7 +919,7 @@ export default function EnhancedPostVehiclePage() {
         </div>
         
         {/* AI Badge */}
-        <div className="relative overflow-hidden rounded-lg p-4 mb-6 flex items-center gap-3 bg-gradient-to-r from-blue-50 via-purple-50 to-blue-50 border border-purple-200">
+        <div className="relative overflow-hidden lg:rounded-lg p-4 mb-2 lg:mb-6 flex items-center gap-3 bg-gradient-to-r from-blue-50 via-purple-50 to-blue-50 border-b lg:border border-purple-200">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 via-purple-400/10 to-blue-400/10 animate-pulse"></div>
           <div className="relative flex items-center gap-3">
             <div className="relative">
@@ -933,13 +933,13 @@ export default function EnhancedPostVehiclePage() {
         </div>
         
         {/* Form Content */}
-        <div className="bg-white rounded-xl shadow-sm p-8">
+        <div className="lg:bg-white lg:rounded-xl lg:shadow-sm lg:p-8">
           {/* Step 1: Vehicle Details */}
           {currentStep === 1 && (
-            <div className="space-y-8">
+            <div className="space-y-2 lg:space-y-8">
               {/* Vehicle Type Section */}
-              <div className="vehicle-type-section">
-                <div className="border-b border-gray-200 pb-6 mb-8">
+              <div className="vehicle-type-section bg-white lg:bg-transparent px-4 lg:px-0 py-4 lg:py-0 border-b border-gray-200">
+                <div className="lg:pb-6 mb-4 lg:mb-8">
                   <h2 className="text-xl font-semibold text-gray-900 mb-2 flex items-center gap-3">
                     <div className="w-8 h-8 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-center">
                       <Car className="w-5 h-5 text-blue-600" />

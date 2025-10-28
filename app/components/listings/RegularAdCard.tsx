@@ -73,9 +73,9 @@ export default function RegularAdCard({
   return (
     <>
     <Link href={`/listings/${listing.id}`} className="block">
-      <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100 group cursor-pointer">
+      <div className="bg-white md:rounded-lg shadow-sm hover:shadow-md transition-shadow border-b md:border border-gray-100 group cursor-pointer">
         {/* Image Section */}
-        <div className="relative h-48 bg-gray-200 rounded-t-lg overflow-hidden group">
+        <div className="relative h-48 bg-gray-200 md:rounded-t-lg overflow-hidden group">
         {/* Promotion Badge */}
         {getPromotionBadge() && (
           <div className="absolute top-2 left-2 z-10">

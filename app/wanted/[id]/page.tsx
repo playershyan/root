@@ -284,10 +284,10 @@ export default function WantedRequestDetailPage() {
   const tierStyles = getTierStyles()
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 lg:bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="bg-white shadow-sm border-b lg:border-0">
+        <div className="lg:max-w-6xl lg:mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <button
             onClick={() => router.back()}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition"
@@ -299,12 +299,12 @@ export default function WantedRequestDetailPage() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:max-w-6xl lg:mx-auto lg:px-4 sm:lg:px-6 lg:px-8 lg:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 lg:gap-6">
           {/* Main Details */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-2 lg:space-y-6">
             {/* Title and Priority Badge */}
-            <div className={`rounded-lg shadow-md p-6 ${tierStyles.containerClass} ${tierStyles.borderClass}`}>
+            <div className={`lg:rounded-lg lg:shadow-md px-4 lg:p-6 py-4 lg:py-6 border-b lg:border ${tierStyles.containerClass} ${tierStyles.borderClass}`}>
               {/* Tier Badges */}
               <div className="mb-4 flex flex-wrap items-center gap-2">
                 {isHighPriority && (
@@ -373,7 +373,7 @@ export default function WantedRequestDetailPage() {
 
             {/* Description */}
             {request.description && (
-              <div className={`rounded-lg shadow-md p-6 ${
+              <div className={`lg:rounded-lg lg:shadow-md px-4 lg:p-6 py-4 lg:py-6 border-b lg:border ${
                 isHighPriority || isGoldFeatured || isBoosted ? tierStyles.containerClass : 'bg-white'
               } ${
                 isHighPriority || isGoldFeatured || isBoosted ? tierStyles.borderClass : ''
@@ -384,7 +384,7 @@ export default function WantedRequestDetailPage() {
             )}
 
             {/* Vehicle Preferences */}
-            <div className={`rounded-lg shadow-md p-6 ${
+            <div className={`lg:rounded-lg lg:shadow-md px-4 lg:p-6 py-4 lg:py-6 border-b lg:border ${
               isHighPriority || isGoldFeatured || isBoosted ? tierStyles.containerClass : 'bg-white'
             } ${
               isHighPriority || isGoldFeatured || isBoosted ? tierStyles.borderClass : ''
@@ -434,9 +434,9 @@ export default function WantedRequestDetailPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="lg:col-span-1 space-y-2 lg:space-y-6">
             {/* Contact/Actions Card */}
-            <div className={`rounded-lg shadow-md p-6 sticky top-6 ${
+            <div className={`lg:rounded-lg lg:shadow-md px-4 lg:p-6 py-4 lg:py-6 border-b lg:border lg:sticky lg:top-6 ${
               isHighPriority || isGoldFeatured || isBoosted ? tierStyles.containerClass : 'bg-white'
             } ${
               isHighPriority || isGoldFeatured || isBoosted ? tierStyles.borderClass : ''

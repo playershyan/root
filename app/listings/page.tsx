@@ -1201,8 +1201,8 @@ export default function AdvancedListingsPage() {
       </div>
       
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="lg:max-w-7xl lg:mx-auto lg:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 lg:gap-6">
           {/* Sidebar Filters - Desktop Only */}
           <div className="hidden lg:block lg:col-span-1">
             <div className="bg-white p-6 rounded-lg shadow-sm sticky top-4">
@@ -1217,12 +1217,12 @@ export default function AdvancedListingsPage() {
               {renderFilterContent()}
             </div>
           </div>
-          
+
           {/* Listings Content */}
           <div className="col-span-1 lg:col-span-3">
             {/* Active Filter Summary Bar */}
             {activeFilterCount > 0 && (
-              <div className="bg-white p-3 sm:p-4 rounded-lg shadow-sm mb-4 border border-gray-200">
+              <div className="bg-white p-3 sm:p-4 lg:rounded-lg shadow-sm mb-2 lg:mb-4 border-b lg:border border-gray-200">
                 <div className="flex items-center justify-between mb-2 sm:mb-3">
                   <h3 className="text-xs sm:text-sm font-semibold text-gray-700">
                     Active Filters ({activeFilterCount})
@@ -1368,7 +1368,7 @@ export default function AdvancedListingsPage() {
 
             {/* AI Guide Section */}
             {showAIGuide && (
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b lg:border border-blue-200 lg:rounded-lg p-4 mb-2 lg:mb-6">
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                     {loadingAIGuide ? (
@@ -1436,15 +1436,14 @@ export default function AdvancedListingsPage() {
               <>
                 {/* Featured Ads */}
                 {featuredAds.length > 0 && (
-                  <div className="mb-6">
+                  <div className="mb-2 lg:mb-6 bg-white lg:rounded-lg lg:p-4 p-3 border-b lg:border border-gray-200">
                     <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                      <h2 className="text-lg lg:text-xl font-bold text-gray-900 flex items-center gap-2">
                         <i className="fas fa-star text-yellow-500"></i>
                         Featured Listings
                       </h2>
-                      {/* PromotionBadges component props need to be verified */}
                     </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 lg:gap-4">
                       {featuredAds.map(listing => (
                         <FeaturedAdCard
                           key={listing.id}
@@ -1461,15 +1460,14 @@ export default function AdvancedListingsPage() {
 
                 {/* Top Spot Ads */}
                 {topSpotAds.length > 0 && (
-                  <div className="mb-6">
+                  <div className="mb-2 lg:mb-6 bg-white lg:rounded-lg lg:p-4 p-3 border-b lg:border border-gray-200">
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                         <i className="fas fa-trophy text-orange-500"></i>
                         Top Spot
                       </h2>
-                      {/* PromotionBadges component props need to be verified */}
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-4">
                       {topSpotAds.map(listing => (
                         <TopSpotCard
                           key={listing.id}
@@ -1488,11 +1486,12 @@ export default function AdvancedListingsPage() {
               </>
             )}
 
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">Vehicle Listings</h2>
+            {/* Desktop: white card container, Mobile: transparent */}
+            <div className="lg:bg-white lg:p-6 lg:rounded-lg lg:shadow-sm">
+              <div className="flex items-center justify-between mb-4 px-3 lg:px-0 py-2 lg:py-0 bg-white lg:bg-transparent border-b lg:border-0">
+                <h2 className="text-base lg:text-lg font-semibold">Vehicle Listings</h2>
                 {!loading && (
-                  <div className="text-sm text-gray-600">
+                  <div className="text-xs lg:text-sm text-gray-600">
                     {filteredListings.length} {filteredListings.length === 1 ? 'vehicle' : 'vehicles'}
                     {activeFilterCount > 0 && (
                       <span className="text-blue-600 ml-1">
@@ -1595,8 +1594,8 @@ export default function AdvancedListingsPage() {
                         ))}
                       </div>
 
-                      {/* Mobile view - no grid container */}
-                      <div className="md:hidden space-y-4">
+                      {/* Mobile view - edge-to-edge, minimal spacing */}
+                      <div className="md:hidden space-y-1">
                         {/* Show first few regular listings */}
                         {filteredListings.slice(0, 4).map((listing) => (
                           <RegularAdCard

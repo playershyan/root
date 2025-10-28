@@ -200,8 +200,8 @@ export default function ListingDetailClient({
   return (
     <>
       {/* Vehicle Top Section - Full Width */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-6 p-6">
+      <div className="lg:bg-white lg:rounded-xl lg:shadow-sm overflow-hidden mb-2 lg:mb-6 bg-white lg:bg-white border-b lg:border">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-2 lg:gap-6 px-4 lg:p-6 py-4 lg:py-6">
           {/* Image Gallery */}
           <div className="relative">
             {/* Main Image */}
@@ -378,11 +378,11 @@ export default function ListingDetailClient({
       </div>
 
       {/* Main Content Area and Sidebar */}
-      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-2 lg:gap-6">
         {/* Main Content */}
-        <div className="space-y-6">
+        <div className="space-y-2 lg:space-y-6">
           {/* Description Section */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white lg:bg-white lg:rounded-xl lg:shadow-sm px-4 lg:p-6 py-4 lg:py-6 border-b lg:border">
             <h2 className="text-xl font-semibold mb-4">Description</h2>
             <div className="text-gray-700 whitespace-pre-line mb-6">
               {(listing.description || listing.ai_generated_description || 'No description available.')
@@ -406,7 +406,7 @@ export default function ListingDetailClient({
           </div>
 
           {/* Specifications Section */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white lg:bg-white lg:rounded-xl lg:shadow-sm px-4 lg:p-6 py-4 lg:py-6 border-b lg:border">
             <h2 className="text-xl font-semibold mb-4">Technical Specifications</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {Object.entries(specifications).map(([label, value]) => (
@@ -429,7 +429,7 @@ export default function ListingDetailClient({
 
           {/* Features Section - Only show if there are features */}
           {Object.values(features).some(items => items.length > 0) && (
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-white lg:bg-white lg:rounded-xl lg:shadow-sm px-4 lg:p-6 py-4 lg:py-6 border-b lg:border">
               <h2 className="text-xl font-semibold mb-4">Features & Equipment</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {Object.entries(features)
@@ -455,17 +455,17 @@ export default function ListingDetailClient({
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-2 lg:space-y-6">
           {/* Contact Profile - Dynamic based on seller type */}
-          <ContactProfile 
-            listing={listing} 
+          <ContactProfile
+            listing={listing}
             sellerData={sellerData}
             dealer={dealer}
             onMessageClick={() => setShowConversationModal(true)}
           />
 
           {/* Important Information */}
-          <div className="mt-12 bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+          <div className="mt-4 lg:mt-12 bg-yellow-50 border-b lg:border border-yellow-200 lg:rounded-xl px-4 lg:p-6 py-4 lg:py-6">
             <h3 className="font-semibold text-yellow-900 mb-2">⚠️ Important Information</h3>
             <ul className="space-y-1 text-sm text-yellow-800">
               <li>• Always verify vehicle documents before making a purchase</li>
@@ -476,7 +476,7 @@ export default function ListingDetailClient({
           </div>
 
           {/* Finance Calculator */}
-          <div className="bg-white rounded-xl shadow-sm p-6" id="finance-calculator">
+          <div className="bg-white lg:bg-white lg:rounded-xl lg:shadow-sm px-4 lg:p-6 py-4 lg:py-6 border-b lg:border" id="finance-calculator">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <Calculator className="w-5 h-5 text-blue-600" />
               Finance Calculator
@@ -559,16 +559,16 @@ export default function ListingDetailClient({
 
       {/* Similar Vehicles Section */}
       {similarListings.length > 0 && (
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-6">Similar Vehicles</h2>
+        <div className="mt-4 lg:mt-12">
+          <h2 className="text-2xl font-bold mb-4 lg:mb-6 px-4 lg:px-0">Similar Vehicles</h2>
 
           {/* Desktop Grid Layout */}
-          <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-6 px-4 lg:px-0">
             {similarListings.slice(0, 6).map((similar) => (
               <Link
                 key={similar.id}
                 href={`/listings/${similar.id}`}
-                className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-all group"
+                className="bg-white lg:rounded-xl lg:shadow-sm overflow-hidden lg:hover:shadow-lg transition-all group border-b md:border"
               >
                 <div className="aspect-w-16 aspect-h-12 bg-gray-200 h-48">
                   {similar.image_url || (similar.image_urls && similar.image_urls[0]) ? (

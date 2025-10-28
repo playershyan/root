@@ -46,7 +46,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
     const now = new Date()
     const created = new Date(date)
     const diffInHours = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60))
-    
+
     if (diffInHours < 1) return 'Just now'
     if (diffInHours < 24) return `${diffInHours}h ago`
     const diffInDays = Math.floor(diffInHours / 24)
@@ -61,36 +61,40 @@ export default function ListingCard({ listing }: ListingCardProps) {
   const imageCount = listing.image_urls?.length || 0
 
   return (
-    <div className="bg-white border border-gray-200 hover:border-gray-300 transition-colors duration-200 overflow-hidden group relative">
+    <div className="bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-300 overflow-hidden group relative">
       {/* Clickable Link Area */}
       <Link href={`/listings/${listing.id}`} className="block">
         {/* Image Section */}
-        <div className="relative h-48 bg-gray-50">
+        <div className="relative h-52 bg-slate-100 overflow-hidden">
         {!imageError && primaryImage ? (
           <OptimizedImage
             src={primaryImage}
             alt={listing.title}
             fill
-            className="object-cover"
+            className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
             onError={() => setImageError(true)}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             quality={80}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-50">
-            <i className="fas fa-car text-gray-300 text-2xl"></i>
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+            <i className="fas fa-car text-slate-300 text-3xl mb-2"></i>
+            <span className="text-xs text-slate-400 font-medium">No image</span>
           </div>
         )}
 
+        {/* Image overlay gradient for better badge contrast */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/10 pointer-events-none"></div>
+
         {/* Promotion Badges */}
-        <div className="absolute top-3 left-3">
+        <div className="absolute top-3 left-3 z-10">
           <PromotionBadges listing={listing} size="small" />
         </div>
 
-        {/* Image count */}
+        {/* Image count badge - repositioned to avoid favorite button */}
         {imageCount > 1 && (
-          <div className="absolute top-3 right-3 bg-gray-900/80 text-white px-2 py-1 text-xs flex items-center gap-1">
-            <i className="fas fa-camera"></i>
+          <div className="absolute bottom-3 right-3 bg-slate-900/90 backdrop-blur-sm text-white px-2.5 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 shadow-lg">
+            <i className="fas fa-images"></i>
             <span>{imageCount}</span>
           </div>
         )}
@@ -98,76 +102,82 @@ export default function ListingCard({ listing }: ListingCardProps) {
         {/* Urgent indicator */}
         {listing.is_urgent && (
           <div className="absolute bottom-3 left-3">
-            <span className="bg-gray-900 text-white px-2 py-1 text-xs font-medium">
+            <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1.5 rounded-md text-xs font-semibold shadow-lg flex items-center gap-1.5">
+              <i className="fas fa-bolt text-xs"></i>
               URGENT
             </span>
           </div>
         )}
+
+        {/* Favorite Button - Top right, above image */}
+        <div className="absolute top-3 right-3 z-20">
+          <FavoriteButton
+            listingId={listing.id}
+            size="small"
+            className="bg-white/95 backdrop-blur-md hover:bg-white shadow-lg transition-all duration-200"
+          />
+        </div>
       </div>
 
       {/* Content Section */}
-      <div className="p-4">
+      <div className="p-5">
         {/* Title */}
-        <h3 className="font-medium text-gray-900 line-clamp-2 mb-3 leading-tight">
+        <h3 className="font-semibold text-slate-900 text-base line-clamp-2 mb-3 leading-snug group-hover:text-slate-700 transition-colors">
           {listing.title}
         </h3>
 
-        {/* Vehicle Details */}
-        <div className="flex flex-wrap gap-4 text-xs text-gray-500 mb-3">
-          <span className="flex items-center gap-1">
-            <i className="fas fa-calendar text-gray-400"></i>
-            {listing.year}
-          </span>
+        {/* Vehicle Details Grid */}
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wide mb-0.5">Year</span>
+            <span className="text-sm font-semibold text-slate-700">{listing.year}</span>
+          </div>
+
           {listing.mileage && (
-            <span className="flex items-center gap-1">
-              <i className="fas fa-tachometer-alt text-gray-400"></i>
-              {formatMileage(listing.mileage)}
-            </span>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wide mb-0.5">Mileage</span>
+              <span className="text-sm font-semibold text-slate-700">{formatMileage(listing.mileage)}</span>
+            </div>
           )}
+
           {listing.fuel_type && (
-            <span className="flex items-center gap-1">
-              <i className="fas fa-gas-pump text-gray-400"></i>
-              {listing.fuel_type}
-            </span>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wide mb-0.5">Fuel</span>
+              <span className="text-sm font-semibold text-slate-700 capitalize">{listing.fuel_type}</span>
+            </div>
           )}
         </div>
 
         {/* Location */}
-        <div className="flex items-center gap-1 text-gray-500 mb-4">
-          <MapPin className="w-3 h-3" />
-          <span className="text-xs truncate">{listing.location}</span>
+        <div className="flex items-center gap-2 text-slate-500 mb-4 pb-4 border-b border-slate-100">
+          <MapPin className="w-3.5 h-3.5 text-slate-400" strokeWidth={2.5} />
+          <span className="text-xs font-medium truncate">{listing.location}</span>
         </div>
 
-        {/* Price and Stats */}
-        <div className="flex items-end justify-between">
+        {/* Price and Stats Row */}
+        <div className="flex items-center justify-between">
+          {/* Price */}
           <div>
-            <div className={`font-semibold text-lg ${listing.is_urgent ? 'text-gray-900' : 'text-gray-900'}`}>
+            <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wide mb-1">Price</div>
+            <div className={`font-bold text-xl ${listing.is_urgent ? 'text-emerald-600' : 'text-slate-900'}`}>
               {formatPrice(listing.price)}
             </div>
           </div>
-          
-          <div className="flex gap-4 text-xs text-gray-400">
-            <span className="flex items-center gap-1">
-              <Eye className="w-3 h-3" />
-              {listing.views || 0}
-            </span>
-            <span className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
-              {getTimeAgo(listing.created_at)}
-            </span>
+
+          {/* Stats */}
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col items-center">
+              <Eye className="w-3.5 h-3.5 text-slate-400 mb-1" strokeWidth={2.5} />
+              <span className="text-xs font-semibold text-slate-600">{listing.views || 0}</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <Calendar className="w-3.5 h-3.5 text-slate-400 mb-1" strokeWidth={2.5} />
+              <span className="text-[10px] font-medium text-slate-500 whitespace-nowrap">{getTimeAgo(listing.created_at)}</span>
+            </div>
           </div>
         </div>
       </div>
       </Link>
-
-      {/* Favorite Button - Outside Link to prevent event conflicts */}
-      <div className="absolute top-3 right-3 z-20">
-        <FavoriteButton
-          listingId={listing.id}
-          size="small"
-          className="bg-white/95 backdrop-blur-sm hover:bg-white transition-colors"
-        />
-      </div>
     </div>
   )
 }

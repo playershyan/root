@@ -505,10 +505,10 @@ export default function PostWantedPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 lg:py-8">
+      <div className="lg:max-w-3xl lg:mx-auto lg:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-4 lg:mb-8 px-4 lg:px-0 py-4 lg:py-0 bg-white lg:bg-transparent border-b lg:border-0">
           <Link href="/wanted" className="text-blue-600 hover:text-blue-700 flex items-center gap-2 mb-4">
             <span>←</span> Back to Wanted Requests
           </Link>
@@ -521,7 +521,7 @@ export default function PostWantedPage() {
         </div>
 
         {/* Progress Steps */}
-        <div className="mb-8">
+        <div className="mb-4 lg:mb-8 px-4 lg:px-0 py-4 lg:py-0 bg-white lg:bg-transparent border-b lg:border-0">
           <div className="flex items-center justify-between">
             <div className={`flex items-center ${step >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
               <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
@@ -544,7 +544,7 @@ export default function PostWantedPage() {
         </div>
 
         {/* Info Box */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
+        <div className="bg-blue-50 border-b lg:border border-blue-200 lg:rounded-lg p-4 mb-2 lg:mb-8">
           <div className="flex items-start gap-3">
             <i className="fas fa-lightbulb text-blue-600 text-xl"></i>
             <div>
@@ -559,11 +559,13 @@ export default function PostWantedPage() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6">
+        <form onSubmit={handleSubmit} className="lg:bg-white lg:rounded-lg lg:shadow-md lg:p-6">
           {/* Step 1: Vehicle Details */}
           {step === 1 && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold mb-6">What vehicle are you looking for?</h2>
+            <div className="space-y-2 lg:space-y-6">
+              <div className="bg-white lg:bg-transparent px-4 lg:px-0 py-4 lg:py-0 border-b lg:border-0">
+                <h2 className="text-lg lg:text-xl font-semibold mb-4 lg:mb-6">What vehicle are you looking for?</h2>
+              </div>
               
               {/* Vehicle Type Selection */}
               <div>
