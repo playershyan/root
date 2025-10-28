@@ -328,10 +328,49 @@ export default function EnhancedPostVehiclePage() {
     const timer = setTimeout(() => {
       localStorage.setItem('vehiclePostDraft', JSON.stringify(formData))
     }, 1000)
-    
+
     return () => clearTimeout(timer)
   }, [formData])
-  
+
+  // Handle page visibility changes (mobile backgrounding)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && loading) {
+        // Save state when page is backgrounded during submission
+        console.log('Page backgrounded during submission - saving state')
+        localStorage.setItem('publishInterrupted', JSON.stringify({
+          formData,
+          timestamp: Date.now()
+        }))
+      } else if (!document.hidden) {
+        // Check for interrupted publish when page becomes visible
+        const interrupted = localStorage.getItem('publishInterrupted')
+        if (interrupted) {
+          try {
+            const { timestamp } = JSON.parse(interrupted)
+            // If less than 5 minutes ago, show recovery option
+            if (Date.now() - timestamp < 5 * 60 * 1000) {
+              const lastError = localStorage.getItem('lastPublishError')
+              if (lastError) {
+                const { message } = JSON.parse(lastError)
+                showError(`Previous publish may have failed: ${message}. Please try again.`, {
+                  duration: 10000,
+                  persistent: true
+                })
+              }
+            }
+          } catch (e) {
+            console.error('Error checking interrupted publish:', e)
+          }
+          localStorage.removeItem('publishInterrupted')
+        }
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [loading, formData])
+
   // Update WhatsApp when phone changes
   useEffect(() => {
     if (formData.whatsappSameAsPhone) {
@@ -636,40 +675,131 @@ export default function EnhancedPostVehiclePage() {
     }
   }
   
+  // Helper: Timeout wrapper for promises
+  const withTimeout = <T,>(
+    promise: Promise<T>,
+    timeoutMs: number,
+    operation: string
+  ): Promise<T> => {
+    return Promise.race([
+      promise,
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error(`${operation} timeout after ${timeoutMs}ms`)),
+          timeoutMs
+        )
+      )
+    ])
+  }
+
+  // Helper: Retry with exponential backoff
+  const retryWithBackoff = async <T,>(
+    operation: () => Promise<T>,
+    maxRetries: number = 3,
+    baseDelay: number = 1000,
+    shouldRetry: (error: any) => boolean = () => true
+  ): Promise<T> => {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        return await operation()
+      } catch (error) {
+        const isLastAttempt = attempt === maxRetries - 1
+        const isRetryable = shouldRetry(error)
+
+        if (isLastAttempt || !isRetryable) {
+          throw error
+        }
+
+        const delay = baseDelay * Math.pow(2, attempt)
+        console.log(`Retry attempt ${attempt + 1} after ${delay}ms`)
+        await new Promise(resolve => setTimeout(resolve, delay))
+      }
+    }
+    throw new Error('Max retries exceeded')
+  }
+
   const handleSubmit = async () => {
     if (!validateStep(3)) return
-    
+
     setLoading(true)
+
+    // Save state in case page is backgrounded
+    localStorage.setItem('publishInProgress', JSON.stringify({
+      formData,
+      timestamp: Date.now()
+    }))
+
     try {
       // Check if user is authenticated
       const { data: { user }, error: authError } = await supabase.auth.getUser()
-      
+
       if (authError || !user) {
-        alert('Please log in to post a listing')
+        showError('Please log in to post a listing')
         router.push('/login')
         return
       }
 
-      // Upload images first if any exist
-      let imageUrls: string[] = []
+      // Upload images with timeout and existing URLs
+      let imageUrls: string[] = [...formData.imageUrls]
+
       if (formData.images.length > 0) {
         console.log('Uploading images...')
-        imageUrls = await uploadImages(formData.images, user.id)
-        console.log('Images uploaded:', imageUrls)
+
+        try {
+          const uploadedUrls = await withTimeout(
+            retryWithBackoff(
+              () => uploadImages(formData.images, user.id),
+              2, // Max 2 retries for uploads
+              2000, // 2 second base delay
+              (error) => {
+                // Only retry on network errors, not validation errors
+                return error?.message?.includes('timeout') ||
+                       error?.message?.includes('network') ||
+                       error?.message?.includes('fetch')
+              }
+            ),
+            120000, // 120 second timeout for uploads
+            'Image upload'
+          )
+
+          imageUrls = [...imageUrls, ...uploadedUrls]
+          console.log('Images uploaded:', uploadedUrls)
+        } catch (uploadError: any) {
+          console.error('Upload error:', uploadError)
+
+          if (uploadError.message?.includes('timeout')) {
+            showError('Image upload timed out. Please check your connection and try again with fewer images.', {
+              duration: 10000,
+              persistent: true
+            })
+          } else if (uploadError.message?.includes('Rate limit')) {
+            showError('Upload limit reached. Please wait a few minutes and try again.', {
+              duration: 10000,
+              persistent: true
+            })
+          } else {
+            showError(`Image upload failed: ${uploadError.message}`, {
+              duration: 10000,
+              persistent: true
+            })
+          }
+          return
+        }
       }
 
       // Prepare the listing data according to the database schema
       const listingData: any = {
-        user_id: user.id,
         title: formData.title,
         description: formData.description,
-        details: formData.description, // Using description for details as well
-        price: formData.pricingType === 'finance' 
+        details: formData.description,
+        price: formData.pricingType === 'finance'
           ? (parseFloat(formData.askingPrice || '') || parseFloat(formData.outstandingBalance || '') || parseFloat(formData.price || ''))
           : parseFloat(formData.price || ''),
         negotiable: formData.negotiable,
         make: formData.make === 'Other' ? (formData.customMake || 'Other') : formData.make,
+        customMake: formData.customMake,
         model: formData.model === 'Other' ? (formData.customModel || 'Other') : (formData.model || ''),
+        customModel: formData.customModel,
         year: parseInt(formData.year || ''),
         mileage: parseInt(formData.mileage || '') || null,
         fuel_type: formData.fuelType || null,
@@ -677,156 +807,192 @@ export default function EnhancedPostVehiclePage() {
         body_type: formData.vehicleType || null,
         vehicle_type: formData.vehicleType || null,
         color: formData.color || null,
+        condition: formData.condition || null,
         engine_capacity: formData.engineCapacity ? parseInt(formData.engineCapacity) : null,
         location: `${formData.city}, ${formData.district}`,
         city: formData.city,
         district: formData.district,
-        image_urls: imageUrls, // This is the array of all images
-        image_url: imageUrls[0] || null, // This is the primary image
-        status: 'pending', // New listings start as pending
-        // Contact information
+        image_urls: imageUrls,
+        image_url: imageUrls[0] || null,
         phone: formatPhoneDisplay(formData.phone, selectedCountry.dialCode),
         whatsapp: formatPhoneDisplay(formData.whatsapp || formData.phone, formData.whatsappSameAsPhone ? selectedCountry.dialCode : selectedWhatsAppCountry.dialCode),
         email: formData.email,
-        // Finance information
         pricing_type: formData.pricingType,
         finance_type: formData.pricingType === 'finance' ? formData.financeType : null,
         finance_provider: formData.pricingType === 'finance' ? formData.financeProvider : null,
-        original_amount: formData.pricingType === 'finance' && formData.originalAmount 
+        original_amount: formData.pricingType === 'finance' && formData.originalAmount
           ? parseFloat(formData.originalAmount) : null,
-        outstanding_balance: formData.pricingType === 'finance' && formData.outstandingBalance 
+        outstanding_balance: formData.pricingType === 'finance' && formData.outstandingBalance
           ? parseFloat(formData.outstandingBalance) : null,
-        monthly_payment: formData.pricingType === 'finance' && formData.monthlyPayment 
+        monthly_payment: formData.pricingType === 'finance' && formData.monthlyPayment
           ? parseFloat(formData.monthlyPayment) : null,
         remaining_term: formData.pricingType === 'finance' ? formData.remainingTerm : null,
         early_settlement: formData.pricingType === 'finance' ? formData.earlySettlement : null,
         asking_price: formData.pricingType === 'finance' && formData.askingPrice
           ? parseFloat(formData.askingPrice) : null,
-        // Additional information
         interior_color: formData.interiorColor || null,
         registration_year: formData.registrationYear ? parseInt(formData.registrationYear) : null,
         vehicle_condition_details: formData.vehicleConditionDetails || null,
         previous_owners: formData.previousOwners ? parseInt(formData.previousOwners) : null,
         including_finance_companies: formData.includingFinanceCompanies || false,
         service_records_available: formData.serviceRecordsAvailable || false,
-        // Promotion flags
-        is_featured: false,
-        is_top_spot: false,
-        is_boosted: false,
-        is_urgent: false
+        trim: formData.trim || null,
+        grade: formData.grade || null,
       }
 
       console.log('Submitting listing data:', listingData)
 
-      // Validate required fields before submitting
-      const requiredFields = {
-        user_id: listingData.user_id,
-        title: listingData.title,
-        price: listingData.price
-      }
-
-      console.log('Required fields check:', requiredFields)
-
-      // Check for any undefined or null values that could cause constraint violations
-      Object.entries(listingData).forEach(([key, value]) => {
-        if (value === undefined) {
-          console.warn(`Field ${key} is undefined - this may cause database issues`)
-        }
-      })
-
       // Check if we're in edit mode
       const editId = searchParams.get('edit')
-      let data, error
 
       if (editId) {
-        // Update existing listing
+        // Update existing listing (keep direct database access for edits)
         console.log('Updating existing listing:', editId)
 
-        // Don't change the status when updating - preserve existing status
         const updateData = { ...listingData }
-        delete updateData.status
-        delete updateData.user_id // Don't update user_id
-
-        // Update modified timestamp and posted date to move to top of listings
         const now = new Date().toISOString()
         updateData.updated_at = now
-        updateData.posted_date = now // Move to top of browse listings
+        updateData.posted_date = now
 
-        const result = await supabase
-          .from('listings')
-          .update(updateData)
-          .eq('id', editId)
-          .eq('user_id', user.id) // Ensure user owns the listing
-          .select()
-          .single()
+        const result = await withTimeout(
+          supabase
+            .from('listings')
+            .update(updateData)
+            .eq('id', editId)
+            .eq('user_id', user.id)
+            .select()
+            .single(),
+          15000,
+          'Database update'
+        )
 
-        data = result.data
-        error = result.error
-
-        if (error) {
-          console.error('Supabase update error details:', {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code
-          })
-          throw error
+        if (result.error) {
+          console.error('Supabase update error:', result.error)
+          throw result.error
         }
 
-        console.log('Listing updated successfully:', data)
-
+        console.log('Listing updated successfully:', result.data)
         localStorage.removeItem('vehiclePostDraft')
-        // Redirect back to profile with success message
+        localStorage.removeItem('publishInProgress')
         router.push('/profile?updated=true')
 
       } else {
-        // Create new listing
-        console.log('Creating new listing')
+        // Create new listing using API endpoint
+        console.log('Creating new listing via API')
 
-        const result = await supabase
-          .from('listings')
-          .insert([listingData])
-          .select()
-          .single()
+        const response = await withTimeout(
+          retryWithBackoff(
+            async () => {
+              const res = await fetch('/api/listings/create', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  listing: listingData,
+                  imageUrls: imageUrls
+                }),
+              })
 
-        data = result.data
-        error = result.error
+              if (!res.ok) {
+                const errorData = await res.json()
+                throw new Error(errorData.error || `HTTP ${res.status}`)
+              }
 
-        if (error) {
-          console.error('Supabase error details:', {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code
-          })
-          throw error
+              return res
+            },
+            2, // Max 2 retries
+            1000, // 1 second base delay
+            (error) => {
+              // Retry on network/timeout errors, not on validation/auth errors
+              const message = error?.message || ''
+              return message.includes('timeout') ||
+                     message.includes('network') ||
+                     message.includes('fetch') ||
+                     message.includes('500') ||
+                     message.includes('502') ||
+                     message.includes('503')
+            }
+          ),
+          20000, // 20 second timeout
+          'Listing creation'
+        )
+
+        const result = await response.json()
+
+        if (!result.success) {
+          console.error('API error:', result)
+
+          // Use error codes for specific handling
+          if (result.code === 'AUTH_REQUIRED') {
+            showError('Your session expired. Please log in again.', {
+              duration: 10000,
+              persistent: true
+            })
+            router.push('/login')
+            return
+          } else if (result.code === 'RLS_ERROR') {
+            showError('Permission error. Please try logging out and back in.', {
+              duration: 10000,
+              persistent: true
+            })
+          } else if (result.code === 'VALIDATION_ERROR') {
+            showError(`Validation error: ${result.error}`, {
+              duration: 10000,
+              persistent: true
+            })
+          } else {
+            showError(result.error || 'Failed to create listing. Please try again.', {
+              duration: 10000,
+              persistent: true
+            })
+          }
+          return
         }
 
-        console.log('Listing created successfully:', data)
-
+        console.log('Listing created successfully:', result.listing)
         localStorage.removeItem('vehiclePostDraft')
-        // Redirect to paid features page with success message
-        router.push(`/post/paid-features?new=true&listing_id=${data.id}`)
+        localStorage.removeItem('publishInProgress')
+        router.push(`/post/paid-features?new=true&listing_id=${result.listing.id}`)
       }
     } catch (error: any) {
       console.error('Error posting vehicle:', error)
-      
-      // Provide more specific error messages
+
+      // Categorize and display errors appropriately
       let errorMessage = 'Error posting vehicle. Please try again.'
-      
+      let retryable = true
+
       if (error?.message) {
-        if (error.message.includes('user_id')) {
-          errorMessage = 'Please log in to post a listing'
+        if (error.message.includes('timeout')) {
+          errorMessage = 'Request timed out. Please check your connection and try again.'
+        } else if (error.message.includes('user_id') || error.code === '42501') {
+          errorMessage = 'Permission denied. Please try logging out and back in.'
         } else if (error.message.includes('duplicate')) {
           errorMessage = 'A similar listing already exists'
+          retryable = false
         } else if (error.message.includes('violates')) {
           errorMessage = 'Please check all required fields are filled correctly'
+          retryable = false
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your connection and try again.'
         } else {
           errorMessage = `Error: ${error.message}`
         }
       }
-      
-      alert(errorMessage)
+
+      showError(errorMessage, {
+        duration: 10000,
+        persistent: true
+      })
+
+      // Store error for debugging
+      localStorage.setItem('lastPublishError', JSON.stringify({
+        message: errorMessage,
+        details: error?.message || '',
+        timestamp: new Date().toISOString(),
+        retryable
+      }))
+
     } finally {
       setLoading(false)
     }

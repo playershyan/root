@@ -257,6 +257,6 @@ export async function DELETE(request: NextRequest) {
   }
 }
 
-// Increase size limits for file uploads
+// Increase size limits and timeout for file uploads (especially on mobile)
 export const runtime = 'nodejs'
-export const maxDuration = 60
+export const maxDuration = 120 // Increased from 60 to 120 seconds for slow mobile connections

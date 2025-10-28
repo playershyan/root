@@ -174,10 +174,10 @@ export const rateLimiters = {
     maxRequests: 30
   }, 'search'),
   
-  // File upload: 10 uploads per hour
+  // File upload: 20 uploads per hour (increased from 10 for better UX)
   upload: rateLimit({
     interval: 60 * 60 * 1000,
-    maxRequests: 10
+    maxRequests: process.env.NODE_ENV === 'production' ? 20 : 50
   }, 'upload'),
   
   // Message sending: 20 messages per minute
