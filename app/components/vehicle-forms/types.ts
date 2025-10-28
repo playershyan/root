@@ -39,7 +39,6 @@ export interface BaseVehicleFormData {
   registrationYear?: string
   vehicleConditionDetails?: string
   previousOwners?: string
-  includingFinanceCompanies?: boolean
   serviceRecordsAvailable?: boolean
 }
 

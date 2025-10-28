@@ -49,7 +49,6 @@ interface FormData extends BaseVehicleFormData {
   registrationYear?: string
   vehicleConditionDetails?: string
   previousOwners?: string
-  includingFinanceCompanies?: boolean
   serviceRecordsAvailable?: boolean
 }
 
@@ -91,7 +90,6 @@ const initialFormData: FormData = {
   registrationYear: '',
   vehicleConditionDetails: '',
   previousOwners: '',
-  includingFinanceCompanies: false,
   serviceRecordsAvailable: false,
   phone: '',
   whatsapp: '',
@@ -181,7 +179,6 @@ export default function EnhancedPostVehiclePage() {
             registrationYear: listing.registration_year?.toString() || '',
             vehicleConditionDetails: listing.vehicle_condition_details || '',
             previousOwners: listing.previous_owners?.toString() || '',
-            includingFinanceCompanies: listing.including_finance_companies || false,
             serviceRecordsAvailable: listing.service_records_available || false,
             trim: listing.trim || listing.grade || '',
             grade: listing.grade || '',
@@ -310,8 +307,9 @@ export default function EnhancedPostVehiclePage() {
     }
   }, [formData.showVehicleDropdown])
   
-  // Load draft from localStorage
+  // Load draft from localStorage (skip in edit mode to avoid overwriting preloaded values like trim/grade)
   useEffect(() => {
+    if (isEditMode) return
     const draft = localStorage.getItem('vehiclePostDraft')
     if (draft) {
       try {
@@ -321,7 +319,7 @@ export default function EnhancedPostVehiclePage() {
         console.error('Error loading draft:', e)
       }
     }
-  }, [])
+  }, [isEditMode])
   
   // Auto-save draft
   useEffect(() => {
@@ -340,40 +338,55 @@ export default function EnhancedPostVehiclePage() {
     }
   }, [formData.phone, formData.whatsappSameAsPhone, selectedCountry])
   
-  // Clear make and model when vehicle type changes
+  // Clear make and model only when the user changes vehicle type (not on initial edit load)
+  const prevVehicleTypeRef = useRef<string | undefined>(undefined)
   useEffect(() => {
-    setFormData(prev => ({ ...prev, make: '', model: '' }))
-  }, [formData.vehicleType])
-  
-  // Generate image preview URLs
-  useEffect(() => {
-    // Only run on client side after component is mounted
-    if (!mounted || !formData.images.length) {
-      setImagePreviews([])
+    // Skip clearing on the very first effect run (initialization / edit preload)
+    if (prevVehicleTypeRef.current === undefined) {
+      prevVehicleTypeRef.current = formData.vehicleType as string
       return
     }
-    
-    try {
-      const previews = formData.images.map(file => {
-        if (file instanceof File) {
-          return URL.createObjectURL(file)
+    // If vehicle type actually changed after initialization, clear dependent fields
+    if (prevVehicleTypeRef.current !== formData.vehicleType) {
+      prevVehicleTypeRef.current = formData.vehicleType as string
+      setFormData(prev => ({ ...prev, make: '', model: '' }))
+    }
+  }, [formData.vehicleType])
+  
+  // Generate image preview URLs (prefer newly selected files; fallback to existing URLs when editing)
+  useEffect(() => {
+    // Only run on client side after component is mounted
+    if (!mounted) return
+
+    // If there are newly selected files, build previews from them
+    if (formData.images && formData.images.length > 0) {
+      try {
+        const previews = formData.images
+          .map(file => (file instanceof File ? URL.createObjectURL(file) : ''))
+          .filter(url => url !== '')
+
+        setImagePreviews(previews)
+
+        // Cleanup function to revoke URLs
+        return () => {
+          previews.forEach(url => {
+            if (url) URL.revokeObjectURL(url)
+          })
         }
-        return ''
-      }).filter(url => url !== '')
-      
-      setImagePreviews(previews)
-      
-      // Cleanup function to revoke URLs
-      return () => {
-        previews.forEach(url => {
-          if (url) URL.revokeObjectURL(url)
-        })
+      } catch (error) {
+        console.error('Error creating image previews:', error)
+        setImagePreviews([])
       }
-    } catch (error) {
-      console.error('Error creating image previews:', error)
+      return
+    }
+
+    // No new files selected: show existing image URLs (edit mode)
+    if (Array.isArray((formData as any).imageUrls) && (formData as any).imageUrls.length > 0) {
+      setImagePreviews((formData as any).imageUrls as string[])
+    } else {
       setImagePreviews([])
     }
-  }, [formData.images, mounted])
+  }, [formData.images, (formData as any).imageUrls, mounted])
 
   useEffect(() => {
     if (selectedDistrict) {
@@ -590,7 +603,6 @@ export default function EnhancedPostVehiclePage() {
           interiorColor: formData.interiorColor,
           vehicleConditionDetails: formData.vehicleConditionDetails,
           serviceRecordsAvailable: formData.serviceRecordsAvailable,
-          includingFinanceCompanies: formData.includingFinanceCompanies,
           style: formData.aiStyle,
           recaptchaToken
         }),
@@ -717,7 +729,6 @@ export default function EnhancedPostVehiclePage() {
         registration_year: formData.registrationYear ? parseInt(formData.registrationYear) : null,
         vehicle_condition_details: formData.vehicleConditionDetails || null,
         previous_owners: formData.previousOwners ? parseInt(formData.previousOwners) : null,
-        including_finance_companies: formData.includingFinanceCompanies || false,
         service_records_available: formData.serviceRecordsAvailable || false,
         // Promotion flags
         is_featured: false,
@@ -1344,7 +1355,7 @@ export default function EnhancedPostVehiclePage() {
                   <p><strong className="text-gray-900">Location:</strong> {formData.city}, {formData.district}</p>
                   <p><strong className="text-gray-900">Photos:</strong> {formData.images.length + formData.imageUrls.length} uploaded</p>
                   {formData.previousOwners && (
-                    <p><strong className="text-gray-900">Previous Owners:</strong> {formData.previousOwners}{formData.includingFinanceCompanies ? ' (including finance companies)' : ''}</p>
+                    <p><strong className="text-gray-900">Previous Owners:</strong> {formData.previousOwners}</p>
                   )}
                   {formData.serviceRecordsAvailable && (
                     <p><strong className="text-gray-900">Service Records:</strong> Available</p>

@@ -33,9 +33,6 @@ export default function AdditionalInformationSection({
       if (formData.previousOwners) {
         updates.previousOwners = ''
       }
-      if (formData.includingFinanceCompanies) {
-        updates.includingFinanceCompanies = false
-      }
       if (formData.registrationYear) {
         updates.registrationYear = ''
       }
@@ -51,7 +48,10 @@ export default function AdditionalInformationSection({
           <div className="w-8 h-8 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-center">
             <Info className="w-5 h-5 text-blue-600" />
           </div>
-          Additional Information <span className="text-sm font-normal text-gray-500">(facoltativo)</span>
+          Additional Information 
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+            Optional
+          </span>
         </h2>
         <p className="text-gray-500 text-sm">Provide more details about your vehicle</p>
       </div>
@@ -150,22 +150,6 @@ export default function AdditionalInformationSection({
               {errors?.previousOwners && (
                 <p className="text-red-600 text-sm mt-1">{errors.previousOwners}</p>
               )}
-
-              {/* Including Finance Companies - Sub-checkbox with indentation */}
-              <div className="mt-2 pl-1">
-                <label className="flex items-center text-sm text-gray-600">
-                  <input
-                    type="checkbox"
-                    checked={formData.includingFinanceCompanies || false}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      includingFinanceCompanies: e.target.checked
-                    }))}
-                    className="mr-2 h-4 w-4 text-gray-500 focus:ring-gray-400 border-gray-300 rounded"
-                  />
-                  <span>Including finance companies</span>
-                </label>
-              </div>
             </div>
           )}
         </div>
@@ -173,18 +157,23 @@ export default function AdditionalInformationSection({
         {/* Service Records Available - Main data field, only show if main condition is not "new" */}
         {formData.condition !== 'New' && (
           <div className="border-t border-gray-100 pt-6">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={formData.serviceRecordsAvailable || false}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  serviceRecordsAvailable: e.target.checked
-                }))}
-                className="mr-3 h-5 w-5 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
-              />
-              <span className="text-sm font-medium text-gray-700">Service records available</span>
-            </label>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.serviceRecordsAvailable || false}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    serviceRecordsAvailable: e.target.checked
+                  }))}
+                  className="mr-3 h-5 w-5 text-blue-600 focus:ring-blue-500 border-blue-300 rounded"
+                />
+                <div className="flex-1">
+                  <span className="text-base font-semibold text-blue-900">Service records available</span>
+                  <p className="text-sm text-blue-700 mt-1">Check this box if you have maintenance and service history documentation for this vehicle</p>
+                </div>
+              </label>
+            </div>
           </div>
         )}
       </div>
