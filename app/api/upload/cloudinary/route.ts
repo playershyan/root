@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
         if (!ext || !['jpg', 'jpeg', 'png', 'webp', 'avif'].includes(ext)) {
           console.log(`❌ Invalid or missing file type for ${file.name}. Type: ${file.type}, Extension: ${ext}`)
           return NextResponse.json({
-            error: `Invalid or missing file type for "${file.name}". Allowed types: JPG, JPEG, PNG, WebP, AVIF. Please ensure your file has a proper extension.`
+            error: `"${file.name}" is not a supported image. Please use JPG, PNG, or WebP.`
           }, { status: 400 })
         }
         // File extension is valid, continue
@@ -100,14 +100,14 @@ export async function POST(request: NextRequest) {
       } else if (!allowedTypes.includes(file.type.toLowerCase())) {
         console.log(`❌ Invalid file type: ${file.type}`)
         return NextResponse.json({
-          error: `Invalid file type: ${file.type}. Allowed types: JPG, JPEG, PNG, WebP, AVIF`
+          error: `"${file.name}" is not a supported image. Please use JPG, PNG, or WebP.`
         }, { status: 400 })
       }
 
       if (file.size > maxSize) {
         console.log(`❌ File too large: ${file.name} (${file.size} bytes)`)
         return NextResponse.json({
-          error: `File too large: ${file.name}. Maximum size: 10MB`
+          error: `"${file.name}" is too large. Maximum file size is 10MB.`
         }, { status: 400 })
       }
     }

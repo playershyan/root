@@ -565,7 +565,7 @@ export default function EnhancedPostVehiclePage() {
       }
 
       if (file.size > 10 * 1024 * 1024) {
-        showError(`Image "${file.name}" exceeds 10MB`, { duration: 5000 })
+        showError(`"${file.name}" is too large. Maximum file size is 10MB.`, { duration: 5000 })
         continue
       }
 
@@ -573,13 +573,13 @@ export default function EnhancedPostVehiclePage() {
     }
 
     if (hasInvalidFiles) {
-      showError('Some files were not images and were skipped. Allowed types: JPG, JPEG, PNG, WebP, AVIF', { duration: 5000 })
+      showError('Some files could not be uploaded. Please use JPG, PNG, or WebP images.', { duration: 5000 })
     }
 
     const files = validFiles
 
     if (files.length + formData.images.length > 15) {
-      showError('Maximum 15 images allowed', { duration: 5000 })
+      showError('You can upload up to 15 images only.', { duration: 5000 })
       return
     }
 
@@ -598,7 +598,7 @@ export default function EnhancedPostVehiclePage() {
       }
 
       if (file.size > 10 * 1024 * 1024) {
-        showError(`Image "${file.name}" exceeds 10MB`, { duration: 5000 })
+        showError(`"${file.name}" is too large. Maximum file size is 10MB.`, { duration: 5000 })
         continue
       }
 
@@ -606,13 +606,13 @@ export default function EnhancedPostVehiclePage() {
     }
 
     if (hasInvalidFiles) {
-      showError('Some files were not images and were skipped. Allowed types: JPG, JPEG, PNG, WebP, AVIF', { duration: 5000 })
+      showError('Some files could not be uploaded. Please use JPG, PNG, or WebP images.', { duration: 5000 })
     }
 
     const files = validFiles
 
     if (files.length + formData.images.length > 15) {
-      showError('Maximum 15 images allowed', { duration: 5000 })
+      showError('You can upload up to 15 images only.', { duration: 5000 })
       return
     }
 
@@ -796,17 +796,17 @@ export default function EnhancedPostVehiclePage() {
           console.error('Upload error:', uploadError)
 
           if (uploadError.message?.includes('timeout')) {
-            showError('Image upload timed out. Please check your connection and try again with fewer images.', {
+            showError('Upload is taking too long. Please check your internet connection and try again.', {
               duration: 10000,
               persistent: true
             })
           } else if (uploadError.message?.includes('Rate limit')) {
-            showError('Upload limit reached. Please wait a few minutes and try again.', {
+            showError('Too many uploads. Please wait a few minutes and try again.', {
               duration: 10000,
               persistent: true
             })
           } else {
-            showError(`Image upload failed: ${uploadError.message}`, {
+            showError('Upload failed. Please try again.', {
               duration: 10000,
               persistent: true
             })
@@ -960,17 +960,17 @@ export default function EnhancedPostVehiclePage() {
             router.push('/login')
             return
           } else if (result.code === 'RLS_ERROR') {
-            showError('Permission error. Please try logging out and back in.', {
+            showError('Something went wrong. Please try logging out and back in.', {
               duration: 10000,
               persistent: true
             })
           } else if (result.code === 'VALIDATION_ERROR') {
-            showError(`Validation error: ${result.error}`, {
+            showError(result.error || 'Please check all required fields and try again.', {
               duration: 10000,
               persistent: true
             })
           } else {
-            showError(result.error || 'Failed to create listing. Please try again.', {
+            showError(result.error || 'Could not publish ad. Please try again.', {
               duration: 10000,
               persistent: true
             })
@@ -987,24 +987,24 @@ export default function EnhancedPostVehiclePage() {
       console.error('Error posting vehicle:', error)
 
       // Categorize and display errors appropriately
-      let errorMessage = 'Error posting vehicle. Please try again.'
+      let errorMessage = 'Could not publish ad. Please try again.'
       let retryable = true
 
       if (error?.message) {
         if (error.message.includes('timeout')) {
-          errorMessage = 'Request timed out. Please check your connection and try again.'
+          errorMessage = 'Taking too long. Please check your internet and try again.'
         } else if (error.message.includes('user_id') || error.code === '42501') {
-          errorMessage = 'Permission denied. Please try logging out and back in.'
+          errorMessage = 'Something went wrong. Please log out and back in.'
         } else if (error.message.includes('duplicate')) {
-          errorMessage = 'A similar listing already exists'
+          errorMessage = 'This ad already exists.'
           retryable = false
         } else if (error.message.includes('violates')) {
-          errorMessage = 'Please check all required fields are filled correctly'
+          errorMessage = 'Please check all fields and try again.'
           retryable = false
         } else if (error.message.includes('network') || error.message.includes('fetch')) {
-          errorMessage = 'Network error. Please check your connection and try again.'
+          errorMessage = 'No internet connection. Please check and try again.'
         } else {
-          errorMessage = `Error: ${error.message}`
+          errorMessage = 'Something went wrong. Please try again.'
         }
       }
 
