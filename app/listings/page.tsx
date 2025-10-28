@@ -1594,8 +1594,8 @@ export default function AdvancedListingsPage() {
                         ))}
                       </div>
 
-                      {/* Mobile view - edge-to-edge, minimal spacing */}
-                      <div className="md:hidden space-y-1">
+                      {/* Mobile view - with padding and spacing */}
+                      <div className="md:hidden space-y-3 px-4">
                         {/* Show first few regular listings */}
                         {filteredListings.slice(0, 4).map((listing) => (
                           <RegularAdCard

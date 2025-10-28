@@ -140,6 +140,9 @@ export default function EnhancedPostVehiclePage() {
     if (editId && user && !authLoading) {
       const loadListingForEdit = async () => {
         try {
+          // Clear any existing errors when entering edit mode
+          setErrors({})
+
           const { data: listing, error } = await supabase
             .from('listings')
             .select('*')
@@ -155,11 +158,16 @@ export default function EnhancedPostVehiclePage() {
           }
 
           // Transform the database listing to form data
+          const trimValue = listing.trim || listing.grade || ''
+          // Ensure make and model are properly set
+          const make = listing.make?.trim() || ''
+          const model = listing.model?.trim() || ''
+
           const editFormData: FormData = {
             // Basic information
             vehicleType: (listing.vehicle_type as VehicleType) || '',
-            make: listing.make || '',
-            model: listing.model || '',
+            make: make,
+            model: model,
             year: listing.year?.toString() || '',
             price: listing.price?.toString() || '',
 
@@ -177,8 +185,8 @@ export default function EnhancedPostVehiclePage() {
             vehicleConditionDetails: listing.vehicle_condition_details || '',
             previousOwners: listing.previous_owners?.toString() || '',
             serviceRecordsAvailable: listing.service_records_available || false,
-            trim: listing.trim || listing.grade || '',
-            grade: listing.grade || '',
+            trim: trimValue,
+            grade: trimValue,
 
             // Pricing and finance
             pricingType: listing.pricing_type as PricingType || 'cash',
@@ -211,6 +219,12 @@ export default function EnhancedPostVehiclePage() {
 
           // Set the form data
           setFormData(editFormData)
+          console.log('[Edit Mode] Loaded listing data:', {
+            make: editFormData.make,
+            model: editFormData.model,
+            trim: editFormData.trim,
+            hasImages: editFormData.imageUrls?.length || 0
+          })
 
           // Set location dropdowns
           if (listing.district) {
@@ -315,14 +329,16 @@ export default function EnhancedPostVehiclePage() {
     }
   }, [isEditMode])
   
-  // Auto-save draft
+  // Auto-save draft (skip in edit mode to avoid overwriting)
   useEffect(() => {
+    if (isEditMode) return
+
     const timer = setTimeout(() => {
       localStorage.setItem('vehiclePostDraft', JSON.stringify(formData))
     }, 1000)
-    
+
     return () => clearTimeout(timer)
-  }, [formData])
+  }, [formData, isEditMode])
   
   // Update WhatsApp when phone changes
   useEffect(() => {
@@ -375,12 +391,12 @@ export default function EnhancedPostVehiclePage() {
     }
 
     // No new files selected: show existing image URLs (edit mode)
-    if (Array.isArray((formData as any).imageUrls) && (formData as any).imageUrls.length > 0) {
-      setImagePreviews((formData as any).imageUrls as string[])
+    if (Array.isArray(formData.imageUrls) && formData.imageUrls.length > 0) {
+      setImagePreviews(formData.imageUrls)
     } else {
       setImagePreviews([])
     }
-  }, [formData.images, (formData as any).imageUrls, mounted])
+  }, [formData.images, formData.imageUrls, mounted])
 
   useEffect(() => {
     if (selectedDistrict) {
@@ -397,17 +413,28 @@ export default function EnhancedPostVehiclePage() {
   
   const validateStep = (step: number): boolean => {
     const newErrors: Record<string, string> = {}
-    
+
     if (step === 1) {
+      console.log('[Validation] Step 1 data:', {
+        make: formData.make,
+        model: formData.model,
+        makeLength: formData.make?.length,
+        modelLength: formData.model?.length,
+        makeType: typeof formData.make,
+        modelType: typeof formData.model
+      })
+
       if (!formData.vehicleType) newErrors.vehicleType = 'Please select vehicle type'
       if (!formData.title) newErrors.title = 'Title is required'
       if (!formData.make) {
         newErrors.make = 'Make is required'
+        console.log('[Validation] Make validation failed - empty value')
       } else if (formData.make === 'Other' && !formData.customMake) {
         newErrors.make = 'Please enter custom make name'
       }
       if (!formData.model) {
         newErrors.model = 'Model is required'
+        console.log('[Validation] Model validation failed - empty value')
       } else if (formData.model === 'Other' && !formData.customModel) {
         newErrors.model = 'Please enter custom model name'
       }
@@ -486,6 +513,11 @@ export default function EnhancedPostVehiclePage() {
   }
   
   const handleNext = () => {
+    console.log('[handleNext] Current formData:', {
+      make: formData.make,
+      model: formData.model,
+      currentStep
+    })
     if (validateStep(currentStep)) {
       setCurrentStep(prev => Math.min(prev + 1, 3))
     }
@@ -566,10 +598,20 @@ export default function EnhancedPostVehiclePage() {
   }
   
   const removeImage = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index)
-    }))
+    // In edit mode, images are URLs; in create mode, images are File objects
+    if (formData.imageUrls && formData.imageUrls.length > 0) {
+      // Edit mode: remove from imageUrls
+      setFormData(prev => ({
+        ...prev,
+        imageUrls: prev.imageUrls?.filter((_, i) => i !== index) || []
+      }))
+    } else {
+      // Create mode: remove from images (File objects)
+      setFormData(prev => ({
+        ...prev,
+        images: prev.images.filter((_, i) => i !== index)
+      }))
+    }
   }
   
   const generateAIDescription = async () => {
@@ -865,15 +907,15 @@ export default function EnhancedPostVehiclePage() {
   
   return (
     <div className="min-h-screen bg-gray-50 lg:py-8">
-      <div className="lg:max-w-4xl lg:mx-auto lg:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto px-4 lg:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-6 lg:mb-8 px-4 lg:px-0 py-4 lg:py-0 bg-white lg:bg-transparent border-b lg:border-0">
+        <div className="text-center mb-4 lg:mb-8 py-4 lg:py-0 bg-white lg:bg-transparent -mx-4 px-4 lg:mx-0 border-b lg:border-0">
           <h1 className="text-2xl lg:text-3xl font-semibold text-gray-900 mb-2">Sell Your Vehicle</h1>
           <p className="text-sm lg:text-base text-gray-600">Reach thousands of potential buyers across Sri Lanka</p>
         </div>
 
         {/* Progress Steps */}
-        <div className="mb-4 lg:mb-8 px-4 lg:px-0 py-4 lg:py-0 bg-white lg:bg-transparent border-b lg:border-0">
+        <div className="mb-4 lg:mb-8 py-4 lg:py-0 bg-white lg:bg-transparent -mx-4 px-4 lg:mx-0 border-b lg:border-0">
           <div className="flex items-center justify-center">
             {[1, 2, 3].map((step) => (
               <div key={step} className="flex items-center">
@@ -919,7 +961,7 @@ export default function EnhancedPostVehiclePage() {
         </div>
         
         {/* AI Badge */}
-        <div className="relative overflow-hidden lg:rounded-lg p-4 mb-2 lg:mb-6 flex items-center gap-3 bg-gradient-to-r from-blue-50 via-purple-50 to-blue-50 border-b lg:border border-purple-200">
+        <div className="relative overflow-hidden lg:rounded-lg p-4 mb-4 lg:mb-6 flex items-center gap-3 bg-gradient-to-r from-blue-50 via-purple-50 to-blue-50 -mx-4 lg:mx-0 border-b lg:border border-purple-200">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 via-purple-400/10 to-blue-400/10 animate-pulse"></div>
           <div className="relative flex items-center gap-3">
             <div className="relative">
@@ -936,9 +978,9 @@ export default function EnhancedPostVehiclePage() {
         <div className="lg:bg-white lg:rounded-xl lg:shadow-sm lg:p-8">
           {/* Step 1: Vehicle Details */}
           {currentStep === 1 && (
-            <div className="space-y-2 lg:space-y-8">
+            <div className="space-y-4 lg:space-y-8">
               {/* Vehicle Type Section */}
-              <div className="vehicle-type-section bg-white lg:bg-transparent px-4 lg:px-0 py-4 lg:py-0 border-b border-gray-200">
+              <div className="vehicle-type-section bg-white lg:bg-transparent -mx-4 px-4 lg:mx-0 lg:px-0 py-6 lg:py-0 border-b lg:border-0">
                 <div className="lg:pb-6 mb-4 lg:mb-8">
                   <h2 className="text-xl font-semibold text-gray-900 mb-2 flex items-center gap-3">
                     <div className="w-8 h-8 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-center">
