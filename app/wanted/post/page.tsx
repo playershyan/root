@@ -321,26 +321,49 @@ export default function PostWantedPage() {
     }
 
     setErrors(newErrors)
+
+    // Auto-scroll to first error field
+    if (Object.keys(newErrors).length > 0) {
+      const firstErrorField = Object.keys(newErrors)[0]
+      setTimeout(() => {
+        let element: HTMLElement | null = null
+
+        // Special handling for vehicleType
+        if (firstErrorField === 'vehicleType') {
+          element = document.querySelector('.vehicle-type-section') as HTMLElement
+        } else {
+          // Try to find by name attribute first
+          element = document.querySelector(`[name="${firstErrorField}"]`) as HTMLElement
+        }
+
+        // Fallback to finding by error class if name attribute not found
+        if (!element) {
+          element = document.querySelector('.border-red-500') as HTMLElement
+        }
+
+        if (element) {
+          element.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'nearest'
+          })
+
+          // Focus the field if it's focusable
+          if (element instanceof HTMLInputElement ||
+              element instanceof HTMLSelectElement ||
+              element instanceof HTMLTextAreaElement) {
+            element.focus()
+          }
+        }
+      }, 100)
+    }
+
     return Object.keys(newErrors).length === 0
   }
 
   const handleNext = () => {
     if (validateStep(step)) {
       setStep(step + 1)
-    } else {
-      // Scroll to the first error field
-      setTimeout(() => {
-        const firstErrorField = document.querySelector('.border-red-500')
-        if (firstErrorField) {
-          firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          // Focus the field if it's an input
-          if (firstErrorField instanceof HTMLInputElement || 
-              firstErrorField instanceof HTMLSelectElement || 
-              firstErrorField instanceof HTMLTextAreaElement) {
-            firstErrorField.focus()
-          }
-        }
-      }, 100)
     }
   }
 
@@ -379,21 +402,8 @@ export default function PostWantedPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateStep(2)) {
-      // Scroll to the first error field
-      setTimeout(() => {
-        const firstErrorField = document.querySelector('.border-red-500')
-        if (firstErrorField) {
-          firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          // Focus the field if it's an input
-          if (firstErrorField instanceof HTMLInputElement || 
-              firstErrorField instanceof HTMLSelectElement || 
-              firstErrorField instanceof HTMLTextAreaElement) {
-            firstErrorField.focus()
-          }
-        }
-      }, 100)
       return
     }
 
