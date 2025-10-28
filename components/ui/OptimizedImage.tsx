@@ -11,7 +11,7 @@ interface OptimizedImageProps {
   fill?: boolean
   priority?: boolean
   sizes?: string
-  quality?: number
+  quality?: 'auto' | 'auto:best' | 'auto:good' | 'auto:eco' | 'auto:low' | number
   placeholder?: 'blur' | 'empty'
   blurDataURL?: string
   onError?: () => void
@@ -53,7 +53,7 @@ export default function OptimizedImage({
   }
 
   // Enhanced CDN optimization with watermark support
-  const optimizeCDNUrl = (url: string, width?: number, quality?: number, watermark?: boolean) => {
+  const optimizeCDNUrl = (url: string, width?: number, quality?: 'auto' | 'auto:best' | 'auto:good' | 'auto:eco' | 'auto:low' | number, watermark?: boolean) => {
     if (!url) return url
 
     // For Cloudinary URLs - use client-safe method with optimizations

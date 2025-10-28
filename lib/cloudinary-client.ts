@@ -19,7 +19,7 @@ export function extractPublicIdFromUrl(url: string): string | null {
 export function buildCloudinaryUrl(
   publicId: string,
   transformations: string[],
-  cloudName: string = 'dpvcd0zdw'
+  cloudName: string = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dpvcd0zdw'
 ): string {
   const transformString = transformations.join(',')
   return `https://res.cloudinary.com/${cloudName}/image/upload/${transformString}/${publicId}`
@@ -40,7 +40,7 @@ export function getOptimizedCloudinaryUrl(
   options: {
     width?: number
     height?: number
-    quality?: number
+    quality?: 'auto' | 'auto:best' | 'auto:good' | 'auto:eco' | 'auto:low' | number
     watermark?: boolean
   } = {}
 ): string {

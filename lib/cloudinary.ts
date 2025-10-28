@@ -62,22 +62,13 @@ export class CloudinaryService {
       const uploadOptions: any = {
         folder,
         resource_type: 'image' as const,
-        quality: options.quality || 'auto:good',  // Smart quality compression
+        // Quality removed - handled at delivery time via URL transformations
       }
       
-      // Add transformation if provided, otherwise use smart defaults
+      // Add transformation if explicitly provided
+      // Otherwise preserve original - transformations happen at delivery time
       if (options.transformation) {
         uploadOptions.transformation = options.transformation
-      } else {
-        // Default transformations for vera.lk vehicle listings
-        // Only include size/crop transformations during upload
-        uploadOptions.transformation = [
-          { 
-            width: 1600,      // Max width for desktop viewing
-            height: 1200,     // Max height to maintain quality
-            crop: 'limit'     // Don't upscale smaller images
-          }
-        ]
       }
       
       // Add tags if provided
@@ -89,17 +80,25 @@ export class CloudinaryService {
       console.log('📤 Cloudinary upload options:', uploadOptions)
 
       let uploadResult
-      
+
       if (Buffer.isBuffer(file)) {
-        // Upload buffer as base64 data URI
-        const mimeType = options.fileType || 'image/jpeg'
-        console.log('📸 Uploading Buffer as base64 data URI, mimeType:', mimeType)
+        // Upload buffer via stream (more efficient than base64 encoding)
+        console.log('📸 Uploading Buffer via stream')
         console.log('📊 Buffer size:', file.length, 'bytes')
-        
-        const dataUri = `data:${mimeType};base64,${file.toString('base64')}`
-        console.log('📝 Data URI prefix:', dataUri.substring(0, 50) + '...')
-        
-        uploadResult = await cloudinary.uploader.upload(dataUri, uploadOptions)
+
+        // Use upload_stream for direct buffer upload without base64 overhead
+        uploadResult = await new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            uploadOptions,
+            (error, result) => {
+              if (error) reject(error)
+              else resolve(result)
+            }
+          )
+
+          // Write buffer directly to stream
+          uploadStream.end(file)
+        })
       } else if (typeof file === 'string') {
         console.log('📸 Uploading string (base64 or URL)')
         uploadResult = await cloudinary.uploader.upload(file, uploadOptions)
@@ -234,6 +233,7 @@ export class CloudinaryService {
       height: options.height || 600,
       crop: options.crop || 'limit',
       quality: options.quality || 'auto:good',
+      dpr: 'auto', // Automatic device pixel ratio
     }
 
     // Add format if specified (f_auto for automatic format selection)
@@ -265,7 +265,8 @@ export class CloudinaryService {
       height: Math.round(size * 0.75), // 4:3 aspect ratio for vehicles
       crop: 'fill',
       quality: 'auto:low',
-      fetch_format: 'auto'  // Use fetch_format for f_auto
+      fetch_format: 'auto',  // Use fetch_format for f_auto
+      dpr: 'auto' // Automatic device pixel ratio
     }
 
     let transformationChain = [transformation]
@@ -290,7 +291,8 @@ export class CloudinaryService {
       height: 600,
       crop: 'limit',
       quality: 'auto:eco',  // Lower quality for mobile data saving
-      fetch_format: 'auto'
+      fetch_format: 'auto',
+      dpr: 'auto' // Automatic device pixel ratio
     }
 
     let transformationChain = [transformation]
@@ -315,7 +317,8 @@ export class CloudinaryService {
       height: 1200,
       crop: 'limit',
       quality: 'auto:best',
-      fetch_format: 'auto'
+      fetch_format: 'auto',
+      dpr: 'auto' // Automatic device pixel ratio
     }
 
     let transformationChain = [transformation]
