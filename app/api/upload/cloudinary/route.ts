@@ -80,23 +80,23 @@ export async function POST(request: NextRequest) {
 
     // Validate file types and sizes
     const maxSize = 10 * 1024 * 1024 // 10MB
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-    
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/tiff']
+
     console.log('🔍 Validating files...')
     for (const file of files) {
       console.log(`📄 Validating ${file.name}: type=${file.type}, size=${file.size}`)
-      
+
       if (!allowedTypes.includes(file.type)) {
         console.log(`❌ Invalid file type: ${file.type}`)
-        return NextResponse.json({ 
-          error: `Invalid file type: ${file.type}. Allowed types: JPEG, PNG, WebP` 
+        return NextResponse.json({
+          error: `Invalid file type: ${file.type}. Allowed types: JPEG, JPG, PNG, TIFF, WebP. Maximum size: 10MB`
         }, { status: 400 })
       }
-      
+
       if (file.size > maxSize) {
         console.log(`❌ File too large: ${file.name} (${file.size} bytes)`)
-        return NextResponse.json({ 
-          error: `File too large: ${file.name}. Maximum size: 10MB` 
+        return NextResponse.json({
+          error: `File too large: ${file.name}. Maximum size: 10MB`
         }, { status: 400 })
       }
     }

@@ -530,12 +530,18 @@ export default function EnhancedPostVehiclePage() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const allFiles = Array.from(e.target.files || [])
     const validFiles: File[] = []
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/tiff']
 
     for (const file of allFiles) {
-      if (!file.type.startsWith('image/')) continue
+      // Check file type
+      if (!allowedTypes.includes(file.type)) {
+        showError(`Invalid file type: ${file.name}. Allowed: JPEG, JPG, PNG, TIFF, WebP`)
+        continue
+      }
 
+      // Check file size (10MB limit)
       if (file.size > 10 * 1024 * 1024) {
-        showError('Image exceeds 10MB')
+        showError(`Image exceeds 10MB: ${file.name}`)
         continue
       }
 
@@ -1177,11 +1183,11 @@ export default function EnhancedPostVehiclePage() {
                     ref={fileInputRef}
                     type="file"
                     multiple
-                    accept="image/*"
+                    accept="image/jpeg,image/jpg,image/png,image/tiff,image/webp"
                     onChange={handleFileSelect}
                     className="hidden"
                   />
-                  
+
                   <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                   <p className="text-lg font-medium mb-2 text-gray-700">
                     Drag and drop photos here, or{' '}
@@ -1194,7 +1200,7 @@ export default function EnhancedPostVehiclePage() {
                     </button>
                   </p>
                   <p className="text-sm text-gray-500">
-                    At least 1 photo required. Maximum 15 photos, up to 10MB each. JPG, PNG formats.
+                    At least 1 photo required. Maximum 15 photos, up to 10MB each. Formats: JPEG, JPG, PNG, TIFF, WebP.
                   </p>
                 </div>
                 {errors.images && <p className="text-red-600 text-sm mt-1">{errors.images}</p>}
