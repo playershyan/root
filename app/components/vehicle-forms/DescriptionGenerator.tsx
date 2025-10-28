@@ -175,6 +175,30 @@ const DescriptionGenerator = forwardRef<DescriptionGeneratorRef, DescriptionGene
                 disabled={isGenerating}
                 style={{ whiteSpace: 'pre-wrap' }}
               />
+              
+              {/* Preview of formatted description */}
+              {formData.description && (
+                <div className="mt-3 p-3 bg-gray-50 rounded-lg border">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Preview:</h4>
+                  <div className="text-sm text-gray-800 whitespace-pre-wrap">
+                    {formData.description.split('\n').map((line, index) => {
+                      // Parse bold formatting (**text**)
+                      const parts = line.split(/(\*\*[^*]+\*\*)/g)
+                      return (
+                        <div key={index}>
+                          {parts.map((part, partIndex) => {
+                            if (part.startsWith('**') && part.endsWith('**')) {
+                              const boldText = part.slice(2, -2)
+                              return <strong key={partIndex} className="font-semibold text-gray-900">{boldText}</strong>
+                            }
+                            return <span key={partIndex}>{part}</span>
+                          })}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Character count and status */}
               <div className="flex justify-between mt-2">

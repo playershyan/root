@@ -1133,7 +1133,7 @@ export default function AdvancedListingsPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Search Header */}
       <div className="bg-white shadow-sm mb-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4">
             <div>
               <h1 className="text-lg sm:text-2xl font-bold text-gray-900">
@@ -1201,7 +1201,7 @@ export default function AdvancedListingsPage() {
       </div>
       
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar Filters - Desktop Only */}
           <div className="hidden lg:block lg:col-span-1">
@@ -1534,7 +1534,69 @@ export default function AdvancedListingsPage() {
                   ) : (
                     <>
                       {/* Mix in boosted and urgent ads with regular listings */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="hidden md:grid md:grid-cols-2 gap-4">
+                        {/* Show first few regular listings */}
+                        {filteredListings.slice(0, 4).map((listing) => (
+                          <RegularAdCard
+                            key={listing.id}
+                            listing={{
+                              ...listing,
+                              user_id: listing.user_id || 'unknown'
+                            }}
+                          />
+                        ))}
+
+                        {/* Mix in boosted ads */}
+                        {boostedAds.slice(0, 2).map(listing => (
+                          <BoostedCard
+                            key={`boosted-${listing.id}`}
+                            listing={{
+                              ...listing,
+                              is_boosted: true,
+                              user_id: listing.user_id || 'unknown',
+                              created_at: listing.created_at || new Date().toISOString()
+                            }}
+                          />
+                        ))}
+
+                        {/* Continue with more regular listings */}
+                        {filteredListings.slice(4, 8).map((listing) => (
+                          <RegularAdCard
+                            key={listing.id}
+                            listing={{
+                              ...listing,
+                              user_id: listing.user_id || 'unknown'
+                            }}
+                          />
+                        ))}
+
+                        {/* Mix in urgent ads */}
+                        {urgentAds.slice(0, 2).map(listing => (
+                          <UrgentListingCard
+                            key={`urgent-${listing.id}`}
+                            listing={{
+                              ...listing,
+                              is_urgent: true,
+                              user_id: listing.user_id || 'unknown',
+                              created_at: listing.created_at || new Date().toISOString()
+                            }}
+                          />
+                        ))}
+
+                        {/* Rest of the regular listings */}
+                        {filteredListings.slice(8).map((listing) => (
+                          <RegularAdCard
+                            key={listing.id}
+                            listing={{
+                              ...listing,
+                              user_id: listing.user_id || 'unknown'
+                            }}
+                          />
+                        ))}
+                      </div>
+
+                      {/* Mobile view - no grid container */}
+                      <div className="md:hidden space-y-4">
                         {/* Show first few regular listings */}
                         {filteredListings.slice(0, 4).map((listing) => (
                           <RegularAdCard

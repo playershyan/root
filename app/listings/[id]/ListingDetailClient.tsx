@@ -384,9 +384,25 @@ export default function ListingDetailClient({
           {/* Description Section */}
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-xl font-semibold mb-4">Description</h2>
-            <p className="text-gray-700 whitespace-pre-line mb-6">
-              {listing.description || listing.ai_generated_description || 'No description available.'}
-            </p>
+            <div className="text-gray-700 whitespace-pre-line mb-6">
+              {(listing.description || listing.ai_generated_description || 'No description available.')
+                .split('\n')
+                .map((line, index) => {
+                  // Parse bold formatting (**text**)
+                  const parts = line.split(/(\*\*[^*]+\*\*)/g)
+                  return (
+                    <div key={index}>
+                      {parts.map((part, partIndex) => {
+                        if (part.startsWith('**') && part.endsWith('**')) {
+                          const boldText = part.slice(2, -2)
+                          return <strong key={partIndex} className="font-semibold text-gray-900">{boldText}</strong>
+                        }
+                        return <span key={partIndex}>{part}</span>
+                      })}
+                    </div>
+                  )
+                })}
+            </div>
           </div>
 
           {/* Specifications Section */}
