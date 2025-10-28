@@ -7,7 +7,7 @@ import { verifyRecaptcha } from '@/lib/security/recaptcha'
 export async function POST(request: NextRequest) {
   try {
     console.log('🚀 Cloudinary upload API called')
-    
+
     // Check Cloudinary configuration first
     if (!CloudinaryService.isConfigured()) {
       console.error('❌ Cloudinary is not properly configured')
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
         CLOUDINARY_API_KEY: !process.env.CLOUDINARY_API_KEY,
         CLOUDINARY_API_SECRET: !process.env.CLOUDINARY_API_SECRET,
       })
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: 'Server configuration error: Cloudinary not configured',
         debug: {
           cloud_name: !!process.env.CLOUDINARY_CLOUD_NAME,
@@ -25,8 +25,9 @@ export async function POST(request: NextRequest) {
         }
       }, { status: 500 })
     }
-    
-    const supabase = createRouteHandlerClient({ cookies })
+
+    const cookieStore = await cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     
     // Check if user is authenticated
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -216,8 +217,9 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
-    
+    const cookieStore = await cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+
     // Check if user is authenticated
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
