@@ -6,10 +6,10 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/app/contexts/AuthContext'
 import Link from 'next/link'
 import CountrySelector, { useCountrySelector } from '@/app/components/CountrySelector'
-import { 
-  DISTRICTS, 
+import {
+  DISTRICTS,
   getCitiesByDistrictId,
-  getDistrictByName 
+  getDistrictByName
 } from '@/lib/constants/locations'
 import {
   VehicleType,
@@ -18,6 +18,8 @@ import {
   getModelsByMake
 } from '@/lib/constants/vehicleData'
 import { useUserProfile } from '@/lib/hooks/useUserProfile'
+import { useToast } from '@/app/components/notifications/useToast'
+import { Toast } from '@/app/components/notifications/Toast'
 
 interface FormData {
   description: string
@@ -47,6 +49,7 @@ export default function PostWantedPage() {
   const { user, loading: authLoading } = useAuth()
   const { profile, loading: profileLoading, getPhoneNumber } = useUserProfile()
   const { selectedCountry, setSelectedCountry } = useCountrySelector('LK')
+  const { toasts, showError, showSuccess, removeToast } = useToast()
   const [loading, setLoading] = useState(false)
 
   // Detect edit mode
@@ -82,7 +85,7 @@ export default function PostWantedPage() {
 
           if (error) {
             console.error('[WANTED POST] Error loading wanted request:', error)
-            alert('Error loading wanted request. Please try again.')
+            showError('Error loading wanted request. Please try again.', 4000)
             router.push('/wanted')
             return
           }
@@ -447,8 +450,9 @@ export default function PostWantedPage() {
 
         if (error) throw error
 
+        showSuccess('Wanted request updated successfully!', 2000)
         // Redirect to profile with success message
-        router.push('/profile?updated=wanted-request')
+        setTimeout(() => router.push('/profile?updated=wanted-request'), 1000)
       } else {
         // Create new wanted request
         const { data, error } = await supabase.from('wanted_requests').insert([
@@ -474,16 +478,19 @@ export default function PostWantedPage() {
 
         if (error) throw error
 
+        showSuccess('Wanted request created successfully! Redirecting...', 2000)
         // Redirect to wanted page or paid features page based on if data was returned
-        if (data && data.length > 0) {
-          router.push(`/wanted-request/paid-features?new=true&request_id=${data[0].id}`)
-        } else {
-          // Fallback if no data returned - just go to wanted page with success
-          router.push('/wanted?posted=success')
-        }
+        setTimeout(() => {
+          if (data && data.length > 0) {
+            router.push(`/wanted-request/paid-features?new=true&request_id=${data[0].id}`)
+          } else {
+            // Fallback if no data returned - just go to wanted page with success
+            router.push('/wanted?posted=success')
+          }
+        }, 1000)
       }
     } catch (error) {
-      alert('Error posting request. Please try again.')
+      showError('Error posting request. Please try again.', 4000)
       console.error(error)
     } finally {
       setLoading(false)
@@ -1085,6 +1092,13 @@ export default function PostWantedPage() {
         </form>
 
        </div>
+
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-50 flex flex-col gap-2">
+        {toasts.map((toast) => (
+          <Toast key={toast.id} {...toast} onClose={removeToast} />
+        ))}
+      </div>
     </div>
   )
 }

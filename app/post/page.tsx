@@ -109,7 +109,7 @@ export default function EnhancedPostVehiclePage() {
   const { user, loading: authLoading } = useAuth()
   const { profile, loading: profileLoading, getPhoneNumber, getWhatsAppNumber } = useUserProfile()
   const { getAIToken } = useRecaptcha()
-  const { toasts, showError, removeToast } = useToast()
+  const { toasts, showError, showSuccess, showWarning, showInfo, removeToast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const vehicleDropdownRef = useRef<HTMLDivElement>(null)
   const descriptionGeneratorRef = useRef<DescriptionGeneratorRef>(null)
@@ -520,7 +520,7 @@ export default function EnhancedPostVehiclePage() {
     const files = validFiles
     
     if (files.length + formData.images.length > 15) {
-      alert('Maximum 15 images allowed')
+      showError('Maximum 15 images allowed', 3000)
       return
     }
     
@@ -551,7 +551,7 @@ export default function EnhancedPostVehiclePage() {
     const files = validFiles
     
     if (files.length + formData.images.length > 15) {
-      alert('Maximum 15 images allowed')
+      showError('Maximum 15 images allowed', 3000)
       return
     }
     
@@ -567,7 +567,7 @@ export default function EnhancedPostVehiclePage() {
   
   const generateAIDescription = async () => {
     if (!formData.make || !formData.model || !formData.year) {
-      alert('Please fill in make, model, and year first')
+      showWarning('Please fill in make, model, and year first', 3000)
       return
     }
     
@@ -599,9 +599,10 @@ export default function EnhancedPostVehiclePage() {
       const data = await response.json()
       if (data.description) {
         setFormData(prev => ({ ...prev, description: data.description }))
+        showSuccess('Description generated successfully!', 3000)
       }
     } catch (error) {
-      alert('Error generating description')
+      showError('Failed to generate description. Please try again.', 4000)
     } finally {
       setAiLoading(false)
     }
@@ -649,9 +650,8 @@ export default function EnhancedPostVehiclePage() {
     try {
       // Check if user is authenticated
       const { data: { user }, error: authError } = await supabase.auth.getUser()
-      
+
       if (authError || !user) {
-        alert('Please log in to post a listing')
         router.push('/login')
         return
       }
@@ -660,7 +660,11 @@ export default function EnhancedPostVehiclePage() {
       let imageUrls: string[] = []
       if (formData.images.length > 0) {
         console.log('Uploading images...')
+        showInfo('Uploading images...', 2000)
         imageUrls = await uploadImages(formData.images, user.id)
+        if (imageUrls.length > 0) {
+          showSuccess(`${imageUrls.length} image(s) uploaded successfully`, 3000)
+        }
         console.log('Images uploaded:', imageUrls)
       }
 
@@ -782,8 +786,9 @@ export default function EnhancedPostVehiclePage() {
         console.log('Listing updated successfully:', data)
 
         localStorage.removeItem('vehiclePostDraft')
+        showSuccess('Listing updated successfully!', 2000)
         // Redirect back to profile with success message
-        router.push('/profile?updated=true')
+        setTimeout(() => router.push('/profile?updated=true'), 1000)
 
       } else {
         // Create new listing
@@ -811,15 +816,16 @@ export default function EnhancedPostVehiclePage() {
         console.log('Listing created successfully:', data)
 
         localStorage.removeItem('vehiclePostDraft')
+        showSuccess('Listing created successfully! Redirecting...', 2000)
         // Redirect to paid features page with success message
-        router.push(`/post/paid-features?new=true&listing_id=${data.id}`)
+        setTimeout(() => router.push(`/post/paid-features?new=true&listing_id=${data.id}`), 1000)
       }
     } catch (error: any) {
       console.error('Error posting vehicle:', error)
       
       // Provide more specific error messages
       let errorMessage = 'Error posting vehicle. Please try again.'
-      
+
       if (error?.message) {
         if (error.message.includes('user_id')) {
           errorMessage = 'Please log in to post a listing'
@@ -827,12 +833,16 @@ export default function EnhancedPostVehiclePage() {
           errorMessage = 'A similar listing already exists'
         } else if (error.message.includes('violates')) {
           errorMessage = 'Please check all required fields are filled correctly'
+        } else if (error.message.includes('timeout')) {
+          errorMessage = 'Request timed out. Please check your connection.'
+        } else if (error.message.includes('42501') || error.message.includes('policy')) {
+          errorMessage = 'Permission denied. Please try logging out and back in.'
         } else {
           errorMessage = `Error: ${error.message}`
         }
       }
-      
-      alert(errorMessage)
+
+      showError(errorMessage, 5000)
     } finally {
       setLoading(false)
     }
