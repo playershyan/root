@@ -537,57 +537,85 @@ export default function EnhancedPostVehiclePage() {
     }
   }
   
+  // Helper to validate image file
+  const isValidImageFile = (file: File): boolean => {
+    // Check file type if available
+    if (file.type && file.type.startsWith('image/')) {
+      return true
+    }
+
+    // Fallback to file extension check if type is missing
+    const ext = file.name?.toLowerCase().split('.').pop()
+    return ext ? ['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif'].includes(ext) : false
+  }
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
-    
+
     const allFiles = Array.from(e.dataTransfer.files)
     const validFiles: File[] = []
+    let hasInvalidFiles = false
 
     for (const file of allFiles) {
-      if (!file.type.startsWith('image/')) continue
+      if (!isValidImageFile(file)) {
+        hasInvalidFiles = true
+        continue
+      }
 
       if (file.size > 10 * 1024 * 1024) {
-        showError('Image exceeds 10MB')
+        showError(`Image "${file.name}" exceeds 10MB`, { duration: 5000 })
         continue
       }
 
       validFiles.push(file)
     }
 
+    if (hasInvalidFiles) {
+      showError('Some files were not images and were skipped. Allowed types: JPG, JPEG, PNG, WebP, AVIF', { duration: 5000 })
+    }
+
     const files = validFiles
-    
+
     if (files.length + formData.images.length > 15) {
-      alert('Maximum 15 images allowed')
+      showError('Maximum 15 images allowed', { duration: 5000 })
       return
     }
-    
+
     setFormData(prev => ({ ...prev, images: [...prev.images, ...files] }))
   }
-  
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const allFiles = Array.from(e.target.files || [])
     const validFiles: File[] = []
+    let hasInvalidFiles = false
 
     for (const file of allFiles) {
-      if (!file.type.startsWith('image/')) continue
+      if (!isValidImageFile(file)) {
+        hasInvalidFiles = true
+        continue
+      }
 
       if (file.size > 10 * 1024 * 1024) {
-        showError('Image exceeds 10MB')
+        showError(`Image "${file.name}" exceeds 10MB`, { duration: 5000 })
         continue
       }
 
       validFiles.push(file)
     }
 
+    if (hasInvalidFiles) {
+      showError('Some files were not images and were skipped. Allowed types: JPG, JPEG, PNG, WebP, AVIF', { duration: 5000 })
+    }
+
     const files = validFiles
-    
+
     if (files.length + formData.images.length > 15) {
-      alert('Maximum 15 images allowed')
+      showError('Maximum 15 images allowed', { duration: 5000 })
       return
     }
-    
+
     setFormData(prev => ({ ...prev, images: [...prev.images, ...files] }))
   }
   
@@ -600,15 +628,15 @@ export default function EnhancedPostVehiclePage() {
   
   const generateAIDescription = async () => {
     if (!formData.make || !formData.model || !formData.year) {
-      alert('Please fill in make, model, and year first')
+      showError('Please fill in make, model, and year first', { duration: 5000 })
       return
     }
-    
+
     setAiLoading(true)
     try {
       // Get reCAPTCHA token before making the request
       const recaptchaToken = await getAIToken()
-      
+
       const response = await fetch('/api/ai-description', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -628,13 +656,13 @@ export default function EnhancedPostVehiclePage() {
           recaptchaToken
         }),
       })
-      
+
       const data = await response.json()
       if (data.description) {
         setFormData(prev => ({ ...prev, description: data.description }))
       }
     } catch (error) {
-      alert('Error generating description')
+      showError('Error generating description. Please try again.', { duration: 5000 })
     } finally {
       setAiLoading(false)
     }

@@ -10,6 +10,7 @@ export interface ToastProps {
   message: string
   type: ToastType
   duration?: number
+  persistent?: boolean
   onClose?: (id: string) => void
 }
 
@@ -40,7 +41,7 @@ const toastStyles = {
   }
 }
 
-export function Toast({ id, message, type, duration = 3000, onClose }: ToastProps) {
+export function Toast({ id, message, type, duration = 5000, persistent = false, onClose }: ToastProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [isLeaving, setIsLeaving] = useState(false)
   const style = toastStyles[type]
@@ -52,13 +53,15 @@ export function Toast({ id, message, type, duration = 3000, onClose }: ToastProp
       setIsVisible(true)
     })
 
-    // Auto close after duration
-    const timer = setTimeout(() => {
-      handleClose()
-    }, duration)
+    // Auto close after duration (unless persistent)
+    if (!persistent) {
+      const timer = setTimeout(() => {
+        handleClose()
+      }, duration)
 
-    return () => clearTimeout(timer)
-  }, [duration])
+      return () => clearTimeout(timer)
+    }
+  }, [duration, persistent])
 
   const handleClose = () => {
     setIsLeaving(true)

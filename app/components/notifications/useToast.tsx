@@ -3,16 +3,22 @@
 import { useState, useCallback } from 'react'
 import { ToastProps, ToastType } from './Toast'
 
+export interface ShowErrorOptions {
+  duration?: number
+  persistent?: boolean
+}
+
 export function useToast() {
   const [toasts, setToasts] = useState<ToastProps[]>([])
 
-  const showToast = useCallback((message: string, type: ToastType = 'info', duration?: number) => {
+  const showToast = useCallback((message: string, type: ToastType = 'info', duration?: number, persistent?: boolean) => {
     const id = Date.now().toString()
     const toast: ToastProps = {
       id,
       message,
       type,
-      duration
+      duration: persistent ? undefined : duration,
+      persistent
     }
     setToasts(prev => [...prev, toast])
     return id
@@ -22,8 +28,11 @@ export function useToast() {
     setToasts(prev => prev.filter(toast => toast.id !== id))
   }, [])
 
-  const showError = useCallback((message: string, duration = 2000) => {
-    return showToast(message, 'error', duration)
+  const showError = useCallback((message: string, options?: ShowErrorOptions | number) => {
+    // Support both old API (number) and new API (options object)
+    const duration = typeof options === 'number' ? options : options?.duration ?? 5000
+    const persistent = typeof options === 'object' ? options.persistent : false
+    return showToast(message, 'error', duration, persistent)
   }, [showToast])
 
   const showSuccess = useCallback((message: string, duration = 3000) => {
