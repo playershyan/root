@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import CountrySelector, { useCountrySelector } from '@/app/components/CountrySelector'
 import { formatPhoneForStorage, formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
-import DescriptionGenerator from '@/app/components/vehicle-forms/DescriptionGenerator'
+import DescriptionGenerator, { DescriptionGeneratorRef } from '@/app/components/vehicle-forms/DescriptionGenerator'
 import {
   DISTRICTS,
   getCitiesByDistrictId,
@@ -112,6 +112,7 @@ export default function EnhancedPostVehiclePage() {
   const { toasts, showError, removeToast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const vehicleDropdownRef = useRef<HTMLDivElement>(null)
+  const descriptionGeneratorRef = useRef<DescriptionGeneratorRef>(null)
 
   // Detect edit mode
   const isEditMode = searchParams.get('edit') !== null
@@ -445,25 +446,33 @@ export default function EnhancedPostVehiclePage() {
     // Auto-scroll to first error field
     if (Object.keys(newErrors).length > 0) {
       const firstErrorField = Object.keys(newErrors)[0]
-      setTimeout(() => {
-        let element: HTMLElement | null = null
-        
-        // Special handling for vehicleType
-        if (firstErrorField === 'vehicleType') {
-          element = document.querySelector('.vehicle-type-section') as HTMLElement
-        } else {
-          element = document.querySelector(`[name="${firstErrorField}"]`) as HTMLElement
-        }
-        
-        if (element) {
-          element.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'center',
-            inline: 'nearest' 
-          })
-          if (element.focus) element.focus()
-        }
-      }, 100)
+
+      // Special handling for description field - expand and focus the generator
+      if (firstErrorField === 'description') {
+        setTimeout(() => {
+          descriptionGeneratorRef.current?.expandAndFocus()
+        }, 100)
+      } else {
+        setTimeout(() => {
+          let element: HTMLElement | null = null
+
+          // Special handling for vehicleType
+          if (firstErrorField === 'vehicleType') {
+            element = document.querySelector('.vehicle-type-section') as HTMLElement
+          } else {
+            element = document.querySelector(`[name="${firstErrorField}"]`) as HTMLElement
+          }
+
+          if (element) {
+            element.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+              inline: 'nearest'
+            })
+            if (element.focus) element.focus()
+          }
+        }, 100)
+      }
     }
     
     return Object.keys(newErrors).length === 0
@@ -1221,6 +1230,7 @@ export default function EnhancedPostVehiclePage() {
 
               {/* Description Generator with breathing effect */}
               <DescriptionGenerator
+                ref={descriptionGeneratorRef}
                 formData={formData}
                 setFormData={setFormData}
                 onGenerate={generateAIDescription}

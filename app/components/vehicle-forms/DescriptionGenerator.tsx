@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react'
 import { Sparkles, FileText, ChevronDown } from 'lucide-react'
 
 interface DescriptionGeneratorProps {
@@ -11,18 +11,38 @@ interface DescriptionGeneratorProps {
   errors?: Record<string, string>
 }
 
+export interface DescriptionGeneratorRef {
+  expandAndFocus: () => void
+}
 
-export default function DescriptionGenerator({
+const DescriptionGenerator = forwardRef<DescriptionGeneratorRef, DescriptionGeneratorProps>(({
   formData,
   setFormData,
   onGenerate,
   aiLoading,
   errors
-}: DescriptionGeneratorProps) {
+}, ref) => {
   const [isExpanded, setIsExpanded] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // Expose methods to parent component
+  useImperativeHandle(ref, () => ({
+    expandAndFocus: () => {
+      setIsExpanded(true)
+      setTimeout(() => {
+        containerRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest'
+        })
+        setTimeout(() => {
+          textareaRef.current?.focus()
+        }, 300)
+      }, 100)
+    }
+  }))
 
   // Auto-expand when description is present
   useEffect(() => {
@@ -192,4 +212,8 @@ export default function DescriptionGenerator({
       )}
     </div>
   )
-}
+})
+
+DescriptionGenerator.displayName = 'DescriptionGenerator'
+
+export default DescriptionGenerator

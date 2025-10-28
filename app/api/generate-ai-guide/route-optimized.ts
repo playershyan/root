@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import OpenAI from 'openai'
 
-// Initialize Gemini with streaming support
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+// Initialize OpenAI
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
+})
 
 // Simple in-memory cache with TTL
 const cache = new Map<string, { data: any; timestamp: number }>()
@@ -23,17 +25,17 @@ export async function POST(request: Request) {
       return NextResponse.json(cached.data)
     }
 
-    // Use faster model and simpler prompt
-    const model = genAI.getGenerativeModel({ 
-      model: 'gemini-1.5-flash',
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 500, // Limit output for faster response
-      }
-    })
-
-    // Simplified, focused prompt
-    const prompt = `Create a quick buying guide for ${searchContext} vehicles in Sri Lanka.
+    // Use OpenAI for generation
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-5-mini',
+      messages: [
+        {
+          role: 'system',
+          content: 'You generate concise HTML buying guides for vehicles in Sri Lanka. Be factual and technical.'
+        },
+        {
+          role: 'user',
+          content: `Create a quick buying guide for ${searchContext} vehicles in Sri Lanka.
 
 Format as HTML with these sections only:
 1. A 2-line overview
@@ -48,11 +50,14 @@ Example format:
 <li><strong>Documents:</strong> What to verify</li>
 <li><strong>Test Drive:</strong> What to test</li>
 </ul>`
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 500,
+    })
 
-    // Generate content
-    const result = await model.generateContent(prompt)
-    const response = result.response
-    const text = response.text()
+    // Extract generated text
+    const text = completion.choices[0]?.message?.content || ''
     
     // Simple response without complex parsing
     const responseData = { 

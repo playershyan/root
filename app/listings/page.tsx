@@ -492,17 +492,21 @@ export default function AdvancedListingsPage() {
     } catch (error) {
       console.error('Error generating AI guide:', error)
       
-      // Fallback content in case of API failure
+      // Fallback content with technical inspection protocol
       const fallbackCompact = `
-        <p style="font-size: 0.75rem; font-style: italic; color: #666; margin-bottom: 1rem;">AI guide temporarily unavailable. Please try again later.</p>
-        <h3>General Buying Tips for ${selectedMake !== 'All Makes' ? selectedMake : (searchTerm || 'Vehicles')}</h3>
-        <p><strong>Essential Checks:</strong> Always inspect service history, test drive thoroughly, and verify legal documentation before purchase.</p>
+        <p>Standard pre-purchase inspection protocol for ${selectedMake !== 'All Makes' ? selectedMake : (searchTerm || 'used vehicles')}. Applicable to most vehicles in Sri Lankan market conditions.</p>
+        <ul>
+          <li><strong>Engine:</strong> Verify compression uniformity. Check oil condition, coolant level, exhaust smoke color. Listen for irregular idle or metal-on-metal sounds.</li>
+          <li><strong>Body:</strong> Inspect wheel arches, underbody, door sills for rust perforation. Check panel gaps, paint thickness variation, frame alignment.</li>
+          <li><strong>Documents:</strong> Confirm vehicle registration certificate, revenue license validity, insurance coverage, service book stamps matching odometer.</li>
+          <li><strong>Test Drive:</strong> Evaluate clutch bite point, gear synchronization, brake pedal feel, steering play, suspension noise over uneven surfaces.</li>
+        </ul>
       `
       const fallbackDetailed = `
         ${fallbackCompact}
-        <p><strong>Smart Strategy:</strong> Research market prices, get independent inspection, and negotiate based on vehicle condition.</p>
-        <p><strong>Documentation:</strong> Verify ownership papers, revenue license, and insurance validity.</p>
-        <p><strong>Test Drive:</strong> Check engine performance, brakes, steering, and all electrical systems.</p>
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e5e5;">
+          <p style="color: #666; font-size: 0.9rem;">AI guide unavailable. Generic inspection checklist provided.</p>
+        </div>
       `
       setAIGuideContent(fallbackCompact)
       setAIGuideDetailed(fallbackDetailed)

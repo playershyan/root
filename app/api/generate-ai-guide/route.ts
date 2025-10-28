@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import OpenAI from 'openai'
 import { verifyRecaptcha, captchaGuardFailJson } from '@/lib/security/recaptcha'
 import { incr, incrTrend } from '@/lib/security/metrics'
 
-// Initialize Gemini with optimized settings
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+// Initialize OpenAI with API key
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
+})
 
 // Simple in-memory cache with TTL
 const cache = new Map<string, { data: any; timestamp: number }>()
@@ -40,52 +42,58 @@ export async function POST(request: Request) {
       return NextResponse.json(cached.data)
     }
 
-    // Use faster model with optimized configuration
-    const model = genAI.getGenerativeModel({ 
-      model: 'gemini-1.5-flash', // Faster than 2.0
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 400, // Limit output for faster response
-      }
+    // Use GPT model for fast, cost-effective generation
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-5-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `You are generating concise vehicle buying guides for Sri Lankan users.
+
+Rules:
+- Output format: valid HTML only
+- Word limit: maximum 150 words
+- Tone: completely neutral, factual, and technical
+- Forbidden: hype language, sales talk, adjectives of persuasion, enthusiasm, filler words, exclamation marks, opinions, or emotion
+- Sentences must be short, precise, and information-dense
+- Contextualise to Sri Lankan conditions (roads, climate, resale, fuel quality) only when relevant
+- Return the HTML snippet only. No headings, introductions, disclaimers, or commentary.`
+        },
+        {
+          role: 'user',
+          content: `Generate a buying guide for ${searchContext}.
+
+Structure:
+<p>Two-line overview of the vehicle's general reputation and suitability for Sri Lanka.</p>
+<ul>
+  <li><strong>Engine:</strong> Specific mechanical checks or warning signs.</li>
+  <li><strong>Body:</strong> Physical inspection points for wear, rust, or damage.</li>
+  <li><strong>Documents:</strong> Papers to confirm authenticity and transferability.</li>
+  <li><strong>Test Drive:</strong> Key aspects to observe while driving.</li>
+</ul>`
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 400, // Limit output for faster response
     })
 
-    // Simplified, focused prompt for faster generation
-    const prompt = `Create a concise buying guide for ${searchContext} vehicles in Sri Lanka.
-
-Return HTML format with:
-1. A 2-line overview paragraph about why this vehicle is a good choice
-2. A list with exactly 4 inspection points
-
-Format:
-<p style="color: #2563eb; font-weight: 500;">[Brief overview of the vehicle's strengths and value]</p>
-<ul style="margin-top: 0.5rem;">
-<li><strong>Engine:</strong> [What to check - keep it positive and simple]</li>
-<li><strong>Body & Interior:</strong> [Inspection tips]</li>
-<li><strong>Documents:</strong> [What papers to verify]</li>
-<li><strong>Test Drive:</strong> [What to test during driving]</li>
-</ul>
-
-Keep total under 150 words. Be encouraging and practical.`
-
-    // Generate content
-    const result = await model.generateContent(prompt)
-    const response = result.response
-    const text = response.text()
+    // Extract generated text
+    const text = completion.choices[0]?.message?.content || ''
     
     // Clean up any markdown formatting
     let cleanedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     cleanedText = cleanedText.replace(/\*(.*?)\*/g, '<em>$1</em>')
     
-    // For detailed view, add some extra helpful content
+    // For detailed view, add factual procedural notes
     const detailedContent = `
       ${cleanedText}
       <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e5e5;">
-        <p style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;"><strong>Pro Tips:</strong></p>
+        <p style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;"><strong>Additional verification steps:</strong></p>
         <ul style="font-size: 0.9rem; color: #666;">
-          <li>Best time to negotiate is end of month when dealers have targets</li>
-          <li>Always get a pre-purchase inspection from a trusted mechanic</li>
-          <li>Check online reviews and owner forums for common issues</li>
-          <li>Compare prices across multiple listings before making an offer</li>
+          <li>Request independent mechanical inspection before finalizing purchase agreement.</li>
+          <li>Cross-reference odometer reading with service records and wear indicators (pedal rubber, seat bolster, steering wheel).</li>
+          <li>Confirm absence of finance liens or legal encumbrances via Department of Motor Traffic records.</li>
+          <li>Compare asking price against recent market transactions for identical specification and condition.</li>
         </ul>
       </div>`
     
@@ -122,21 +130,21 @@ Keep total under 150 words. Be encouraging and practical.`
     // Get searchContext from request body for fallback
     const { searchContext } = await request.json().catch(() => ({ searchContext: '' }))
     
-    // Return a helpful fallback instantly instead of error
+    // Return neutral fallback content with technical inspection protocol
     const fallbackContent = `
-      <p style="color: #2563eb; font-weight: 500;">Smart buying tips for ${searchContext || 'this vehicle'}:</p>
-      <ul style="margin-top: 0.5rem;">
-        <li><strong>Engine:</strong> Check for smooth idle, no unusual noises or smoke</li>
-        <li><strong>Body & Interior:</strong> Inspect for rust, check seat wear and dashboard condition</li>
-        <li><strong>Documents:</strong> Verify ownership papers, service records, and insurance</li>
-        <li><strong>Test Drive:</strong> Test all gears, brakes, steering, and AC system</li>
+      <p>Standard pre-purchase inspection protocol for ${searchContext || 'used vehicles'}. Applicable to most vehicles in Sri Lankan market conditions.</p>
+      <ul>
+        <li><strong>Engine:</strong> Verify compression uniformity. Check oil condition, coolant level, exhaust smoke color. Listen for irregular idle or metal-on-metal sounds.</li>
+        <li><strong>Body:</strong> Inspect wheel arches, underbody, door sills for rust perforation. Check panel gaps, paint thickness variation, frame alignment.</li>
+        <li><strong>Documents:</strong> Confirm vehicle registration certificate, revenue license validity, insurance coverage, service book stamps matching odometer.</li>
+        <li><strong>Test Drive:</strong> Evaluate clutch bite point, gear synchronization, brake pedal feel, steering play, suspension noise over uneven surfaces.</li>
       </ul>`
-    
+
     const fallbackResponse = {
       compact: fallbackContent,
       detailed: `${fallbackContent}
         <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e5e5;">
-          <p style="color: #666; font-size: 0.9rem;"><em>AI guide temporarily unavailable. These are general inspection points.</em></p>
+          <p style="color: #666; font-size: 0.9rem;">AI guide unavailable. Generic inspection checklist provided.</p>
         </div>`
     }
     
