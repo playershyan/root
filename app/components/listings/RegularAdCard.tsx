@@ -71,6 +71,7 @@ export default function RegularAdCard({
   }
 
   return (
+    <>
     <Link href={`/listings/${listing.id}`} className="block">
       <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100 group cursor-pointer">
         {/* Image Section */}
@@ -202,10 +203,10 @@ export default function RegularAdCard({
             <span>{listing.location}</span>
           </div>
         </div>
-      </Link>
-      
-      {/* Action Footer */}
-      <div className="px-4 pb-4">
+        </div>
+        
+        {/* Action Footer */}
+        <div className="px-4 pb-4">
         <div className="flex gap-2">
           <button 
             onClick={(e) => {
@@ -229,9 +230,11 @@ export default function RegularAdCard({
           </button>
         </div>
       </div>
+      </div>
+    </Link>
 
-      {/* Contact Modal */}
-      <ContactModal
+    {/* Contact Modal */}
+    <ContactModal
         isOpen={showContactModal}
         onClose={() => setShowContactModal(false)}
         listing={{
@@ -263,7 +266,6 @@ export default function RegularAdCard({
           user_id: listing.user_id
         }}
       />
-      </div>
-    </Link>
+    </>
   )
 }
