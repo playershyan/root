@@ -60,7 +60,8 @@
       "Bash(git commit:*)",
       "WebFetch(domain:vera.lk)",
       "Bash(git add:*)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(git pull:*)"
     ],
     "deny": []
   }

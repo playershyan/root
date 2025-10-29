@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mobile Filter Component Mockup</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #f5f5f5;
+      padding: 8px;
+      font-size: 14px;
+    }
+
+    /* Main Filter Card */
+    .filter-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      overflow: hidden;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .filter-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .filter-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .active-count {
+      background: #3b82f6;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .filter-list {
+      list-style: none;
+    }
+
+    .filter-item {
+      border-bottom: 1px solid #f3f4f6;
+      transition: background 0.2s;
+    }
+
+    .filter-item:last-child {
+      border-bottom: none;
+    }
+
+    .filter-item:active {
+      background: #f9fafb;
+    }
+
+    .filter-button {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      padding: 12px 16px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    .filter-label {
+      display: flex;
+      align-items: center;
+      color: #374151;
+      font-weight: 500;
+    }
+
+    .filter-icon {
+      display: none;
+    }
+
+    .filter-value {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .filter-value.active {
+      color: #3b82f6;
+      font-weight: 600;
+    }
+
+    .filter-value .badge {
+      background: #dbeafe;
+      color: #1e40af;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .chevron {
+      color: #d1d5db;
+      font-size: 12px;
+    }
+
+    /* Full Page Filter View */
+    .filter-page {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: white;
+      z-index: 1000;
+      animation: slideInRight 0.3s ease-out;
+    }
+
+    .filter-page.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(100%);
+      }
+      to {
+        transform: translateX(0);
+      }
+    }
+
+    .filter-page-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid #e5e7eb;
+      background: white;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .back-button {
+      background: none;
+      border: none;
+      color: #3b82f6;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+    }
+
+    .filter-page-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+      flex: 1;
+    }
+
+    .clear-button {
+      background: none;
+      border: none;
+      color: #ef4444;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 4px 8px;
+    }
+
+    .filter-page-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+    }
+
+    /* Search Box */
+    .search-box {
+      position: relative;
+      margin-bottom: 12px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: #3b82f6;
+    }
+
+    .search-icon {
+      display: none;
+    }
+
+    /* Option List */
+    .option-list {
+      list-style: none;
+    }
+
+    .option-item {
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.2s;
+      font-size: 13px;
+    }
+
+    .option-item:hover {
+      background: #f9fafb;
+    }
+
+    .option-item.selected {
+      background: #eff6ff;
+      color: #1e40af;
+      font-weight: 600;
+    }
+
+    .option-item .check-icon {
+      color: #3b82f6;
+      font-size: 16px;
+    }
+
+    /* Range Inputs */
+    .range-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .range-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .range-label {
+      font-size: 11px;
+      color: #6b7280;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .range-input {
+      padding: 8px 10px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+      width: 100%;
+    }
+
+    .range-input:focus {
+      border-color: #3b82f6;
+    }
+
+    /* Quick Presets */
+    .quick-presets {
+      margin-bottom: 16px;
+    }
+
+    .preset-title {
+      font-size: 11px;
+      color: #6b7280;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .preset-button {
+      padding: 8px 10px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      background: white;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .preset-button:active {
+      background: #f3f4f6;
+    }
+
+    .preset-button.active {
+      background: #3b82f6;
+      color: white;
+      border-color: #3b82f6;
+    }
+
+    /* Checkbox Options */
+    .checkbox-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .checkbox-item:hover {
+      background: #f9fafb;
+    }
+
+    .checkbox {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #d1d5db;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .checkbox-item.checked .checkbox {
+      background: #3b82f6;
+      border-color: #3b82f6;
+    }
+
+    .checkbox .check-mark {
+      color: white;
+      font-size: 12px;
+      display: none;
+    }
+
+    .checkbox-item.checked .check-mark {
+      display: block;
+    }
+
+    .checkbox-label {
+      font-size: 13px;
+      color: #374151;
+      flex: 1;
+    }
+
+    /* Bottom Actions */
+    .filter-actions {
+      padding: 12px 16px;
+      border-top: 1px solid #e5e7eb;
+      background: white;
+      position: sticky;
+      bottom: 0;
+    }
+
+    .apply-button {
+      width: 100%;
+      padding: 12px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .apply-button:active {
+      background: #2563eb;
+    }
+
+    /* Category Grid */
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .category-card {
+      padding: 14px 10px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .category-card:active {
+      background: #f9fafb;
+    }
+
+    .category-card.selected {
+      border-color: #3b82f6;
+      background: #eff6ff;
+    }
+
+    .category-icon {
+      font-size: 20px;
+      margin-bottom: 8px;
+      color: #6b7280;
+    }
+
+    .category-card.selected .category-icon {
+      color: #3b82f6;
+    }
+
+    .category-name {
+      font-size: 12px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 2px;
+    }
+
+    .category-desc {
+      font-size: 10px;
+      color: #9ca3af;
+    }
+
+    .category-card.selected .category-name {
+      color: #1e40af;
+      font-weight: 600;
+    }
+
+    /* Info Text */
+    .info-text {
+      font-size: 11px;
+      color: #6b7280;
+      text-align: center;
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    /* Demo Controls */
+    .demo-controls {
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 12px;
+      background: #1f2937;
+      border-radius: 8px;
+      color: white;
+    }
+
+    .demo-controls h3 {
+      font-size: 12px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .demo-button {
+      padding: 8px 12px;
+      margin: 4px;
+      background: #374151;
+      border: none;
+      color: white;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .demo-button:hover {
+      background: #4b5563;
+    }
+  </style>
+</head>
+<body>
+  <!-- Demo Controls -->
+  <div class="demo-controls">
+    <h3>Demo Navigation</h3>
+    <button class="demo-button" onclick="showMain()">Main Filter Card</button>
+    <button class="demo-button" onclick="showPage('category')">Category Filter</button>
+    <button class="demo-button" onclick="showPage('make')">Make Filter</button>
+    <button class="demo-button" onclick="showPage('price')">Price Range</button>
+    <button class="demo-button" onclick="showPage('year')">Year Range</button>
+    <button class="demo-button" onclick="showPage('fuel')">Fuel Type</button>
+    <button class="demo-button" onclick="showPage('location')">Location</button>
+  </div>
+
+  <!-- Main Filter Card -->
+  <div class="filter-card" id="mainCard">
+    <div class="filter-header">
+      <div class="filter-title">Filters</div>
+      <div class="active-count">3</div>
+    </div>
+    <ul class="filter-list">
+      <li class="filter-item">
+        <button class="filter-button" onclick="showPage('category')">
+          <div class="filter-label">
+            <span>Category</span>
+          </div>
+          <div class="filter-value active">
+            <span class="badge">Car</span>
+            <span class="chevron">›</span>
+          </div>
+        </button>
+      </li>
+      <li class="filter-item">
+        <button class="filter-button" onclick="showPage('location')">
+          <div class="filter-label">
+            <span>Location</span>
+          </div>
+          <div class="filter-value">
+            <span>All Sri Lanka</span>
+            <span class="chevron">›</span>
+          </div>
+        </button>
+      </li>
+      <li class="filter-item">
+        <button class="filter-button" onclick="showPage('make')">
+          <div class="filter-label">
+            <span>Make</span>
+          </div>
+          <div class="filter-value active">
+            <span class="badge">Toyota</span>
+            <span class="chevron">›</span>
+          </div>
+        </button>
+      </li>
+      <li class="filter-item">
+        <button class="filter-button" onclick="showPage('model')">
+          <div class="filter-label">
+            <span>Model</span>
+          </div>
+          <div class="filter-value active">
+            <span class="badge">Prius</span>
+            <span class="chevron">›</span>
+          </div>
+        </button>
+      </li>
+      <li class="filter-item">
+        <button class="filter-button" onclick="showPage('price')">
+          <div class="filter-label">
+            <span>Price</span>
+          </div>
+          <div class="filter-value">
+            <span>Any</span>
+            <span class="chevron">›</span>
+          </div>
+        </button>
+      </li>
+      <li class="filter-item">
+        <button class="filter-button" onclick="showPage('year')">
+          <div class="filter-label">
+            <span>Year</span>
+          </div>
+          <div class="filter-value">
+            <span>Any</span>
+            <span class="chevron">›</span>
+          </div>
+        </button>
+      </li>
+      <li class="filter-item">
+        <button class="filter-button" onclick="showPage('fuel')">
+          <div class="filter-label">
+            <span>Fuel Type</span>
+          </div>
+          <div class="filter-value">
+            <span>Any</span>
+            <span class="chevron">›</span>
+          </div>
+        </button>
+      </li>
+      <li class="filter-item">
+        <button class="filter-button" onclick="showPage('transmission')">
+          <div class="filter-label">
+            <span>Transmission</span>
+          </div>
+          <div class="filter-value">
+            <span>Any</span>
+            <span class="chevron">›</span>
+          </div>
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Category Filter Page -->
+  <div class="filter-page" id="categoryPage">
+    <div class="filter-page-header">
+      <button class="back-button" onclick="showMain()">‹</button>
+      <div class="filter-page-title">Vehicle Category</div>
+      <button class="clear-button" onclick="clearFilter()">Clear</button>
+    </div>
+    <div class="filter-page-content">
+      <div class="info-text">
+        Select the type of vehicle you're looking for
+      </div>
+      <div class="category-grid">
+        <div class="category-card selected">
+          <i class="category-icon fas fa-car"></i>
+          <div class="category-name">Car</div>
+          <div class="category-desc">Sedans, hatches</div>
+        </div>
+        <div class="category-card">
+          <i class="category-icon fas fa-shuttle-van"></i>
+          <div class="category-name">Van</div>
+          <div class="category-desc">Family vans</div>
+        </div>
+        <div class="category-card">
+          <i class="category-icon fas fa-truck"></i>
+          <div class="category-name">Lorry</div>
+          <div class="category-desc">Trucks</div>
+        </div>
+        <div class="category-card">
+          <i class="category-icon fas fa-motorcycle"></i>
+          <div class="category-name">Motorbike</div>
+          <div class="category-desc">Two wheelers</div>
+        </div>
+        <div class="category-card">
+          <i class="category-icon fas fa-taxi"></i>
+          <div class="category-name">Three Wheeler</div>
+          <div class="category-desc">Tuk-tuks</div>
+        </div>
+        <div class="category-card">
+          <i class="category-icon fas fa-bicycle"></i>
+          <div class="category-name">Bicycle</div>
+          <div class="category-desc">Bicycles</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Make Filter Page -->
+  <div class="filter-page" id="makePage">
+    <div class="filter-page-header">
+      <button class="back-button" onclick="showMain()">‹</button>
+      <div class="filter-page-title">Make</div>
+      <button class="clear-button" onclick="clearFilter()">Clear</button>
+    </div>
+    <div class="filter-page-content">
+      <div class="search-box">
+        <input type="text" class="search-input" placeholder="Search makes...">
+      </div>
+      <ul class="option-list">
+        <li class="option-item">
+          <span>All Makes</span>
+        </li>
+        <li class="option-item selected">
+          <span>Toyota</span>
+          <span class="check-icon">✓</span>
+        </li>
+        <li class="option-item">
+          <span>Honda</span>
+        </li>
+        <li class="option-item">
+          <span>Nissan</span>
+        </li>
+        <li class="option-item">
+          <span>Mazda</span>
+        </li>
+        <li class="option-item">
+          <span>Suzuki</span>
+        </li>
+        <li class="option-item">
+          <span>Mitsubishi</span>
+        </li>
+        <li class="option-item">
+          <span>Hyundai</span>
+        </li>
+        <li class="option-item">
+          <span>BMW</span>
+        </li>
+        <li class="option-item">
+          <span>Mercedes-Benz</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Price Range Filter Page -->
+  <div class="filter-page" id="pricePage">
+    <div class="filter-page-header">
+      <button class="back-button" onclick="showMain()">‹</button>
+      <div class="filter-page-title">Price Range</div>
+      <button class="clear-button" onclick="clearFilter()">Clear</button>
+    </div>
+    <div class="filter-page-content">
+      <div class="quick-presets">
+        <div class="preset-title">Quick Presets</div>
+        <div class="preset-grid">
+          <button class="preset-button">Under 1M</button>
+          <button class="preset-button">1M - 3M</button>
+          <button class="preset-button active">3M - 5M</button>
+          <button class="preset-button">5M - 10M</button>
+          <button class="preset-button">10M - 20M</button>
+          <button class="preset-button">20M+</button>
+        </div>
+      </div>
+      <div class="range-inputs">
+        <div class="range-input-group">
+          <label class="range-label">Minimum (LKR)</label>
+          <input type="number" class="range-input" placeholder="0" value="3000000">
+        </div>
+        <div class="range-input-group">
+          <label class="range-label">Maximum (LKR)</label>
+          <input type="number" class="range-input" placeholder="Any" value="5000000">
+        </div>
+      </div>
+    </div>
+    <div class="filter-actions">
+      <button class="apply-button" onclick="showMain()">Apply Price Range</button>
+    </div>
+  </div>
+
+  <!-- Year Range Filter Page -->
+  <div class="filter-page" id="yearPage">
+    <div class="filter-page-header">
+      <button class="back-button" onclick="showMain()">‹</button>
+      <div class="filter-page-title">Year Range</div>
+      <button class="clear-button" onclick="clearFilter()">Clear</button>
+    </div>
+    <div class="filter-page-content">
+      <div class="quick-presets">
+        <div class="preset-title">Quick Presets</div>
+        <div class="preset-grid">
+          <button class="preset-button">2023+</button>
+          <button class="preset-button">2020+</button>
+          <button class="preset-button">2015+</button>
+          <button class="preset-button">2010+</button>
+          <button class="preset-button">2000+</button>
+          <button class="preset-button">Any</button>
+        </div>
+      </div>
+      <div class="range-inputs">
+        <div class="range-input-group">
+          <label class="range-label">From Year</label>
+          <input type="number" class="range-input" placeholder="Any" value="2015">
+        </div>
+        <div class="range-input-group">
+          <label class="range-label">To Year</label>
+          <input type="number" class="range-input" placeholder="Any" value="2023">
+        </div>
+      </div>
+    </div>
+    <div class="filter-actions">
+      <button class="apply-button" onclick="showMain()">Apply Year Range</button>
+    </div>
+  </div>
+
+  <!-- Fuel Type Filter Page -->
+  <div class="filter-page" id="fuelPage">
+    <div class="filter-page-header">
+      <button class="back-button" onclick="showMain()">‹</button>
+      <div class="filter-page-title">Fuel Type</div>
+      <button class="clear-button" onclick="clearFilter()">Clear</button>
+    </div>
+    <div class="filter-page-content">
+      <div class="checkbox-list">
+        <div class="checkbox-item checked">
+          <div class="checkbox">
+            <span class="check-mark">✓</span>
+          </div>
+          <div class="checkbox-label">Petrol</div>
+        </div>
+        <div class="checkbox-item">
+          <div class="checkbox">
+            <span class="check-mark">✓</span>
+          </div>
+          <div class="checkbox-label">Diesel</div>
+        </div>
+        <div class="checkbox-item checked">
+          <div class="checkbox">
+            <span class="check-mark">✓</span>
+          </div>
+          <div class="checkbox-label">Hybrid</div>
+        </div>
+        <div class="checkbox-item">
+          <div class="checkbox">
+            <span class="check-mark">✓</span>
+          </div>
+          <div class="checkbox-label">Electric</div>
+        </div>
+        <div class="checkbox-item">
+          <div class="checkbox">
+            <span class="check-mark">✓</span>
+          </div>
+          <div class="checkbox-label">CNG</div>
+        </div>
+        <div class="checkbox-item">
+          <div class="checkbox">
+            <span class="check-mark">✓</span>
+          </div>
+          <div class="checkbox-label">LPG</div>
+        </div>
+      </div>
+    </div>
+    <div class="filter-actions">
+      <button class="apply-button" onclick="showMain()">Apply Fuel Types (2)</button>
+    </div>
+  </div>
+
+  <!-- Location Filter Page -->
+  <div class="filter-page" id="locationPage">
+    <div class="filter-page-header">
+      <button class="back-button" onclick="showMain()">‹</button>
+      <div class="filter-page-title">Location</div>
+      <button class="clear-button" onclick="clearFilter()">Clear</button>
+    </div>
+    <div class="filter-page-content">
+      <div class="search-box">
+        <input type="text" class="search-input" placeholder="Search districts or cities...">
+      </div>
+      <ul class="option-list">
+        <li class="option-item selected">
+          <span>All of Sri Lanka</span>
+          <span class="check-icon">✓</span>
+        </li>
+        <li class="option-item">
+          <span>Western Province</span>
+        </li>
+        <li class="option-item">
+          <span>Colombo District</span>
+        </li>
+        <li class="option-item">
+          <span>Gampaha District</span>
+        </li>
+        <li class="option-item">
+          <span>Kalutara District</span>
+        </li>
+        <li class="option-item">
+          <span>Central Province</span>
+        </li>
+        <li class="option-item">
+          <span>Kandy District</span>
+        </li>
+        <li class="option-item">
+          <span>Matale District</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    function showMain() {
+      document.getElementById('mainCard').style.display = 'block';
+      document.querySelectorAll('.filter-page').forEach(page => {
+        page.classList.remove('active');
+      });
+    }
+
+    function showPage(pageId) {
+      document.getElementById('mainCard').style.display = 'none';
+      document.querySelectorAll('.filter-page').forEach(page => {
+        page.classList.remove('active');
+      });
+      const targetPage = document.getElementById(pageId + 'Page');
+      if (targetPage) {
+        targetPage.classList.add('active');
+      }
+    }
+
+    function clearFilter() {
+      console.log('Clear filter');
+    }
+
+    // Interactive checkbox click
+    document.querySelectorAll('.checkbox-item').forEach(item => {
+      item.addEventListener('click', function() {
+        this.classList.toggle('checked');
+      });
+    });
+
+    // Interactive option click
+    document.querySelectorAll('.option-item').forEach(item => {
+      item.addEventListener('click', function() {
+        this.parentElement.querySelectorAll('.option-item').forEach(opt => {
+          opt.classList.remove('selected');
+        });
+        this.classList.add('selected');
+      });
+    });
+
+    // Interactive category click
+    document.querySelectorAll('.category-card').forEach(card => {
+      card.addEventListener('click', function() {
+        this.parentElement.querySelectorAll('.category-card').forEach(c => {
+          c.classList.remove('selected');
+        });
+        this.classList.add('selected');
+      });
+    });
+
+    // Interactive preset click
+    document.querySelectorAll('.preset-button').forEach(btn => {
+      btn.addEventListener('click', function() {
+        this.parentElement.querySelectorAll('.preset-button').forEach(b => {
+          b.classList.remove('active');
+        });
+        this.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

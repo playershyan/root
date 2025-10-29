@@ -12,6 +12,7 @@ import TopSpotCard from '@/app/components/listings/TopSpotCard'
 import BoostedCard from '@/app/components/listings/BoostedCard'
 import UrgentListingCard from '@/app/components/listings/UrgentListingCard'
 import PromotionBadges from '@/app/components/listings/PromotionBadges'
+import MobileFilterSheet from '@/app/components/filters/MobileFilterSheet'
 import { getVehicleCategories, getMakesByCategory, getModelsByMake, getCategoryInfo } from '@/lib/constants/vehicleData'
 import { RotationService } from '@/lib/services/rotationService'
 import { PromotionService, PromotedListing } from '@/lib/services/promotionService'
@@ -122,17 +123,9 @@ export default function AdvancedListingsPage() {
   const [imageLoading, setImageLoading] = useState<Record<string, boolean>>({})
   const [imageError, setImageError] = useState<Record<string, boolean>>({})
 
-  // Swipe gesture state for mobile filter panel
-  const [swipeState, setSwipeState] = useState({
-    startX: 0,
-    currentX: 0,
-    isDragging: false
-  })
-
   // Search input ref for focus
   const searchInputRef = useRef<HTMLInputElement>(null)
   const initializedFromQueryRef = useRef(false)
-  const mobileFilterPanelRef = useRef<HTMLDivElement>(null)
 
   // Animated placeholder effect
   useEffect(() => {
@@ -701,57 +694,6 @@ export default function AdvancedListingsPage() {
   const clearFuel = () => setFuelTypes([])
   const clearTransmission = () => setTransmissionTypes([])
   const clearUrgent = () => setUrgentOnly(false)
-
-  // Swipe gesture handlers for mobile filter panel
-  // Implements swipe-to-dismiss: swipe right >= 100px to close panel
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setSwipeState({
-      startX: e.touches[0].clientX,
-      currentX: e.touches[0].clientX,
-      isDragging: true
-    })
-  }
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!swipeState.isDragging) return
-
-    const currentX = e.touches[0].clientX
-    const diff = currentX - swipeState.startX
-
-    // Only allow right swipe (dismiss direction)
-    // Panel slides from left edge, so right swipe = dismiss
-    if (diff > 0) {
-      setSwipeState(prev => ({
-        ...prev,
-        currentX
-      }))
-    }
-  }
-
-  const handleTouchEnd = () => {
-    if (!swipeState.isDragging) return
-
-    const diff = swipeState.currentX - swipeState.startX
-    const threshold = 100 // Minimum swipe distance to dismiss (100px)
-
-    if (diff > threshold) {
-      // Swipe distance exceeds threshold - close panel with animation
-      setExpandedFilters(prev => ({ ...prev, mobile: false }))
-    }
-
-    // Reset swipe state (panel snaps back if threshold not met)
-    setSwipeState({
-      startX: 0,
-      currentX: 0,
-      isDragging: false
-    })
-  }
-
-  const getSwipeTransform = () => {
-    if (!swipeState.isDragging) return 'translateX(0)'
-    const diff = Math.max(0, swipeState.currentX - swipeState.startX)
-    return `translateX(${diff}px)`
-  }
 
   // Render filter content - reusable for both mobile and desktop (progressive loading)
   const renderFilterContent = () => (
@@ -1664,72 +1606,35 @@ export default function AdvancedListingsPage() {
         </div>
       </div>
 
-      {/* Mobile Filter Panel */}
-      {expandedFilters.mobile && (
-        <div
-          className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50"
-          onClick={(e) => {
-            // Close panel when clicking backdrop
-            if (e.target === e.currentTarget) {
-              setExpandedFilters(prev => ({ ...prev, mobile: false }))
-            }
-          }}
-        >
-          <div
-            ref={mobileFilterPanelRef}
-            className="absolute right-0 top-0 h-full w-full max-w-sm bg-white shadow-xl overflow-y-auto"
-            style={{
-              transform: getSwipeTransform(),
-              transition: swipeState.isDragging ? 'none' : 'transform 0.3s ease-out'
-            }}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          >
-            {/* Swipe indicator */}
-            <div className="sticky top-0 bg-white z-10">
-              <div className="flex justify-center py-2">
-                <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
-              </div>
-              <div className="border-b px-4 py-3 flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-semibold">Filters</h3>
-                  {activeFilterCount > 0 && (
-                    <span className="bg-blue-500 text-white rounded-full px-2 py-0.5 text-xs font-semibold">
-                      {activeFilterCount}
-                    </span>
-                  )}
-                </div>
-                <button
-                  onClick={() => setExpandedFilters(prev => ({ ...prev, mobile: false }))}
-                  className="p-2 text-gray-500 hover:text-gray-700"
-                >
-                  <i className="fas fa-times text-xl"></i>
-                </button>
-              </div>
-            </div>
-            <div className="p-4">
-              {activeFilterCount > 0 && (
-                <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-blue-700">
-                      {activeFilterCount} {activeFilterCount === 1 ? 'filter' : 'filters'} active
-                    </span>
-                    <button
-                      onClick={clearAllFilters}
-                      className="text-red-600 hover:text-red-700 text-sm font-medium flex items-center gap-1"
-                    >
-                      <i className="fas fa-times"></i>
-                      Clear all
-                    </button>
-                  </div>
-                </div>
-              )}
-              {renderFilterContent()}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Mobile Filter Sheet */}
+      <MobileFilterSheet
+        isOpen={expandedFilters.mobile}
+        onClose={() => setExpandedFilters(prev => ({ ...prev, mobile: false }))}
+        category={selectedVehicleCategory}
+        onCategoryChange={setSelectedVehicleCategory}
+        selectedLocation={selectedLocation}
+        onLocationChange={handleLocationChange}
+        make={selectedMake}
+        onMakeChange={handleMakeToggle}
+        model={selectedModel}
+        onModelChange={handleModelToggle}
+        minPrice={minPrice}
+        maxPrice={maxPrice}
+        onMinPriceChange={setMinPrice}
+        onMaxPriceChange={setMaxPrice}
+        minYear={minYear}
+        maxYear={maxYear}
+        onMinYearChange={setMinYear}
+        onMaxYearChange={setMaxYear}
+        fuelTypes={fuelTypes}
+        onFuelTypesChange={setFuelTypes}
+        transmissionTypes={transmissionTypes}
+        onTransmissionTypesChange={setTransmissionTypes}
+        urgentOnly={urgentOnly}
+        onUrgentOnlyChange={setUrgentOnly}
+        sortBy={sortBy}
+        onSortByChange={setSortBy}
+      />
     </div>
   )
 }

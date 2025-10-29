@@ -152,7 +152,7 @@ export class PromotionService {
    */
   static async updateListingPromotions(listingId: string): Promise<void> {
     // Get all active promotions for the listing
-    const { data: promotions } = await supabase
+    const { data: promotions } = await supabaseClient
       .from('promotions')
       .select('*')
       .eq('listing_id', listingId)
@@ -294,7 +294,7 @@ export class PromotionService {
    * Get featured listings for homepage
    */
   static async getFeaturedListings(limit = 6): Promise<{ data: any; error: any }> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('listings')
       .select('*')
       .eq('is_featured', true)
@@ -312,7 +312,7 @@ export class PromotionService {
     vehicleType?: string,
     limit = 2
   ): Promise<{ data: any; error: any }> {
-    let query = supabase
+    let query = supabaseClient
       .from('listings')
       .select('*')
       .eq('is_top_spot', true)
@@ -336,7 +336,7 @@ export class PromotionService {
     vehicleType?: string,
     limit = 10
   ): Promise<{ data: any; error: any }> {
-    let query = supabase
+    let query = supabaseClient
       .from('listings')
       .select('*')
       .eq('is_boosted', true)
@@ -360,7 +360,7 @@ export class PromotionService {
     vehicleType?: string,
     limit = 10
   ): Promise<{ data: any; error: any }> {
-    let query = supabase
+    let query = supabaseClient
       .from('listings')
       .select('*')
       .eq('is_urgent', true)
@@ -381,7 +381,7 @@ export class PromotionService {
    * Check if a listing has active promotions
    */
   static async getActivePromotions(listingId: string): Promise<{ data: any; error: any }> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('promotions')
       .select('*')
       .eq('listing_id', listingId)
@@ -417,7 +417,7 @@ export class PromotionService {
    * Get promotion statistics for a listing
    */
   static async getPromotionStats(listingId: string): Promise<{ data: any; error: any }> {
-    const { data: listing, error: listingError } = await supabase
+    const { data: listing, error: listingError } = await supabaseClient
       .from('listings')
       .select('views, clicks, messages_count')
       .eq('id', listingId)
@@ -425,7 +425,7 @@ export class PromotionService {
 
     if (listingError) return { data: null, error: listingError }
 
-    const { data: promotions, error: promotionsError } = await supabase
+    const { data: promotions, error: promotionsError } = await supabaseClient
       .from('promotions')
       .select('*')
       .eq('listing_id', listingId)

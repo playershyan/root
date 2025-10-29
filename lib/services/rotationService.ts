@@ -64,7 +64,7 @@ export class RotationService {
     limit?: number
   ): Promise<{ data: any[]; error: any }> {
     try {
-      let query = supabase
+      let query = supabaseClient
         .from('promotions')
         .select(`
           *,
@@ -159,7 +159,7 @@ export class RotationService {
    */
   static async getRotationStats(promotionType?: string): Promise<{ data: any; error: any }> {
     try {
-      let query = supabase
+      let query = supabaseClient
         .from('promotions')
         .select(`
           id,
