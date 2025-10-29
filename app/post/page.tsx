@@ -224,18 +224,9 @@ export default function EnhancedPostVehiclePage() {
 
           // Set flag BEFORE setFormData to prevent vehicle type useEffect from clearing make/model
           editDataLoadedRef.current = true
-          console.log('[EDIT LOAD] Setting editDataLoadedRef to true')
-          console.log('[EDIT LOAD] editFormData:', {
-            make: editFormData.make,
-            model: editFormData.model,
-            vehicleType: editFormData.vehicleType,
-            grade: editFormData.grade,
-            imageUrls: editFormData.imageUrls?.length
-          })
 
           // Set the form data
           setFormData(editFormData)
-          console.log('[EDIT LOAD] Called setFormData')
 
           // Set location dropdowns
           if (listing.district) {
@@ -370,17 +361,8 @@ export default function EnhancedPostVehiclePage() {
   const editDataLoadedRef = useRef(false)
 
   useEffect(() => {
-    console.log('[VEHICLE TYPE EFFECT] Running with:', {
-      vehicleType: formData.vehicleType,
-      editDataLoadedFlag: editDataLoadedRef.current,
-      prevVehicleType: prevVehicleTypeRef.current,
-      currentMake: formData.make,
-      currentModel: formData.model
-    })
-
     // Skip clearing if we're in edit mode and data just loaded
     if (editDataLoadedRef.current) {
-      console.log('[VEHICLE TYPE EFFECT] Skipping clear - edit data just loaded')
       editDataLoadedRef.current = false
       prevVehicleTypeRef.current = formData.vehicleType as string
       return
@@ -388,18 +370,14 @@ export default function EnhancedPostVehiclePage() {
 
     // Skip clearing on the very first effect run (initialization)
     if (prevVehicleTypeRef.current === undefined) {
-      console.log('[VEHICLE TYPE EFFECT] First run - initializing')
       prevVehicleTypeRef.current = formData.vehicleType as string
       return
     }
 
     // If vehicle type actually changed after initialization, clear dependent fields
     if (prevVehicleTypeRef.current !== formData.vehicleType) {
-      console.log('[VEHICLE TYPE EFFECT] Vehicle type changed - CLEARING make/model')
       prevVehicleTypeRef.current = formData.vehicleType as string
       setFormData(prev => ({ ...prev, make: '', model: '' }))
-    } else {
-      console.log('[VEHICLE TYPE EFFECT] No change - doing nothing')
     }
   }, [formData.vehicleType])
   
@@ -455,24 +433,15 @@ export default function EnhancedPostVehiclePage() {
     const newErrors: Record<string, string> = {}
 
     if (step === 1) {
-      console.log('[VALIDATION] Step 1 formData:', {
-        vehicleType: formData.vehicleType,
-        make: formData.make,
-        model: formData.model,
-        title: formData.title
-      })
-
       if (!formData.vehicleType) newErrors.vehicleType = 'Please select vehicle type'
       if (!formData.title) newErrors.title = 'Title is required'
       if (!formData.make) {
         newErrors.make = 'Make is required'
-        console.log('[VALIDATION] Make is empty - FAILED')
       } else if (formData.make === 'Other' && !formData.customMake) {
         newErrors.make = 'Please enter custom make name'
       }
       if (!formData.model) {
         newErrors.model = 'Model is required'
-        console.log('[VALIDATION] Model is empty - FAILED')
       } else if (formData.model === 'Other' && !formData.customModel) {
         newErrors.model = 'Please enter custom model name'
       }
@@ -775,6 +744,7 @@ export default function EnhancedPostVehiclePage() {
         vehicle_type: formData.vehicleType || null,
         color: formData.color || null,
         engine_capacity: formData.engineCapacity ? parseInt(formData.engineCapacity) : null,
+        grade: formData.trim || formData.grade || null, // Database uses 'grade' column
         location: `${formData.city}, ${formData.district}`,
         city: formData.city,
         district: formData.district,
