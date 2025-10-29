@@ -1,20 +1,32 @@
 /**
  * Client-safe Cloudinary utilities for browser-side URL generation
  * This file contains no Node.js dependencies and can be safely imported in client components
+ *
+ * DEPRECATED: Use @/lib/utils/responsive-images instead for new code
+ * This file maintained for backward compatibility only
  */
+
+import {
+  extractPublicId,
+  getOptimizedUrl,
+  getThumbnailUrl as getOptimizedThumbnailUrl,
+  getMobileUrl as getOptimizedMobileUrl,
+  getGalleryUrl as getOptimizedGalleryUrl,
+  buildCloudinaryUrl as buildOptimizedUrl,
+  type ImageTransformOptions,
+} from '@/lib/utils/responsive-images'
 
 /**
  * Extract public ID from Cloudinary URL
+ * @deprecated Use extractPublicId from @/lib/utils/responsive-images
  */
 export function extractPublicIdFromUrl(url: string): string | null {
-  if (!url.includes('cloudinary.com')) return null
-
-  const match = url.match(/\/v\d+\/(.+?)\.[^.]+$/)
-  return match ? match[1] : null
+  return extractPublicId(url)
 }
 
 /**
  * Build Cloudinary transformation URL (client-safe)
+ * @deprecated Use buildCloudinaryUrl from @/lib/utils/responsive-images
  */
 export function buildCloudinaryUrl(
   publicId: string,
@@ -34,6 +46,7 @@ export function getWatermarkTransform(): string {
 
 /**
  * Generate optimized Cloudinary URL with optional watermark
+ * Now uses enhanced responsive-images utilities with metadata stripping
  */
 export function getOptimizedCloudinaryUrl(
   url: string,
@@ -49,60 +62,50 @@ export function getOptimizedCloudinaryUrl(
     return url
   }
 
-  // Extract public ID
-  const publicId = extractPublicIdFromUrl(url)
-  if (!publicId) return url
-
-  // Build transformations
-  const transformations: string[] = []
-
-  if (options.width) transformations.push(`w_${options.width}`)
-  if (options.height) transformations.push(`h_${options.height}`)
-  transformations.push('c_limit') // Don't upscale
-  transformations.push(`q_${options.quality || 'auto:good'}`)
-  transformations.push('f_auto') // Auto format
-  transformations.push('dpr_auto') // Auto device pixel ratio
-
-  // Add watermark if requested (default true)
-  if (options.watermark !== false) {
-    transformations.push(getWatermarkTransform())
+  // Map quality string to preset or use as-is
+  let qualityValue: 'thumbnail' | 'listing' | 'gallery' | number = 'listing'
+  if (typeof options.quality === 'number') {
+    qualityValue = options.quality
+  } else if (options.quality) {
+    // Map old quality strings to new presets
+    const qualityMap: Record<string, 'thumbnail' | 'listing' | 'gallery'> = {
+      'auto:low': 'thumbnail',
+      'auto:eco': 'thumbnail',
+      'auto:good': 'listing',
+      'auto:best': 'gallery',
+      'auto': 'listing',
+    }
+    qualityValue = qualityMap[options.quality] || 'listing'
   }
 
-  return buildCloudinaryUrl(publicId, transformations)
+  return getOptimizedUrl(url, {
+    width: options.width,
+    height: options.height,
+    quality: qualityValue,
+    watermark: options.watermark !== false,
+  })
 }
 
 /**
  * Generate thumbnail URL with watermark
+ * Now uses optimized configuration with proper quality presets
  */
 export function getThumbnailUrl(url: string, size: number = 400, watermark: boolean = true): string {
-  return getOptimizedCloudinaryUrl(url, {
-    width: size,
-    height: Math.round(size * 0.75), // 4:3 aspect ratio
-    quality: 80,
-    watermark
-  })
+  return getOptimizedThumbnailUrl(url, size, { watermark, quality: 'thumbnail' })
 }
 
 /**
  * Generate mobile-optimized URL with watermark
+ * Now uses responsive breakpoint configuration
  */
 export function getMobileUrl(url: string, watermark: boolean = true): string {
-  return getOptimizedCloudinaryUrl(url, {
-    width: 800,
-    height: 600,
-    quality: 70,
-    watermark
-  })
+  return getOptimizedMobileUrl(url, { watermark, quality: 'listing' })
 }
 
 /**
  * Generate gallery URL with watermark
+ * Now uses optimized gallery configuration
  */
 export function getGalleryUrl(url: string, watermark: boolean = true): string {
-  return getOptimizedCloudinaryUrl(url, {
-    width: 1600,
-    height: 1200,
-    quality: 90,
-    watermark
-  })
+  return getOptimizedGalleryUrl(url, { watermark, quality: 'gallery' })
 }

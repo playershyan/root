@@ -1,6 +1,9 @@
+'use client'
+
 import Image from 'next/image'
 import { useState } from 'react'
-import { getOptimizedCloudinaryUrl } from '@/lib/cloudinary-client'
+import { getOptimizedUrl, generateBlurDataURL, getLQIPUrl } from '@/lib/utils/responsive-images'
+import { getResponsiveSizes } from '@/lib/config/images'
 
 interface OptimizedImageProps {
   src: string
@@ -11,13 +14,27 @@ interface OptimizedImageProps {
   fill?: boolean
   priority?: boolean
   sizes?: string
-  quality?: 'auto' | 'auto:best' | 'auto:good' | 'auto:eco' | 'auto:low' | number
+  quality?: 'thumbnail' | 'listing' | 'gallery' | number
   placeholder?: 'blur' | 'empty'
   blurDataURL?: string
   onError?: () => void
-  watermark?: boolean // New prop to control watermark
+  watermark?: boolean
 }
 
+/**
+ * OptimizedImage component using Next.js Image with Cloudinary optimizations
+ *
+ * Features:
+ * - Automatic format selection (AVIF/WebP/fallback)
+ * - Metadata stripping for reduced file size
+ * - Progressive loading
+ * - Quality presets (thumbnail/listing/gallery)
+ * - Optional watermarking
+ * - Blur placeholder support
+ *
+ * For more advanced responsive features with explicit format sources,
+ * use ResponsiveImage component instead.
+ */
 export default function OptimizedImage({
   src,
   alt,
@@ -26,50 +43,37 @@ export default function OptimizedImage({
   className = '',
   fill = false,
   priority = false,
-  sizes = '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw',
-  quality = 75,
+  sizes,
+  quality = 'listing',
   placeholder = 'empty',
   blurDataURL,
   onError,
-  watermark = true // Default to true for automatic watermarking
+  watermark = true,
 }: OptimizedImageProps) {
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  // Generate blur placeholder
-  const generateBlurDataURL = (w: number, h: number) => {
-    const svg = `
-      <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#f3f4f6;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#e5e7eb;stop-opacity:1" />
-          </linearGradient>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#grad)" />
-      </svg>
-    `
-    return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
-  }
-
-  // Enhanced CDN optimization with watermark support
-  const optimizeCDNUrl = (url: string, width?: number, quality?: 'auto' | 'auto:best' | 'auto:good' | 'auto:eco' | 'auto:low' | number, watermark?: boolean) => {
+  // Enhanced CDN optimization with new utilities
+  const optimizeCDNUrl = (
+    url: string,
+    width?: number,
+    quality?: 'thumbnail' | 'listing' | 'gallery' | number,
+    watermark?: boolean
+  ) => {
     if (!url) return url
 
-    // For Cloudinary URLs - use client-safe method with optimizations
+    // For Cloudinary URLs - use enhanced optimization utilities
     if (url.includes('cloudinary.com')) {
-      return getOptimizedCloudinaryUrl(url, {
+      return getOptimizedUrl(url, {
         width,
         quality,
-        watermark
+        watermark,
+        format: 'auto', // Let Cloudinary choose best format
       })
     }
 
-    // Check if it's a Supabase storage URL
-    // Still supported for backwards compatibility during migration
+    // Supabase storage URLs (backward compatibility)
     if (url.includes('supabase.co/storage/v1/object/public/')) {
-      // Supabase Storage doesn't support URL-based transformations
-      // Return the original URL as-is
       return url
     }
 
@@ -77,7 +81,21 @@ export default function OptimizedImage({
   }
 
   const optimizedSrc = optimizeCDNUrl(src, width, quality, watermark)
-  const defaultBlurDataURL = blurDataURL || (width && height ? generateBlurDataURL(width, height) : undefined)
+
+  // Generate or use provided blur placeholder
+  const defaultBlurDataURL =
+    blurDataURL ||
+    (width && height ? generateBlurDataURL(width, height) : undefined)
+
+  // Generate responsive sizes if not provided
+  const responsiveSizes =
+    sizes ||
+    getResponsiveSizes({
+      mobile: '100vw',
+      tablet: '50vw',
+      desktop: '33vw',
+      default: '33vw',
+    })
 
   const handleError = () => {
     setError(true)
@@ -91,13 +109,24 @@ export default function OptimizedImage({
 
   if (error) {
     return (
-      <div 
+      <div
         className={`bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center ${className}`}
-        style={{ width: width ? `${width}px` : '100%', height: height ? `${height}px` : '100%' }}
+        style={{
+          width: width ? `${width}px` : '100%',
+          height: height ? `${height}px` : '100%',
+        }}
       >
         <div className="text-center">
-          <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+          <svg
+            className="w-8 h-8 text-gray-400 mx-auto mb-2"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fillRule="evenodd"
+              d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+              clipRule="evenodd"
+            />
           </svg>
           <p className="text-xs text-gray-500">Image unavailable</p>
         </div>
@@ -108,7 +137,9 @@ export default function OptimizedImage({
   return (
     <div className="relative">
       {loading && (
-        <div className={`absolute inset-0 animate-pulse bg-gray-200 ${className}`} />
+        <div
+          className={`absolute inset-0 animate-pulse bg-gray-200 ${className}`}
+        />
       )}
       <Image
         src={optimizedSrc}
@@ -117,8 +148,8 @@ export default function OptimizedImage({
         height={height}
         fill={fill}
         priority={priority}
-        sizes={sizes}
-        quality={quality}
+        sizes={responsiveSizes}
+        quality={typeof quality === 'number' ? quality : 75}
         placeholder={defaultBlurDataURL ? 'blur' : placeholder}
         blurDataURL={defaultBlurDataURL}
         className={`${className} ${loading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}

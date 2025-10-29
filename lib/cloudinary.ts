@@ -257,16 +257,19 @@ export class CloudinaryService {
 
   /**
    * Generate thumbnail URL for vera.lk listings with watermark
+   * Enhanced with metadata stripping and progressive loading
    */
   static getThumbnailUrl(publicId: string, size: number = 400, watermark: boolean = true): string {
-    // Build transformation chain
+    // Build transformation chain with optimizations
     const transformation = {
       width: size,
       height: Math.round(size * 0.75), // 4:3 aspect ratio for vehicles
       crop: 'fill',
-      quality: 'auto:low',
-      fetch_format: 'auto',  // Use fetch_format for f_auto
-      dpr: 'auto' // Automatic device pixel ratio
+      quality: 'auto:eco', // Optimized for thumbnails
+      fetch_format: 'auto',
+      dpr: 'auto',
+      // Add optimization flags
+      flags: 'strip_profile.force_strip.progressive',
     }
 
     let transformationChain = [transformation]
@@ -281,18 +284,20 @@ export class CloudinaryService {
       secure: true,
     })
   }
-  
+
   /**
    * Generate mobile-optimized URL with watermark
+   * Enhanced with metadata stripping for faster mobile delivery
    */
   static getMobileUrl(publicId: string, watermark: boolean = true): string {
     const transformation = {
       width: 800,
       height: 600,
       crop: 'limit',
-      quality: 'auto:eco',  // Lower quality for mobile data saving
+      quality: 'auto:good', // Improved from eco for better mobile experience
       fetch_format: 'auto',
-      dpr: 'auto' // Automatic device pixel ratio
+      dpr: 'auto',
+      flags: 'strip_profile.force_strip.progressive',
     }
 
     let transformationChain = [transformation]
@@ -310,15 +315,17 @@ export class CloudinaryService {
 
   /**
    * Generate gallery URL for full-size viewing with watermark
+   * Enhanced with metadata stripping and progressive loading
    */
   static getGalleryUrl(publicId: string, watermark: boolean = true): string {
     const transformation = {
-      width: 1600,
-      height: 1200,
+      width: 1920, // Increased from 1600 for better quality on modern displays
+      height: 1440,
       crop: 'limit',
       quality: 'auto:best',
       fetch_format: 'auto',
-      dpr: 'auto' // Automatic device pixel ratio
+      dpr: 'auto',
+      flags: 'strip_profile.force_strip.progressive',
     }
 
     let transformationChain = [transformation]
