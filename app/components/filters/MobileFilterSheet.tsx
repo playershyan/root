@@ -196,13 +196,13 @@ export default function MobileFilterSheet({
             <h2 className="text-base font-semibold text-gray-900">Filters</h2>
             <div className="flex items-center gap-3">
               {activeCount > 0 && (
-                <span className="bg-blue-600 text-white text-xs font-semibold px-2 py-1 rounded-full">
-                  {activeCount}
+                <span className="bg-white border border-blue-300 text-blue-600 text-xs font-medium px-2.5 py-1 rounded">
+                  {activeCount} {activeCount === 1 ? 'filter' : 'filters'} applied
                 </span>
               )}
               <button
                 onClick={onClose}
-                className="text-gray-600 text-sm font-medium hover:text-gray-900"
+                className="text-blue-600 text-sm font-semibold hover:text-blue-700"
               >
                 Done
               </button>

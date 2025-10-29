@@ -13,6 +13,7 @@ import BoostedWantedCard from '@/app/components/wantedRequests/BoostedWantedCard
 import RegularWantedCard from '@/app/components/wantedRequests/RegularWantedCard'
 import MatchNotificationBanner, { MultiMatchNotificationBanner } from './components/MatchNotificationBanner'
 import { useWantedNotifications } from '@/lib/hooks/useWantedNotifications'
+import MobileWantedFilterSheet from '@/app/components/filters/MobileWantedFilterSheet'
 
 interface WantedRequest {
   id: string
@@ -507,6 +508,16 @@ export default function WantedRequestsPage() {
     setDisplayCount(prev => prev + 6)
   }
 
+  // Calculate active filter count
+  const activeFilterCount =
+    (filters.locations.length > 0 && !filters.locations.includes('All of Sri Lanka') ? 1 : 0) +
+    (filters.make !== 'All Makes' ? 1 : 0) +
+    (filters.model !== 'All Models' ? 1 : 0) +
+    (filters.minBudget || filters.maxBudget ? 1 : 0) +
+    (filters.yearFrom || filters.yearTo ? 1 : 0) +
+    (highPriorityOnly ? 1 : 0) +
+    (sortBy !== 'recent' ? 1 : 0)
+
   const clearFilters = () => {
     setFilters({
       locations: ['All of Sri Lanka'],
@@ -524,7 +535,39 @@ export default function WantedRequestsPage() {
     setSearchTerm('')
     setSearchInput('')
     setHighPriorityOnly(false)
+    setSortBy('recent')
   }
+
+  // Clear individual filter handlers
+  const clearLocation = () => setFilters(prev => ({ ...prev, locations: ['All of Sri Lanka'] }))
+  const clearMake = () => {
+    setFilters(prev => ({
+      ...prev,
+      make: 'All Makes',
+      model: 'All Models'
+    }))
+  }
+  const clearModel = () => setFilters(prev => ({ ...prev, model: 'All Models' }))
+  const clearBudget = () => {
+    setFilters(prev => ({
+      ...prev,
+      minBudget: '',
+      maxBudget: ''
+    }))
+    setTempMinBudget('')
+    setTempMaxBudget('')
+  }
+  const clearYear = () => {
+    setFilters(prev => ({
+      ...prev,
+      yearFrom: '',
+      yearTo: ''
+    }))
+    setTempYearFrom('')
+    setTempYearTo('')
+  }
+  const clearHighPriority = () => setHighPriorityOnly(false)
+  const clearSort = () => setSortBy('recent')
 
   const applyBudgetRange = () => {
     setFilters(prev => ({
@@ -1001,6 +1044,130 @@ export default function WantedRequestsPage() {
 
           {/* Results Grid */}
           <div className="lg:col-span-3">
+            {/* Active Filter Summary Bar */}
+            {activeFilterCount > 0 && (
+              <div className="bg-white p-3 sm:p-4 lg:rounded-lg shadow-sm mb-2 lg:mb-4 border-b lg:border border-gray-200">
+                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                  <h3 className="text-xs sm:text-sm font-semibold text-gray-700">
+                    Active Filters ({activeFilterCount})
+                  </h3>
+                  <button
+                    onClick={clearFilters}
+                    className="text-xs text-red-600 hover:text-red-700 font-medium flex items-center gap-1 whitespace-nowrap"
+                  >
+                    <i className="fas fa-times"></i>
+                    <span className="hidden xs:inline">Clear All</span>
+                    <span className="xs:hidden">Clear</span>
+                  </button>
+                </div>
+                <div className="flex gap-1.5 sm:gap-2 flex-wrap">
+                  {filters.locations.length > 0 && !filters.locations.includes('All of Sri Lanka') && (
+                    <span className="inline-flex items-center gap-1 sm:gap-1.5 bg-green-50 text-green-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium border border-green-200">
+                      <i className="fas fa-map-marker-alt text-xs"></i>
+                      <span className="truncate max-w-[100px] sm:max-w-none">{filters.locations[0]}</span>
+                      <button
+                        onClick={clearLocation}
+                        className="ml-0.5 sm:ml-1 hover:text-green-900 flex-shrink-0"
+                        aria-label="Remove location filter"
+                      >
+                        <i className="fas fa-times text-xs"></i>
+                      </button>
+                    </span>
+                  )}
+                  {filters.make !== 'All Makes' && (
+                    <span className="inline-flex items-center gap-1 sm:gap-1.5 bg-purple-50 text-purple-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium border border-purple-200">
+                      <i className="fas fa-car text-xs"></i>
+                      <span className="truncate max-w-[80px] sm:max-w-none">{filters.make}</span>
+                      <button
+                        onClick={clearMake}
+                        className="ml-0.5 sm:ml-1 hover:text-purple-900 flex-shrink-0"
+                        aria-label="Remove make filter"
+                      >
+                        <i className="fas fa-times text-xs"></i>
+                      </button>
+                    </span>
+                  )}
+                  {filters.model !== 'All Models' && (
+                    <span className="inline-flex items-center gap-1 sm:gap-1.5 bg-indigo-50 text-indigo-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium border border-indigo-200">
+                      <i className="fas fa-car-side text-xs"></i>
+                      <span className="truncate max-w-[80px] sm:max-w-none">{filters.model}</span>
+                      <button
+                        onClick={clearModel}
+                        className="ml-0.5 sm:ml-1 hover:text-indigo-900 flex-shrink-0"
+                        aria-label="Remove model filter"
+                      >
+                        <i className="fas fa-times text-xs"></i>
+                      </button>
+                    </span>
+                  )}
+                  {(filters.minBudget || filters.maxBudget) && (
+                    <span className="inline-flex items-center gap-1 sm:gap-1.5 bg-yellow-50 text-yellow-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium border border-yellow-200">
+                      <i className="fas fa-tag text-xs"></i>
+                      <span className="truncate max-w-[120px] sm:max-w-none">
+                        {filters.minBudget && `Rs. ${parseInt(filters.minBudget).toLocaleString()}`}
+                        {filters.minBudget && filters.maxBudget && ' - '}
+                        {filters.maxBudget && `Rs. ${parseInt(filters.maxBudget).toLocaleString()}`}
+                      </span>
+                      <button
+                        onClick={clearBudget}
+                        className="ml-0.5 sm:ml-1 hover:text-yellow-900 flex-shrink-0"
+                        aria-label="Remove budget filter"
+                      >
+                        <i className="fas fa-times text-xs"></i>
+                      </button>
+                    </span>
+                  )}
+                  {(filters.yearFrom || filters.yearTo) && (
+                    <span className="inline-flex items-center gap-1 sm:gap-1.5 bg-orange-50 text-orange-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium border border-orange-200">
+                      <i className="fas fa-calendar text-xs"></i>
+                      <span className="whitespace-nowrap">
+                        {filters.yearFrom && filters.yearFrom}
+                        {filters.yearFrom && filters.yearTo && ' - '}
+                        {filters.yearTo && filters.yearTo}
+                      </span>
+                      <button
+                        onClick={clearYear}
+                        className="ml-0.5 sm:ml-1 hover:text-orange-900 flex-shrink-0"
+                        aria-label="Remove year filter"
+                      >
+                        <i className="fas fa-times text-xs"></i>
+                      </button>
+                    </span>
+                  )}
+                  {highPriorityOnly && (
+                    <span className="inline-flex items-center gap-1 sm:gap-1.5 bg-red-50 text-red-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium border border-red-200">
+                      <i className="fas fa-star text-xs"></i>
+                      <span className="whitespace-nowrap">High Priority Only</span>
+                      <button
+                        onClick={clearHighPriority}
+                        className="ml-0.5 sm:ml-1 hover:text-red-900 flex-shrink-0"
+                        aria-label="Remove high priority filter"
+                      >
+                        <i className="fas fa-times text-xs"></i>
+                      </button>
+                    </span>
+                  )}
+                  {sortBy !== 'recent' && (
+                    <span className="inline-flex items-center gap-1 sm:gap-1.5 bg-blue-50 text-blue-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium border border-blue-200">
+                      <i className="fas fa-sort text-xs"></i>
+                      <span className="truncate max-w-[120px] sm:max-w-none">
+                        {sortBy === 'budget-high' && 'Budget: High to Low'}
+                        {sortBy === 'budget-low' && 'Budget: Low to High'}
+                        {sortBy === 'urgency' && 'Most Urgent'}
+                      </span>
+                      <button
+                        onClick={clearSort}
+                        className="ml-0.5 sm:ml-1 hover:text-blue-900 flex-shrink-0"
+                        aria-label="Remove sort filter"
+                      >
+                        <i className="fas fa-times text-xs"></i>
+                      </button>
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
             {loading ? (
               <div className="text-center py-8">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -1058,38 +1225,39 @@ export default function WantedRequestsPage() {
       </div>
 
       {/* Mobile Filter Panel */}
-      {expandedFilters.mobile && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50">
-          <div className="absolute right-0 top-0 h-full w-full max-w-sm bg-white shadow-xl overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Filters</h3>
-              <button
-                onClick={() => setExpandedFilters(prev => ({ ...prev, mobile: false }))}
-                className="p-2 text-gray-500 hover:text-gray-700"
-              >
-                <i className="fas fa-times text-xl"></i>
-              </button>
-            </div>
-            <div className="p-3 sm:p-4">
-              <div className="flex justify-between items-center mb-3 sm:mb-4">
-                <span className="text-xs sm:text-sm text-gray-600 font-medium">
-                  {Object.values(filters).filter(f =>
-                    (Array.isArray(f) && f.length > 0) ||
-                    (typeof f === 'string' && f)
-                  ).length} filters applied
-                </span>
-                <button
-                  onClick={clearFilters}
-                  className="text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium whitespace-nowrap"
-                >
-                  Clear all
-                </button>
-              </div>
-              {renderFilterContent()}
-            </div>
-          </div>
-        </div>
-      )}
+      <MobileWantedFilterSheet
+        isOpen={expandedFilters.mobile}
+        onClose={() => setExpandedFilters(prev => ({ ...prev, mobile: false }))}
+        location={filters.locations[0] || null}
+        make={filters.make}
+        model={filters.model}
+        minBudget={filters.minBudget}
+        maxBudget={filters.maxBudget}
+        yearFrom={filters.yearFrom}
+        yearTo={filters.yearTo}
+        sortBy={sortBy}
+        highPriorityOnly={highPriorityOnly}
+        onLocationChange={(location) => handleLocationChange(location ? [location] : ['All of Sri Lanka'])}
+        onMakeChange={(make) => setFilters(prev => {
+          const availableModels = make === 'All Makes' ? ALL_MODELS : (MAKE_MODELS[make as keyof typeof MAKE_MODELS] || [])
+          const currentModelStillAvailable = prev.model === 'All Models' || availableModels.includes(prev.model)
+          return {
+            ...prev,
+            make,
+            model: currentModelStillAvailable ? prev.model : 'All Models'
+          }
+        })}
+        onModelChange={(model) => setFilters(prev => ({ ...prev, model }))}
+        onMinBudgetChange={(budget) => setFilters(prev => ({ ...prev, minBudget: budget }))}
+        onMaxBudgetChange={(budget) => setFilters(prev => ({ ...prev, maxBudget: budget }))}
+        onYearFromChange={(year) => setFilters(prev => ({ ...prev, yearFrom: year }))}
+        onYearToChange={(year) => setFilters(prev => ({ ...prev, yearTo: year }))}
+        onSortByChange={setSortBy}
+        onHighPriorityToggle={setHighPriorityOnly}
+        onClearAll={clearFilters}
+        makes={MAKES}
+        getAvailableModels={getAvailableModels}
+      />
 
       {/* Contact Modal */}
       {selectedRequest && (
