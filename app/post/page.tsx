@@ -117,6 +117,7 @@ export default function EnhancedPostVehiclePage() {
   const [selectedDistrict, setSelectedDistrict] = useState<string>('')
   const [availableCities, setAvailableCities] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
+  const [editDataLoading, setEditDataLoading] = useState(false)
   const { selectedCountry, setSelectedCountry } = useCountrySelector('LK')
   const { selectedCountry: selectedWhatsAppCountry, setSelectedCountry: setSelectedWhatsAppCountry } = useCountrySelector('LK')
   const [aiLoading, setAiLoading] = useState(false)
@@ -140,6 +141,8 @@ export default function EnhancedPostVehiclePage() {
     if (editId && user && !authLoading) {
       const loadListingForEdit = async () => {
         try {
+          // Set loading state
+          setEditDataLoading(true)
           // Clear any existing errors when entering edit mode
           setErrors({})
 
@@ -153,12 +156,14 @@ export default function EnhancedPostVehiclePage() {
           if (error || !listing) {
             console.error('Error loading listing for edit:', error)
             showError('Listing not found or you do not have permission to edit it')
+            setEditDataLoading(false)
             router.push('/profile')
             return
           }
 
           // Transform the database listing to form data
-          const trimValue = listing.trim || listing.grade || ''
+          // Database only has 'grade' column, not 'trim'
+          const gradeValue = listing.grade || ''
           // Ensure make and model are properly set
           const make = listing.make?.trim() || ''
           const model = listing.model?.trim() || ''
@@ -185,8 +190,8 @@ export default function EnhancedPostVehiclePage() {
             vehicleConditionDetails: listing.vehicle_condition_details || '',
             previousOwners: listing.previous_owners?.toString() || '',
             serviceRecordsAvailable: listing.service_records_available || false,
-            trim: trimValue,
-            grade: trimValue,
+            trim: gradeValue,  // Use grade value for trim field (DB only has grade column)
+            grade: gradeValue,
 
             // Pricing and finance
             pricingType: listing.pricing_type as PricingType || 'cash',
@@ -219,12 +224,11 @@ export default function EnhancedPostVehiclePage() {
 
           // Set the form data
           setFormData(editFormData)
-          console.log('[Edit Mode] Loaded listing data:', {
-            make: editFormData.make,
-            model: editFormData.model,
-            trim: editFormData.trim,
-            hasImages: editFormData.imageUrls?.length || 0
-          })
+
+          // Initialize prevVehicleTypeRef to prevent clearing make/model on first render
+          if (prevVehicleTypeRef.current === undefined) {
+            prevVehicleTypeRef.current = editFormData.vehicleType as string
+          }
 
           // Set location dropdowns
           if (listing.district) {
@@ -260,12 +264,13 @@ export default function EnhancedPostVehiclePage() {
             }
           }
 
-          console.log('Loaded listing for edit:', listing)
-          console.log('Form data populated:', editFormData)
+          // Mark edit data as loaded
+          setEditDataLoading(false)
 
         } catch (error) {
           console.error('Error loading listing for edit:', error)
           showError('Failed to load listing data')
+          setEditDataLoading(false)
           router.push('/profile')
         }
       }
@@ -415,26 +420,15 @@ export default function EnhancedPostVehiclePage() {
     const newErrors: Record<string, string> = {}
 
     if (step === 1) {
-      console.log('[Validation] Step 1 data:', {
-        make: formData.make,
-        model: formData.model,
-        makeLength: formData.make?.length,
-        modelLength: formData.model?.length,
-        makeType: typeof formData.make,
-        modelType: typeof formData.model
-      })
-
       if (!formData.vehicleType) newErrors.vehicleType = 'Please select vehicle type'
       if (!formData.title) newErrors.title = 'Title is required'
       if (!formData.make) {
         newErrors.make = 'Make is required'
-        console.log('[Validation] Make validation failed - empty value')
       } else if (formData.make === 'Other' && !formData.customMake) {
         newErrors.make = 'Please enter custom make name'
       }
       if (!formData.model) {
         newErrors.model = 'Model is required'
-        console.log('[Validation] Model validation failed - empty value')
       } else if (formData.model === 'Other' && !formData.customModel) {
         newErrors.model = 'Please enter custom model name'
       }
@@ -513,11 +507,12 @@ export default function EnhancedPostVehiclePage() {
   }
   
   const handleNext = () => {
-    console.log('[handleNext] Current formData:', {
-      make: formData.make,
-      model: formData.model,
-      currentStep
-    })
+    // Don't allow navigation if edit data is still loading
+    if (editDataLoading) {
+      showWarning('Please wait while we load your listing data...')
+      return
+    }
+
     if (validateStep(currentStep)) {
       setCurrentStep(prev => Math.min(prev + 1, 3))
     }
