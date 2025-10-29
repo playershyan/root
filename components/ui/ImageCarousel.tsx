@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import OptimizedImage from './OptimizedImage'
+import ResponsiveImage from './ResponsiveImage'
 
 interface ImageCarouselProps {
   images: string[]
@@ -68,13 +68,20 @@ export default function ImageCarousel({
     <div className={`relative ${className}`}>
       {/* Main Image */}
       <div className="relative h-full">
-        <OptimizedImage
+        <ResponsiveImage
           src={images[currentIndex]}
           alt={`${alt} - Image ${currentIndex + 1}`}
-          fill
           priority={priority && currentIndex === 0}
-          className="object-cover"
+          quality="gallery"
+          watermark={true}
+          objectFit="cover"
           onError={() => handleImageError(currentIndex)}
+          sizes={{
+            mobile: '100vw',
+            tablet: '100vw',
+            desktop: '80vw',
+            default: '80vw',
+          }}
         />
 
         {/* Image Counter */}
@@ -117,11 +124,14 @@ export default function ImageCarousel({
                   index === currentIndex ? 'border-white' : 'border-transparent'
                 }`}
               >
-                <OptimizedImage
+                <ResponsiveImage
                   src={image}
                   alt={`Thumbnail ${index + 1}`}
-                  fill
-                  className="object-cover"
+                  width={48}
+                  height={32}
+                  quality="thumbnail"
+                  watermark={false}
+                  objectFit="cover"
                   onError={() => handleImageError(index)}
                 />
               </button>
