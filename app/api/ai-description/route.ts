@@ -13,16 +13,51 @@ export async function POST(request: Request) {
 
     const body = await request.json()
     const {
+      // Vehicle Identity
+      vehicleType,
       make,
+      customMake,
       model,
-      year,
-      mileage,
+      customModel,
       trim,
+      year,
       registrationYear,
-      previousOwners,
+
+      // Core Specifications
+      condition,
+      engineCapacity,
+      fuelType,
+      transmission,
+      mileage,
+
+      // Visual & Details
+      color,
       interiorColor,
+
+      // Ownership & History
+      previousOwners,
       vehicleConditionDetails,
       serviceRecordsAvailable,
+
+      // Pricing
+      pricingType,
+      price,
+      negotiable,
+      financeType,
+      outstandingBalance,
+      monthlyPayment,
+      remainingTerm,
+      askingPrice,
+
+      // Location
+      district,
+      city,
+
+      // Features
+      features,
+
+      // Additional
+      title,
       includingFinanceCompanies,
       style,
       recaptchaToken
@@ -45,16 +80,51 @@ export async function POST(request: Request) {
 
     // Prepare form data for template processing
     const formData: FormDataForTemplate = {
+      // Vehicle Identity
+      vehicleType,
       make,
+      customMake,
       model,
+      customModel,
       trim,
       year,
       registrationYear,
-      previousOwners,
+
+      // Core Specifications
+      condition,
+      engineCapacity,
+      fuelType,
+      transmission,
       mileage,
+
+      // Visual & Details
+      color,
       interiorColor,
+
+      // Ownership & History
+      previousOwners,
       vehicleConditionDetails,
       serviceRecordsAvailable,
+
+      // Pricing
+      pricingType,
+      price,
+      negotiable,
+      financeType,
+      outstandingBalance,
+      monthlyPayment,
+      remainingTerm,
+      askingPrice,
+
+      // Location
+      district,
+      city,
+
+      // Features
+      features,
+
+      // Additional
+      title,
       includingFinanceCompanies
     }
 

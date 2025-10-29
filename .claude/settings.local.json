@@ -57,7 +57,10 @@
       "WebFetch(domain:www.autoxloo.com)",
       "WebFetch(domain:www.icecubedigital.com)",
       "Bash(npx kill-port:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "WebFetch(domain:vera.lk)",
+      "Bash(git add:*)",
+      "Bash(git push)"
     ],
     "deny": []
   }

@@ -1,16 +1,51 @@
 import { supabase } from '@/lib/supabase'
 
 export interface FormDataForTemplate {
+  // Vehicle Identity (Tier 1)
+  vehicleType?: string
   make?: string
+  customMake?: string
   model?: string
+  customModel?: string
   trim?: string // Grade
   year?: string // YoM (Year of Manufacture)
   registrationYear?: string // YoR (Year of Registration)
-  previousOwners?: string
+
+  // Core Specifications (Tier 2)
+  condition?: string
+  engineCapacity?: string
+  fuelType?: string
+  transmission?: string
   mileage?: string
+
+  // Visual & Details (Tier 2)
+  color?: string
   interiorColor?: string
+
+  // Ownership & History (Tier 3)
+  previousOwners?: string
   vehicleConditionDetails?: string // pristine/mint
   serviceRecordsAvailable?: boolean
+
+  // Pricing (Tier 3)
+  pricingType?: string
+  price?: string
+  negotiable?: boolean
+  financeType?: string
+  outstandingBalance?: string
+  monthlyPayment?: string
+  remainingTerm?: string
+  askingPrice?: string
+
+  // Location (Tier 4)
+  district?: string
+  city?: string
+
+  // Features (Tier 4)
+  features?: string[]
+
+  // Additional fields
+  title?: string
   includingFinanceCompanies?: boolean
 }
 
@@ -66,16 +101,49 @@ export class TemplateProcessor {
 
     // Define variable mappings - use empty strings for missing values to trigger line removal
     const mappings: Record<string, any> = {
-      'Make': data.make || 'Vehicle',
-      'Model': data.model || '',
+      // Tier 1: Vehicle Identity
+      'Vehicle Type': data.vehicleType || '',
+      'Make': data.customMake || data.make || 'Vehicle',
+      'Model': data.customModel || data.model || '',
       'Grade': data.trim || '',
       'YoM': data.year || '',
       'YoR': data.registrationYear || data.year || '',
+
+      // Tier 2: Core Specifications
+      'Condition': data.condition || '',
+      'Engine Capacity': data.engineCapacity ? `${data.engineCapacity}cc` : '',
+      'Fuel Type': data.fuelType || '',
+      'Transmission': data.transmission || '',
+      'Mileage': data.mileage && data.vehicleType !== 'bicycle' ? `${parseInt(data.mileage).toLocaleString()} km` : '',
+
+      // Tier 2: Visual & Details
+      'Color': data.color || '',
+      'Exterior Color': data.color || '',
+      'Interior Color': data.interiorColor || '',
+
+      // Tier 3: Ownership & History
       'No. of previous owners': parseInt(data.previousOwners || '0') || 0,
-      'Mileage': data.mileage ? `${parseInt(data.mileage).toLocaleString()}` : '',
-      'Interior color': data.interiorColor || '',
+      'Previous Owners': parseInt(data.previousOwners || '0') || 0,
       'Vehicle condition': data.vehicleConditionDetails ? this.formatCondition(data.vehicleConditionDetails) : '',
-      'Service records available': data.serviceRecordsAvailable || false
+      'Service records available': data.serviceRecordsAvailable || false,
+
+      // Tier 3: Pricing
+      'Pricing Type': data.pricingType || '',
+      'Price': data.price ? `Rs. ${parseInt(data.price).toLocaleString()}` : '',
+      'Negotiable': data.negotiable || false,
+      'Finance Type': data.financeType || '',
+      'Outstanding Balance': data.outstandingBalance ? `Rs. ${parseInt(data.outstandingBalance).toLocaleString()}` : '',
+      'Monthly Payment': data.monthlyPayment ? `Rs. ${parseInt(data.monthlyPayment).toLocaleString()}` : '',
+      'Remaining Term': data.remainingTerm ? `${data.remainingTerm} months` : '',
+      'Asking Price': data.askingPrice ? `Rs. ${parseInt(data.askingPrice).toLocaleString()}` : '',
+
+      // Tier 4: Location
+      'District': data.district || '',
+      'City': data.city || '',
+      'Location': data.city && data.district ? `${data.city}, ${data.district}` : data.city || data.district || '',
+
+      // Tier 4: Features
+      'Features': data.features && data.features.length > 0 ? data.features.join(', ') : ''
     }
 
     // Process simple variable replacements
@@ -298,8 +366,27 @@ export class TemplateProcessor {
 
       // Check if variable is in allowed list
       const allowedVariables = [
-        'Make', 'Model', 'Grade', 'YoM', 'YoR', 'No. of previous owners',
-        'Mileage', 'Interior color', 'Vehicle condition', 'Service records available'
+        // Tier 1: Vehicle Identity
+        'Vehicle Type', 'Make', 'Model', 'Grade', 'YoM', 'YoR',
+
+        // Tier 2: Core Specifications
+        'Condition', 'Engine Capacity', 'Fuel Type', 'Transmission', 'Mileage',
+
+        // Tier 2: Visual & Details
+        'Color', 'Exterior Color', 'Interior Color', 'Interior color',
+
+        // Tier 3: Ownership & History
+        'No. of previous owners', 'Previous Owners', 'Vehicle condition', 'Service records available',
+
+        // Tier 3: Pricing
+        'Pricing Type', 'Price', 'Negotiable', 'Finance Type', 'Outstanding Balance',
+        'Monthly Payment', 'Remaining Term', 'Asking Price',
+
+        // Tier 4: Location
+        'District', 'City', 'Location',
+
+        // Tier 4: Features
+        'Features'
       ]
 
       if (!allowedVariables.includes(variable) && !variable.includes('gt ')) {
