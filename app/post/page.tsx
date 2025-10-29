@@ -222,13 +222,11 @@ export default function EnhancedPostVehiclePage() {
             showVehicleDropdown: false
           }
 
+          // Set flag BEFORE setFormData to prevent vehicle type useEffect from clearing make/model
+          editDataLoadedRef.current = true
+
           // Set the form data
           setFormData(editFormData)
-
-          // Initialize prevVehicleTypeRef to prevent clearing make/model on first render
-          if (prevVehicleTypeRef.current === undefined) {
-            prevVehicleTypeRef.current = editFormData.vehicleType as string
-          }
 
           // Set location dropdowns
           if (listing.district) {
@@ -240,28 +238,33 @@ export default function EnhancedPostVehiclePage() {
             }
           }
 
-          // Load existing images
-          if (listing.images) {
-            let imageUrls: string[] = []
+          // Load existing images (prioritize image_urls over images)
+          let imageUrls: string[] = []
 
-            if (Array.isArray(listing.images)) {
-              imageUrls = listing.images
-            } else if (typeof listing.images === 'object' && listing.images.urls) {
-              imageUrls = listing.images.urls
-            } else if (listing.image_urls) {
-              imageUrls = listing.image_urls
-            } else if (listing.primary_image_url) {
-              imageUrls = [listing.primary_image_url]
-            }
+          // Check image_urls first (actual storage location)
+          if (listing.image_urls && Array.isArray(listing.image_urls) && listing.image_urls.length > 0) {
+            imageUrls = listing.image_urls
+          }
+          // Fallback to images array if it has data
+          else if (Array.isArray(listing.images) && listing.images.length > 0) {
+            imageUrls = listing.images
+          }
+          // Check nested object structure
+          else if (typeof listing.images === 'object' && listing.images?.urls && listing.images.urls.length > 0) {
+            imageUrls = listing.images.urls
+          }
+          // Last resort: primary_image_url
+          else if (listing.primary_image_url) {
+            imageUrls = [listing.primary_image_url]
+          }
 
-            if (imageUrls.length > 0) {
-              setImagePreviews(imageUrls)
-              setFormData(prev => ({
-                ...prev,
-                imageUrls: imageUrls,
-                images: [] // Existing images are URLs, not files
-              }))
-            }
+          if (imageUrls.length > 0) {
+            setImagePreviews(imageUrls)
+            setFormData(prev => ({
+              ...prev,
+              imageUrls: imageUrls,
+              images: [] // Existing images are URLs, not files
+            }))
           }
 
           // Mark edit data as loaded
@@ -355,12 +358,22 @@ export default function EnhancedPostVehiclePage() {
   
   // Clear make and model only when the user changes vehicle type (not on initial edit load)
   const prevVehicleTypeRef = useRef<string | undefined>(undefined)
+  const editDataLoadedRef = useRef(false)
+
   useEffect(() => {
-    // Skip clearing on the very first effect run (initialization / edit preload)
+    // Skip clearing if we're in edit mode and data just loaded
+    if (editDataLoadedRef.current) {
+      editDataLoadedRef.current = false
+      prevVehicleTypeRef.current = formData.vehicleType as string
+      return
+    }
+
+    // Skip clearing on the very first effect run (initialization)
     if (prevVehicleTypeRef.current === undefined) {
       prevVehicleTypeRef.current = formData.vehicleType as string
       return
     }
+
     // If vehicle type actually changed after initialization, clear dependent fields
     if (prevVehicleTypeRef.current !== formData.vehicleType) {
       prevVehicleTypeRef.current = formData.vehicleType as string
