@@ -119,7 +119,8 @@ export default function GoldFeaturedCard({ listing, size = 'regular' }: GoldFeat
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                     onError={() => setImageError(true)}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    quality={85}
+                    quality="listing"
+                    watermark={true}
                     priority={isLarge}
                   />
                 ) : (
