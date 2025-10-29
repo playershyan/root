@@ -8,7 +8,6 @@ import ListingCard from './ListingCard'
 
 // Wanted Request Components
 import UrgentWantedCard from '../wantedRequests/UrgentWantedCard'
-import GoldFeaturedWantedCard from '../wantedRequests/GoldFeaturedWantedCard'
 
 interface PremiumCardSelectorProps {
   listing?: any
@@ -26,10 +25,6 @@ export default function PremiumCardSelector({ listing, wantedRequest, size = 're
   if (wantedRequest) {
     if (wantedRequest.is_urgent) {
       return <UrgentWantedCard request={wantedRequest} />
-    }
-
-    if (wantedRequest.is_featured) {
-      return <GoldFeaturedWantedCard request={wantedRequest} size={size} />
     }
 
     // Default wanted request card would go here
@@ -69,7 +64,6 @@ export default function PremiumCardSelector({ listing, wantedRequest, size = 're
 export function getCardType(item: any, type: 'listing' | 'wanted') {
   if (type === 'wanted') {
     if (item.is_urgent) return 'urgent-wanted'
-    if (item.is_featured) return 'featured-wanted'
     return 'regular-wanted'
   }
 
@@ -90,6 +84,5 @@ export {
   GoldFeaturedCard,
   TopSpotCard,
   BoostedCard,
-  UrgentWantedCard,
-  GoldFeaturedWantedCard
+  UrgentWantedCard
 }

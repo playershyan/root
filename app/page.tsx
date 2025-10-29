@@ -40,7 +40,7 @@ export default async function HomePage() {
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <AnimatedHeroHeading />
           <p className="text-base md:text-xl mb-6 md:mb-8 text-gray-600 max-w-3xl mx-auto">
-            Sri Lanka's first intelligent car buying platform
+            Sri Lanka's verified marketplace - where trusted listings meet intelligent matching
           </p>
 
           {/* Search Bar - PRIMARY ACTION */}

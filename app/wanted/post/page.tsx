@@ -51,6 +51,7 @@ export default function PostWantedPage() {
   const { selectedCountry, setSelectedCountry } = useCountrySelector('LK')
   const { toasts, showError, showSuccess, removeToast } = useToast()
   const [loading, setLoading] = useState(false)
+  const [highPriority, setHighPriority] = useState(false)
 
   // Detect edit mode
   const isEditMode = searchParams.get('edit') !== null
@@ -479,10 +480,19 @@ export default function PostWantedPage() {
         if (error) throw error
 
         showSuccess('Wanted request created successfully! Redirecting...', 2000)
-        // Redirect to wanted page or paid features page based on if data was returned
+
+        // Redirect based on high priority selection
         setTimeout(() => {
           if (data && data.length > 0) {
-            router.push(`/wanted-request/paid-features?new=true&request_id=${data[0].id}`)
+            const requestId = data[0].id
+
+            // If high priority is selected, redirect to payment page
+            if (highPriority) {
+              router.push(`/wanted/payment/${requestId}`)
+            } else {
+              // Otherwise, redirect to wanted page with success message
+              router.push('/wanted?posted=success')
+            }
           } else {
             // Fallback if no data returned - just go to wanted page with success
             router.push('/wanted?posted=success')
@@ -1058,10 +1068,37 @@ export default function PostWantedPage() {
               <div className="space-y-4">
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                   <p className="text-sm text-yellow-800">
-                    <strong>Important:</strong> Your phone number will be visible to sellers. 
+                    <strong>Important:</strong> Your phone number will be visible to sellers.
                     Only share additional contact information with verified sellers.
                   </p>
                 </div>
+
+                {/* High Priority Checkbox - Only show in create mode */}
+                {!isEditMode && (
+                  <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-200 rounded-lg p-4">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={highPriority}
+                        onChange={(e) => setHighPriority(e.target.checked)}
+                        className="mt-1 w-5 h-5 text-orange-600 bg-white border-gray-300 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base font-semibold text-gray-900">
+                            Mark as High Priority
+                          </span>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-600 text-white">
+                            Rs. 1,500 / 7 days
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700 mt-1">
+                          This is a paid feature. You will be directed to a payment page after publishing the request.
+                        </p>
+                      </div>
+                    </label>
+                  </div>
+                )}
 
                 <div className="flex justify-between">
                   <button

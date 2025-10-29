@@ -6,11 +6,15 @@ export default function AboutSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900">About VERA</h2>
+          
+          <p className="text-sm md:text-base text-gray-500 mb-4 font-medium">
+            Verified Exchange & Resource Assistant
+          </p>
 
           <p className="text-lg leading-relaxed text-gray-600 mb-8">
-            VERA is Sri Lanka's first AI-powered vehicle marketplace, revolutionizing how people buy and sell cars.
+            VERA (Verified Exchange & Resource Assistant) is Sri Lanka's first AI-powered marketplace, revolutionizing how people buy and sell vehicles, properties, tech items, and more.
             Our intelligent platform uses advanced machine learning to create perfect matches, generate compelling descriptions,
-            and ensure fair pricing for everyone.
+            and ensure fair pricing for everyone - all backed by verified listings you can trust.
           </p>
 
           {/* Features Grid */}

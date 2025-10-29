@@ -14,8 +14,8 @@ import { FavoritesProvider } from '@/lib/contexts/FavoritesContext'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'VERA - Buy & Sell Vehicles in Sri Lanka',
-  description: 'Find your perfect vehicle or sell your car with AI-powered descriptions',
+  title: 'VERA - Verified Exchange & Resource Assistant',
+  description: 'Sri Lanka\'s trusted marketplace for vehicles, properties, tech, and more. Verified listings powered by AI.',
 }
 
 export default function RootLayout({

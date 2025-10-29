@@ -7,9 +7,7 @@ import { useInView } from 'react-intersection-observer'
 import debounce from 'lodash/debounce'
 import LocationFilter from '@/app/components/LocationFilter'
 import ContactModal from '@/app/components/modals/ContactModal'
-import GoldFeaturedWantedCard from '@/app/components/wantedRequests/GoldFeaturedWantedCard'
 import UrgentWantedCard from '@/app/components/wantedRequests/UrgentWantedCard'
-import BoostedWantedCard from '@/app/components/wantedRequests/BoostedWantedCard'
 import RegularWantedCard from '@/app/components/wantedRequests/RegularWantedCard'
 import MatchNotificationBanner, { MultiMatchNotificationBanner } from './components/MatchNotificationBanner'
 import { useWantedNotifications } from '@/lib/hooks/useWantedNotifications'
@@ -40,14 +38,8 @@ interface WantedRequest {
   is_active: boolean
   saved?: boolean
   // Promotion fields
-  is_featured?: boolean
-  is_urgent?: boolean
   is_high_priority?: boolean
-  is_boosted?: boolean
-  featured_until?: string
-  urgent_until?: string
   high_priority_until?: string
-  boosted_until?: string
   views?: number
   clicks?: number
 }
@@ -109,14 +101,9 @@ const renderWantedCard = (request: WantedRequest) => {
     budget: request.max_budget || request.min_budget || 0
   }
 
-  // Determine which card component to use based on promotion flags
-  if (request.is_high_priority) {
+  // Determine which card component to use based on promotion flags or urgency
+  if (request.is_high_priority || request.urgency === 'high') {
     return <UrgentWantedCard key={request.id} request={requestWithBudget} />
-  }
-
-  // For now, treat any request with urgency 'high' as featured (golden)
-  if (request.urgency === 'high') {
-    return <GoldFeaturedWantedCard key={request.id} request={{ ...requestWithBudget, is_featured: true }} />
   }
 
   // Default to regular card

@@ -62,7 +62,8 @@
       "Bash(git add:*)",
       "Bash(git push)",
       "Bash(git pull:*)",
-      "Bash(if exist .next rmdir /s /q .next)"
+      "Bash(if exist .next rmdir /s /q .next)",
+      "Bash(ls -la \"D:\\projects\\root\\app\\wanted\"\" 2>/dev/null || echo \"No /app/wanted directory \")"
     ],
     "deny": []
   }

@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'About Us - VERA',
-  description: 'Learn about VERA - the intelligent platform transforming how Sri Lankans buy and sell vehicles. Built with cutting-edge technology and deep market understanding.',
+  description: 'Learn about VERA (Verified Exchange & Resource Assistant) - the intelligent platform transforming how Sri Lankans buy and sell vehicles, properties, and more. Verified listings powered by AI.',
 }
 
 export default function AboutPage() {
@@ -25,8 +25,11 @@ export default function AboutPage() {
             <h1 className="text-4xl sm:text-5xl md:text-7xl font-black mb-4 sm:mb-6 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
               About VERA
             </h1>
+            <p className="text-sm sm:text-base text-gray-400 mb-3 font-medium">
+              Verified Exchange & Resource Assistant
+            </p>
             <p className="text-lg sm:text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto font-light">
-              We're redefining vehicle trading in Sri Lanka with intelligence, transparency, and purpose.
+              We're redefining marketplace trading in Sri Lanka with verified listings, intelligent matching, and transparent pricing.
             </p>
           </div>
         </div>
@@ -40,7 +43,7 @@ export default function AboutPage() {
           </h2>
           <div className="space-y-4 sm:space-y-6 text-base sm:text-lg md:text-xl text-gray-300 leading-relaxed">
             <p>
-              VERA is more than just another vehicle marketplace – we're the intelligent platform transforming how Sri Lankans buy and sell vehicles. Built with cutting-edge technology and deep market understanding, we're making vehicle trading effortless, transparent, and fair for everyone.
+              VERA (Verified Exchange & Resource Assistant) is more than just another marketplace – we're the intelligent platform transforming how Sri Lankans buy and sell vehicles, properties, tech items, and more. Built with cutting-edge technology and deep market understanding, we're making trading effortless, transparent, and fair for everyone through verified listings you can trust.
             </p>
             <p className="text-xl sm:text-2xl md:text-3xl font-bold text-white">
               We believe Sri Lanka's vehicle market deserves better.

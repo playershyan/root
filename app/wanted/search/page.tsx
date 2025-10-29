@@ -7,9 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { useInView } from 'react-intersection-observer'
 import LocationFilter from '@/app/components/LocationFilter'
 import ContactModal from '@/app/components/modals/ContactModal'
-import GoldFeaturedWantedCard from '@/app/components/wantedRequests/GoldFeaturedWantedCard'
 import UrgentWantedCard from '@/app/components/wantedRequests/UrgentWantedCard'
-import BoostedWantedCard from '@/app/components/wantedRequests/BoostedWantedCard'
 import RegularWantedCard from '@/app/components/wantedRequests/RegularWantedCard'
 
 interface WantedRequest {
@@ -36,14 +34,8 @@ interface WantedRequest {
   user_avatar?: string
   is_active: boolean
   saved?: boolean
-  is_featured?: boolean
-  is_urgent?: boolean
   is_high_priority?: boolean
-  is_boosted?: boolean
-  featured_until?: string
-  urgent_until?: string
   high_priority_until?: string
-  boosted_until?: string
   views?: number
   responses?: number
 }
@@ -101,12 +93,9 @@ const renderWantedCard = (request: WantedRequest) => {
     budget: request.max_budget || request.min_budget || 0
   }
 
-  if (request.is_high_priority) {
+  // Show urgent card for high priority or high urgency requests
+  if (request.is_high_priority || request.urgency === 'high') {
     return <UrgentWantedCard key={request.id} request={requestWithBudget} />
-  }
-
-  if (request.urgency === 'high') {
-    return <GoldFeaturedWantedCard key={request.id} request={{ ...requestWithBudget, is_featured: true }} />
   }
 
   return <RegularWantedCard key={request.id} request={requestWithBudget} />
