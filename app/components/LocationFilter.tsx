@@ -18,6 +18,7 @@ interface LocationFilterProps {
   expanded: boolean
   onToggleExpand: () => void
   variant?: 'wanted' | 'listings' | 'compact'
+  disableMaxHeight?: boolean  // For mobile filter sheets
 }
 
 export default function LocationFilter({
@@ -25,7 +26,8 @@ export default function LocationFilter({
   onLocationChange,
   expanded,
   onToggleExpand,
-  variant = 'wanted'
+  variant = 'wanted',
+  disableMaxHeight = false
 }: LocationFilterProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedDistricts, setExpandedDistricts] = useState<Set<number>>(new Set())
@@ -139,11 +141,14 @@ export default function LocationFilter({
             )}
           </div>
           
-          <div className={isCompact
-            ? "max-h-64 overflow-y-auto"
-            : (variant === 'listings'
-              ? "space-y-2 max-h-64 overflow-y-auto"
-              : "max-h-64 overflow-y-auto border rounded-md p-2 bg-gray-50")
+          <div className={
+            disableMaxHeight
+              ? "overflow-y-auto"
+              : (isCompact
+                ? "max-h-64 overflow-y-auto"
+                : (variant === 'listings'
+                  ? "space-y-2 max-h-64 overflow-y-auto"
+                  : "max-h-64 overflow-y-auto border rounded-md p-2 bg-gray-50"))
           }>
             {!searchQuery ? (
               /* Default view - Popular Locations + All Districts */
@@ -151,7 +156,9 @@ export default function LocationFilter({
                 {/* All of Sri Lanka Option */}
                 <div
                   onClick={handleAllSriLankaSelect}
-                  className={`flex items-center justify-between cursor-pointer py-2 pl-0 pr-2 rounded hover:bg-gray-50 transition-colors mb-2 w-full border-b border-gray-200 ${
+                  className={`flex items-center justify-between cursor-pointer py-2.5 pr-2 rounded hover:bg-gray-50 transition-colors mb-4 pb-3 w-full border-b-2 border-gray-200 ${
+                    isCompact ? 'pl-3' : 'pl-0'
+                  } ${
                     selectedLocation === 'All of Sri Lanka' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'
                   }`}
                 >
@@ -169,19 +176,21 @@ export default function LocationFilter({
                   const hasPopular = popularLocations.districts.length > 0 || popularLocations.cities.length > 0
 
                   return hasPopular ? (
-                    <div className="mb-3 pb-3 border-b border-gray-200">
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    <div className="mb-4 pb-3 border-b-2 border-gray-200">
+                      <div className={`flex items-center gap-2 mb-3 pb-1.5 ${isCompact ? 'pl-3' : 'pl-0'}`}>
+                        <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                         </svg>
-                        <p className="text-xs font-semibold text-gray-500">POPULAR LOCATIONS</p>
+                        <p className="text-xs font-bold text-gray-700 uppercase tracking-wider">Popular Locations</p>
                       </div>
                       {/* Popular Districts */}
                       {popularLocations.districts.map(district => (
                         <div
                           key={`popular-district-${district.id}`}
                           onClick={() => handleLocationSelect(district.name)}
-                          className={`py-2 pl-0 pr-2 rounded cursor-pointer hover:bg-gray-50 transition-colors mb-1 ${
+                          className={`py-2 pr-2 rounded cursor-pointer hover:bg-gray-50 transition-colors mb-1 ${
+                            isCompact ? 'pl-3' : 'pl-0'
+                          } ${
                             selectedLocation === district.name ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'
                           }`}
                         >
@@ -200,7 +209,9 @@ export default function LocationFilter({
                         <div
                           key={`popular-city-${city.id}`}
                           onClick={() => handleLocationSelect(city.name)}
-                          className={`py-2 pl-0 pr-2 rounded cursor-pointer hover:bg-gray-50 transition-colors mb-1 ${
+                          className={`py-2 pr-2 rounded cursor-pointer hover:bg-gray-50 transition-colors mb-1 ${
+                            isCompact ? 'pl-3' : 'pl-0'
+                          } ${
                             selectedLocation === city.name ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600'
                           }`}
                         >
@@ -219,10 +230,10 @@ export default function LocationFilter({
                 })()}
 
                 {/* All Districts Header */}
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-semibold text-gray-500">ALL DISTRICTS</p>
+                <div className={`flex items-center justify-between mb-3 pb-1.5 ${isCompact ? 'pl-3' : 'pl-0'}`}>
+                  <p className="text-xs font-bold text-gray-700 uppercase tracking-wider">All Districts</p>
                   {userLocation && (
-                    <p className="text-xs text-blue-600">📍 Sorted by distance</p>
+                    <p className="text-xs text-blue-600 font-medium">📍 Sorted by distance</p>
                   )}
                 </div>
 
@@ -237,7 +248,9 @@ export default function LocationFilter({
                       {/* District Row */}
                       <div
                         onClick={() => handleDistrictClick(district.name, district.id)}
-                        className={`flex items-center justify-between cursor-pointer py-2 pl-0 pr-2 rounded hover:bg-gray-50 transition-colors mb-1 w-full ${
+                        className={`flex items-center justify-between cursor-pointer py-2 pr-2 rounded hover:bg-gray-50 transition-colors mb-1 w-full ${
+                          isCompact ? 'pl-3' : 'pl-0'
+                        } ${
                           selectedLocation === district.name ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'
                         }`}
                       >
@@ -261,12 +274,14 @@ export default function LocationFilter({
 
                       {/* Cities under district */}
                       {expandedDistricts.has(district.id) && (
-                        <div className="ml-3 mb-1">
+                        <div className={isCompact ? 'ml-4 mb-1' : 'ml-3 mb-1'}>
                           {sortedCities.map(city => (
                             <div
                               key={city.id}
                               onClick={() => handleLocationSelect(city.name)}
-                              className={`py-1.5 pl-0 pr-2 rounded cursor-pointer hover:bg-gray-50 transition-colors ${
+                              className={`py-1.5 pr-2 rounded cursor-pointer hover:bg-gray-50 transition-colors ${
+                                isCompact ? 'pl-3' : 'pl-0'
+                              } ${
                                 selectedLocation === city.name ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600'
                               }`}
                             >
@@ -303,18 +318,20 @@ export default function LocationFilter({
                   return (
                     <>
                       {sortedSearchDistricts.length > 0 && (
-                        <div className="mb-3">
-                          <div className="flex items-center justify-between mb-2">
-                            <p className="text-xs font-semibold text-gray-500">DISTRICTS</p>
+                        <div className="mb-4">
+                          <div className={`flex items-center justify-between mb-3 pb-1.5 ${isCompact ? 'pl-3' : 'pl-0'}`}>
+                            <p className="text-xs font-bold text-gray-700 uppercase tracking-wider">Districts</p>
                             {userLocation && (
-                              <p className="text-xs text-blue-600">📍 Sorted by distance</p>
+                              <p className="text-xs text-blue-600 font-medium">📍 Sorted by distance</p>
                             )}
                           </div>
                           {sortedSearchDistricts.map(district => (
                             <div
                               key={district.id}
                               onClick={() => handleLocationSelect(district.name)}
-                              className={`py-2 pl-0 pr-2 rounded cursor-pointer hover:bg-gray-50 transition-colors mb-1 ${
+                              className={`py-2 pr-2 rounded cursor-pointer hover:bg-gray-50 transition-colors mb-1 ${
+                                isCompact ? 'pl-3' : 'pl-0'
+                              } ${
                                 selectedLocation === district.name ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'
                               }`}
                             >
@@ -333,17 +350,19 @@ export default function LocationFilter({
 
                       {sortedSearchCities.length > 0 && (
                         <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <p className="text-xs font-semibold text-gray-500">CITIES</p>
+                          <div className={`flex items-center justify-between mb-3 pb-1.5 ${isCompact ? 'pl-3' : 'pl-0'}`}>
+                            <p className="text-xs font-bold text-gray-700 uppercase tracking-wider">Cities</p>
                             {userLocation && (
-                              <p className="text-xs text-blue-600">📍 Sorted by distance</p>
+                              <p className="text-xs text-blue-600 font-medium">📍 Sorted by distance</p>
                             )}
                           </div>
                           {sortedSearchCities.map(city => (
                             <div
                               key={city.id}
                               onClick={() => handleLocationSelect(city.name)}
-                              className={`py-2 pl-0 pr-2 rounded cursor-pointer hover:bg-gray-50 transition-colors mb-1 ${
+                              className={`py-2 pr-2 rounded cursor-pointer hover:bg-gray-50 transition-colors mb-1 ${
+                                isCompact ? 'pl-3' : 'pl-0'
+                              } ${
                                 selectedLocation === city.name ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600'
                               }`}
                             >

@@ -61,7 +61,8 @@
       "WebFetch(domain:vera.lk)",
       "Bash(git add:*)",
       "Bash(git push)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(if exist .next rmdir /s /q .next)"
     ],
     "deny": []
   }
