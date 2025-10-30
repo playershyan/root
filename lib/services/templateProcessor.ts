@@ -287,7 +287,7 @@ export class TemplateProcessor {
   }
 
   /**
-   * Format the final output with structured layout and bold titles
+   * Format the final output with structured layout (plain text without markdown)
    */
   private static formatOutput(text: string): string {
     return text
@@ -301,10 +301,6 @@ export class TemplateProcessor {
       .replace(/\n\s*\n/g, '\n')
       // Remove leading/trailing whitespace
       .trim()
-      // Format structured output with bold titles
-      .replace(/^([^:]+):\s*(.+)$/gm, '**$1:** $2')
-      // Format title line (first line without colon)
-      .replace(/^([^:\n]+)$/m, '**$1**')
       // Fix punctuation spacing
       .replace(/\s+([,.!?])/g, '$1')
       // Ensure proper sentence spacing
