@@ -46,6 +46,11 @@ export default function MessagesTab({
     try {
       const fetchedMessages = await onFetchMessages(conversationId)
       setMessages(fetchedMessages)
+
+      // Automatically mark messages as read when conversation is opened
+      if (onMarkConversationAsRead) {
+        await onMarkConversationAsRead(conversationId)
+      }
     } catch (error) {
       console.error('Error fetching messages:', error)
       setMessages([])
