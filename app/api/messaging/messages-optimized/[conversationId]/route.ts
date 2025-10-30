@@ -1,0 +1,183 @@
+/**
+ * Optimized Messages API - Single Query with Pagination
+ * Industry Best Practices:
+ * - Single JOIN query (no N+1)
+ * - Pagination (load last N messages)
+ * - Server-side transformation
+ * - Automatic mark-as-read on fetch
+ */
+
+import { NextRequest, NextResponse } from 'next/server'
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@supabase/supabase-js'
+import { cookies } from 'next/headers'
+
+interface MessageResponse {
+  id: string
+  conversation_id: string
+  sender_id: string
+  content: string
+  is_read: boolean
+  created_at: string
+  message_type: string
+  offer_data: any | null
+  sender_name: string
+  sender_avatar_url: string | null
+}
+
+/**
+ * GET /api/messaging/messages-optimized/[conversationId]
+ * Query params:
+ * - limit: Number of messages to return (default: 50)
+ * - before: Load messages before this timestamp (for pagination)
+ * - markAsRead: Auto mark as read (default: true)
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { conversationId: string } }
+) {
+  try {
+    const supabase = createServerComponentClient({ cookies })
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
+    const conversationId = params.conversationId
+    const searchParams = request.nextUrl.searchParams
+    const limit = parseInt(searchParams.get('limit') || '50', 10)
+    const before = searchParams.get('before') // ISO timestamp for pagination
+    const markAsRead = searchParams.get('markAsRead') !== 'false'
+
+    // Validate limit
+    if (limit < 1 || limit > 200) {
+      return NextResponse.json(
+        { error: 'Limit must be between 1 and 200' },
+        { status: 400 }
+      )
+    }
+
+    // Verify user has access to this conversation
+    const { data: conversation, error: convError } = await supabase
+      .from('conversations')
+      .select('buyer_id, seller_id')
+      .eq('id', conversationId)
+      .single()
+
+    if (convError || !conversation) {
+      return NextResponse.json(
+        { error: 'Conversation not found' },
+        { status: 404 }
+      )
+    }
+
+    if (conversation.buyer_id !== user.id && conversation.seller_id !== user.id) {
+      return NextResponse.json(
+        { error: 'Access denied' },
+        { status: 403 }
+      )
+    }
+
+    // Single optimized query with JOIN - NO N+1 queries
+    let query = supabase
+      .from('messages')
+      .select(`
+        id,
+        conversation_id,
+        sender_id,
+        content,
+        is_read,
+        created_at,
+        message_type,
+        offer_data,
+        sender:sender_id(name, avatar_url)
+      `)
+      .eq('conversation_id', conversationId)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    // Apply before filter for pagination
+    if (before) {
+      query = query.lt('created_at', before)
+    }
+
+    const { data: messages, error: msgError } = await query
+
+    if (msgError) {
+      console.error('Error fetching messages:', msgError)
+      return NextResponse.json(
+        { error: 'Failed to fetch messages' },
+        { status: 500 }
+      )
+    }
+
+    // Transform to flat structure - server-side is faster than client-side
+    const transformedMessages: MessageResponse[] = (messages || []).map(msg => ({
+      id: msg.id,
+      conversation_id: msg.conversation_id,
+      sender_id: msg.sender_id,
+      content: msg.content,
+      is_read: msg.is_read,
+      created_at: msg.created_at,
+      message_type: msg.message_type,
+      offer_data: msg.offer_data,
+      sender_name: (msg.sender as any)?.name || 'Unknown User',
+      sender_avatar_url: (msg.sender as any)?.avatar_url || null,
+    }))
+
+    // Reverse to get chronological order (oldest first)
+    transformedMessages.reverse()
+
+    // Auto mark as read (async, don't block response)
+    if (markAsRead && transformedMessages.length > 0) {
+      // Fire and forget - don't wait for this to complete
+      const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      )
+
+      const isBuyer = conversation.buyer_id === user.id
+
+      // Mark unread messages as read
+      supabaseAdmin
+        .from('messages')
+        .update({
+          is_read: true,
+          read_at: new Date().toISOString()
+        })
+        .eq('conversation_id', conversationId)
+        .eq('sender_id', isBuyer ? conversation.seller_id : conversation.buyer_id)
+        .eq('is_read', false)
+        .then(() => {
+          // Reset unread count
+          const updateField = isBuyer ? 'buyer_unread_count' : 'seller_unread_count'
+          return supabaseAdmin
+            .from('conversations')
+            .update({
+              [updateField]: 0,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', conversationId)
+        })
+        .catch(err => console.error('Error marking as read:', err))
+    }
+
+    return NextResponse.json({
+      messages: transformedMessages,
+      count: transformedMessages.length,
+      hasMore: transformedMessages.length === limit
+    })
+
+  } catch (error) {
+    console.error('GET messages error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}

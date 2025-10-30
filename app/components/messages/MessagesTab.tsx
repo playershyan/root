@@ -47,10 +47,10 @@ export default function MessagesTab({
       const fetchedMessages = await onFetchMessages(conversationId)
       setMessages(fetchedMessages)
 
-      // Automatically mark messages as read when conversation is opened
-      if (onMarkConversationAsRead) {
-        await onMarkConversationAsRead(conversationId)
-      }
+      // Note: Mark-as-read is now handled automatically by the optimized API
+      // when fetching messages (markAsRead=true query parameter)
+      // Refresh conversations to update unread count in UI
+      await onFetchConversations()
     } catch (error) {
       console.error('Error fetching messages:', error)
       setMessages([])

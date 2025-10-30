@@ -694,76 +694,47 @@ export default function ProfilePage() {
     }
   }, [activeTab, loadBinItems])
 
-  // Message handlers
+  // Message handlers - OPTIMIZED VERSION
   const fetchConversations = async () => {
     try {
       if (!user) return
 
-      const { data: conversationsData, error } = await supabase
-        .from('conversations')
-        .select(`
-          id,
-          listing_id,
-          listing_title,
-          listing_price,
-          listing_image_url,
-          buyer_id,
-          seller_id,
-          last_message_at,
-          last_message_preview,
-          buyer_unread_count,
-          seller_unread_count,
-          buyer_archived,
-          seller_archived
-        `)
-        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-        .order('last_message_at', { ascending: false })
+      // Use optimized API endpoint - single query with JOINs
+      const response = await fetch('/api/messaging/conversations-optimized?limit=50&offset=0')
 
-      if (error) throw error
+      if (!response.ok) {
+        throw new Error('Failed to fetch conversations')
+      }
 
-      // Get profile details for buyers and sellers
-      const allUserIds = [...new Set([
-        ...conversationsData?.map(c => c.buyer_id) || [],
-        ...conversationsData?.map(c => c.seller_id) || []
-      ])]
-
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, name, avatar_url')
-        .in('id', allUserIds)
+      const { conversations: conversationsData } = await response.json()
 
       // Transform to match ConversationData interface
-      const transformedConversations = conversationsData?.map(conv => {
-        const buyerProfile = profiles?.find(p => p.id === conv.buyer_id)
-        const sellerProfile = profiles?.find(p => p.id === conv.seller_id)
-
-        return {
-          id: conv.id,
-          listing_id: conv.listing_id,
-          listing_title: conv.listing_title,
-          listing_price: conv.listing_price,
-          listing_image_url: conv.listing_image_url,
-          buyer_id: conv.buyer_id,
-          seller_id: conv.seller_id,
-          last_message_at: conv.last_message_at,
-          last_message_preview: conv.last_message_preview || '',
-          unread_count: conv.buyer_id === user.id ? conv.buyer_unread_count : conv.seller_unread_count,
-          is_archived: conv.buyer_id === user.id ? conv.buyer_archived : conv.seller_archived,
-          current_user_role: (conv.buyer_id === user.id ? 'buyer' : 'seller') as 'buyer' | 'seller',
-          buyer: {
-            profiles: {
-              name: buyerProfile?.name || 'Unknown User',
-              avatar_url: buyerProfile?.avatar_url || ''
-            }
-          },
-          seller: {
-            profiles: {
-              name: sellerProfile?.name || 'Unknown User',
-              avatar_url: sellerProfile?.avatar_url || ''
-            }
+      const transformedConversations = conversationsData?.map((conv: any) => ({
+        id: conv.id,
+        listing_id: conv.listing_id,
+        listing_title: conv.listing_title,
+        listing_price: conv.listing_price,
+        listing_image_url: conv.listing_image_url,
+        buyer_id: conv.buyer_id,
+        seller_id: conv.seller_id,
+        last_message_at: conv.last_message_at,
+        last_message_preview: conv.last_message_preview || '',
+        unread_count: conv.buyer_id === user.id ? conv.buyer_unread_count : conv.seller_unread_count,
+        is_archived: conv.buyer_id === user.id ? conv.buyer_archived : conv.seller_archived,
+        current_user_role: (conv.buyer_id === user.id ? 'buyer' : 'seller') as 'buyer' | 'seller',
+        buyer: {
+          profiles: {
+            name: conv.buyer_name || 'Unknown User',
+            avatar_url: conv.buyer_avatar_url || ''
+          }
+        },
+        seller: {
+          profiles: {
+            name: conv.seller_name || 'Unknown User',
+            avatar_url: conv.seller_avatar_url || ''
           }
         }
-      }) || []
+      })) || []
 
       setConversations(transformedConversations)
     } catch (error) {
@@ -774,53 +745,36 @@ export default function ProfilePage() {
 
   const handleFetchMessages = async (conversationId: string): Promise<MessageData[]> => {
     try {
-      // First get the messages
-      const { data: messagesData, error: messagesError } = await supabase
-        .from('messages')
-        .select(`
-          id,
-          conversation_id,
-          sender_id,
-          content,
-          is_read,
-          created_at,
-          message_type,
-          offer_data
-        `)
-        .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true })
+      // Use optimized API endpoint - single query with JOINs, auto mark-as-read
+      const response = await fetch(
+        `/api/messaging/messages-optimized/${conversationId}?limit=100&markAsRead=true`
+      )
 
-      if (messagesError) throw messagesError
+      if (!response.ok) {
+        throw new Error('Failed to fetch messages')
+      }
 
-      // Get sender profiles separately
-      const senderIds = [...new Set(messagesData?.map(m => m.sender_id) || [])]
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, name, avatar_url')
-        .in('id', senderIds)
+      const { messages: messagesData } = await response.json()
 
       // Transform to match MessageData interface
-      const transformedMessages = messagesData?.map(msg => {
-        const senderProfile = profiles?.find(p => p.id === msg.sender_id)
-        return {
-          id: msg.id,
-          conversation_id: msg.conversation_id,
-          sender_id: msg.sender_id,
-          content: msg.content,
-          is_read: msg.is_read,
-          created_at: msg.created_at,
-          message_type: msg.message_type,
-          offer_data: msg.offer_data,
-          sender: {
-            id: msg.sender_id,
-            email: '', // Not needed for display
-            profiles: {
-              name: senderProfile?.name || 'Unknown User',
-              avatar_url: senderProfile?.avatar_url || ''
-            }
+      const transformedMessages = messagesData?.map((msg: any) => ({
+        id: msg.id,
+        conversation_id: msg.conversation_id,
+        sender_id: msg.sender_id,
+        content: msg.content,
+        is_read: msg.is_read,
+        created_at: msg.created_at,
+        message_type: msg.message_type,
+        offer_data: msg.offer_data,
+        sender: {
+          id: msg.sender_id,
+          email: '', // Not needed for display
+          profiles: {
+            name: msg.sender_name || 'Unknown User',
+            avatar_url: msg.sender_avatar_url || ''
           }
         }
-      }) || []
+      })) || []
 
       return transformedMessages
     } catch (error) {
