@@ -31,7 +31,6 @@ import { Listing } from '@/lib/types'
 import { BusinessProfile, CreateBusinessProfileData, UpdateBusinessProfileData } from '@/lib/types/businessProfile'
 import CountrySelector from '@/app/components/CountrySelector'
 import { countries, Country } from '@/lib/data/countries'
-import MobileProfileHeader from '@/app/components/mobile/MobileProfileHeader'
 import MobileProfileTabs from '@/app/components/mobile/MobileProfileTabs'
 
 // Lazy load tab components for better performance (Phase 2 optimization)
@@ -549,7 +548,14 @@ export default function ProfilePage() {
         )
 
         // Filter out null values and update state
-        const validRequests = requests.filter((req): req is Favorite => req !== null)
+        const validRequests = requests.filter((req): req is {
+          id: string;
+          title: string;
+          description: string;
+          price: number;
+          location: string;
+          postedDate: string;
+        } => req !== null)
         setFavoritedWantedRequests(validRequests)
       } catch (error) {
         console.error('Error loading wanted requests from localStorage:', error)
@@ -1928,16 +1934,6 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile Header - Only on Mobile */}
-      <MobileProfileHeader
-        userName={profile.fullName || 'User'}
-        userInitials={profile.fullName ? profile.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
-        hasBusinessProfile={!!businessProfile}
-        currentPage={activeTab}
-        onNotificationsClick={() => handleTabChange('notifications')}
-        notificationCount={0}
-      />
-
       {/* Mobile Tabs - Only on Mobile */}
       <MobileProfileTabs
         activeTab={activeTab}

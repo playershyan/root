@@ -14,7 +14,7 @@ export interface WantedRequestStatusInfo {
 }
 
 export interface WantedRequestData {
-  status: 'active' | 'paused' | 'closed' | 'deleted'
+  status: 'active' | 'paused' | 'closed' | 'deleted' | 'fulfilled'
   isReportedTakedown?: boolean
   rejectionReason?: string
 }
@@ -22,7 +22,7 @@ export interface WantedRequestData {
 export function getWantedRequestStatus(request: WantedRequestData): WantedRequestStatusType {
   if (request.status === 'active') return 'active'
   if (request.status === 'paused') return 'paused'
-  if (request.status === 'closed') return 'closed'
+  if (request.status === 'closed' || request.status === 'fulfilled') return 'closed'
   if (request.status === 'deleted' && request.isReportedTakedown) return 'reported'
   if (request.status === 'deleted') return 'deleted'
   return 'active'
