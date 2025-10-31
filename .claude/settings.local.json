@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx cap:*)"
+      "Bash(npx cap:*)",
+      "Bash(timeout 20 bash -c:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

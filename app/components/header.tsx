@@ -381,178 +381,201 @@ export default function Header() {
         allowedMethods={showEmailLogin ? ['email'] : ['google', 'email', 'phone']}
       />
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu - Drawer Style */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 bg-white z-50 md:hidden overflow-y-auto">
-          <div className="px-4 py-4">
-            {/* Mobile Menu Header */}
-            <div className="flex items-center justify-between mb-6">
-              <Link href="/" className="text-2xl font-bold text-blue-600" onClick={() => setMobileMenuOpen(false)}>
-                VERA
-              </Link>
+        <>
+          {/* Overlay */}
+          <div
+            className="fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
+
+          {/* Drawer */}
+          <div className="fixed left-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white z-50 shadow-xl md:hidden transform transition-transform duration-300 ease-out overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+              {user ? (
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white font-bold">
+                    {user.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-semibold text-gray-900">{user.name}</h2>
+                    <p className="text-xs text-gray-600">{user.email}</p>
+                  </div>
+                </div>
+              ) : (
+                <Link href="/" className="text-xl font-bold text-blue-600">
+                  VERA
+                </Link>
+              )}
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-2 text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-50"
+                className="p-2 hover:bg-white/50 rounded-full transition-colors"
+                aria-label="Close menu"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5 text-gray-700" />
               </button>
             </div>
 
-            {/* Sign In/Sign Up Button - Top of menu for unauthenticated users */}
-            {!user && (
-              <div className="mb-6">
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false)
-                    setAuthModalOpen(true)
-                    setShowEmailLogin(false)
-                  }}
-                  className="w-full py-3 px-4 bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-semibold flex items-center justify-center gap-2"
-                >
-                  <User className="w-5 h-5" />
-                  Sign In / Sign Up
-                </button>
-              </div>
-            )}
+            {/* Menu Content */}
+            <div className="p-4">
+              {/* Sign In Button for Non-Authenticated Users */}
+              {!user && (
+                <div className="mb-6">
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false)
+                      setAuthModalOpen(true)
+                      setShowEmailLogin(false)
+                    }}
+                    className="w-full py-3 px-4 bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  >
+                    <User className="w-5 h-5" />
+                    Sign In / Sign Up
+                  </button>
+                </div>
+              )}
 
-            {/* User Profile Section */}
-            {user && (
-              <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">
-                      {user.name.split(' ').map(n => n[0]).join('')}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-900">{user.name}</p>
-                    <p className="text-sm text-gray-600">{user.email}</p>
-                  </div>
+              {/* Main Navigation */}
+              <div className="mb-4">
+                <h3 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                  Navigation
+                </h3>
+                <div className="space-y-1">
+                  <Link
+                    href="/"
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Globe className="w-5 h-5" />
+                    <span className="font-medium">Home</span>
+                  </Link>
+                  <Link
+                    href="/listings"
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Car className="w-5 h-5" />
+                    <span className="font-medium">Browse Vehicles</span>
+                  </Link>
+                  <Link
+                    href="/wanted"
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Search className="w-5 h-5" />
+                    <span className="font-medium flex-1">Wanted Requests</span>
+                    {wantedNotificationCount > 0 && (
+                      <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                    )}
+                  </Link>
                 </div>
               </div>
-            )}
 
-            {/* Main Navigation */}
-            <div className="space-y-1 mb-6">
-              <Link 
-                href="/" 
-                className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Home
-              </Link>
-              <Link
-                href="/listings"
-                className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Browse Vehicles
-              </Link>
-              <Link
-                href="/wanted"
-                className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <div className="flex items-center justify-between">
-                  <span>Wanted Requests</span>
-                  {wantedNotificationCount > 0 && (
-                    <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                  )}
+              {/* User Account Section */}
+              {user && (
+                <div className="mb-4">
+                  <h3 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                    My Account
+                  </h3>
+                  <div className="space-y-1">
+                    <Link
+                      href="/profile"
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <User className="w-5 h-5" />
+                      <span className="font-medium">My Profile</span>
+                    </Link>
+                    <Link
+                      href="/profile?tab=listings"
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Car className="w-5 h-5" />
+                      <span className="font-medium">My Listings</span>
+                    </Link>
+                    <Link
+                      href="/profile?tab=messages"
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <MessageSquare className="w-5 h-5" />
+                      <span className="font-medium flex-1">Messages</span>
+                      {user.unreadMessages > 0 && (
+                        <span className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
+                          {user.unreadMessages}
+                        </span>
+                      )}
+                    </Link>
+                    <Link
+                      href="/profile?tab=favorites"
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Heart className="w-5 h-5" />
+                      <span className="font-medium">Favorites</span>
+                    </Link>
+                    <Link
+                      href="/profile?tab=wanted"
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <FileText className="w-5 h-5" />
+                      <span className="font-medium">My Wanted Requests</span>
+                    </Link>
+                  </div>
                 </div>
-              </Link>
-            </div>
+              )}
 
-            {/* User Account Section */}
-            {user && (
-              <div className="space-y-1 mb-6">
-                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 mb-2">
-                  My Account
-                </div>
-                <Link 
-                  href="/profile" 
-                  className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg flex items-center gap-3"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <User className="w-5 h-5" />
-                  My Profile
-                </Link>
-                <Link 
-                  href="/profile?tab=listings" 
-                  className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg flex items-center gap-3"
+              {/* Primary Actions */}
+              <div className="space-y-3 mb-4">
+                <Link
+                  href="/post"
+                  className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-semibold"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Car className="w-5 h-5" />
-                  My Listings
+                  Sell My Vehicle
                 </Link>
-                <Link 
-                  href="/profile?tab=messages" 
-                  className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg flex items-center gap-3"
+                <Link
+                  href="/wanted/post"
+                  className="flex items-center justify-center gap-2 w-full py-3 px-4 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 rounded-lg font-semibold"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <MessageSquare className="w-5 h-5" />
-                  <span className="flex-1">Messages</span>
-                  {user.unreadMessages > 0 && (
-                    <span className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
-                      {user.unreadMessages}
-                    </span>
-                  )}
-                </Link>
-                <Link 
-                  href="/profile?tab=favorites" 
-                  className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg flex items-center gap-3"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Heart className="w-5 h-5" />
-                  Favorites
-                </Link>
-                <Link 
-                  href="/profile?tab=wanted" 
-                  className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg flex items-center gap-3"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <FileText className="w-5 h-5" />
-                  My Wanted Requests
+                  <Search className="w-5 h-5" />
+                  Post Wanted Request
                 </Link>
               </div>
-            )}
 
-            {/* Primary Actions */}
-            <div className="space-y-3">
-              <Link 
-                href="/post" 
-                className="block w-full py-3 px-4 bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-semibold text-center flex items-center justify-center gap-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <Car className="w-5 h-5" />
-                Sell My Vehicle
-              </Link>
-              <Link 
-                href="/wanted/post" 
-                className="block w-full py-3 px-4 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 rounded-lg font-semibold text-center flex items-center justify-center gap-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <Search className="w-5 h-5" />
-                Post Wanted Request
-              </Link>
+              {/* Settings & Logout */}
+              {user && (
+                <div className="border-t pt-4">
+                  <Link
+                    href="/profile?tab=security"
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Shield className="w-5 h-5" />
+                    <span className="font-medium">Account Settings</span>
+                  </Link>
+                  <button
+                    onClick={() => {
+                      handleLogout()
+                      setMobileMenuOpen(false)
+                    }}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-red-600 rounded-lg transition-colors w-full"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    <span className="font-medium">Logout</span>
+                  </button>
+                </div>
+              )}
             </div>
-
-            {/* Sign Out */}
-            {user && (
-              <div className="mt-6 pt-4 border-t">
-                <button
-                  onClick={() => {
-                    handleLogout()
-                    setMobileMenuOpen(false)
-                  }}
-                  className="block w-full py-3 px-4 text-red-600 hover:bg-red-50 rounded-lg flex items-center justify-center gap-2 font-medium"
-                >
-                  <LogOut className="w-5 h-5" />
-                  Sign Out
-                </button>
-              </div>
-            )}
           </div>
-        </div>
+        </>
       )}
 
     </header>
