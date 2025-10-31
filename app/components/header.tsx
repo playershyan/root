@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
 import {
   Heart, User, Search, Menu, X, Bell,
@@ -32,6 +33,7 @@ export default function Header() {
   const userMenuRef = useRef<HTMLDivElement>(null)
   const unreadMessages = useUnreadMessages()
   const { count: wantedNotificationCount } = useNotificationCount()
+  
 
   const handleMobileNavigate = (e: React.MouseEvent, href: string) => {
     e.preventDefault()
@@ -96,6 +98,12 @@ export default function Header() {
     unreadMessages: unreadMessages,
     favorites: 0
   } : null
+
+  const displayName = user?.name || authUser?.email || 'User'
+  const avatarUrl = (authUser?.user_metadata?.avatar_url as string)
+    || (authUser?.user_metadata?.picture as string)
+    || (authUser?.user_metadata?.profile_image_url as string)
+    || ''
 
   // Close user menu when clicking outside
   useEffect(() => {
@@ -169,7 +177,7 @@ export default function Header() {
             {user && (
               <div className="hidden md:flex items-center gap-2">
                 {/* Messages Notification */}
-                {user.unreadMessages > 0 && (
+                {unreadMessages > 0 && (
                   <Link
                     href="/profile?tab=messages"
                     className="relative p-2 text-gray-600 hover:text-blue-600 rounded-lg hover:bg-gray-50 transition-colors"
@@ -177,7 +185,7 @@ export default function Header() {
                   >
                     <MessageSquare className="w-5 h-5" />
                     <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                      {user.unreadMessages > 9 ? '9+' : user.unreadMessages}
+                      {unreadMessages > 9 ? '9+' : unreadMessages}
                     </span>
                   </Link>
                 )}
@@ -205,10 +213,14 @@ export default function Header() {
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="p-2 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">
-                      {user.name.split(' ').map(n => n[0]).join('')}
-                    </span>
+                  <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center">
+                    {avatarUrl ? (
+                      <Image src={avatarUrl} alt="Avatar" width={32} height={32} className="object-cover w-8 h-8" />
+                    ) : (
+                      <span className="text-white text-sm font-medium">
+                        {displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                      </span>
+                    )}
                   </div>
                 </button>
 
@@ -216,8 +228,8 @@ export default function Header() {
                 {userMenuOpen && (
                   <div className="absolute right-0 mt-2 w-full max-w-xs sm:w-64 bg-white rounded-xl shadow-lg border py-2 z-50">
                     <div className="px-4 py-3 border-b">
-                      <p className="font-medium text-gray-900">{user.name}</p>
-                      <p className="text-sm text-gray-600">{user.email}</p>
+                      <p className="font-medium text-gray-900">{displayName}</p>
+                      <p className="text-sm text-gray-600">{user?.email}</p>
                     </div>
                     
                     <div className="py-2">
@@ -246,9 +258,9 @@ export default function Header() {
                       >
                         <MessageSquare className="w-4 h-4" />
                         Messages
-                        {user.unreadMessages > 0 && (
+                        {unreadMessages > 0 && (
                           <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
-                            {user.unreadMessages}
+                            {unreadMessages}
                           </span>
                         )}
                       </Link>
@@ -354,10 +366,14 @@ export default function Header() {
                   href="/profile"
                   className="sm:hidden text-gray-600 hover:text-blue-600 font-medium items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-gray-50 transition-colors flex flex-col text-xs"
                 >
-                  <div className="w-6 h-6 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-medium">
-                      {user.name.split(' ').map(n => n[0]).join('')}
-                    </span>
+                  <div className="w-6 h-6 rounded-full overflow-hidden bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center">
+                    {avatarUrl ? (
+                      <Image src={avatarUrl} alt="Avatar" width={24} height={24} className="object-cover w-6 h-6" />
+                    ) : (
+                      <span className="text-white text-[10px] font-medium">
+                        {displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                      </span>
+                    )}
                   </div>
                 </Link>
               ) : (
@@ -517,9 +533,9 @@ export default function Header() {
                     >
                       <MessageSquare className="w-5 h-5" />
                       <span className="font-medium flex-1">Messages</span>
-                      {user.unreadMessages > 0 && (
+                      {unreadMessages > 0 && (
                         <span className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
-                          {user.unreadMessages}
+                          {unreadMessages}
                         </span>
                       )}
                     </Link>
