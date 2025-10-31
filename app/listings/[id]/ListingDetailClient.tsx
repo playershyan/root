@@ -365,10 +365,103 @@ export default function ListingDetailClient({
               />
             </div>
 
-            {/* Make Offer Button */}
-            <button 
+            {/* Seller Information & Actions - Mobile Only */}
+            <div className="lg:hidden mb-6 space-y-4">
+              {/* Seller Info */}
+              <div className="flex items-center gap-3 pb-4 border-b border-gray-200">
+                {sellerData?.type === 'business' ? (
+                  <>
+                    <div className="w-12 h-12 rounded-lg flex items-center justify-center border border-gray-200">
+                      {(sellerData.profileImageUrl || sellerData.logoUrl) ? (
+                        <img
+                          src={sellerData.profileImageUrl || sellerData.logoUrl}
+                          alt={sellerData.name}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-50 rounded-lg flex items-center justify-center">
+                          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <Link
+                        href={`/business/${sellerData.businessId}`}
+                        className="font-semibold text-gray-900 hover:text-blue-600 transition-colors flex items-center gap-2"
+                      >
+                        {sellerData.name}
+                        {sellerData.isVerified && (
+                          <Check className="w-4 h-4 text-blue-600 bg-blue-50 rounded-full p-0.5" />
+                        )}
+                      </Link>
+                      <p className="text-xs text-gray-500 mt-0.5">Business Seller</p>
+                    </div>
+                  </>
+                ) : sellerData?.type === 'individual' ? (
+                  <>
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-full flex items-center justify-center font-medium text-sm">
+                      <span>
+                        {sellerData.name.split(' ').map(n => n[0]).join('')}
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-900">{sellerData.name}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Private Seller</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-full flex items-center justify-center font-medium text-sm">
+                      <span>
+                        {dealer.name.split(' ').map((n: string) => n[0]).join('')}
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-900">{dealer.name}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Seller</p>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => {
+                    const phone = sellerData?.phone || dealer.phone
+                    const whatsapp = sellerData?.type === 'business' ? sellerData.whatsapp : sellerData?.whatsapp || dealer.whatsapp
+                    // Show contact modal or make call directly
+                    window.location.href = `tel:${phone}`
+                  }}
+                  className="btn-call btn-full btn-icon"
+                >
+                  <Phone className="w-4 h-4" />
+                  Contact
+                </button>
+                <button
+                  onClick={() => setShowConversationModal(true)}
+                  className="btn-secondary btn-full btn-icon"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  Message
+                </button>
+              </div>
+
+              {/* Make Offer Button */}
+              <button
+                onClick={handleMakeOffer}
+                className="btn-secondary btn-full"
+              >
+                Make Offer
+              </button>
+            </div>
+
+            {/* Make Offer Button - Desktop Only */}
+            <button
               onClick={handleMakeOffer}
-              className="btn-secondary btn-full"
+              className="hidden lg:block btn-secondary btn-full"
             >
               Make Offer
             </button>
@@ -474,13 +567,15 @@ export default function ListingDetailClient({
 
         {/* Sidebar */}
         <div className="space-y-2 lg:space-y-6">
-          {/* Contact Profile - Dynamic based on seller type */}
-          <ContactProfile
-            listing={listing}
-            sellerData={sellerData}
-            dealer={dealer}
-            onMessageClick={() => setShowConversationModal(true)}
-          />
+          {/* Contact Profile - Dynamic based on seller type - Desktop Only */}
+          <div className="hidden lg:block">
+            <ContactProfile
+              listing={listing}
+              sellerData={sellerData}
+              dealer={dealer}
+              onMessageClick={() => setShowConversationModal(true)}
+            />
+          </div>
 
           {/* Important Information */}
           <div className="mt-4 lg:mt-12 bg-yellow-50 border-b lg:border border-yellow-200 lg:rounded-xl px-4 lg:p-6 py-4 lg:py-6">
