@@ -33,6 +33,12 @@ export default function Header() {
   const unreadMessages = useUnreadMessages()
   const { count: wantedNotificationCount } = useNotificationCount()
 
+  const handleMobileNavigate = (e: React.MouseEvent, href: string) => {
+    e.preventDefault()
+    setMobileMenuOpen(false)
+    router.push(href)
+  }
+
   // Centralized function to check for showLogin flag
   const checkForShowLogin = (source = 'mount') => {
     const shouldShowLogin = localStorage.getItem('showLoginModal')
@@ -264,6 +270,14 @@ export default function Header() {
                         <FileText className="w-4 h-4" />
                         Wanted Requests
                       </Link>
+                      <Link
+                        href="/profile?tab=notifications"
+                        className="block px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3 text-sm sm:text-base"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        <Bell className="w-4 h-4" />
+                        Notifications
+                      </Link>
                     </div>
                     
                     <hr className="my-2" />
@@ -345,7 +359,6 @@ export default function Header() {
                       {user.name.split(' ').map(n => n[0]).join('')}
                     </span>
                   </div>
-                  <span>Profile</span>
                 </Link>
               ) : (
                 <button
@@ -484,7 +497,7 @@ export default function Header() {
                     <Link
                       href="/profile"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={(e) => handleMobileNavigate(e, '/profile')}
                     >
                       <User className="w-5 h-5" />
                       <span className="font-medium">My Profile</span>
@@ -492,7 +505,7 @@ export default function Header() {
                     <Link
                       href="/profile?tab=listings"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={(e) => handleMobileNavigate(e, '/profile?tab=listings')}
                     >
                       <Car className="w-5 h-5" />
                       <span className="font-medium">My Listings</span>
@@ -500,7 +513,7 @@ export default function Header() {
                     <Link
                       href="/profile?tab=messages"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={(e) => handleMobileNavigate(e, '/profile?tab=messages')}
                     >
                       <MessageSquare className="w-5 h-5" />
                       <span className="font-medium flex-1">Messages</span>
@@ -513,7 +526,7 @@ export default function Header() {
                     <Link
                       href="/profile?tab=favorites"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={(e) => handleMobileNavigate(e, '/profile?tab=favorites')}
                     >
                       <Heart className="w-5 h-5" />
                       <span className="font-medium">Favorites</span>
@@ -521,10 +534,18 @@ export default function Header() {
                     <Link
                       href="/profile?tab=wanted"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={(e) => handleMobileNavigate(e, '/profile?tab=wanted')}
                     >
                       <FileText className="w-5 h-5" />
                       <span className="font-medium">My Wanted Requests</span>
+                    </Link>
+                    <Link
+                      href="/profile?tab=notifications"
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
+                      onClick={(e) => handleMobileNavigate(e, '/profile?tab=notifications')}
+                    >
+                      <Bell className="w-5 h-5" />
+                      <span className="font-medium">Notifications</span>
                     </Link>
                   </div>
                 </div>
@@ -556,7 +577,7 @@ export default function Header() {
                   <Link
                     href="/profile?tab=security"
                     className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={(e) => handleMobileNavigate(e, '/profile?tab=security')}
                   >
                     <Shield className="w-5 h-5" />
                     <span className="font-medium">Account Settings</span>
