@@ -10,6 +10,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import { GoogleOneTapProvider } from './components/auth'
 import AuthWrapper from './components/AuthWrapper'
 import { FavoritesProvider } from '@/lib/contexts/FavoritesContext'
+import CapacitorInitializer from './components/CapacitorInitializer'
 import WebVitalsReporter from './components/WebVitalsReporter'
 import RoutePrefetcher from './components/RoutePrefetcher'
 
@@ -49,6 +50,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <WebVitalsReporter />
         <RoutePrefetcher />
+        <CapacitorInitializer />
         <ErrorBoundary>
           <AuthProvider>
             <FavoritesProvider>
