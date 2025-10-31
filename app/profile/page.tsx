@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { 
-  User, Settings, Car, Heart, MessageSquare, Search, 
+import dynamic from 'next/dynamic'
+import {
+  User, Settings, Car, Heart, MessageSquare, Search,
   Bell, Trash2, Shield, Crown, Check, ChevronDown,
   Upload, Edit, Share2, RefreshCw, Clock, MoreVertical,
   Camera, MapPin, Phone, Mail, Calendar, Eye, X,
@@ -25,22 +26,42 @@ import { filterListingsByStatus } from '@/lib/utils/listingStatus'
 import WantedRequestStatusBadge from '@/app/components/wantedRequests/WantedRequestStatusBadge'
 import WantedRequestActions from '@/app/components/wantedRequests/WantedRequestActions'
 import WantedRequestStatusMessage from '@/app/components/wantedRequests/WantedRequestStatusMessage'
-import MessagesTab from '@/app/components/messages/MessagesTab'
 import { ConversationData, MessageData } from '@/lib/utils/messageUtils'
 import { Listing } from '@/lib/types'
-import FavoritesTab from '@/app/components/favorites/FavoritesTab'
-import BusinessProfileManagement from '@/app/components/profile/BusinessProfileManagement'
-import CreateBusinessProfile from '@/app/components/profile/CreateBusinessProfile'
-import BusinessPageTab from '@/app/components/profile/BusinessPageTab'
 import { BusinessProfile, CreateBusinessProfileData, UpdateBusinessProfileData } from '@/lib/types/businessProfile'
-import BinTab from '@/app/components/bin/BinTab'
-import SecurityTab from '@/app/components/security/SecurityTab'
-import NotificationsTab from '@/app/components/notifications/NotificationsTab'
 import CountrySelector from '@/app/components/CountrySelector'
 import { countries, Country } from '@/lib/data/countries'
-import BusinessProfileRecovery from '@/app/components/profile/BusinessProfileRecovery'
 import MobileProfileHeader from '@/app/components/mobile/MobileProfileHeader'
 import MobileProfileTabs from '@/app/components/mobile/MobileProfileTabs'
+
+// Lazy load tab components for better performance (Phase 2 optimization)
+const MessagesTab = dynamic(() => import('@/app/components/messages/MessagesTab'), {
+  loading: () => <div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>
+})
+const FavoritesTab = dynamic(() => import('@/app/components/favorites/FavoritesTab'), {
+  loading: () => <div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>
+})
+const BusinessProfileManagement = dynamic(() => import('@/app/components/profile/BusinessProfileManagement'), {
+  loading: () => <div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>
+})
+const CreateBusinessProfile = dynamic(() => import('@/app/components/profile/CreateBusinessProfile'), {
+  loading: () => <div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>
+})
+const BusinessPageTab = dynamic(() => import('@/app/components/profile/BusinessPageTab'), {
+  loading: () => <div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>
+})
+const BinTab = dynamic(() => import('@/app/components/bin/BinTab'), {
+  loading: () => <div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>
+})
+const SecurityTab = dynamic(() => import('@/app/components/security/SecurityTab'), {
+  loading: () => <div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>
+})
+const NotificationsTab = dynamic(() => import('@/app/components/notifications/NotificationsTab'), {
+  loading: () => <div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>
+})
+const BusinessProfileRecovery = dynamic(() => import('@/app/components/profile/BusinessProfileRecovery'), {
+  loading: () => <div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>
+})
 
 // Types
 interface UserProfile {

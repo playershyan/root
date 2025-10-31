@@ -2,12 +2,15 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { Heart } from 'lucide-react'
 import PriceDisplay from '@/app/components/PriceDisplay'
 import PromotionBadges from './PromotionBadges'
-import ContactModal from '@/app/components/modals/ContactModal'
-import ConversationModal from '@/app/components/modals/ConversationModal'
 import FavoriteButton from '@/app/components/FavoriteButton'
+
+// Lazy load modals (Phase 2 optimization)
+const ContactModal = dynamic(() => import('@/app/components/modals/ContactModal'))
+const ConversationModal = dynamic(() => import('@/app/components/modals/ConversationModal'))
 
 interface RegularAdCardProps {
   listing: {

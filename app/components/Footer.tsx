@@ -227,7 +227,7 @@ export default function Footer() {
                 © {new Date().getFullYear()} VERA. All rights reserved.
               </div>
               <div className="flex items-center space-x-1">
-                <img src="/sri-lanka-flag.svg" alt="Sri Lanka" className="w-5 h-3" />
+                <Image src="/sri-lanka-flag.svg" alt="Sri Lanka" width={20} height={12} />
                 <span>Made in Sri Lanka</span>
               </div>
               <div className="flex items-center space-x-1">

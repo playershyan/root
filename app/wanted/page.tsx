@@ -2,16 +2,21 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { supabase } from '@/lib/supabase'
 import { useInView } from 'react-intersection-observer'
 import debounce from 'lodash/debounce'
 import LocationFilter from '@/app/components/LocationFilter'
-import ContactModal from '@/app/components/modals/ContactModal'
 import UrgentWantedCard from '@/app/components/wantedRequests/UrgentWantedCard'
 import RegularWantedCard from '@/app/components/wantedRequests/RegularWantedCard'
 import MatchNotificationBanner, { MultiMatchNotificationBanner } from './components/MatchNotificationBanner'
 import { useWantedNotifications } from '@/lib/hooks/useWantedNotifications'
-import MobileWantedFilterSheet from '@/app/components/filters/MobileWantedFilterSheet'
+
+// Lazy load large components (Phase 2 optimization)
+const ContactModal = dynamic(() => import('@/app/components/modals/ContactModal'))
+const MobileWantedFilterSheet = dynamic(() => import('@/app/components/filters/MobileWantedFilterSheet'), {
+  ssr: false
+})
 
 interface WantedRequest {
   id: string
