@@ -747,7 +747,7 @@ function PriceFilterPage({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
             <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide mb-2">
               Minimum (LKR)
@@ -773,9 +773,7 @@ function PriceFilterPage({
             />
           </div>
         </div>
-      </div>
 
-      <div className="p-4 border-t border-gray-200 bg-white sticky bottom-0">
         <button
           onClick={onApply}
           className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors"
@@ -851,7 +849,7 @@ function YearFilterPage({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
             <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide mb-2">
               From Year
@@ -877,9 +875,7 @@ function YearFilterPage({
             />
           </div>
         </div>
-      </div>
 
-      <div className="p-4 border-t border-gray-200 bg-white sticky bottom-0">
         <button
           onClick={onApply}
           className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors"
@@ -917,7 +913,7 @@ function FuelFilterPage({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        <div className="space-y-2">
+        <div className="space-y-2 mb-4">
           {fuels.map((fuel) => {
             const isSelected = selectedFuels.includes(fuel)
             return (
@@ -940,9 +936,7 @@ function FuelFilterPage({
             )
           })}
         </div>
-      </div>
 
-      <div className="p-4 border-t border-gray-200 bg-white sticky bottom-0">
         <button
           onClick={onBack}
           className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors"
@@ -980,7 +974,7 @@ function TransmissionFilterPage({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        <div className="space-y-2">
+        <div className="space-y-2 mb-4">
           {transmissions.map((transmission) => {
             const isSelected = selectedTransmissions.includes(transmission)
             return (
@@ -1003,9 +997,7 @@ function TransmissionFilterPage({
             )
           })}
         </div>
-      </div>
 
-      <div className="p-4 border-t border-gray-200 bg-white sticky bottom-0">
         <button
           onClick={onBack}
           className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors"

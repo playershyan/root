@@ -700,7 +700,7 @@ function BudgetFilterPage({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
             <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide mb-2">
               Minimum (LKR)
@@ -726,9 +726,7 @@ function BudgetFilterPage({
             />
           </div>
         </div>
-      </div>
 
-      <div className="p-4 border-t border-gray-200 bg-white sticky bottom-0">
         <button
           onClick={onApply}
           className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors"
@@ -804,7 +802,7 @@ function YearFilterPage({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
             <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide mb-2">
               From Year
@@ -830,9 +828,7 @@ function YearFilterPage({
             />
           </div>
         </div>
-      </div>
 
-      <div className="p-4 border-t border-gray-200 bg-white sticky bottom-0">
         <button
           onClick={onApply}
           className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors"

@@ -39,13 +39,22 @@ export function useUnreadMessages() {
     // Set up real-time subscription
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
+        // Subscribe to both buyer and seller conversations separately
         channel = supabase
           .channel(`unread-${user.id}`)
           .on('postgres_changes', {
             event: '*',
             schema: 'public',
             table: 'conversations',
-            filter: `buyer_id=eq.${user.id},seller_id=eq.${user.id}`
+            filter: `buyer_id=eq.${user.id}`
+          }, () => {
+            fetchUnreadCount()
+          })
+          .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'conversations',
+            filter: `seller_id=eq.${user.id}`
           }, () => {
             fetchUnreadCount()
           })
