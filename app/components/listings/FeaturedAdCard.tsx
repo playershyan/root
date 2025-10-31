@@ -2,11 +2,14 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { Heart, MapPin, Calendar, Eye, Star } from 'lucide-react'
 import PromotionBadges from './PromotionBadges'
 import ImageCarousel from '@/components/ui/ImageCarousel'
-import ContactModal from '@/app/components/modals/ContactModal'
-import ConversationModal from '@/app/components/modals/ConversationModal'
+
+// Lazy load modals (Phase 2 optimization)
+const ContactModal = dynamic(() => import('@/app/components/modals/ContactModal'))
+const ConversationModal = dynamic(() => import('@/app/components/modals/ConversationModal'))
 
 interface FeaturedAdCardProps {
   listing: {

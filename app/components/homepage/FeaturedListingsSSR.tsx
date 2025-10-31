@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { Star, Eye, MapPin, Calendar, ArrowRight } from 'lucide-react'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
@@ -134,17 +135,20 @@ export default async function FeaturedListingsSSR({ displayCount = 6 }: Featured
                 {/* Image */}
                 <div className="relative h-48 bg-gray-200 overflow-hidden">
                   {listing.image_url || (listing.image_urls && listing.image_urls[0]) ? (
-                    <img
+                    <Image
                       src={listing.image_url || listing.image_urls?.[0]}
                       alt={listing.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                      loading="lazy"
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                       <span className="text-gray-400 text-sm">No image available</span>
                     </div>
                   )}
-                  
+
                   {/* Gradient overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                 </div>

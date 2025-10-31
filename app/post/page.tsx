@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/app/contexts/AuthContext'
 import {
@@ -11,7 +12,6 @@ import {
 } from 'lucide-react'
 import CountrySelector, { useCountrySelector } from '@/app/components/CountrySelector'
 import { formatPhoneForStorage, formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
-import DescriptionGenerator, { DescriptionGeneratorRef } from '@/app/components/vehicle-forms/DescriptionGenerator'
 import {
   DISTRICTS,
   getCitiesByDistrictId,
@@ -23,12 +23,20 @@ import {
   getMakesByCategory,
   getModelsByMake
 } from '@/lib/constants/vehicleData'
-import VehicleFormFactory from '@/app/components/vehicle-forms/VehicleFormFactory'
 import { BaseVehicleFormData } from '@/app/components/vehicle-forms/types'
 import { useUserProfile } from '@/lib/hooks/useUserProfile'
 import { useRecaptcha } from '@/lib/hooks/useRecaptcha'
 import { useToast } from '@/app/components/notifications/useToast'
 import { ToastContainer } from '@/app/components/notifications/ToastContainer'
+
+// Lazy load form components (Phase 2 optimization)
+import type { DescriptionGeneratorRef } from '@/app/components/vehicle-forms/DescriptionGenerator'
+const DescriptionGenerator = dynamic(() => import('@/app/components/vehicle-forms/DescriptionGenerator'), {
+  loading: () => <div className="animate-pulse bg-gray-100 rounded-lg p-4 h-32"></div>
+})
+const VehicleFormFactory = dynamic(() => import('@/app/components/vehicle-forms/VehicleFormFactory'), {
+  loading: () => <div className="animate-pulse bg-gray-100 rounded-lg p-4 h-64"></div>
+})
 
 // Vehicle makes and models are now loaded from vehicleData.ts
 // Form constants are now in the vehicle-forms types

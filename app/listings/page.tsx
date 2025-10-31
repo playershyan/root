@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { supabase } from '@/lib/supabase'
 import LocationFilter from '@/app/components/LocationFilter'
 import PriceDisplay from '@/app/components/PriceDisplay'
@@ -12,12 +13,16 @@ import TopSpotCard from '@/app/components/listings/TopSpotCard'
 import BoostedCard from '@/app/components/listings/BoostedCard'
 import UrgentListingCard from '@/app/components/listings/UrgentListingCard'
 import PromotionBadges from '@/app/components/listings/PromotionBadges'
-import MobileFilterSheet from '@/app/components/filters/MobileFilterSheet'
 import { getVehicleCategories, getMakesByCategory, getModelsByMake, getCategoryInfo } from '@/lib/constants/vehicleData'
 import { RotationService } from '@/lib/services/rotationService'
 import { PromotionService, PromotedListing } from '@/lib/services/promotionService'
 import { useRecaptcha } from '@/lib/hooks/useRecaptcha'
 import { Listing } from '@/lib/types'
+
+// Lazy load large filter component (Phase 2 optimization - 1068 lines)
+const MobileFilterSheet = dynamic(() => import('@/app/components/filters/MobileFilterSheet'), {
+  ssr: false
+})
 
 /**
  * FILTER SYSTEM ANALYSIS & IMPROVEMENTS
