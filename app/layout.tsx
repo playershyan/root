@@ -10,6 +10,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import { GoogleOneTapProvider } from './components/auth'
 import AuthWrapper from './components/AuthWrapper'
 import { FavoritesProvider } from '@/lib/contexts/FavoritesContext'
+import CapacitorInitializer from './components/CapacitorInitializer'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -45,6 +46,7 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
+        <CapacitorInitializer />
         <ErrorBoundary>
           <AuthProvider>
             <FavoritesProvider>

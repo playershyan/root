@@ -6,6 +6,8 @@ import { useAuth } from '../../contexts/AuthContext'
 import { authConfig } from '@/lib/config/auth.config'
 import { verifyOTP } from '@/lib/auth'
 import type { OTPVerificationProps, AuthResult } from './types'
+import { isNative, readFromClipboard } from '@/lib/capacitor-bridge'
+import { Capacitor } from '@capacitor/core'
 
 export default function OTPVerification({
   phone,
@@ -42,7 +44,34 @@ export default function OTPVerification({
   useEffect(() => {
     // Auto-focus first input on mount
     inputRefs.current[0]?.focus()
+    
+    // SMS Auto-fill for Android (native app only)
+    if (isNative() && Capacitor.getPlatform() === 'android') {
+      setupSMSAutoFill()
+    }
   }, [])
+
+  const setupSMSAutoFill = async () => {
+    // Android SMS Retriever API integration
+    // This requires a custom Capacitor plugin or Web Intent handling
+    // For now, we'll implement clipboard monitoring as a fallback
+    
+    // Check clipboard on mount (OTP might be copied)
+    const clipboardText = await readFromClipboard()
+    if (clipboardText && /^\d{6}$/.test(clipboardText.trim())) {
+      const code = clipboardText.trim()
+      const newOtp = code.split('').slice(0, 6)
+      setOtp(newOtp)
+      
+      // Auto-submit if complete
+      if (newOtp.length === 6 && newOtp.every(digit => digit)) {
+        setTimeout(() => handleVerify(code), 500)
+      }
+    }
+
+    // Listen for SMS events (would require custom plugin)
+    // For now, provide manual paste option
+  }
 
   const handleInputChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return // Only allow digits

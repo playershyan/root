@@ -6,7 +6,7 @@
  */
 
 import { useState, useRef } from 'react'
-import { Upload, X, Check, AlertCircle, Loader2 } from 'lucide-react'
+import { Upload, X, Check, AlertCircle, Loader2, Camera } from 'lucide-react'
 import {
   compressImages,
   validateImageFiles,
@@ -16,6 +16,7 @@ import {
   type CompressionProgress,
 } from '@/lib/utils/image-compression'
 import { UPLOAD_CONSTRAINTS } from '@/lib/config/images'
+import { takePhoto, pickFromGallery, isNative } from '@/lib/capacitor-bridge'
 
 export interface ImageUploadWithCompressionProps {
   images: File[]
@@ -135,6 +136,64 @@ export default function ImageUploadWithCompression({
     }
   }
 
+  const handleTakePhoto = async () => {
+    try {
+      const result = await takePhoto({
+        quality: 90,
+        allowEditing: false
+      })
+
+      if (result && result.base64String) {
+        // Convert base64 to File object
+        const byteCharacters = atob(result.base64String)
+        const byteNumbers = new Array(byteCharacters.length)
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i)
+        }
+        const byteArray = new Uint8Array(byteNumbers)
+        const blob = new Blob([byteArray], { type: `image/${result.format}` })
+        const file = new File([blob], `photo_${Date.now()}.${result.format}`, {
+          type: `image/${result.format}`
+        })
+
+        await processFiles([file])
+      }
+    } catch (error) {
+      console.error('Camera error:', error)
+      // Fallback to file input
+      fileInputRef.current?.click()
+    }
+  }
+
+  const handlePickFromGallery = async () => {
+    try {
+      const result = await pickFromGallery({
+        quality: 90,
+        allowEditing: false
+      })
+
+      if (result && result.base64String) {
+        // Convert base64 to File object
+        const byteCharacters = atob(result.base64String)
+        const byteNumbers = new Array(byteCharacters.length)
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i)
+        }
+        const byteArray = new Uint8Array(byteNumbers)
+        const blob = new Blob([byteArray], { type: `image/${result.format}` })
+        const file = new File([blob], `photo_${Date.now()}.${result.format}`, {
+          type: `image/${result.format}`
+        })
+
+        await processFiles([file])
+      }
+    } catch (error) {
+      console.error('Gallery picker error:', error)
+      // Fallback to file input
+      fileInputRef.current?.click()
+    }
+  }
+
   return (
     <div>
       {/* Upload Area */}
@@ -213,7 +272,32 @@ export default function ImageUploadWithCompression({
                 browse
               </button>
             </p>
-            <p className="text-sm text-gray-500">
+            
+            {/* Native camera/gallery buttons */}
+            {isNative() && (
+              <div className="flex justify-center gap-3 mt-3">
+                <button
+                  type="button"
+                  onClick={handleTakePhoto}
+                  disabled={disabled || compressing}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Camera className="w-4 h-4" />
+                  Camera
+                </button>
+                <button
+                  type="button"
+                  onClick={handlePickFromGallery}
+                  disabled={disabled || compressing}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Upload className="w-4 h-4" />
+                  Gallery
+                </button>
+              </div>
+            )}
+            
+            <p className="text-sm text-gray-500 mt-3">
               At least 1 photo required. Maximum {maxImages} photos.
             </p>
             <p className="text-xs text-gray-400 mt-2">
