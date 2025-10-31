@@ -39,6 +39,8 @@ import NotificationsTab from '@/app/components/notifications/NotificationsTab'
 import CountrySelector from '@/app/components/CountrySelector'
 import { countries, Country } from '@/lib/data/countries'
 import BusinessProfileRecovery from '@/app/components/profile/BusinessProfileRecovery'
+import MobileProfileHeader from '@/app/components/mobile/MobileProfileHeader'
+import MobileProfileTabs from '@/app/components/mobile/MobileProfileTabs'
 
 // Types
 interface UserProfile {
@@ -1905,8 +1907,27 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Breadcrumb */}
-      <div className="bg-gray-100 border-b">
+      {/* Mobile Header - Only on Mobile */}
+      <MobileProfileHeader
+        userName={profile.fullName || 'User'}
+        userInitials={profile.fullName ? profile.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
+        hasBusinessProfile={!!businessProfile}
+        currentPage={activeTab}
+        onNotificationsClick={() => handleTabChange('notifications')}
+        notificationCount={0}
+      />
+
+      {/* Mobile Tabs - Only on Mobile */}
+      <MobileProfileTabs
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        listingsCount={listings.length}
+        favoritesCount={favoritedAds.length + favoritedWantedRequests.length}
+        wantedCount={wantedRequests.length}
+      />
+
+      {/* Breadcrumb - Desktop Only */}
+      <div className="hidden md:block bg-gray-100 border-b">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <nav className="text-sm">
             <Link href="/" className="text-gray-600 hover:text-blue-600">Home</Link>
@@ -1919,9 +1940,9 @@ export default function ProfilePage() {
       {/* Main Container */}
       <div className="max-w-7xl mx-auto px-4 py-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
+
+          {/* Sidebar - Desktop Only */}
+          <div className="hidden lg:block lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm sticky top-20">
               {/* Profile Header */}
               <div className="p-6 text-center border-b">
@@ -1958,7 +1979,12 @@ export default function ProfilePage() {
 
           {/* Main Content */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-lg shadow-sm">
+            {/* Mobile: No white background for primary tabs, Desktop: white background */}
+            <div className={`${
+              ['listings', 'favorites', 'wanted', 'messages'].includes(activeTab)
+                ? 'md:bg-white md:rounded-lg md:shadow-sm'
+                : 'bg-white rounded-lg shadow-sm'
+            }`}>
               
               {/* Profile Tab */}
               {activeTab === 'profile' && (
