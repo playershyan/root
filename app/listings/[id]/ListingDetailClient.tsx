@@ -388,17 +388,35 @@ export default function ListingDetailClient({
               {(listing.description || listing.ai_generated_description || 'No description available.')
                 .split('\n')
                 .map((line, index) => {
-                  // Parse bold formatting (**text**)
-                  const parts = line.split(/(\*\*[^*]+\*\*)/g)
+                  const trimmedLine = line.trim()
+
+                  // First line (title) - make it bold if it doesn't contain a colon
+                  if (index === 0 && !trimmedLine.includes(':')) {
+                    return (
+                      <div key={index} className="font-bold text-gray-900 text-base mb-2">
+                        {trimmedLine}
+                      </div>
+                    )
+                  }
+
+                  // Lines with "Field: Value" format - make field name bold
+                  if (trimmedLine.includes(':')) {
+                    const colonIndex = trimmedLine.indexOf(':')
+                    const fieldName = trimmedLine.substring(0, colonIndex)
+                    const fieldValue = trimmedLine.substring(colonIndex + 1).trim()
+
+                    return (
+                      <div key={index}>
+                        <strong className="font-semibold text-gray-900">{fieldName}:</strong>
+                        {fieldValue && <span> {fieldValue}</span>}
+                      </div>
+                    )
+                  }
+
+                  // Regular lines
                   return (
                     <div key={index}>
-                      {parts.map((part, partIndex) => {
-                        if (part.startsWith('**') && part.endsWith('**')) {
-                          const boldText = part.slice(2, -2)
-                          return <strong key={partIndex} className="font-semibold text-gray-900">{boldText}</strong>
-                        }
-                        return <span key={partIndex}>{part}</span>
-                      })}
+                      {trimmedLine}
                     </div>
                   )
                 })}
