@@ -10,6 +10,8 @@ import { AuthProvider } from './contexts/AuthContext'
 import { GoogleOneTapProvider } from './components/auth'
 import AuthWrapper from './components/AuthWrapper'
 import { FavoritesProvider } from '@/lib/contexts/FavoritesContext'
+import WebVitalsReporter from './components/WebVitalsReporter'
+import RoutePrefetcher from './components/RoutePrefetcher'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -45,6 +47,8 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
+        <WebVitalsReporter />
+        <RoutePrefetcher />
         <ErrorBoundary>
           <AuthProvider>
             <FavoritesProvider>

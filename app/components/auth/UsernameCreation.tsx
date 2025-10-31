@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { Check, X, Loader2 } from 'lucide-react'
-import { debounce } from 'lodash'
+import { debounce } from '@/lib/utils/debounce'
 
 interface UsernameCreationProps {
   phoneNumber: string

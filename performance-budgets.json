@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json.schemastore.org/performance-budget.json",
+  "budgets": [
+    {
+      "path": "/**",
+      "resourceSizes": [
+        {
+          "resourceType": "script",
+          "budget": 350
+        },
+        {
+          "resourceType": "stylesheet",
+          "budget": 50
+        },
+        {
+          "resourceType": "image",
+          "budget": 500
+        },
+        {
+          "resourceType": "font",
+          "budget": 100
+        },
+        {
+          "resourceType": "document",
+          "budget": 50
+        },
+        {
+          "resourceType": "total",
+          "budget": 600
+        }
+      ],
+      "timings": [
+        {
+          "metric": "first-contentful-paint",
+          "budget": 1200
+        },
+        {
+          "metric": "largest-contentful-paint",
+          "budget": 1800
+        },
+        {
+          "metric": "interactive",
+          "budget": 2500
+        },
+        {
+          "metric": "total-blocking-time",
+          "budget": 250
+        },
+        {
+          "metric": "cumulative-layout-shift",
+          "budget": 0.05
+        },
+        {
+          "metric": "speed-index",
+          "budget": 2000
+        }
+      ]
+    },
+    {
+      "path": "/profile",
+      "resourceSizes": [
+        {
+          "resourceType": "script",
+          "budget": 300
+        },
+        {
+          "resourceType": "total",
+          "budget": 500
+        }
+      ],
+      "timings": [
+        {
+          "metric": "interactive",
+          "budget": 3000
+        }
+      ]
+    },
+    {
+      "path": "/listings",
+      "resourceSizes": [
+        {
+          "resourceType": "script",
+          "budget": 320
+        },
+        {
+          "resourceType": "image",
+          "budget": 800
+        },
+        {
+          "resourceType": "total",
+          "budget": 700
+        }
+      ],
+      "timings": [
+        {
+          "metric": "largest-contentful-paint",
+          "budget": 2000
+        }
+      ]
+    }
+  ]
+}
