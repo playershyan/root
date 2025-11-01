@@ -17,7 +17,8 @@ export default function AuthModal({
   isOpen,
   onClose,
   initialView = 'login',
-  allowedMethods = ['google', 'email', 'phone']
+  allowedMethods = ['google', 'email', 'phone'],
+  onAuthSuccess
 }: AuthModalProps) {
   const [currentView, setCurrentView] = useState<AuthView>('main')
   const [authType, setAuthType] = useState<'login' | 'register'>(initialView)
@@ -47,8 +48,12 @@ export default function AuthModal({
     } else if (result.requiresPhoneVerification) {
       // Already handled by phone form
     } else {
-      // Successful auth, close modal
+      // Successful auth, close modal and trigger callback
       onClose()
+      if (onAuthSuccess) {
+        // Small delay to ensure modal close animation completes
+        setTimeout(() => onAuthSuccess(), 100)
+      }
     }
   }
 
@@ -70,6 +75,9 @@ export default function AuthModal({
   const handleVerificationComplete = (result: AuthResult) => {
     if (result.success) {
       onClose()
+      if (onAuthSuccess) {
+        setTimeout(() => onAuthSuccess(), 100)
+      }
     }
   }
 

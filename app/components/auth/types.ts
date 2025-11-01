@@ -45,4 +45,5 @@ export interface AuthModalProps {
   onClose: () => void;
   initialView?: 'login' | 'register';
   allowedMethods?: Array<'google' | 'email' | 'phone'>;
+  onAuthSuccess?: () => void;
 }

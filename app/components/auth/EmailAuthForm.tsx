@@ -117,17 +117,20 @@ export default function EmailAuthForm({
       
       if (result.success) {
         if (result.requiresEmailVerification) {
-          const authResult: AuthResult = { 
-            success: true, 
+          const authResult: AuthResult = {
+            success: true,
             requiresEmailVerification: true,
-            user: result.user 
+            user: result.user
           }
           onSuccess?.(authResult)
         } else {
           await refreshUser()
           const authResult: AuthResult = { success: true, user: result.user }
           onSuccess?.(authResult)
-          router.push(authConfig.redirectUrls.afterLogin)
+          // Only redirect if no onSuccess callback provided
+          if (!onSuccess) {
+            router.push(authConfig.redirectUrls.afterLogin)
+          }
         }
       } else {
         const errorMessage = result.error?.message || `Failed to ${type === 'register' ? 'create account' : 'sign in'}`

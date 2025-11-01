@@ -48,7 +48,10 @@ export default function StreamlinedSignup({
     // Google auth should directly create account and go to profile
     await refreshUser()
     onSuccess?.(result)
-    router.push('/profile')
+    // Only redirect if no onSuccess callback provided
+    if (!onSuccess) {
+      router.push('/profile')
+    }
   }
 
   const handleGoogleError = (error: string) => {
@@ -70,7 +73,10 @@ export default function StreamlinedSignup({
     // Account successfully created, go to profile
     await refreshUser()
     onSuccess?.({ success: true })
-    router.push('/profile')
+    // Only redirect if no onSuccess callback provided
+    if (!onSuccess) {
+      router.push('/profile')
+    }
   }
 
   const handleBack = () => {

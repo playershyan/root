@@ -901,6 +901,10 @@ export default function ListingDetailClient({
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         initialView="login"
+        onAuthSuccess={() => {
+          // Open offer modal after successful authentication
+          setShowOfferModal(true)
+        }}
       />
 
       {/* Toast Notifications */}

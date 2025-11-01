@@ -43,7 +43,10 @@ export default function GoogleSignInButton({
         await refreshUser()
         const authResult: AuthResult = { success: true }
         onSuccess?.(authResult)
-        router.push(authConfig.redirectUrls.afterLogin)
+        // Only redirect if no onSuccess callback provided
+        if (!onSuccess) {
+          router.push(authConfig.redirectUrls.afterLogin)
+        }
       } else {
         const errorMessage = result.error?.message || 'Failed to sign in with Google'
         onError?.(errorMessage)

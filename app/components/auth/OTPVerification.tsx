@@ -142,7 +142,7 @@ export default function OTPVerification({
         await refreshUser()
         const authResult: AuthResult = { success: true, user: result.user }
         onVerificationComplete(authResult)
-        router.push(authConfig.redirectUrls.afterLogin)
+        // Let parent component handle redirect
       } else {
         const errorMessage = result.error?.message || 'Invalid verification code'
         setError(errorMessage)

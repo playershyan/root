@@ -30,6 +30,7 @@ export default function Header() {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [showEmailLogin, setShowEmailLogin] = useState(false)
+  const [pendingRedirect, setPendingRedirect] = useState<string | null>(null)
   const userMenuRef = useRef<HTMLDivElement>(null)
   const unreadMessages = useUnreadMessages()
   const { count: wantedNotificationCount } = useNotificationCount()
@@ -327,13 +328,26 @@ export default function Header() {
             {/* Action Buttons */}
             <div className="flex items-center gap-4">
               {/* Post Wanted Request - Desktop only, blue text with outlined icon */}
-              <Link
-                href="/wanted/post"
-                className="hidden sm:flex text-blue-600 hover:text-blue-700 font-medium transition-colors items-center gap-2"
-              >
-                <Search className="w-4 h-4" />
-                <span>Post Wanted</span>
-              </Link>
+              {user ? (
+                <Link
+                  href="/wanted/post"
+                  className="hidden sm:flex text-blue-600 hover:text-blue-700 font-medium transition-colors items-center gap-2"
+                >
+                  <Search className="w-4 h-4" />
+                  <span>Post Wanted</span>
+                </Link>
+              ) : (
+                <button
+                  onClick={() => {
+                    setPendingRedirect('/wanted/post')
+                    setAuthModalOpen(true)
+                  }}
+                  className="hidden sm:flex text-blue-600 hover:text-blue-700 font-medium transition-colors items-center gap-2"
+                >
+                  <Search className="w-4 h-4" />
+                  <span>Post Wanted</span>
+                </button>
+              )}
 
               {/* Wanted Button - Mobile Only */}
               <Link
@@ -380,13 +394,26 @@ export default function Header() {
               )}
               
               {/* Primary CTA - Sell (Desktop Only) */}
-              <Link 
-                href="/post" 
-                className="hidden sm:flex bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 font-medium transition-colors items-center gap-2 shadow-sm hover:shadow-md"
-              >
-                <Car className="w-4 h-4" />
-                <span>Sell</span>
-              </Link>
+              {user ? (
+                <Link
+                  href="/post"
+                  className="hidden sm:flex bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 font-medium transition-colors items-center gap-2 shadow-sm hover:shadow-md"
+                >
+                  <Car className="w-4 h-4" />
+                  <span>Sell</span>
+                </Link>
+              ) : (
+                <button
+                  onClick={() => {
+                    setPendingRedirect('/post')
+                    setAuthModalOpen(true)
+                  }}
+                  className="hidden sm:flex bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 font-medium transition-colors items-center gap-2 shadow-sm hover:shadow-md"
+                >
+                  <Car className="w-4 h-4" />
+                  <span>Sell</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -399,8 +426,16 @@ export default function Header() {
         onClose={() => {
           setAuthModalOpen(false)
           setShowEmailLogin(false)
+          setPendingRedirect(null)
         }}
         allowedMethods={showEmailLogin ? ['email'] : ['google', 'email', 'phone']}
+        onAuthSuccess={() => {
+          // Redirect to pending page after auth
+          if (pendingRedirect) {
+            router.push(pendingRedirect)
+            setPendingRedirect(null)
+          }
+        }}
       />
 
       {/* Mobile Menu - Drawer Style */}
@@ -574,26 +609,54 @@ export default function Header() {
 
               {/* Primary Actions */}
               <div className="space-y-3 mb-4">
-                <Link
-                  href="/post"
-                  className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-semibold"
-                  onClick={(e) => {
-                    setTimeout(() => setMobileMenuOpen(false), 100)
-                  }}
-                >
-                  <Car className="w-5 h-5" />
-                  Sell My Vehicle
-                </Link>
-                <Link
-                  href="/wanted/post"
-                  className="flex items-center justify-center gap-2 w-full py-3 px-4 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 rounded-lg font-semibold"
-                  onClick={(e) => {
-                    setTimeout(() => setMobileMenuOpen(false), 100)
-                  }}
-                >
-                  <Search className="w-5 h-5" />
-                  Post Wanted Request
-                </Link>
+                {user ? (
+                  <Link
+                    href="/post"
+                    className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-semibold"
+                    onClick={(e) => {
+                      setTimeout(() => setMobileMenuOpen(false), 100)
+                    }}
+                  >
+                    <Car className="w-5 h-5" />
+                    Sell My Vehicle
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setPendingRedirect('/post')
+                      setAuthModalOpen(true)
+                      setMobileMenuOpen(false)
+                    }}
+                    className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-semibold"
+                  >
+                    <Car className="w-5 h-5" />
+                    Sell My Vehicle
+                  </button>
+                )}
+                {user ? (
+                  <Link
+                    href="/wanted/post"
+                    className="flex items-center justify-center gap-2 w-full py-3 px-4 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 rounded-lg font-semibold"
+                    onClick={(e) => {
+                      setTimeout(() => setMobileMenuOpen(false), 100)
+                    }}
+                  >
+                    <Search className="w-5 h-5" />
+                    Post Wanted Request
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setPendingRedirect('/wanted/post')
+                      setAuthModalOpen(true)
+                      setMobileMenuOpen(false)
+                    }}
+                    className="flex items-center justify-center gap-2 w-full py-3 px-4 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 rounded-lg font-semibold"
+                  >
+                    <Search className="w-5 h-5" />
+                    Post Wanted Request
+                  </button>
+                )}
               </div>
 
               {/* Settings & Logout */}

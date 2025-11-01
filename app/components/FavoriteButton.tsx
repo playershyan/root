@@ -120,12 +120,16 @@ export default function FavoriteButton({
       </button>
 
       {/* Auth Modal */}
-      <AuthModal 
+      <AuthModal
         isOpen={showAuthModal}
         onClose={() => {
           console.log('AuthModal closed')
           setShowAuthModal(false)
           // Keep pending favorite in case they complete login
+        }}
+        onAuthSuccess={() => {
+          // Prevent redirect to /profile - stay on current page
+          // The useEffect will handle adding the favorite automatically
         }}
       />
     </>
