@@ -14,6 +14,7 @@ import ContactModal from '@/app/components/modals/ContactModal'
 import { useToast } from '@/app/components/notifications/useToast'
 import { ToastContainer } from '@/app/components/notifications/ToastContainer'
 import AuthModal from '@/app/components/auth/AuthModal'
+import { useAuthWithRedirect } from '@/app/hooks/useAuthWithRedirect'
 
 type Listing = {
   id: string
@@ -97,11 +98,11 @@ export default function ListingDetailClient({
 }: ListingDetailClientProps) {
   const { user } = useAuth()
   const { toasts, showSuccess, showError, removeToast } = useToast()
+  const { showAuthModal, openAuthWithAction, closeAuth, handleAuthSuccess } = useAuthWithRedirect()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [showOfferModal, setShowOfferModal] = useState(false)
   const [showConversationModal, setShowConversationModal] = useState(false)
   const [showContactModal, setShowContactModal] = useState(false)
-  const [showAuthModal, setShowAuthModal] = useState(false)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
   
@@ -170,7 +171,7 @@ export default function ListingDetailClient({
 
   const handleMakeOffer = () => {
     if (!user) {
-      setShowAuthModal(true)
+      openAuthWithAction(() => setShowOfferModal(true))
       return
     }
 
@@ -899,12 +900,9 @@ export default function ListingDetailClient({
       {/* Auth Modal */}
       <AuthModal
         isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
+        onClose={closeAuth}
         initialView="login"
-        onAuthSuccess={() => {
-          // Open offer modal after successful authentication
-          setShowOfferModal(true)
-        }}
+        onAuthSuccess={handleAuthSuccess}
       />
 
       {/* Toast Notifications */}

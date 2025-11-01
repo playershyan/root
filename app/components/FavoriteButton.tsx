@@ -5,6 +5,7 @@ import { Heart } from 'lucide-react'
 import { useAuth } from '@/app/contexts/AuthContext'
 import { useFavorites } from '@/lib/contexts/FavoritesContext'
 import { AuthModal } from './auth'
+import { useAuthWithRedirect } from '../hooks/useAuthWithRedirect'
 
 interface FavoriteButtonProps {
   listingId: string
@@ -14,8 +15,8 @@ interface FavoriteButtonProps {
   onToggle?: (isFavorite: boolean) => void
 }
 
-export default function FavoriteButton({ 
-  listingId, 
+export default function FavoriteButton({
+  listingId,
   size = 'medium',
   showText = false,
   className = '',
@@ -23,10 +24,9 @@ export default function FavoriteButton({
 }: FavoriteButtonProps) {
   const { user } = useAuth()
   const { isFavorited, toggleFavorite } = useFavorites()
-  const [showAuthModal, setShowAuthModal] = useState(false)
-  const [pendingFavorite, setPendingFavorite] = useState<string | null>(null)
+  const { showAuthModal, openAuthWithAction, closeAuth, handleAuthSuccess } = useAuthWithRedirect()
   const [isProcessing, setIsProcessing] = useState(false)
-  
+
   const isFavorite = isFavorited(listingId)
 
   // Handle size classes
@@ -42,41 +42,27 @@ export default function FavoriteButton({
     large: 'w-6 h-6'
   }
 
-  // When user logs in and we have a pending favorite, add it
-  useEffect(() => {
-    const addPendingFavorite = async () => {
-      if (user && pendingFavorite && !isFavorited(pendingFavorite)) {
-        setIsProcessing(true)
-        try {
-          await toggleFavorite(pendingFavorite)
-          onToggle?.(true)
-        } catch (error) {
-          console.error('Failed to add pending favorite:', error)
-        } finally {
-          setIsProcessing(false)
-          setPendingFavorite(null)
-        }
-      }
-    }
-
-    if (user && pendingFavorite) {
-      // Small delay to ensure auth state is fully updated
-      setTimeout(addPendingFavorite, 500)
-    }
-  }, [user, pendingFavorite, toggleFavorite, isFavorited, onToggle])
-
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
 
-    // If not logged in, show auth modal and save listing ID for later
+    // If not logged in, show auth modal with action to add favorite
     if (!user) {
-      setPendingFavorite(listingId)
-      setShowAuthModal(true)
+      openAuthWithAction(async () => {
+        setIsProcessing(true)
+        try {
+          const newState = await toggleFavorite(listingId)
+          onToggle?.(newState)
+        } catch (error) {
+          console.error('Failed to add favorite after auth:', error)
+        } finally {
+          setIsProcessing(false)
+        }
+      })
       return
     }
 
-    // If logged in, toggle favorite
+    // If logged in, toggle favorite immediately
     setIsProcessing(true)
     try {
       const newState = await toggleFavorite(listingId)
@@ -122,15 +108,8 @@ export default function FavoriteButton({
       {/* Auth Modal */}
       <AuthModal
         isOpen={showAuthModal}
-        onClose={() => {
-          console.log('AuthModal closed')
-          setShowAuthModal(false)
-          // Keep pending favorite in case they complete login
-        }}
-        onAuthSuccess={() => {
-          // Prevent redirect to /profile - stay on current page
-          // The useEffect will handle adding the favorite automatically
-        }}
+        onClose={closeAuth}
+        onAuthSuccess={handleAuthSuccess}
       />
     </>
   )

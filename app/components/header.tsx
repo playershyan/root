@@ -13,6 +13,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { AuthModal } from './auth'
 import { useUnreadMessages } from '@/lib/hooks/useUnreadMessages'
 import { useNotificationCount } from '@/lib/hooks/useWantedNotifications'
+import { useAuthWithRedirect } from '../hooks/useAuthWithRedirect'
 
 interface User {
   id: string
@@ -28,12 +29,13 @@ export default function Header() {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
-  const [authModalOpen, setAuthModalOpen] = useState(false)
   const [showEmailLogin, setShowEmailLogin] = useState(false)
-  const [pendingRedirect, setPendingRedirect] = useState<string | null>(null)
   const userMenuRef = useRef<HTMLDivElement>(null)
   const unreadMessages = useUnreadMessages()
   const { count: wantedNotificationCount } = useNotificationCount()
+
+  // Auth with redirect hook
+  const { showAuthModal, openAuthWithRedirect, closeAuth, handleAuthSuccess } = useAuthWithRedirect()
 
   // Centralized function to check for showLogin flag
   const checkForShowLogin = (source = 'mount') => {
@@ -41,7 +43,7 @@ export default function Header() {
     console.log(`Header: ${source} check - localStorage showLoginModal:`, shouldShowLogin)
     if (shouldShowLogin === 'true') {
       console.log(`Header: ${source} check - Found showLoginModal=true, opening modal`)
-      setAuthModalOpen(true)
+      openAuthWithRedirect(window.location.pathname) // Use hook to open modal
       setShowEmailLogin(true)
       localStorage.removeItem('showLoginModal')
     }
@@ -338,10 +340,7 @@ export default function Header() {
                 </Link>
               ) : (
                 <button
-                  onClick={() => {
-                    setPendingRedirect('/wanted/post')
-                    setAuthModalOpen(true)
-                  }}
+                  onClick={() => openAuthWithRedirect('/wanted/post')}
                   className="hidden sm:flex text-blue-600 hover:text-blue-700 font-medium transition-colors items-center gap-2"
                 >
                   <Search className="w-4 h-4" />
@@ -385,7 +384,7 @@ export default function Header() {
                 </Link>
               ) : (
                 <button
-                  onClick={() => setAuthModalOpen(true)}
+                  onClick={() => openAuthWithRedirect(pathname)}
                   className="sm:hidden text-gray-600 hover:text-blue-600 font-medium items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-gray-50 transition-colors flex flex-col text-xs"
                 >
                   <User className="w-3 h-3" />
@@ -404,10 +403,7 @@ export default function Header() {
                 </Link>
               ) : (
                 <button
-                  onClick={() => {
-                    setPendingRedirect('/post')
-                    setAuthModalOpen(true)
-                  }}
+                  onClick={() => openAuthWithRedirect('/post')}
                   className="hidden sm:flex bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 font-medium transition-colors items-center gap-2 shadow-sm hover:shadow-md"
                 >
                   <Car className="w-4 h-4" />
@@ -422,20 +418,13 @@ export default function Header() {
 
       {/* Auth Modal */}
       <AuthModal
-        isOpen={authModalOpen}
+        isOpen={showAuthModal}
         onClose={() => {
-          setAuthModalOpen(false)
+          closeAuth()
           setShowEmailLogin(false)
-          setPendingRedirect(null)
         }}
         allowedMethods={showEmailLogin ? ['email'] : ['google', 'email', 'phone']}
-        onAuthSuccess={() => {
-          // Redirect to pending page after auth
-          if (pendingRedirect) {
-            router.push(pendingRedirect)
-            setPendingRedirect(null)
-          }
-        }}
+        onAuthSuccess={handleAuthSuccess}
       />
 
       {/* Mobile Menu - Drawer Style */}
@@ -623,8 +612,7 @@ export default function Header() {
                 ) : (
                   <button
                     onClick={() => {
-                      setPendingRedirect('/post')
-                      setAuthModalOpen(true)
+                      openAuthWithRedirect('/post')
                       setMobileMenuOpen(false)
                     }}
                     className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-semibold"
@@ -647,8 +635,7 @@ export default function Header() {
                 ) : (
                   <button
                     onClick={() => {
-                      setPendingRedirect('/wanted/post')
-                      setAuthModalOpen(true)
+                      openAuthWithRedirect('/wanted/post')
                       setMobileMenuOpen(false)
                     }}
                     className="flex items-center justify-center gap-2 w-full py-3 px-4 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 rounded-lg font-semibold"
