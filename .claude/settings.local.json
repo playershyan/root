@@ -8,7 +8,8 @@
       "mcp__supabase__apply_migration",
       "Bash(npm run dev:*)",
       "Bash(taskkill:*)",
-      "Bash(npx kill-port 3001)"
+      "Bash(npx kill-port 3001)",
+      "mcp__supabase__execute_sql"
     ],
     "deny": [],
     "ask": []
