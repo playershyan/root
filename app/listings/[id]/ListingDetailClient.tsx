@@ -10,6 +10,7 @@ import OfferModal from '@/app/components/messaging/OfferModal'
 import { useAuth } from '@/app/contexts/AuthContext'
 import ConversationModal from '@/app/components/modals/ConversationModal'
 import ImageLightbox from '@/app/components/ImageLightbox'
+import ContactModal from '@/app/components/modals/ContactModal'
 
 type Listing = {
   id: string
@@ -95,6 +96,7 @@ export default function ListingDetailClient({
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [showOfferModal, setShowOfferModal] = useState(false)
   const [showConversationModal, setShowConversationModal] = useState(false)
+  const [showContactModal, setShowContactModal] = useState(false)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
   
@@ -365,13 +367,10 @@ export default function ListingDetailClient({
                 price={listing.price}
                 negotiable={listing.negotiable}
                 financeType={listing.finance_type}
-                financeProvider={listing.finance_provider}
-                originalAmount={listing.original_amount}
                 outstandingBalance={listing.outstanding_balance}
                 askingPrice={listing.asking_price}
                 monthlyPayment={listing.monthly_payment}
                 remainingTerm={listing.remaining_term}
-                earlySettlement={listing.early_settlement}
                 showFinanceCalculator={true}
                 calculatedMonthlyPayment={monthlyPayment}
                 variant="detail"
@@ -442,12 +441,7 @@ export default function ListingDetailClient({
               {/* Action Buttons */}
               <div className="grid grid-cols-2 gap-3">
                 <button
-                  onClick={() => {
-                    const phone = sellerData?.phone || dealer.phone
-                    const whatsapp = sellerData?.type === 'business' ? sellerData.whatsapp : sellerData?.whatsapp || dealer.whatsapp
-                    // Show contact modal or make call directly
-                    window.location.href = `tel:${phone}`
-                  }}
+                  onClick={() => setShowContactModal(true)}
                   className="btn-call btn-full btn-icon"
                 >
                   <Phone className="w-4 h-4" />
@@ -840,7 +834,40 @@ export default function ListingDetailClient({
         </div>
       )}
 
-{/* Conversation Modal */}      <ConversationModal        isOpen={showConversationModal}        onClose={() => setShowConversationModal(false)}        listing={{          id: listing.id,          title: listing.title,          price: listing.price,          location: listing.location,          make: listing.make,          model: listing.model,          year: listing.year,          primary_image_url: images[0] || listing.image_url,          user_id: listing.user_id || ""        }}      />
+{/* Conversation Modal */}
+      <ConversationModal
+        isOpen={showConversationModal}
+        onClose={() => setShowConversationModal(false)}
+        listing={{
+          id: listing.id,
+          title: listing.title,
+          price: listing.price,
+          location: listing.location,
+          make: listing.make,
+          model: listing.model,
+          year: listing.year,
+          primary_image_url: images[0] || listing.image_url,
+          user_id: listing.user_id || ""
+        }}
+      />
+
+      {/* Contact Modal */}
+      <ContactModal
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        listing={{
+          id: listing.id,
+          title: listing.title,
+          phone: sellerData?.phone || dealer.phone || listing.phone,
+          whatsapp: sellerData?.type === 'business' ? sellerData.whatsapp : sellerData?.whatsapp || dealer.whatsapp || listing.whatsapp,
+          price: listing.price,
+          location: listing.location,
+          make: listing.make,
+          model: listing.model,
+          year: listing.year
+        }}
+      />
+
       {/* Offer Modal */}
       <OfferModal
         isOpen={showOfferModal}

@@ -12,7 +12,8 @@
       "mcp__supabase__execute_sql",
       "WebSearch",
       "Bash(npm install:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(nul)"
     ],
     "deny": [],
     "ask": []
