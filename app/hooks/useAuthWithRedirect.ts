@@ -30,7 +30,10 @@ export function useAuthWithRedirect() {
    */
   const openAuthWithRedirect = (redirectPath: string) => {
     // Store in localStorage for OAuth flows (Google)
+    console.log('🚀 openAuthWithRedirect - Setting localStorage:', redirectPath)
     localStorage.setItem('pendingRedirect', redirectPath)
+    console.log('✅ openAuthWithRedirect - Verify localStorage:', localStorage.getItem('pendingRedirect'))
+
     setAuthCallback(() => () => {
       // This callback executes for non-OAuth flows (Email/Phone)
       router.push(redirectPath)

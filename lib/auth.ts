@@ -160,6 +160,10 @@ export async function signInWithGoogle(): Promise<{ success: boolean; error?: Au
     // Check for pending redirect
     const pendingRedirect = localStorage.getItem('pendingRedirect')
     const redirectPath = pendingRedirect || '/profile'
+
+    // DEBUG: Log what we're reading
+    console.log('🔍 signInWithGoogle - localStorage pendingRedirect:', pendingRedirect)
+    console.log('🎯 signInWithGoogle - Final redirectPath:', redirectPath)
     
     // Determine the site URL for the final redirect after OAuth
     // In production, this should be https://vera.lk
