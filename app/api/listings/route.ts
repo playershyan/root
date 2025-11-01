@@ -138,11 +138,11 @@ export async function POST(request: NextRequest) {
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
     const actualMake = sanitized.make === 'Other' ? sanitized.customMake : sanitized.make
     const actualModel = sanitized.model === 'Other' ? sanitized.customModel : sanitized.model
-    const year = parseInt(String(sanitized.year)) || null
+    const listingYear = parseInt(String(sanitized.year)) || null
 
     // Check for duplicates with similar make, model, year, and price (within 10%)
-    const price = parseFloat(String(sanitized.price)) || 0
-    const priceThreshold = price * 0.1 // 10% tolerance
+    const listingPrice = parseFloat(String(sanitized.price)) || 0
+    const priceThreshold = listingPrice * 0.1 // 10% tolerance
 
     const { data: duplicates } = await supabase
       .from('listings')
@@ -150,11 +150,11 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .eq('make', actualMake)
       .eq('model', actualModel)
-      .eq('year', year)
+      .eq('year', listingYear)
       .gte('created_at', oneDayAgo)
       .neq('status', 'deleted')
-      .gte('price', price - priceThreshold)
-      .lte('price', price + priceThreshold)
+      .gte('price', listingPrice - priceThreshold)
+      .lte('price', listingPrice + priceThreshold)
       .limit(1)
 
     if (duplicates && duplicates.length > 0) {
@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
       negotiable: sanitized.negotiable !== undefined ? sanitized.negotiable : true,
       make: actualMake,
       model: actualModel,
-      year: year,
+      year: listingYear,
       mileage: sanitized.mileage ? parseInt(String(sanitized.mileage)) : null,
       fuel_type: sanitized.fuelType || null,
       transmission: sanitized.transmission || null,
