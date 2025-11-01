@@ -144,15 +144,48 @@ export default function AdvancedListingsPage() {
     setPlaceholderText(PLACEHOLDER_TEXTS[placeholderIndex])
   }, [placeholderIndex])
 
-  // Initialize from URL query param q
+  // Initialize from URL query params (from home page filters)
   useEffect(() => {
     if (initializedFromQueryRef.current) return
+
+    // Search query
     const q = searchParams?.get('q')
     if (q && typeof q === 'string' && q.trim()) {
       setSearchInput(q)
       setSearchTerm(q)
-      initializedFromQueryRef.current = true
     }
+
+    // Category
+    const category = searchParams?.get('category')
+    if (category && typeof category === 'string') {
+      setSelectedVehicleCategory(category)
+    }
+
+    // Make
+    const make = searchParams?.get('make')
+    if (make && typeof make === 'string') {
+      setSelectedMake(make)
+    }
+
+    // Model
+    const model = searchParams?.get('model')
+    if (model && typeof model === 'string') {
+      setSelectedModel(model)
+    }
+
+    // Location
+    const location = searchParams?.get('location')
+    if (location && typeof location === 'string') {
+      setSelectedLocation(location)
+    }
+
+    // Year
+    const year = searchParams?.get('year')
+    if (year && typeof year === 'string') {
+      setMinYear(year)
+    }
+
+    initializedFromQueryRef.current = true
   }, [searchParams])
 
   // Fetch listings

@@ -46,7 +46,7 @@ export default function ProfileMenu({
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut()
-      router.push('/home')
+      router.push('/')
     } catch (error) {
       console.error('Error logging out:', error)
     }

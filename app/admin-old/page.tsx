@@ -113,8 +113,8 @@ export default function AdminDashboard() {
     
     // After auth loading is complete, check if user exists
     if (!user) {
-      console.log('Admin dashboard - Auth loaded but no user found, redirecting to /login')
-      router.push('/login')
+      console.log('Admin dashboard - Auth loaded but no user found, redirecting to /')
+      router.push('/')
       return
     }
     

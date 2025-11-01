@@ -9,6 +9,7 @@ import FavoriteButton from '@/app/components/FavoriteButton'
 import OfferModal from '@/app/components/messaging/OfferModal'
 import { useAuth } from '@/app/contexts/AuthContext'
 import ConversationModal from '@/app/components/modals/ConversationModal'
+import ImageLightbox from '@/app/components/ImageLightbox'
 
 type Listing = {
   id: string
@@ -94,6 +95,8 @@ export default function ListingDetailClient({
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [showOfferModal, setShowOfferModal] = useState(false)
   const [showConversationModal, setShowConversationModal] = useState(false)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState(0)
   
   // Finance Calculator States
   const [loanAmount, setLoanAmount] = useState(listing.price)
@@ -197,6 +200,15 @@ export default function ListingDetailClient({
     }
   }
 
+  const openLightbox = (index: number) => {
+    setLightboxIndex(index)
+    setLightboxOpen(true)
+  }
+
+  const closeLightbox = () => {
+    setLightboxOpen(false)
+  }
+
   return (
     <>
       {/* Vehicle Top Section - Full Width */}
@@ -211,7 +223,8 @@ export default function ListingDetailClient({
                   <img
                     src={images[currentImageIndex]}
                     alt={`${listing.title} - Image ${currentImageIndex + 1}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover cursor-pointer"
+                    onClick={() => openLightbox(currentImageIndex)}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement
                       target.src = '/api/placeholder/800/600'
@@ -267,8 +280,8 @@ export default function ListingDetailClient({
                 {images.map((image, index) => (
                   <button
                     key={index}
-                    onClick={() => setCurrentImageIndex(index)}
-                    className={`flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                    onClick={() => openLightbox(index)}
+                    className={`flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
                       index === currentImageIndex ? 'border-blue-600 ring-2 ring-blue-200' : 'border-gray-200 hover:border-gray-400'
                     }`}
                   >
@@ -808,6 +821,15 @@ export default function ListingDetailClient({
         onSendOffer={handleSendOffer}
         listingTitle={listing.title}
         listingPrice={listing.price}
+      />
+
+      {/* Image Lightbox */}
+      <ImageLightbox
+        images={images}
+        isOpen={lightboxOpen}
+        currentIndex={lightboxIndex}
+        onClose={closeLightbox}
+        onNavigate={setLightboxIndex}
       />
     </>
   )

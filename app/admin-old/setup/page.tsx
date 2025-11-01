@@ -32,7 +32,7 @@ export default function AdminSetup() {
     if (authLoading) return
     
     if (!user) {
-      router.push('/login')
+      router.push('/')
       return
     }
 

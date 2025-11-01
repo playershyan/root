@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // REMOVED ALL SIGN IN REDIRECTS - They were conflicting!
         // Let AuthModal and OAuth callbacks handle their own redirects
         if (event === 'SIGNED_OUT') {
-          window.location.href = '/home'
+          window.location.href = '/'
         }
       }
     )
@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await supabase.auth.signOut()
       setUser(null)
-      window.location.href = '/home'
+      window.location.href = '/'
     } catch (error) {
       console.error('Error signing out:', error)
     }

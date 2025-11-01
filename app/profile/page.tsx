@@ -596,8 +596,8 @@ export default function ProfilePage() {
       console.log('Profile page - Loading state:', loading)
       
       if (!user) {
-        console.log('No user found, redirecting to login...')
-        router.push('/login')
+        console.log('No user found, redirecting to home...')
+        router.push('/')
         return
       }
 
@@ -1175,7 +1175,7 @@ export default function ProfilePage() {
       }
       
       // Redirect to home page
-      router.push('/home')
+      router.push('/')
       
       // Optional: Show success message
       // alert('You have been signed out successfully')

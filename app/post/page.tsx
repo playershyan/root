@@ -716,7 +716,7 @@ export default function EnhancedPostVehiclePage() {
       const { data: { user }, error: authError } = await supabase.auth.getUser()
 
       if (authError || !user) {
-        router.push('/login')
+        router.push('/')
         return
       }
 
