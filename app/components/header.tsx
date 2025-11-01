@@ -317,7 +317,7 @@ export default function Header() {
             ) : (
               <button
                 onClick={() => {
-                  setAuthModalOpen(true)
+                  openAuthWithRedirect(pathname)
                   setShowEmailLogin(false)
                 }}
                 className="hidden sm:flex p-2 text-gray-600 hover:text-blue-600 transition-colors rounded-lg hover:bg-gray-50"
@@ -473,7 +473,7 @@ export default function Header() {
                   <button
                     onClick={() => {
                       setMobileMenuOpen(false)
-                      setAuthModalOpen(true)
+                      openAuthWithRedirect(pathname)
                       setShowEmailLogin(false)
                     }}
                     className="w-full py-3 px-4 bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-semibold flex items-center justify-center gap-2"
