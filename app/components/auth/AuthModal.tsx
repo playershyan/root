@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { authConfig } from '@/lib/config/auth.config'
 import GoogleSignInButton from './GoogleSignInButton'
 import EmailAuthForm from './EmailAuthForm'
@@ -20,6 +21,7 @@ export default function AuthModal({
   allowedMethods = ['google', 'email', 'phone'],
   onAuthSuccess
 }: AuthModalProps) {
+  const router = useRouter()
   const [currentView, setCurrentView] = useState<AuthView>('main')
   const [authType, setAuthType] = useState<'login' | 'register'>(initialView)
   const [verificationData, setVerificationData] = useState<{
@@ -48,12 +50,19 @@ export default function AuthModal({
     } else if (result.requiresPhoneVerification) {
       // Already handled by phone form
     } else {
-      // Successful auth, close modal and trigger callback
+      // Successful auth, close modal
       onClose()
-      if (onAuthSuccess) {
-        // Small delay to ensure modal close animation completes
-        setTimeout(() => onAuthSuccess(), 100)
-      }
+
+      // Small delay to ensure modal close animation completes
+      setTimeout(() => {
+        if (onAuthSuccess) {
+          // Custom callback provided - execute it (prevents default redirect)
+          onAuthSuccess()
+        } else {
+          // No callback - default behavior is redirect to profile
+          router.push(authConfig.redirectUrls.afterLogin)
+        }
+      }, 100)
     }
   }
 
@@ -75,9 +84,17 @@ export default function AuthModal({
   const handleVerificationComplete = (result: AuthResult) => {
     if (result.success) {
       onClose()
-      if (onAuthSuccess) {
-        setTimeout(() => onAuthSuccess(), 100)
-      }
+
+      // Small delay to ensure modal close animation completes
+      setTimeout(() => {
+        if (onAuthSuccess) {
+          // Custom callback provided - execute it (prevents default redirect)
+          onAuthSuccess()
+        } else {
+          // No callback - default behavior is redirect to profile
+          router.push(authConfig.redirectUrls.afterLogin)
+        }
+      }, 100)
     }
   }
 
