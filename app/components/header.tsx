@@ -506,7 +506,9 @@ export default function Header() {
                     <Link
                       href="/profile"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={(e) => {
+                        setTimeout(() => setMobileMenuOpen(false), 100)
+                      }}
                     >
                       <User className="w-5 h-5" />
                       <span className="font-medium">My Profile</span>
@@ -514,7 +516,9 @@ export default function Header() {
                     <Link
                       href="/profile?tab=listings"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={(e) => {
+                        setTimeout(() => setMobileMenuOpen(false), 100)
+                      }}
                     >
                       <Car className="w-5 h-5" />
                       <span className="font-medium">My Listings</span>
@@ -522,7 +526,9 @@ export default function Header() {
                     <Link
                       href="/profile?tab=messages"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={(e) => {
+                        setTimeout(() => setMobileMenuOpen(false), 100)
+                      }}
                     >
                       <MessageSquare className="w-5 h-5" />
                       <span className="font-medium flex-1">Messages</span>
@@ -535,7 +541,9 @@ export default function Header() {
                     <Link
                       href="/profile?tab=favorites"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={(e) => {
+                        setTimeout(() => setMobileMenuOpen(false), 100)
+                      }}
                     >
                       <Heart className="w-5 h-5" />
                       <span className="font-medium">Favorites</span>
@@ -543,7 +551,9 @@ export default function Header() {
                     <Link
                       href="/profile?tab=wanted"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={(e) => {
+                        setTimeout(() => setMobileMenuOpen(false), 100)
+                      }}
                     >
                       <FileText className="w-5 h-5" />
                       <span className="font-medium">My Wanted Requests</span>
@@ -551,7 +561,9 @@ export default function Header() {
                     <Link
                       href="/profile?tab=notifications"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={(e) => {
+                        setTimeout(() => setMobileMenuOpen(false), 100)
+                      }}
                     >
                       <Bell className="w-5 h-5" />
                       <span className="font-medium">Notifications</span>
@@ -565,7 +577,9 @@ export default function Header() {
                 <Link
                   href="/post"
                   className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-semibold"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={(e) => {
+                    setTimeout(() => setMobileMenuOpen(false), 100)
+                  }}
                 >
                   <Car className="w-5 h-5" />
                   Sell My Vehicle
@@ -573,7 +587,9 @@ export default function Header() {
                 <Link
                   href="/wanted/post"
                   className="flex items-center justify-center gap-2 w-full py-3 px-4 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 rounded-lg font-semibold"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={(e) => {
+                    setTimeout(() => setMobileMenuOpen(false), 100)
+                  }}
                 >
                   <Search className="w-5 h-5" />
                   Post Wanted Request

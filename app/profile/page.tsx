@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import {
   User, Settings, Car, Heart, MessageSquare, Search,
@@ -175,20 +176,22 @@ export default function ProfilePage() {
   const [sendingMessage, setSendingMessage] = useState(false)
   const [loadingMessages, setLoadingMessages] = useState(false)
   
+  // Get search params from URL
+  const searchParams = useSearchParams()
+
   // Handle URL parameters for tab and conversation
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const tab = params.get('tab')
-    const conversationId = params.get('conversation')
-    
+    const tab = searchParams.get('tab')
+    const conversationId = searchParams.get('conversation')
+
     if (tab) {
       setActiveTab(tab)
     }
-    
+
     if (conversationId && tab === 'messages') {
       setSelectedConversation(conversationId)
     }
-  }, [])
+  }, [searchParams])
 
   // Calculate dropdown position before rendering to prevent flicker
   const getDropdownPosition = (elementId: string) => {
@@ -616,6 +619,7 @@ export default function ProfilePage() {
             phone: profileData.phone || user.phone || '',
             phoneVerified: profileData.phone_verified || false,
             phoneVerifiedAt: profileData.phone_verified_at,
+            avatar: profileData.avatar_url || '',
             tempPhone: profileData.temp_phone,
             country: profileData.location || 'LK'
           })
@@ -1963,10 +1967,20 @@ export default function ProfilePage() {
             <div className="bg-white rounded-lg shadow-sm sticky top-20">
               {/* Profile Header */}
               <div className="p-6 text-center border-b">
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl font-bold text-white">
-                    {profile.fullName ? profile.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
-                  </span>
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
+                  {profile.avatar ? (
+                    <Image
+                      src={profile.avatar}
+                      alt={profile.fullName || 'User'}
+                      width={80}
+                      height={80}
+                      className="object-cover w-full h-full"
+                    />
+                  ) : (
+                    <span className="text-2xl font-bold text-white">
+                      {profile.fullName ? profile.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
+                    </span>
+                  )}
                 </div>
                 <h3 className="font-semibold text-gray-900">{profile.fullName}</h3>
                 <p className="text-sm text-gray-600">{profile.phone}</p>
@@ -2014,13 +2028,22 @@ export default function ProfilePage() {
                     <form onSubmit={handleProfileSubmit} className="space-y-6">
                       <div className="flex items-center justify-center mb-8">
                         <div className="relative">
-                          <div className="w-24 h-24 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
-                            {user?.user_metadata?.full_name 
-                              ? user.user_metadata.full_name.split(' ').map(n => n[0]).join('').toUpperCase()
-                              : profile.fullName 
-                                ? profile.fullName.split(' ').map(n => n[0]).join('').toUpperCase()
-                                : 'U'
-                            }
+                          <div className="w-24 h-24 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold overflow-hidden">
+                            {profile.avatar ? (
+                              <Image
+                                src={profile.avatar}
+                                alt={profile.fullName || 'User'}
+                                width={96}
+                                height={96}
+                                className="object-cover w-full h-full"
+                              />
+                            ) : (
+                              user?.user_metadata?.full_name
+                                ? user.user_metadata.full_name.split(' ').map(n => n[0]).join('').toUpperCase()
+                                : profile.fullName
+                                  ? profile.fullName.split(' ').map(n => n[0]).join('').toUpperCase()
+                                  : 'U'
+                            )}
                           </div>
                           <button
                             type="button"
