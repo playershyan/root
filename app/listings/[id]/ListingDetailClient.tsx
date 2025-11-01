@@ -11,6 +11,9 @@ import { useAuth } from '@/app/contexts/AuthContext'
 import ConversationModal from '@/app/components/modals/ConversationModal'
 import ImageLightbox from '@/app/components/ImageLightbox'
 import ContactModal from '@/app/components/modals/ContactModal'
+import { useToast } from '@/app/components/notifications/useToast'
+import { ToastContainer } from '@/app/components/notifications/ToastContainer'
+import AuthModal from '@/app/components/auth/AuthModal'
 
 type Listing = {
   id: string
@@ -93,10 +96,12 @@ export default function ListingDetailClient({
   similarListings
 }: ListingDetailClientProps) {
   const { user } = useAuth()
+  const { toasts, showSuccess, showError, removeToast } = useToast()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [showOfferModal, setShowOfferModal] = useState(false)
   const [showConversationModal, setShowConversationModal] = useState(false)
   const [showContactModal, setShowContactModal] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
   
@@ -144,28 +149,33 @@ export default function ListingDetailClient({
       })
 
       const result = await response.json()
-      
+
       if (!response.ok) {
         console.error('API Error Response:', result)
-        throw new Error(result.message || result.error || 'Failed to send offer')
+        const errorMessage = result.message || result.error || 'Failed to send offer'
+        showError(errorMessage)
+        throw new Error(errorMessage)
       }
 
       console.log('Offer sent successfully:', result)
+      showSuccess('Offer sent successfully! The seller will be notified.')
     } catch (error) {
       console.error('Error sending offer:', error)
+      if (error instanceof Error && !error.message.includes('Failed to send offer')) {
+        showError('An unexpected error occurred. Please try again.')
+      }
       throw error
     }
   }
 
   const handleMakeOffer = () => {
     if (!user) {
-      // Redirect to login or show auth modal
-      alert('Please log in to make an offer')
+      setShowAuthModal(true)
       return
     }
 
     if (user.id === listing.user_id) {
-      alert('You cannot make an offer on your own listing')
+      showError('You cannot make an offer on your own listing')
       return
     }
 
@@ -885,6 +895,16 @@ export default function ListingDetailClient({
         onClose={closeLightbox}
         onNavigate={setLightboxIndex}
       />
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        initialView="login"
+      />
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </>
   )
 }
