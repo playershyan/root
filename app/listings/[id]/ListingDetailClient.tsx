@@ -455,7 +455,7 @@ export default function ListingDetailClient({
                 </button>
                 <button
                   onClick={() => setShowConversationModal(true)}
-                  className="btn-secondary btn-full btn-icon"
+                  className="btn-message btn-full btn-icon"
                 >
                   <MessageSquare className="w-4 h-4" />
                   Message
@@ -507,16 +507,43 @@ export default function ListingDetailClient({
 
                   // Lines with "Field: Value" format - make field name bold
                   if (trimmedLine.includes(':')) {
-                    const colonIndex = trimmedLine.indexOf(':')
-                    const fieldName = trimmedLine.substring(0, colonIndex)
-                    const fieldValue = trimmedLine.substring(colonIndex + 1).trim()
+                    // Check if line contains pipe separator (multiple field:value pairs)
+                    if (trimmedLine.includes('|')) {
+                      // Split by pipe and format each field:value pair separately
+                      const parts = trimmedLine.split('|')
+                      return (
+                        <div key={index}>
+                          {parts.map((part, partIndex) => {
+                            const trimmedPart = part.trim()
+                            const colonIndex = trimmedPart.indexOf(':')
+                            if (colonIndex > 0) {
+                              const fieldName = trimmedPart.substring(0, colonIndex).trim()
+                              const fieldValue = trimmedPart.substring(colonIndex + 1).trim()
+                              return (
+                                <span key={partIndex}>
+                                  {partIndex > 0 && ' | '}
+                                  <strong className="font-semibold text-gray-900">{fieldName}:</strong>
+                                  {fieldValue && <span> {fieldValue}</span>}
+                                </span>
+                              )
+                            }
+                            return <span key={partIndex}>{trimmedPart}</span>
+                          })}
+                        </div>
+                      )
+                    } else {
+                      // Single field:value pair on the line
+                      const colonIndex = trimmedLine.indexOf(':')
+                      const fieldName = trimmedLine.substring(0, colonIndex)
+                      const fieldValue = trimmedLine.substring(colonIndex + 1).trim()
 
-                    return (
-                      <div key={index}>
-                        <strong className="font-semibold text-gray-900">{fieldName}:</strong>
-                        {fieldValue && <span> {fieldValue}</span>}
-                      </div>
-                    )
+                      return (
+                        <div key={index}>
+                          <strong className="font-semibold text-gray-900">{fieldName}:</strong>
+                          {fieldValue && <span> {fieldValue}</span>}
+                        </div>
+                      )
+                    }
                   }
 
                   // Regular lines

@@ -234,7 +234,7 @@ export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
               "
             >
               <MessageCircle className="w-4 h-4" />
-              Respond Urgently
+              Respond
             </button>
           </div>
 
