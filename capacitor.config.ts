@@ -15,7 +15,11 @@ const config: CapacitorConfig = {
       keystoreAlias: process.env.ANDROID_KEYSTORE_ALIAS,
       keystorePassword: process.env.ANDROID_KEYSTORE_PASSWORD,
       keystoreAliasPassword: process.env.ANDROID_KEYSTORE_ALIAS_PASSWORD
-    }
+    },
+    // Enable safe area insets for Android
+    allowMixedContent: false,
+    captureInput: true,
+    webContentsDebuggingEnabled: process.env.NODE_ENV === 'development'
   },
   plugins: {
     SplashScreen: {
@@ -33,7 +37,8 @@ const config: CapacitorConfig = {
     },
     StatusBar: {
       style: 'light',
-      backgroundColor: '#1e40af'
+      backgroundColor: '#1e40af',
+      overlay: false
     },
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert']

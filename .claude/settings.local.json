@@ -9,7 +9,9 @@
       "Bash(npm run dev:*)",
       "Bash(taskkill:*)",
       "Bash(npx kill-port 3001)",
-      "mcp__supabase__execute_sql"
+      "mcp__supabase__execute_sql",
+      "WebSearch",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []

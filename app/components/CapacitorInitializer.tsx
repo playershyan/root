@@ -13,6 +13,7 @@ import { initializePushNotifications } from '@/lib/push-notifications'
 import { App } from '@capacitor/app'
 import { SplashScreen } from '@capacitor/splash-screen'
 import { StatusBar, Style } from '@capacitor/status-bar'
+import { SafeArea } from '@capacitor-community/safe-area'
 
 export default function CapacitorInitializer() {
   useEffect(() => {
@@ -23,6 +24,23 @@ export default function CapacitorInitializer() {
 
     const initialize = async () => {
       try {
+        // Initialize safe area insets for Android
+        if (Capacitor.getPlatform() === 'android') {
+          try {
+            await SafeArea.enable({
+              config: {
+                customColorsForSystemBars: true,
+                statusBarColor: '#1e40af', // Match status bar color
+                statusBarContent: 'light',
+                navigationBarColor: '#ffffff', // White navigation bar
+                navigationBarContent: 'dark',
+              },
+            })
+          } catch (error) {
+            console.warn('Safe area initialization failed:', error)
+          }
+        }
+
         // Initialize push notifications
         await initializePushNotifications({
           onNotificationReceived: (notification) => {
@@ -41,8 +59,10 @@ export default function CapacitorInitializer() {
           }
         })
 
-        // Configure status bar
+        // Configure status bar BEFORE hiding splash screen
         try {
+          // Critical: prevent content from rendering behind status bar
+          await StatusBar.setOverlaysWebView({ overlay: false })
           await StatusBar.setStyle({ style: Style.Light })
           await StatusBar.setBackgroundColor({ color: '#1e40af' })
         } catch (error) {

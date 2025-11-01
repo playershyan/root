@@ -68,6 +68,14 @@ const nextConfig = {
   trailingSlash: false,
   reactStrictMode: true,
   swcMinify: true,
+  webpack: (config, { isServer }) => {
+    // Exclude README and other non-JS files from node_modules
+    config.module.rules.push({
+      test: /\.(md|txt)$/,
+      type: 'asset/source',
+    })
+    return config
+  },
   async headers() {
     const securityHeaders = [
       // Allow framing in native apps (Capacitor webview)
