@@ -45,10 +45,21 @@ export function useAuthWithRedirect() {
   /**
    * Open auth modal with custom action after auth
    * Used for: Make Offer, Add to Favorites
+   * @param action - Callback to execute after successful auth (for email/phone flows)
+   * @param actionType - Type of action: 'make-offer' or 'add-favorite'
+   * @param actionData - Additional data needed to re-execute action after OAuth (e.g., listingId)
    */
-  const openAuthWithAction = (action: () => void) => {
-    // Clear any pending redirects
-    localStorage.removeItem('pendingRedirect')
+  const openAuthWithAction = (action: () => void, actionType?: string, actionData?: any) => {
+    // For OAuth flows (Google), store current page as redirect target
+    // This ensures user returns to current page, then callback executes
+    const currentPath = window.location.pathname
+    console.log('🎬 openAuthWithAction - Storing current path for OAuth:', currentPath)
+    localStorage.setItem('pendingRedirect', currentPath)
+    localStorage.setItem('pendingAction', actionType || 'true') // Store action type
+    if (actionData) {
+      localStorage.setItem('pendingActionData', JSON.stringify(actionData))
+    }
+
     setAuthCallback(() => action)
     setShowAuthModal(true)
   }
@@ -60,6 +71,8 @@ export function useAuthWithRedirect() {
     setShowAuthModal(false)
     setAuthCallback(null)
     localStorage.removeItem('pendingRedirect')
+    localStorage.removeItem('pendingAction')
+    localStorage.removeItem('pendingActionData')
   }
 
   /**

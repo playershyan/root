@@ -112,6 +112,19 @@ export default function ListingDetailClient({
   const [loanTerm, setLoanTerm] = useState(5)
   const [interestRate, setInterestRate] = useState(0)
 
+  // Check for pending action after OAuth redirect
+  useEffect(() => {
+    const pendingAction = localStorage.getItem('pendingAction')
+    if (pendingAction === 'make-offer' && user) {
+      console.log('🎬 Detected pending make-offer action after OAuth - opening offer modal')
+      localStorage.removeItem('pendingAction')
+      localStorage.removeItem('pendingRedirect')
+      localStorage.removeItem('pendingActionData')
+      // Small delay to ensure auth state is stable
+      setTimeout(() => setShowOfferModal(true), 300)
+    }
+  }, [user])
+
   // Calculate monthly payment
   const calculateMonthlyPayment = () => {
     const principal = loanAmount - downPayment
@@ -171,7 +184,7 @@ export default function ListingDetailClient({
 
   const handleMakeOffer = () => {
     if (!user) {
-      openAuthWithAction(() => setShowOfferModal(true))
+      openAuthWithAction(() => setShowOfferModal(true), 'make-offer')
       return
     }
 

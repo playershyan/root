@@ -29,6 +29,40 @@ export default function FavoriteButton({
 
   const isFavorite = isFavorited(listingId)
 
+  // Check for pending favorite action after OAuth redirect
+  useEffect(() => {
+    const pendingAction = localStorage.getItem('pendingAction')
+    const pendingActionDataStr = localStorage.getItem('pendingActionData')
+
+    if (pendingAction === 'add-favorite' && user && pendingActionDataStr) {
+      try {
+        const actionData = JSON.parse(pendingActionDataStr)
+        // Only execute if this is the correct listing
+        if (actionData.listingId === listingId) {
+          console.log('🎬 Detected pending add-favorite action after OAuth for listing:', listingId)
+          localStorage.removeItem('pendingAction')
+          localStorage.removeItem('pendingRedirect')
+          localStorage.removeItem('pendingActionData')
+
+          // Execute the favorite toggle
+          setIsProcessing(true)
+          toggleFavorite(listingId)
+            .then((newState) => {
+              onToggle?.(newState)
+            })
+            .catch((error) => {
+              console.error('Failed to add favorite after OAuth:', error)
+            })
+            .finally(() => {
+              setIsProcessing(false)
+            })
+        }
+      } catch (error) {
+        console.error('Failed to parse pending action data:', error)
+      }
+    }
+  }, [user, listingId, toggleFavorite, onToggle])
+
   // Handle size classes
   const sizeClasses = {
     small: 'p-1.5',
@@ -48,17 +82,22 @@ export default function FavoriteButton({
 
     // If not logged in, show auth modal with action to add favorite
     if (!user) {
-      openAuthWithAction(async () => {
-        setIsProcessing(true)
-        try {
-          const newState = await toggleFavorite(listingId)
-          onToggle?.(newState)
-        } catch (error) {
-          console.error('Failed to add favorite after auth:', error)
-        } finally {
-          setIsProcessing(false)
-        }
-      })
+      openAuthWithAction(
+        async () => {
+          // This callback is for email/phone auth (no page reload)
+          setIsProcessing(true)
+          try {
+            const newState = await toggleFavorite(listingId)
+            onToggle?.(newState)
+          } catch (error) {
+            console.error('Failed to add favorite after auth:', error)
+          } finally {
+            setIsProcessing(false)
+          }
+        },
+        'add-favorite', // Action type for OAuth flows
+        { listingId } // Data to restore context after OAuth
+      )
       return
     }
 
