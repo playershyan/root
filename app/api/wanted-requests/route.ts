@@ -1,6 +1,160 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { withRateLimit, rateLimiters } from '@/lib/middleware/rateLimiter'
+import { validateWantedRequest, sanitizeWantedRequest, formatPhoneNumber, generateWantedRequestTitle } from '@/lib/validation/wantedRequest'
+import { incr } from '@/lib/security/metrics'
+
+export async function POST(request: NextRequest) {
+  try {
+    // Apply rate limiting (5 requests per 15 minutes per user)
+    const rateLimitResponse = await withRateLimit(request, rateLimiters.auth)
+    if (rateLimitResponse) {
+      return rateLimitResponse
+    }
+
+    const supabase = createRouteHandlerClient({ cookies })
+
+    // Get authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Parse request body
+    const body = await request.json()
+    const {
+      title,
+      description,
+      min_budget,
+      max_budget,
+      make,
+      customMake,
+      model,
+      customModel,
+      min_year,
+      max_year,
+      location,
+      phone,
+      fuel_type,
+      transmission,
+      max_mileage,
+      countryCode = 'LK'
+    } = body
+
+    // Sanitize input
+    const sanitized = sanitizeWantedRequest({
+      title,
+      description,
+      make,
+      customMake,
+      model,
+      customModel,
+      min_budget,
+      max_budget,
+      min_year,
+      max_year,
+      location,
+      phone,
+      fuel_type,
+      transmission,
+      max_mileage
+    })
+
+    // Validate input
+    const validation = validateWantedRequest(sanitized)
+    if (!validation.isValid) {
+      incr('wanted.request.validation.failed')
+      return NextResponse.json({
+        error: 'Validation failed',
+        errors: validation.errors
+      }, { status: 400 })
+    }
+
+    // Format phone number (countryCode is like 'LK', need to convert to dial code like '94')
+    // Default to '94' (Sri Lanka) if countryCode is 'LK' or not a numeric code
+    const dialCode = countryCode === 'LK' || !/^\d+$/.test(countryCode) ? '94' : countryCode
+    const formattedPhone = formatPhoneNumber(sanitized.phone || '', dialCode)
+
+    // Generate title if not provided
+    const finalTitle = title || generateWantedRequestTitle(sanitized)
+
+    // Check for duplicate requests (same user, same make/model, within last 24 hours)
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    const actualMake = sanitized.make === 'Other' ? sanitized.customMake : sanitized.make
+    const actualModel = sanitized.model === 'Other' ? sanitized.customModel : sanitized.model
+
+    const { data: duplicates } = await supabase
+      .from('wanted_requests')
+      .select('id, created_at')
+      .eq('user_id', user.id)
+      .eq('make', actualMake)
+      .eq('model', actualModel)
+      .gte('created_at', oneDayAgo)
+      .neq('status', 'deleted')
+      .limit(1)
+
+    if (duplicates && duplicates.length > 0) {
+      incr('wanted.request.duplicate.blocked')
+      return NextResponse.json({
+        error: 'You have already posted a similar wanted request in the last 24 hours. Please wait before posting another.',
+        duplicateId: duplicates[0].id
+      }, { status: 409 })
+    }
+
+    // Prepare database payload
+    const payload = {
+      user_id: user.id,
+      title: finalTitle,
+      description: sanitized.description || null,
+      min_budget: parseFloat(String(sanitized.min_budget)) || null,
+      max_budget: parseFloat(String(sanitized.max_budget)) || null,
+      make: sanitized.make === 'Other' ? (sanitized.customMake || 'Other') : (sanitized.make || null),
+      model: sanitized.model === 'Other' ? (sanitized.customModel || 'Other') : (sanitized.model || null),
+      min_year: parseInt(String(sanitized.min_year)) || null,
+      max_year: parseInt(String(sanitized.max_year)) || null,
+      location: sanitized.location || null,
+      phone: formattedPhone,
+      fuel_type: sanitized.fuel_type || null,
+      transmission: sanitized.transmission || null,
+      max_mileage: sanitized.max_mileage ? parseInt(String(sanitized.max_mileage)) : null,
+      status: 'pending',
+      is_active: false
+    }
+
+    // Insert into database
+    const { data: newRequest, error: insertError } = await supabase
+      .from('wanted_requests')
+      .insert([payload])
+      .select()
+      .single()
+
+    if (insertError) {
+      console.error('Error creating wanted request:', insertError)
+      incr('wanted.request.create.error')
+      return NextResponse.json({
+        error: 'Failed to create wanted request',
+        details: insertError.message
+      }, { status: 500 })
+    }
+
+    incr('wanted.request.created')
+    
+    return NextResponse.json({
+      success: true,
+      request: newRequest,
+      message: 'Wanted request created successfully and is pending approval'
+    }, { status: 201 })
+
+  } catch (error: any) {
+    console.error('Wanted request creation error:', error)
+    incr('wanted.request.create.error')
+    return NextResponse.json({
+      error: 'Internal server error',
+      message: error.message
+    }, { status: 500 })
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {

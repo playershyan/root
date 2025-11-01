@@ -455,36 +455,63 @@ export default function PostWantedPage() {
         // Redirect to profile with success message
         setTimeout(() => router.push('/profile?updated=wanted-request'), 1000)
       } else {
-        // Create new wanted request
-        const { data, error } = await supabase.from('wanted_requests').insert([
-          {
-            user_id: user.id,
+        // Create new wanted request via API route
+        const response = await fetch('/api/wanted-requests', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
             title: title,
             description: formData.description.trim() || null,
-            min_budget: formData.min_budget ? parseFloat(formData.min_budget) : null,
-            max_budget: formData.max_budget ? parseFloat(formData.max_budget) : null,
-            make: formData.make === 'Other' ? (formData.customMake || 'Other') : (formData.make || null),
-            model: formData.model === 'Other' ? (formData.customModel || 'Other') : (formData.model || null),
-            min_year: formData.min_year ? parseInt(formData.min_year) : null,
-            max_year: formData.max_year ? parseInt(formData.max_year) : null,
+            min_budget: formData.min_budget,
+            max_budget: formData.max_budget,
+            make: formData.make,
+            customMake: formData.customMake,
+            model: formData.model,
+            customModel: formData.customModel,
+            min_year: formData.min_year,
+            max_year: formData.max_year,
             location: locationString,
-            phone: formattedPhone,
+            phone: formData.phone,
             fuel_type: formData.fuel_type || null,
             transmission: formData.transmission || null,
-            max_mileage: formData.max_mileage ? parseInt(formData.max_mileage) : null,
-            status: 'pending',
-            is_active: false
-          },
-        ]).select()
+            max_mileage: formData.max_mileage || null,
+            countryCode: selectedCountry.dialCode || '94' // Send dial code (numeric), fallback to '94' for Sri Lanka
+          })
+        })
 
-        if (error) throw error
+        const result = await response.json()
+
+        if (!response.ok) {
+          // Handle validation errors
+          if (response.status === 400 && result.errors) {
+            setErrors(result.errors)
+            showError(result.error || 'Validation failed. Please check your input.', 4000)
+            return
+          }
+          
+          // Handle duplicate errors
+          if (response.status === 409) {
+            showError(result.error || 'You have already posted a similar request recently.', 4000)
+            return
+          }
+          
+          // Handle rate limiting
+          if (response.status === 429) {
+            showError(result.message || 'Too many requests. Please try again later.', 4000)
+            return
+          }
+
+          throw new Error(result.error || 'Failed to create wanted request')
+        }
 
         showSuccess('Wanted request created successfully! Redirecting...', 2000)
 
         // Redirect based on high priority selection
         setTimeout(() => {
-          if (data && data.length > 0) {
-            const requestId = data[0].id
+          if (result.request && result.request.id) {
+            const requestId = result.request.id
 
             // If high priority is selected, redirect to payment page
             if (highPriority) {

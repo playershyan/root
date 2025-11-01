@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (pending) {
-      query = query.eq('status', 'active')
+      query = query.eq('status', 'pending')
     }
 
     if (reported) {

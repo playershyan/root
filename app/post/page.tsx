@@ -851,34 +851,94 @@ export default function EnhancedPostVehiclePage() {
         setTimeout(() => router.push('/profile?updated=true'), 1000)
 
       } else {
-        // Create new listing
-        console.log('Creating new listing')
+        // Create new listing via API route
+        console.log('Creating new listing via API')
 
-        const result = await supabase
-          .from('listings')
-          .insert([listingData])
-          .select()
-          .single()
-
-        data = result.data
-        error = result.error
-
-        if (error) {
-          console.error('Supabase error details:', {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code
+        const response = await fetch('/api/listings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            title: listingData.title,
+            description: listingData.description,
+            details: listingData.details,
+            vehicleType: listingData.vehicle_type,
+            make: formData.make,
+            customMake: formData.customMake,
+            model: formData.model,
+            customModel: formData.customModel,
+            year: listingData.year,
+            mileage: listingData.mileage,
+            condition: listingData.condition || formData.condition,
+            fuelType: listingData.fuel_type,
+            transmission: listingData.transmission,
+            bodyType: listingData.body_type,
+            color: listingData.color,
+            engineCapacity: listingData.engine_capacity,
+            trim: listingData.grade,
+            grade: listingData.grade,
+            price: listingData.price,
+            pricingType: listingData.pricing_type,
+            negotiable: listingData.negotiable,
+            financeType: listingData.finance_type,
+            outstandingBalance: listingData.outstanding_balance,
+            monthlyPayment: listingData.monthly_payment,
+            remainingTerm: listingData.remaining_term,
+            askingPrice: listingData.asking_price,
+            district: listingData.district,
+            city: listingData.city,
+            location: listingData.location,
+            phone: formData.phone, // Send raw phone, API will format
+            whatsapp: formData.whatsapp, // Send raw whatsapp, API will format
+            email: listingData.email,
+            imageUrls: listingData.image_urls || [],
+            interiorColor: listingData.interior_color,
+            registrationYear: listingData.registration_year,
+            vehicleConditionDetails: listingData.vehicle_condition_details,
+            previousOwners: listingData.previous_owners,
+            serviceRecordsAvailable: listingData.service_records_available,
+            countryCode: selectedCountry.dialCode || '94' // Send dial code (numeric), fallback to '94' for Sri Lanka
           })
-          throw error
+        })
+
+        const result = await response.json()
+
+        if (!response.ok) {
+          // Handle validation errors
+          if (response.status === 400 && result.errors) {
+            setErrors(result.errors)
+            showError(result.error || 'Validation failed. Please check your input.', 4000)
+            return
+          }
+          
+          // Handle duplicate errors
+          if (response.status === 409) {
+            showError(result.error || 'You have already posted a similar listing recently.', 4000)
+            return
+          }
+          
+          // Handle rate limiting
+          if (response.status === 429) {
+            showError(result.message || 'Too many requests. Please try again later.', 4000)
+            return
+          }
+
+          throw new Error(result.error || 'Failed to create listing')
         }
 
-        console.log('Listing created successfully:', data)
+        console.log('Listing created successfully:', result.listing)
 
         localStorage.removeItem('vehiclePostDraft')
         showSuccess('Listing created successfully! Redirecting...', 2000)
         // Redirect to paid features page with success message
-        setTimeout(() => router.push(`/post/paid-features?new=true&listing_id=${data.id}`), 1000)
+        setTimeout(() => {
+          if (result.listing && result.listing.id) {
+            router.push(`/post/paid-features?new=true&listing_id=${result.listing.id}`)
+          } else {
+            router.push('/post/paid-features?new=true')
+          }
+        }, 1000)
       }
     } catch (error: any) {
       console.error('Error posting vehicle:', error)

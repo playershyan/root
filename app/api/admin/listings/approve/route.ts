@@ -2,20 +2,28 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
+import { withRateLimit, rateLimiters } from '@/lib/middleware/rateLimiter'
 import { processWantedRequestMatching } from '@/lib/services/wantedMatching'
+import { incr } from '@/lib/security/metrics'
 
 export async function POST(request: NextRequest) {
-  // Verify admin access
-  const authResult = await verifyAdminAccess(request)
-  if (authResult instanceof NextResponse) {
-    return authResult
-  }
-
-  if (!authResult.hasPermission('moderate_listings')) {
-    return NextResponse.json({ error: 'Permission denied' }, { status: 403 })
-  }
-
   try {
+    // Apply rate limiting for admin actions
+    const rateLimitResponse = await withRateLimit(request, rateLimiters.admin)
+    if (rateLimitResponse) {
+      return rateLimitResponse
+    }
+
+    // Verify admin access
+    const authResult = await verifyAdminAccess(request)
+    if (authResult instanceof NextResponse) {
+      return authResult
+    }
+
+    if (!authResult.hasPermission('moderate_listings')) {
+      return NextResponse.json({ error: 'Permission denied' }, { status: 403 })
+    }
+
     const supabase = createRouteHandlerClient({ cookies })
     const { listingId, approvalNotes } = await request.json()
 
@@ -60,13 +68,20 @@ export async function POST(request: NextRequest) {
       console.error('Error in wanted request matching:', matchingError)
     }
 
+    incr('admin.listing.approved')
+
     return NextResponse.json({
       success: true,
-      message: 'Listing approved successfully'
+      message: 'Listing approved successfully',
+      listing: {
+        id: listingId,
+        status: 'active'
+      }
     })
 
   } catch (error) {
     console.error('Approve listing error:', error)
+    incr('admin.listing.approve.error')
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

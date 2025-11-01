@@ -2,19 +2,27 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
+import { withRateLimit, rateLimiters } from '@/lib/middleware/rateLimiter'
+import { incr } from '@/lib/security/metrics'
 
 export async function POST(request: NextRequest) {
-  // Verify admin access
-  const authResult = await verifyAdminAccess(request)
-  if (authResult instanceof NextResponse) {
-    return authResult
-  }
-
-  if (!authResult.hasPermission('moderate_listings')) {
-    return NextResponse.json({ error: 'Permission denied' }, { status: 403 })
-  }
-
   try {
+    // Apply rate limiting for admin actions
+    const rateLimitResponse = await withRateLimit(request, rateLimiters.admin)
+    if (rateLimitResponse) {
+      return rateLimitResponse
+    }
+
+    // Verify admin access
+    const authResult = await verifyAdminAccess(request)
+    if (authResult instanceof NextResponse) {
+      return authResult
+    }
+
+    if (!authResult.hasPermission('moderate_listings')) {
+      return NextResponse.json({ error: 'Permission denied' }, { status: 403 })
+    }
+
     const supabase = createRouteHandlerClient({ cookies })
     const { requestId, approvalNotes } = await request.json()
 
@@ -83,13 +91,21 @@ export async function POST(request: NextRequest) {
       console.error('Error logging activity:', logError)
     }
 
+    incr('admin.wanted_request.approved')
+
     return NextResponse.json({
       success: true,
-      message: 'Wanted request approved successfully'
+      message: 'Wanted request approved successfully',
+      request: {
+        id: requestId,
+        status: 'active',
+        is_active: true
+      }
     })
 
   } catch (error) {
     console.error('Approve wanted request error:', error)
+    incr('admin.wanted_request.approve.error')
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
