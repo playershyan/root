@@ -131,7 +131,6 @@ What is the name of your State or Province?
 
 What is the two-letter country code for this unit?
   [Unknown]:  LK
-
 Is CN=..., OU=..., O=..., L=..., ST=..., C=... correct?
   [no]:  yes
 

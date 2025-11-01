@@ -125,7 +125,7 @@ export default function Header() {
 
   const handleLogout = async () => {
     await signOut()
-    router.push('/')
+    router.push('/home')
   }
 
   return (

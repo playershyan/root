@@ -32,8 +32,8 @@ const config: CapacitorConfig = {
       androidSpinnerStyle: 'large',
       iosSpinnerStyle: 'small',
       spinnerColor: '#1e40af',
-      splashFullScreen: true,
-      splashImmersive: true
+      splashFullScreen: false,
+      splashImmersive: false
     },
     StatusBar: {
       style: 'light',

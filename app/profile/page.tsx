@@ -1175,7 +1175,7 @@ export default function ProfilePage() {
       }
       
       // Redirect to home page
-      router.push('/')
+      router.push('/home')
       
       // Optional: Show success message
       // alert('You have been signed out successfully')

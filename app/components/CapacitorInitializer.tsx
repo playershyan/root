@@ -24,6 +24,21 @@ export default function CapacitorInitializer() {
 
     const initialize = async () => {
       try {
+        // Add platform class for CSS targeting
+        if (Capacitor.getPlatform() === 'android') {
+          document.body.classList.add('platform-android')
+        }
+
+        // Configure status bar IMMEDIATELY - BEFORE anything else
+        // This prevents content from rendering behind status bar
+        try {
+          await StatusBar.setOverlaysWebView({ overlay: false })
+          await StatusBar.setStyle({ style: Style.Light })
+          await StatusBar.setBackgroundColor({ color: '#1e40af' })
+        } catch (error) {
+          console.warn('Initial status bar configuration failed:', error)
+        }
+
         // Initialize safe area insets for Android
         if (Capacitor.getPlatform() === 'android') {
           try {
@@ -36,8 +51,37 @@ export default function CapacitorInitializer() {
                 navigationBarContent: 'dark',
               },
             })
+
+            // Manually get safe area insets and set CSS variables
+            const getSafeAreaInsets = async () => {
+              try {
+                const { insets } = await SafeArea.getSafeAreaInsets()
+
+                // Set CSS custom properties
+                const root = document.documentElement
+                root.style.setProperty('--safe-area-inset-top', `${insets.top}px`)
+                root.style.setProperty('--safe-area-inset-right', `${insets.right}px`)
+                root.style.setProperty('--safe-area-inset-bottom', `${insets.bottom}px`)
+                root.style.setProperty('--safe-area-inset-left', `${insets.left}px`)
+              } catch (error) {
+                console.warn('Failed to get safe area insets:', error)
+                // Fallback to standard Android navigation bar height
+                document.documentElement.style.setProperty('--safe-area-inset-bottom', '48px')
+              }
+            }
+
+            // Get insets immediately
+            await getSafeAreaInsets()
+
+            // Re-get insets after splash screen hides (some devices need this)
+            setTimeout(() => {
+              getSafeAreaInsets()
+            }, 2500)
           } catch (error) {
             console.warn('Safe area initialization failed:', error)
+            // Fallback to standard Android navigation bar height
+            document.documentElement.style.setProperty('--safe-area-inset-bottom', '48px')
+            console.log('Using fallback navigation bar height: 48px')
           }
         }
 
@@ -59,20 +103,25 @@ export default function CapacitorInitializer() {
           }
         })
 
-        // Configure status bar BEFORE hiding splash screen
-        try {
-          // Critical: prevent content from rendering behind status bar
-          await StatusBar.setOverlaysWebView({ overlay: false })
-          await StatusBar.setStyle({ style: Style.Light })
-          await StatusBar.setBackgroundColor({ color: '#1e40af' })
-        } catch (error) {
-          console.warn('Status bar configuration failed:', error)
-        }
-
         // Hide splash screen after a delay
         setTimeout(async () => {
           try {
+            // Re-configure status bar AFTER splash screen hides
+            // This ensures settings persist after splash screen closes
+            await StatusBar.setOverlaysWebView({ overlay: false })
+            await StatusBar.setStyle({ style: Style.Light })
+            await StatusBar.setBackgroundColor({ color: '#1e40af' })
+            
             await SplashScreen.hide()
+            
+            // One more time after hiding - ensure settings stick
+            setTimeout(async () => {
+              try {
+                await StatusBar.setOverlaysWebView({ overlay: false })
+              } catch (error) {
+                console.warn('Post-splash status bar configuration failed:', error)
+              }
+            }, 100)
           } catch (error) {
             console.warn('Splash screen hide failed:', error)
           }
