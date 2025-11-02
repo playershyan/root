@@ -1280,42 +1280,6 @@ export default function ProfilePage() {
     }
   }
   
-  const handleRelist = async (listingId: string) => {
-    console.log('Relist button clicked for listing:', listingId)
-
-    try {
-      console.log('Sending relist request to API...')
-      const response = await fetch('/api/listings/relist', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ listingId }),
-      })
-
-      console.log('Response status:', response.status)
-      const data = await response.json()
-      console.log('Response data:', data)
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to relist')
-      }
-
-      // Update local state - set to pending (under review)
-      setListings(prevListings =>
-        prevListings.map(listing =>
-          listing.id === listingId
-            ? { ...listing, status: 'pending' as const }
-            : listing
-        )
-      )
-
-      showSuccess(data.message || 'Listing relisted successfully')
-    } catch (error) {
-      console.error('Error relisting:', error)
-      showError(error instanceof Error ? error.message : 'Failed to relist the item')
-    }
-  }
 
   const calculateDaysSincePosted = (postedDate: string) => {
     const posted = new Date(postedDate)
@@ -2352,22 +2316,13 @@ export default function ProfilePage() {
                                   )}
                                   
                                   {listing.status === 'sold' && (
-                                    <>
-                                      <button
-                                        onClick={() => handleRelist(listing.id)}
-                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 flex items-center gap-2 font-medium shadow-sm transition-all whitespace-nowrap h-9"
-                                      >
-                                        <RefreshCw className="w-4 h-4" />
-                                        Relist
-                                      </button>
-                                      <Link 
-                                        href={`/post?edit=${listing.id}`}
-                                        className="bg-gray-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-700 inline-flex items-center gap-2 font-medium shadow-sm transition-all h-9"
-                                      >
-                                        <Edit className="w-4 h-4" />
-                                        Edit
-                                      </Link>
-                                    </>
+                                    <Link
+                                      href={`/post?edit=${listing.id}`}
+                                      className="bg-gray-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-700 inline-flex items-center gap-2 font-medium shadow-sm transition-all h-9"
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                      Edit
+                                    </Link>
                                   )}
                                   
                                   {listing.status !== 'sold' && (
@@ -2465,22 +2420,13 @@ export default function ProfilePage() {
                                 <ListingStatusMessage listing={listing} />
                                 
                                 {listing.status === 'sold' && (
-                                  <div className="flex gap-2">
-                                    <button
-                                      onClick={() => handleRelist(listing.id)}
-                                      className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-blue-700 flex items-center justify-center gap-2 font-medium transition-all"
-                                    >
-                                      <RefreshCw className="w-4 h-4" />
-                                      Relist
-                                    </button>
-                                    <Link 
-                                      href={`/post?edit=${listing.id}`}
-                                      className="flex-1 bg-gray-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-gray-700 flex items-center justify-center gap-2 font-medium transition-all"
-                                    >
-                                      <Edit className="w-4 h-4" />
-                                      Edit
-                                    </Link>
-                                  </div>
+                                  <Link
+                                    href={`/post?edit=${listing.id}`}
+                                    className="bg-gray-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-gray-700 flex items-center justify-center gap-2 font-medium transition-all"
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                    Edit
+                                  </Link>
                                 )}
                               </div>
                             </div>

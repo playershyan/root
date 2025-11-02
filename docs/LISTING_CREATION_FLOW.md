@@ -378,8 +378,7 @@ LIFECYCLE:
     ├─ PAUSE → status: 'paused' (if implemented)
     ├─ MARK SOLD → status: 'sold'
     ├─ EXPIRE → status: 'expired' (after 30 days)
-    ├─ DELETE → status: 'deleted' (soft delete)
-    └─ RELIST → status: 'pending' (from sold)
+    └─ DELETE → status: 'deleted' (soft delete)
 ```
 
 ### Admin Approval
@@ -532,8 +531,7 @@ LIFECYCLE:
     ├─ RESUME → status: 'active', is_paused: false
     ├─ MARK SOLD → status: 'sold', sold_date: NOW()
     ├─ EXPIRE → status: 'expired' (after expires_at)
-    ├─ DELETE → status: 'deleted', deleted_at: NOW()
-    └─ RELIST → status: 'pending' (from sold)
+    └─ DELETE → status: 'deleted', deleted_at: NOW()
 ```
 
 ---
