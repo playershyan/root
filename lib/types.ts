@@ -107,7 +107,6 @@ export interface WantedRequest {
   phone?: string
   whatsapp?: string
   email?: string
-  urgency?: 'high'
   is_active: boolean
   status?: 'pending' | 'active' | 'paused' | 'deleted' | 'fulfilled'
   approved_at?: string

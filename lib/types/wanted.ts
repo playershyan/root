@@ -13,7 +13,6 @@ export interface WantedRequest {
     fuel_type?: 'Petrol' | 'Diesel' | 'Hybrid' | 'Electric'
     transmission?: 'Automatic' | 'Manual'
     max_mileage?: number
-    urgency?: 'high'
     created_at: string
     updated_at?: string
     user_id?: string
@@ -34,7 +33,6 @@ export interface WantedRequest {
     yearTo: string
     fuelTypes: string[]
     transmissions: string[]
-    urgencyLevels: string[]
   }
   
   export type SortOption = 'recent' | 'budget-high' | 'budget-low' | 'urgency'

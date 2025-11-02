@@ -11,8 +11,7 @@ export function useWantedFilters(requests: WantedRequest[]) {
     yearFrom: '',
     yearTo: '',
     fuelTypes: [],
-    transmissions: [],
-    urgencyLevels: []
+    transmissions: []
   })
 
   const filteredRequests = useMemo(() => {
@@ -78,15 +77,8 @@ export function useWantedFilters(requests: WantedRequest[]) {
 
     // Transmission filter
     if (filters.transmissions.length > 0) {
-      filtered = filtered.filter(req => 
+      filtered = filtered.filter(req =>
         req.transmission && filters.transmissions.includes(req.transmission)
-      )
-    }
-
-    // Urgency filter
-    if (filters.urgencyLevels.length > 0) {
-      filtered = filtered.filter(req => 
-        req.urgency && filters.urgencyLevels.includes(req.urgency)
       )
     }
 
@@ -103,8 +95,7 @@ export function useWantedFilters(requests: WantedRequest[]) {
       yearFrom: '',
       yearTo: '',
       fuelTypes: [],
-      transmissions: [],
-      urgencyLevels: []
+      transmissions: []
     })
   }, [])
 

@@ -36,7 +36,6 @@ interface WantedRequest {
   fuel_type?: string
   transmission?: string
   max_mileage?: number
-  urgency?: 'high'
   created_at: string
   user_name?: string
   user_avatar?: string
@@ -106,8 +105,8 @@ const renderWantedCard = (request: WantedRequest) => {
     budget: request.max_budget || request.min_budget || 0
   }
 
-  // Determine which card component to use based on promotion flags or urgency
-  if (request.is_high_priority || request.urgency === 'high') {
+  // Determine which card component to use based on high priority promotion
+  if (request.is_high_priority) {
     return <UrgentWantedCard key={request.id} request={requestWithBudget} />
   }
 
@@ -469,7 +468,7 @@ export default function WantedRequestsPage() {
 
     // High priority filter
     if (highPriorityOnly) {
-      filtered = filtered.filter(req => req.urgency === 'high')
+      filtered = filtered.filter(req => req.is_high_priority === true)
     }
 
 
@@ -482,8 +481,8 @@ export default function WantedRequestsPage() {
           return (a.min_budget || 0) - (b.min_budget || 0)
         case 'urgency':
           // High priority first, then others
-          const aUrgency = a.urgency === 'high' ? 0 : 1
-          const bUrgency = b.urgency === 'high' ? 0 : 1
+          const aUrgency = a.is_high_priority ? 0 : 1
+          const bUrgency = b.is_high_priority ? 0 : 1
           return aUrgency - bUrgency
         default: // recent
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -915,8 +914,8 @@ export default function WantedRequestsPage() {
     return `Posted ${Math.floor(diffInDays / 30)} months ago`
   }
 
-  const getUrgencyClass = (urgency?: string) => {
-    if (urgency === 'high') {
+  const getUrgencyClass = (isHighPriority?: boolean) => {
+    if (isHighPriority) {
       return 'bg-red-100 text-red-700'
     }
     return 'bg-gray-100 text-gray-700'

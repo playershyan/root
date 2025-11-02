@@ -28,7 +28,6 @@ interface WantedRequest {
   fuel_type?: string
   transmission?: string
   max_mileage?: number
-  urgency?: 'high'
   created_at: string
   user_name?: string
   user_avatar?: string
@@ -93,8 +92,8 @@ const renderWantedCard = (request: WantedRequest) => {
     budget: request.max_budget || request.min_budget || 0
   }
 
-  // Show urgent card for high priority or high urgency requests
-  if (request.is_high_priority || request.urgency === 'high') {
+  // Show urgent card for high priority requests
+  if (request.is_high_priority) {
     return <UrgentWantedCard key={request.id} request={requestWithBudget} />
   }
 

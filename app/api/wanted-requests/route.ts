@@ -214,7 +214,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (urgentOnly) {
-      query = query.eq('urgency', 'high')
+      query = query.eq('is_high_priority', true)
     }
 
     // Apply sorting
@@ -226,7 +226,7 @@ export async function GET(request: NextRequest) {
         query = query.order('min_budget', { ascending: true, nullsLast: true })
         break
       case 'urgency':
-        query = query.order('urgency', { ascending: true })
+        query = query.order('is_high_priority', { ascending: false })
         break
       default: // recent
         query = query.order('created_at', { ascending: false })

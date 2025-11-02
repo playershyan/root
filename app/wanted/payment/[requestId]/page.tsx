@@ -106,9 +106,35 @@ export default function WantedPaymentPage() {
     }
   }
 
-  const handleSkip = () => {
-    showSuccess('Request published without High Priority.', 2000)
-    setTimeout(() => router.push('/wanted?posted=success'), 1000)
+  const handleSkip = async () => {
+    setLoading(true)
+
+    try {
+      // Call API to activate request as regular (non-high-priority)
+      const response = await fetch('/api/wanted-requests/payment/skip', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          requestId
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to publish request')
+      }
+
+      showSuccess('Request published without High Priority. Pending admin approval.', 3000)
+      setTimeout(() => router.push('/wanted?posted=success'), 1500)
+    } catch (error) {
+      console.error('Skip payment error:', error)
+      showError('Failed to publish request. Please try again.', 4000)
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (authLoading || pageLoading) {
