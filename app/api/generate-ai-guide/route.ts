@@ -74,7 +74,7 @@ Structure:
         }
       ],
       temperature: 0.7,
-      max_tokens: 400, // Limit output for faster response
+      max_completion_tokens: 400, // Limit output for faster response
     })
 
     // Extract generated text

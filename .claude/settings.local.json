@@ -22,7 +22,10 @@
       "Bash(del /F libdatacountries.ts)",
       "Bash(test:*)",
       "Bash(psql:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)"
     ],
     "deny": [],
     "ask": []

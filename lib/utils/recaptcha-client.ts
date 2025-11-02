@@ -22,6 +22,7 @@ export class RecaptchaClient {
 
   private constructor() {
     this.siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '';
+    console.log('reCAPTCHA Site Key:', this.siteKey ? 'SET' : 'MISSING');
   }
 
   public static getInstance(): RecaptchaClient {
