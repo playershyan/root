@@ -1281,7 +1281,10 @@ export default function ProfilePage() {
   }
   
   const handleRelist = async (listingId: string) => {
+    console.log('Relist button clicked for listing:', listingId)
+
     try {
+      console.log('Sending relist request to API...')
       const response = await fetch('/api/listings/relist', {
         method: 'POST',
         headers: {
@@ -1290,7 +1293,9 @@ export default function ProfilePage() {
         body: JSON.stringify({ listingId }),
       })
 
+      console.log('Response status:', response.status)
       const data = await response.json()
+      console.log('Response data:', data)
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to relist')
