@@ -99,22 +99,22 @@ export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
     <>
       <div className="
         relative rounded-xl overflow-hidden
-        bg-gradient-to-br from-red-50 via-white to-red-50/50
-        border-2 border-red-300
-        shadow-xl shadow-red-200/40
-        hover:shadow-2xl hover:shadow-red-300/50
+        bg-gradient-to-br from-orange-50 via-white to-orange-50/50
+        border-2 border-orange-300
+        shadow-xl shadow-orange-200/40
+        hover:shadow-2xl hover:shadow-orange-300/50
         transition-all duration-300
         hover:-translate-y-1
       ">
         {/* Subtle Pulse Effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-50/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-orange-50/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
 
         {/* Top Badges Row */}
         <div className="absolute top-0 left-0 right-0 p-3 flex items-start justify-between z-20">
-          {/* Urgent Badge */}
-          <div className="bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2">
+          {/* High Priority Badge */}
+          <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2">
             <AlertTriangle className="w-3.5 h-3.5" />
-            <span className="text-xs font-bold tracking-wide">URGENT</span>
+            <span className="text-xs font-bold tracking-wide">HIGH PRIORITY</span>
           </div>
         </div>
 
@@ -122,7 +122,7 @@ export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
         <div className="absolute top-3 right-3 z-30">
           <WantedRequestFavoriteButton
             requestId={request.id}
-            className="bg-white hover:bg-red-50 shadow-md border border-red-200 hover:border-red-300 transition-colors"
+            className="bg-white hover:bg-orange-50 shadow-md border border-orange-200 hover:border-orange-300 transition-colors"
           />
         </div>
 
@@ -131,7 +131,7 @@ export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
 
           {/* Title & Vehicle Info */}
           <div className="mb-4">
-            <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 hover:text-red-700 transition-colors text-lg">
+            <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 hover:text-orange-600 transition-colors text-lg">
               {request.title}
             </h3>
 
@@ -139,17 +139,17 @@ export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
             {(request.make || request.model || getYearRange()) && (
               <div className="flex flex-wrap gap-2 mb-3">
                 {request.make && (
-                  <span className="bg-red-100 text-red-800 text-xs font-semibold px-3 py-1 rounded-full">
+                  <span className="bg-orange-100 text-orange-800 text-xs font-semibold px-3 py-1 rounded-full">
                     {request.make}
                   </span>
                 )}
                 {request.model && (
-                  <span className="bg-red-100 text-red-800 text-xs font-semibold px-3 py-1 rounded-full">
+                  <span className="bg-orange-100 text-orange-800 text-xs font-semibold px-3 py-1 rounded-full">
                     {request.model}
                   </span>
                 )}
                 {getYearRange() && (
-                  <span className="bg-red-100 text-red-800 text-xs font-semibold px-3 py-1 rounded-full">
+                  <span className="bg-orange-100 text-orange-800 text-xs font-semibold px-3 py-1 rounded-full">
                     {getYearRange()}
                   </span>
                 )}
@@ -168,14 +168,14 @@ export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
           <div className="grid grid-cols-2 gap-3 mb-4">
             {/* Location */}
             <div className="flex items-center gap-2 text-gray-700">
-              <MapPin className="w-4 h-4 text-red-500 flex-shrink-0" />
+              <MapPin className="w-4 h-4 text-orange-500 flex-shrink-0" />
               <span className="text-sm truncate">{request.location}</span>
             </div>
 
             {/* Mileage */}
             {request.mileage_max && (
               <div className="flex items-center gap-2 text-gray-700">
-                <TrendingUp className="w-4 h-4 text-red-500 flex-shrink-0" />
+                <TrendingUp className="w-4 h-4 text-orange-500 flex-shrink-0" />
                 <span className="text-sm">Max {request.mileage_max.toLocaleString()} km</span>
               </div>
             )}
@@ -183,7 +183,7 @@ export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
             {/* Fuel Type */}
             {request.fuel_type && (
               <div className="flex items-center gap-2 text-gray-700">
-                <i className="fas fa-gas-pump text-red-500 text-sm w-4 text-center flex-shrink-0"></i>
+                <i className="fas fa-gas-pump text-orange-500 text-sm w-4 text-center flex-shrink-0"></i>
                 <span className="text-sm">{request.fuel_type}</span>
               </div>
             )}
@@ -191,31 +191,31 @@ export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
             {/* Transmission */}
             {request.transmission && (
               <div className="flex items-center gap-2 text-gray-700">
-                <i className="fas fa-cogs text-red-500 text-sm w-4 text-center flex-shrink-0"></i>
+                <i className="fas fa-cogs text-orange-500 text-sm w-4 text-center flex-shrink-0"></i>
                 <span className="text-sm">{request.transmission}</span>
               </div>
             )}
           </div>
 
           {/* Budget Section */}
-          <div className="bg-gradient-to-br from-red-100/60 to-red-50/50 rounded-lg p-3 mb-4 border border-red-200/50">
-            <div className="text-xs text-red-700 font-semibold mb-1 uppercase tracking-wide">Ready to Pay</div>
-            <div className="font-bold text-red-600 text-xl">
+          <div className="bg-gradient-to-br from-orange-100/60 to-orange-50/50 rounded-lg p-3 mb-4 border border-orange-200/50">
+            <div className="text-xs text-orange-700 font-semibold mb-1 uppercase tracking-wide">Ready to Pay</div>
+            <div className="font-bold text-orange-600 text-xl">
               {formatBudgetRange()}
             </div>
           </div>
 
           {/* Stats Bar */}
-          <div className="flex items-center justify-between py-3 border-t border-red-200/50">
+          <div className="flex items-center justify-between py-3 border-t border-orange-200/50">
             <span className="flex items-center gap-1.5 text-xs text-gray-500">
               <Calendar className="w-3.5 h-3.5" />
               {getTimeAgo(request.created_at)}
             </span>
 
-            {/* Urgency Indicator */}
-            <div className="flex items-center gap-1 text-xs text-red-700 font-medium">
+            {/* Priority Indicator */}
+            <div className="flex items-center gap-1 text-xs text-orange-700 font-medium">
               <AlertTriangle className="w-3 h-3" />
-              Time Sensitive
+              High Priority
             </div>
           </div>
 
@@ -224,8 +224,8 @@ export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
             <button
               onClick={handleRespondClick}
               className="
-                w-full bg-gradient-to-r from-red-600 to-red-700
-                hover:from-red-700 hover:to-red-800
+                w-full bg-gradient-to-r from-orange-500 to-orange-600
+                hover:from-orange-600 hover:to-orange-700
                 text-white font-bold rounded-lg
                 transition-all duration-200
                 flex items-center justify-center gap-2

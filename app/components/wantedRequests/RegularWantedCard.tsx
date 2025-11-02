@@ -236,7 +236,7 @@ export default function RegularWantedCard({ request }: RegularWantedCardProps) {
               "
             >
               <MessageCircle className="w-4 h-4" />
-              Respond to Request
+              Respond
             </button>
           </div>
 

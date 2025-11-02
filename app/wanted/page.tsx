@@ -118,10 +118,30 @@ export default function WantedRequestsPage() {
   const [requests, setRequests] = useState<WantedRequest[]>([])
   const [filteredRequests, setFilteredRequests] = useState<WantedRequest[]>([])
   const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [searchInput, setSearchInput] = useState('')
-  const [sortBy, setSortBy] = useState('recent')
-  const [highPriorityOnly, setHighPriorityOnly] = useState(false)
+  const [searchTerm, setSearchTerm] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('wantedSearchTerm') || ''
+    }
+    return ''
+  })
+  const [searchInput, setSearchInput] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('wantedSearchTerm') || ''
+    }
+    return ''
+  })
+  const [sortBy, setSortBy] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('wantedSortBy') || 'recent'
+    }
+    return 'recent'
+  })
+  const [highPriorityOnly, setHighPriorityOnly] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('wantedHighPriorityOnly') === 'true'
+    }
+    return false
+  })
 
   // Wanted notifications hook
   const {
@@ -138,14 +158,26 @@ export default function WantedRequestsPage() {
       console.error('Error dismissing all notifications:', error)
     }
   }
-  const [filters, setFilters] = useState<FilterState>({
-    locations: ['All of Sri Lanka'],
-    make: 'All Makes',
-    model: 'All Models',
-    minBudget: '',
-    maxBudget: '',
-    yearFrom: '',
-    yearTo: ''
+  const [filters, setFilters] = useState<FilterState>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem('wantedFilters')
+      if (saved) {
+        try {
+          return JSON.parse(saved)
+        } catch (e) {
+          console.error('Failed to parse saved filters:', e)
+        }
+      }
+    }
+    return {
+      locations: ['All of Sri Lanka'],
+      make: 'All Makes',
+      model: 'All Models',
+      minBudget: '',
+      maxBudget: '',
+      yearFrom: '',
+      yearTo: ''
+    }
   })
   const [expandedFilters, setExpandedFilters] = useState({
     location: true,
@@ -185,6 +217,23 @@ export default function WantedRequestsPage() {
     setTempYearFrom(filters.yearFrom)
     setTempYearTo(filters.yearTo)
   }, [])
+
+  // Persist filter states to sessionStorage
+  useEffect(() => {
+    sessionStorage.setItem('wantedSearchTerm', searchTerm)
+  }, [searchTerm])
+
+  useEffect(() => {
+    sessionStorage.setItem('wantedSortBy', sortBy)
+  }, [sortBy])
+
+  useEffect(() => {
+    sessionStorage.setItem('wantedHighPriorityOnly', String(highPriorityOnly))
+  }, [highPriorityOnly])
+
+  useEffect(() => {
+    sessionStorage.setItem('wantedFilters', JSON.stringify(filters))
+  }, [filters])
 
   // Apply filters whenever they change
   useEffect(() => {
@@ -657,7 +706,7 @@ export default function WantedRequestsPage() {
       {/* High Priority Filter */}
       <div className="mb-6 border-b pb-4">
         <label className={`flex items-center gap-2 cursor-pointer p-3 rounded-lg transition-colors ${
-          highPriorityOnly ? 'bg-red-50 border-2 border-red-200' : 'hover:bg-red-25'
+          highPriorityOnly ? 'bg-orange-50 border-2 border-orange-200' : 'hover:bg-orange-25'
         }`}>
           <input
             type="checkbox"
@@ -666,7 +715,7 @@ export default function WantedRequestsPage() {
             className="sr-only"
           />
           <div className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-colors ${
-            highPriorityOnly ? 'bg-red-600 border-red-600' : 'border-red-300 hover:border-red-400'
+            highPriorityOnly ? 'bg-orange-500 border-orange-500' : 'border-orange-300 hover:border-orange-400'
           }`}>
             {highPriorityOnly && (
               <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -676,9 +725,9 @@ export default function WantedRequestsPage() {
           </div>
           <div className="flex items-center gap-2">
             <span className={`font-semibold text-sm ${
-              highPriorityOnly ? 'text-red-700' : 'text-red-600'
+              highPriorityOnly ? 'text-orange-700' : 'text-orange-600'
             }`}>
-              High Priority Requests Only
+              High Priority Only
             </span>
           </div>
         </label>
