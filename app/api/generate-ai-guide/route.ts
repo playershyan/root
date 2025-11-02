@@ -73,7 +73,6 @@ Structure:
 </ul>`
         }
       ],
-      temperature: 0.7,
       max_completion_tokens: 400, // Limit output for faster response
     })
 
