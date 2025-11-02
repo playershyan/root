@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
       model: sanitized.model === 'Other' ? (sanitized.customModel || 'Other') : (sanitized.model || null),
       min_year: parseInt(String(sanitized.min_year)) || null,
       max_year: parseInt(String(sanitized.max_year)) || null,
-      location: sanitized.location || null,
+      location: sanitized.location || '',
       phone: formattedPhone,
       fuel_type: sanitized.fuel_type || null,
       transmission: sanitized.transmission || null,
