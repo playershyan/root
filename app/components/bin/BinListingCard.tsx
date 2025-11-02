@@ -1,14 +1,15 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { Car, RotateCcw, MapPin, Calendar, Camera, User } from 'lucide-react'
-import { 
-  BinItemData, 
-  formatDeletedDate, 
-  getDeletionUrgencyColor, 
+import {
+  BinItemData,
+  formatDeletedDate,
+  getDeletionUrgencyColor,
   getDeletionUrgencyMessage,
   formatPrice,
-  truncateText 
+  truncateText
 } from '@/lib/utils/binUtils'
 
 interface BinListingCardProps {
@@ -31,15 +32,32 @@ export default function BinListingCard({
     }
   }
 
+  // Get image URL from original_data
+  const getImageUrl = () => {
+    if (listing.original_data) {
+      const data = typeof listing.original_data === 'string'
+        ? JSON.parse(listing.original_data)
+        : listing.original_data
+      return data.primary_image_url || data.image_url || (data.image_urls && data.image_urls[0])
+    }
+    return null
+  }
+
+  const imageUrl = getImageUrl()
+
   return (
     <div className="bg-white border rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
       <div className="flex">
         {/* Image section */}
-        <div className="w-32 h-32 bg-gray-200 flex items-center justify-center flex-shrink-0">
-          {listing.price && !imageError ? (
-            <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
-              <Car className="w-8 h-8 text-blue-600" />
-            </div>
+        <div className="w-32 h-32 bg-gray-200 flex items-center justify-center flex-shrink-0 relative overflow-hidden">
+          {imageUrl && !imageError ? (
+            <Image
+              src={imageUrl}
+              alt={listing.title}
+              fill
+              className="object-cover"
+              onError={() => setImageError(true)}
+            />
           ) : (
             <Camera className="w-8 h-8 text-gray-400" />
           )}
