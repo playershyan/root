@@ -1,13 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { MessageSquare, ChevronRight, MoreVertical, Eye, Archive, Trash2 } from 'lucide-react'
+import { MessageSquare, ChevronRight, MoreVertical, Eye, Trash2 } from 'lucide-react'
 import { ConversationData, formatMessageDate, formatPrice, getOtherUser, truncateMessage } from '@/lib/utils/messageUtils'
 
 interface MessagePreviewProps {
   conversation: ConversationData
   onClick: () => void
-  onArchive?: (id: string) => void
   onMoveToBin?: (id: string) => void
   onMarkAsRead?: (id: string) => void
 }
@@ -15,7 +14,6 @@ interface MessagePreviewProps {
 export default function MessagePreview({
   conversation,
   onClick,
-  onArchive,
   onMoveToBin,
   onMarkAsRead
 }: MessagePreviewProps) {
@@ -131,17 +129,7 @@ export default function MessagePreview({
                             Mark as Read
                           </button>
                         )}
-                        
-                        {onArchive && (
-                          <button
-                            onClick={(e) => handleMenuAction(() => onArchive(conversation.id), e)}
-                            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full text-left"
-                          >
-                            <Archive className="w-4 h-4" />
-                            Archive
-                          </button>
-                        )}
-                        
+
                         {onMoveToBin && (
                           <>
                             <hr className="my-1" />

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/app/contexts/AuthContext'
@@ -57,6 +57,9 @@ export default function PostWantedPage() {
   const [step, setStep] = useState(1) // Multi-step form
   const [showPreview, setShowPreview] = useState(true)
   const [errors, setErrors] = useState<FormErrors>({})
+
+  // Guard to prevent clearing fields on edit data load
+  const editDataLoadedRef = useRef(false)
   const [selectedDistrict, setSelectedDistrict] = useState<string>('')
   const [availableCities, setAvailableCities] = useState<string[]>([])
   
@@ -112,6 +115,9 @@ export default function PostWantedPage() {
             } else if (phoneNumber.startsWith('+94')) {
               phoneNumber = '0' + phoneNumber.substring(3).replace(/\s/g, '')
             }
+
+            // Set flag before updating form data to prevent cascading clears
+            editDataLoadedRef.current = true
 
             // Map database fields to form fields
             setFormData({
@@ -218,6 +224,12 @@ export default function PostWantedPage() {
 
   // Clear model when make or vehicle type changes if it's no longer valid
   useEffect(() => {
+    // Skip clearing if we're in edit mode and data just loaded
+    if (editDataLoadedRef.current) {
+      editDataLoadedRef.current = false
+      return
+    }
+
     const models = getModelOptions()
     // Clear model if it's not in the new make's models
     if (formData.model && formData.model !== 'Other' && !models.includes(formData.model)) {
