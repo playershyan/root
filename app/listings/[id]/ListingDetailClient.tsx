@@ -116,11 +116,9 @@ export default function ListingDetailClient({
   useEffect(() => {
     const pendingAction = localStorage.getItem('pendingAction')
     if (pendingAction === 'make-offer' && user) {
-      console.log('🎬 Detected pending make-offer action after OAuth - opening offer modal')
       localStorage.removeItem('pendingAction')
       localStorage.removeItem('pendingRedirect')
       localStorage.removeItem('pendingActionData')
-      // Small delay to ensure auth state is stable
       setTimeout(() => setShowOfferModal(true), 300)
     }
   }, [user])

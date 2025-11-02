@@ -157,30 +157,18 @@ export async function getUser() {
 
 export async function signInWithGoogle(): Promise<{ success: boolean; error?: AuthError }> {
   try {
-    // Check for pending redirect
     const pendingRedirect = localStorage.getItem('pendingRedirect')
     const redirectPath = pendingRedirect || '/profile'
 
-    // DEBUG: Log what we're reading
-    console.log('🔍 signInWithGoogle - localStorage pendingRedirect:', pendingRedirect)
-    console.log('🎯 signInWithGoogle - Final redirectPath:', redirectPath)
-    
-    // Determine the site URL for the final redirect after OAuth
-    // ALWAYS use current origin - this handles localhost, localhost:3001, and production
     let redirectTo: string
 
     if (typeof window !== 'undefined') {
-      // Client-side: ALWAYS use current origin (works for all environments)
       redirectTo = window.location.origin
-      console.log('🌐 OAuth Redirect Base URL:', redirectTo)
     } else {
-      // Server-side fallback
       redirectTo = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001'
     }
-    
-    // Use Supabase OAuth flow as recommended in documentation
+
     const callbackUrl = `${redirectTo}/auth/callback?redirectTo=${encodeURIComponent(redirectPath)}`
-    console.log('🔗 Full OAuth Callback URL:', callbackUrl)
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',

@@ -50,13 +50,7 @@ export async function GET(request: Request) {
         }
       }
       
-      // Check for stored redirect URL
       const redirectTo = requestUrl.searchParams.get('redirectTo')
-
-      // DEBUG: Log the callback URL and params
-      console.log('📍 OAuth Callback - Full URL:', requestUrl.href)
-      console.log('🔍 OAuth Callback - redirectTo param:', redirectTo)
-      console.log('🎯 OAuth Callback - Will redirect to:', redirectTo || '/profile')
 
       if (redirectTo) {
         return NextResponse.redirect(new URL(redirectTo, requestUrl.origin))

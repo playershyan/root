@@ -148,50 +148,44 @@ export default function AdvancedListingsPage() {
     setPlaceholderText(PLACEHOLDER_TEXTS[placeholderIndex])
   }, [placeholderIndex])
 
-  // Restore scroll position after OAuth redirect
+  // Restore scroll position after OAuth redirect (wait for content to load)
   useEffect(() => {
+    if (loading) return // Wait for listings to load
+
     const pendingScrollY = localStorage.getItem('pendingScrollY')
     if (pendingScrollY) {
-      console.log('📜 Restoring scroll position:', pendingScrollY)
-      // Use requestAnimationFrame to ensure DOM is ready
-      requestAnimationFrame(() => {
+      setTimeout(() => {
         window.scrollTo(0, parseInt(pendingScrollY))
         localStorage.removeItem('pendingScrollY')
-      })
+      }, 100)
     }
-  }, [])
+  }, [loading])
 
   // Handle pending favorite action after OAuth redirect
   useEffect(() => {
+    if (loading || !user) return // Wait for both auth and listings to load
+
     const pendingAction = localStorage.getItem('pendingAction')
     const pendingActionDataStr = localStorage.getItem('pendingActionData')
 
-    if (pendingAction === 'add-favorite' && user && pendingActionDataStr) {
+    if (pendingAction === 'add-favorite' && pendingActionDataStr) {
       try {
         const actionData = JSON.parse(pendingActionDataStr)
         const listingId = actionData.listingId
 
-        console.log('⭐ Detected pending add-favorite action after OAuth for listing:', listingId)
-
-        // Clean up localStorage immediately to prevent re-execution
         localStorage.removeItem('pendingAction')
         localStorage.removeItem('pendingActionData')
 
-        // Execute the favorite toggle
-        toggleFavorite(listingId)
-          .then((newState) => {
-            console.log('✅ Favorite toggled successfully:', newState)
-          })
-          .catch((error) => {
-            console.error('❌ Failed to add favorite after OAuth:', error)
-          })
+        toggleFavorite(listingId).catch((error) => {
+          console.error('Failed to add favorite after OAuth:', error)
+        })
       } catch (error) {
         console.error('Failed to parse pending action data:', error)
         localStorage.removeItem('pendingAction')
         localStorage.removeItem('pendingActionData')
       }
     }
-  }, [user, toggleFavorite])
+  }, [loading, user, toggleFavorite])
 
   // Initialize from URL query params (from home page filters)
   useEffect(() => {
