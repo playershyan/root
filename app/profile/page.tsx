@@ -1600,37 +1600,6 @@ export default function ProfilePage() {
     }
   }
 
-  const handleMarkAsFulfilled = async (requestId: string) => {
-    try {
-      const response = await fetch('/api/wanted-requests/mark-fulfilled', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ requestId }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to mark wanted request as fulfilled')
-      }
-
-      // Update local state
-      setWantedRequests(prevRequests =>
-        prevRequests.map(request =>
-          request.id === requestId
-            ? { ...request, status: 'fulfilled' as const }
-            : request
-        )
-      )
-
-      showSuccess(data.message || 'Wanted request marked as fulfilled successfully')
-    } catch (error) {
-      console.error('Error marking wanted request as fulfilled:', error)
-      showError(error instanceof Error ? error.message : 'Failed to mark wanted request as fulfilled')
-    }
-  }
 
   // Helper function to calculate days until renewal for wanted requests
   const getDaysUntilWantedRequestRenewal = (postedDate: string) => {
@@ -2700,18 +2669,6 @@ export default function ProfilePage() {
                                           </>
                                         )}
 
-                                        {(request.status === 'active' || request.status === 'paused') && (
-                                          <>
-                                            <hr className="my-2" />
-                                            <button
-                                              onClick={() => handleMarkAsFulfilled(request.id)}
-                                              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-green-600"
-                                            >
-                                              <CheckCircle className="w-4 h-4" />
-                                              Mark as Fulfilled
-                                            </button>
-                                          </>
-                                        )}
 
                                         <hr className="my-2" />
                                         <button 
