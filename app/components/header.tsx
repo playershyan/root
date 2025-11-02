@@ -7,7 +7,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import {
   Heart, User, Search, Menu, X, Bell,
   Car, MessageSquare, Settings, LogOut,
-  Crown, Shield, FileText, Plus, Globe
+  Crown, Shield, FileText, Plus, Globe, Trash2
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { AuthModal } from './auth'
@@ -286,10 +286,18 @@ export default function Header() {
                         <Bell className="w-4 h-4" />
                         Notifications
                       </Link>
+                      <Link
+                        href="/profile?tab=bin"
+                        className="block px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3 text-sm sm:text-base"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Bin
+                      </Link>
                     </div>
-                    
+
                     <hr className="my-2" />
-                    
+
                     <div className="py-2">
                       <Link
                         href="/profile?tab=security"
@@ -591,6 +599,16 @@ export default function Header() {
                     >
                       <Bell className="w-5 h-5" />
                       <span className="font-medium">Notifications</span>
+                    </Link>
+                    <Link
+                      href="/profile?tab=bin"
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
+                      onClick={(e) => {
+                        setTimeout(() => setMobileMenuOpen(false), 100)
+                      }}
+                    >
+                      <Trash2 className="w-5 h-5" />
+                      <span className="font-medium">Bin</span>
                     </Link>
                   </div>
                 </div>
