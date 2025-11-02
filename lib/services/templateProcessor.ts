@@ -125,7 +125,7 @@ export class TemplateProcessor {
       'No. of previous owners': parseInt(data.previousOwners || '0') || 0,
       'Previous Owners': parseInt(data.previousOwners || '0') || 0,
       'Vehicle condition': data.vehicleConditionDetails ? this.formatCondition(data.vehicleConditionDetails) : '',
-      'Service records available': data.serviceRecordsAvailable || false,
+      'Service records available': data.serviceRecordsAvailable === true,
 
       // Tier 3: Pricing
       'Pricing Type': data.pricingType || '',
