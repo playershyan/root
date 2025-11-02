@@ -2623,7 +2623,7 @@ export default function ProfilePage() {
                                           Share Request
                                         </button>
                                         <Link
-                                          href={`/wanted/post?edit=${request.id}`}
+                                          href={`/wanted/edit/${request.id}`}
                                           className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 block"
                                         >
                                           <Edit className="w-4 h-4" />
