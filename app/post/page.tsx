@@ -670,19 +670,46 @@ export default function EnhancedPostVehiclePage() {
   
   const uploadImages = async (images: File[], userId: string): Promise<string[]> => {
     try {
+      // Validate images are actual File objects with type
+      const validImages = images.filter(img => {
+        if (!(img instanceof File)) {
+          console.error('Not a File object:', img)
+          return false
+        }
+        if (!img.type) {
+          console.error('File has no type:', img.name)
+          return false
+        }
+        return true
+      })
+
+      if (validImages.length === 0) {
+        showError('No valid image files to upload')
+        return []
+      }
+
+      if (validImages.length < images.length) {
+        console.warn(`Filtered out ${images.length - validImages.length} invalid files`)
+      }
+
       // Create FormData with all images
       const formData = new FormData()
-      images.forEach(image => {
-        formData.append('images', image)
+      validImages.forEach((image, index) => {
+        console.log(`Adding image ${index + 1}:`, {
+          name: image.name,
+          type: image.type,
+          size: image.size
+        })
+        formData.append('images', image, image.name)
       })
-      formData.append('listingId', userId) // Use userId as temporary listingId
+      formData.append('listingId', userId)
 
-      console.log('Uploading images to Cloudinary...', images.length)
+      console.log('Uploading images to Cloudinary...', validImages.length)
 
       // Upload to Cloudinary
       const response = await fetch('/api/upload/cloudinary', {
         method: 'POST',
-        body: formData // Send as FormData, not JSON
+        body: formData
       })
 
       const result = await response.json()
