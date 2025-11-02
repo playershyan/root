@@ -335,19 +335,24 @@ export default function EnhancedPostVehiclePage() {
     if (draft) {
       try {
         const parsed = JSON.parse(draft)
+        // Don't restore images from draft (File objects can't be serialized)
+        delete parsed.images
+        delete parsed.imageUrls
         setFormData({ ...initialFormData, ...parsed })
       } catch (e) {
         console.error('Error loading draft:', e)
       }
     }
   }, [isEditMode])
-  
+
   // Auto-save draft (skip in edit mode to avoid overwriting)
   useEffect(() => {
     if (isEditMode) return
 
     const timer = setTimeout(() => {
-      localStorage.setItem('vehiclePostDraft', JSON.stringify(formData))
+      // Don't save images to localStorage (File objects can't be serialized)
+      const { images, imageUrls, ...draftData } = formData
+      localStorage.setItem('vehiclePostDraft', JSON.stringify(draftData))
     }, 1000)
 
     return () => clearTimeout(timer)
