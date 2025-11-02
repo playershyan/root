@@ -1,11 +1,11 @@
 /**
- * Validation utilities for listing creation and updates
+ * Listing validation - rebuilt from scratch
+ * Clean, simple, bulletproof validation logic
  */
 
 export interface ListingInput {
   title?: string
   description?: string
-  details?: string
   vehicleType?: string
   make?: string
   customMake?: string
@@ -16,7 +16,6 @@ export interface ListingInput {
   condition?: string
   fuelType?: string
   transmission?: string
-  bodyType?: string
   color?: string
   engineCapacity?: number | string
   trim?: string
@@ -24,18 +23,27 @@ export interface ListingInput {
   price?: number | string
   pricingType?: 'cash' | 'finance'
   negotiable?: boolean
+
+  // Finance fields
   financeType?: string
   outstandingBalance?: number | string
   monthlyPayment?: number | string
   remainingTerm?: string
   askingPrice?: number | string
+
+  // Location
   district?: string
   city?: string
-  location?: string
+
+  // Contact
   phone?: string
   whatsapp?: string
   email?: string
+
+  // Images
   imageUrls?: string[]
+
+  // Additional info
   interiorColor?: string
   registrationYear?: number | string
   vehicleConditionDetails?: string
@@ -48,308 +56,196 @@ export interface ValidationResult {
   errors: Record<string, string>
 }
 
-const MIN_YEAR = 1990
-const MAX_YEAR = new Date().getFullYear() + 1 // Allow next year models
-const MAX_DESCRIPTION_LENGTH = 5000
-const MAX_TITLE_LENGTH = 255
-const MIN_PRICE = 0
-const MAX_PRICE = 1000000000 // 1 billion
-const MAX_MILEAGE = 10000000 // 10 million km
-const MIN_ENGINE_CAPACITY = 50
-const MAX_ENGINE_CAPACITY = 10000 // 10L
-
 /**
- * Get current year
+ * Clean string - remove HTML, trim whitespace
  */
-function getCurrentYear(): number {
-  return new Date().getFullYear()
+function clean(value: any): string {
+  if (value === null || value === undefined) return ''
+  const str = String(value).trim()
+  return str.replace(/<[^>]*>/g, '') // Remove HTML tags
 }
 
 /**
- * Sanitize string input
+ * Parse to integer safely
  */
-function sanitizeString(input: string | undefined | null): string {
-  if (!input) return ''
-  return input.trim().replace(/[<>]/g, '')
-}
-
-/**
- * Sanitize description
- */
-function sanitizeDescription(input: string | undefined | null): string {
-  if (!input) return ''
-  const sanitized = sanitizeString(input)
-  return sanitized.substring(0, MAX_DESCRIPTION_LENGTH)
-}
-
-/**
- * Validate and convert number input
- */
-function parseNumber(value: number | string | undefined | null): number | null {
-  if (value === undefined || value === null || value === '') return null
-  const num = typeof value === 'string' ? parseFloat(value) : value
-  return isNaN(num) ? null : num
-}
-
-/**
- * Validate and convert integer input
- */
-function parseInteger(value: number | string | undefined | null): number | null {
-  if (value === undefined || value === null || value === '') return null
-  const num = typeof value === 'string' ? parseInt(value, 10) : value
+function toInt(value: any): number | null {
+  if (value === null || value === undefined || value === '') return null
+  const num = typeof value === 'string' ? parseInt(value, 10) : Number(value)
   return isNaN(num) ? null : Math.floor(num)
 }
 
 /**
- * Validate phone number format
+ * Parse to float safely
+ */
+function toFloat(value: any): number | null {
+  if (value === null || value === undefined || value === '') return null
+  const num = typeof value === 'string' ? parseFloat(value) : Number(value)
+  return isNaN(num) ? null : num
+}
+
+/**
+ * Check if string is non-empty after cleaning
+ */
+function hasValue(value: any): boolean {
+  return clean(value).length > 0
+}
+
+/**
+ * Validate phone number (Sri Lankan format)
  */
 function isValidPhone(phone: string): boolean {
-  if (!phone) return false
-  // Remove country code prefix if present
-  const cleaned = phone.replace(/^\+94\s?/, '').replace(/\s+/g, '')
-  // Sri Lankan phone numbers: 9 digits after removing leading 0
-  return /^\d{9}$/.test(cleaned) || /^0\d{9}$/.test(cleaned)
+  const cleaned = phone.replace(/[\s\-\+]/g, '')
+  // Accept: 0771234567, 771234567, 940771234567, +940771234567
+  return /^(0|94)?[1-9]\d{8}$/.test(cleaned)
 }
 
 /**
  * Validate email format
  */
 function isValidEmail(email: string): boolean {
-  if (!email) return false
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return emailRegex.test(email)
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
 /**
- * Validate URL format
- */
-function isValidUrl(url: string): boolean {
-  if (!url) return false
-  try {
-    new URL(url)
-    return true
-  } catch {
-    return false
-  }
-}
-
-/**
- * Validate listing input
+ * Main validation function
  */
 export function validateListing(input: ListingInput): ValidationResult {
   const errors: Record<string, string> = {}
-  const currentYear = getCurrentYear()
+  const currentYear = new Date().getFullYear()
 
-  // Title validation
-  if (!input.title || !sanitizeString(input.title)) {
+  // Title - required, 5-200 chars
+  const title = clean(input.title)
+  if (!hasValue(input.title)) {
     errors.title = 'Title is required'
-  } else {
-    const title = sanitizeString(input.title)
-    if (title.length < 5) {
-      errors.title = 'Title must be at least 5 characters'
-    } else if (title.length > MAX_TITLE_LENGTH) {
-      errors.title = `Title must be less than ${MAX_TITLE_LENGTH} characters`
-    }
+  } else if (title.length < 5) {
+    errors.title = 'Title must be at least 5 characters'
+  } else if (title.length > 200) {
+    errors.title = 'Title is too long (max 200 characters)'
   }
 
-  // Vehicle Type validation
-  if (!input.vehicleType || !sanitizeString(input.vehicleType)) {
+  // Vehicle type - required
+  if (!hasValue(input.vehicleType)) {
     errors.vehicleType = 'Vehicle type is required'
   }
 
-  // Make validation
+  // Make - required
   const actualMake = input.make === 'Other' ? input.customMake : input.make
-  if (!actualMake || !sanitizeString(actualMake)) {
-    errors.make = 'Vehicle make is required'
-  } else {
-    const make = sanitizeString(actualMake)
-    if (make.length < 2) {
-      errors.make = 'Make name must be at least 2 characters'
-    } else if (make.length > 100) {
-      errors.make = 'Make name must be less than 100 characters'
-    }
+  if (!hasValue(actualMake)) {
+    errors.make = 'Make is required'
   }
 
-  // Model validation
+  // Model - required
   const actualModel = input.model === 'Other' ? input.customModel : input.model
-  if (!actualModel || !sanitizeString(actualModel)) {
-    errors.model = 'Vehicle model is required'
-  } else {
-    const model = sanitizeString(actualModel)
-    if (model.length < 2) {
-      errors.model = 'Model name must be at least 2 characters'
-    } else if (model.length > 100) {
-      errors.model = 'Model name must be less than 100 characters'
-    }
+  if (!hasValue(actualModel)) {
+    errors.model = 'Model is required'
   }
 
-  // Year validation
-  const year = parseInteger(input.year)
+  // Year - required, 1990-2026
+  const year = toInt(input.year)
   if (year === null) {
     errors.year = 'Year is required'
-  } else if (year < MIN_YEAR) {
-    errors.year = `Year cannot be earlier than ${MIN_YEAR}`
-  } else if (year > MAX_YEAR) {
-    errors.year = `Year cannot be later than ${MAX_YEAR}`
+  } else if (year < 1990 || year > currentYear + 1) {
+    errors.year = `Year must be between 1990 and ${currentYear + 1}`
   }
 
-  // Mileage validation (optional but if provided, must be valid)
-  if (input.mileage !== undefined && input.mileage !== null && input.mileage !== '') {
-    const mileage = parseInteger(input.mileage)
-    if (mileage === null) {
-      errors.mileage = 'Invalid mileage format'
-    } else if (mileage < 0) {
-      errors.mileage = 'Mileage cannot be negative'
-    } else if (mileage > MAX_MILEAGE) {
-      errors.mileage = `Mileage exceeds maximum allowed value (${MAX_MILEAGE.toLocaleString()} km)`
-    }
+  // Condition - required
+  if (!hasValue(input.condition)) {
+    errors.condition = 'Condition is required'
+  } else if (!['New', 'Used', 'Refurbished'].includes(input.condition)) {
+    errors.condition = 'Invalid condition'
   }
 
-  // Price validation
-  const price = parseNumber(input.price)
+  // District - required
+  if (!hasValue(input.district)) {
+    errors.district = 'District is required'
+  }
+
+  // City - required
+  if (!hasValue(input.city)) {
+    errors.city = 'City is required'
+  }
+
+  // Price - required, positive number
+  const price = toFloat(input.price)
   if (price === null) {
     errors.price = 'Price is required'
-  } else if (price < MIN_PRICE) {
+  } else if (price < 0) {
     errors.price = 'Price cannot be negative'
-  } else if (price > MAX_PRICE) {
-    errors.price = `Price exceeds maximum allowed value (Rs. ${MAX_PRICE.toLocaleString()})`
+  } else if (price > 1000000000) {
+    errors.price = 'Price is too high'
   }
 
-  // Finance validation (if pricingType is 'finance')
+  // Finance validation
   if (input.pricingType === 'finance') {
-    if (!input.financeType || !sanitizeString(input.financeType)) {
+    if (!hasValue(input.financeType)) {
       errors.financeType = 'Finance type is required'
     }
 
-    if (!input.outstandingBalance) {
-      errors.outstandingBalance = 'Outstanding balance is required'
-    } else {
-      const balance = parseNumber(input.outstandingBalance)
-      if (balance === null || balance < 0) {
-        errors.outstandingBalance = 'Outstanding balance must be a valid positive number'
-      }
+    const balance = toFloat(input.outstandingBalance)
+    if (balance === null || balance < 0) {
+      errors.outstandingBalance = 'Valid outstanding balance is required'
     }
 
-    if (!input.askingPrice) {
-      errors.askingPrice = 'Asking price is required'
-    } else {
-      const askingPrice = parseNumber(input.askingPrice)
-      if (askingPrice === null || askingPrice < 0) {
-        errors.askingPrice = 'Asking price must be a valid positive number'
-      }
+    const asking = toFloat(input.askingPrice)
+    if (asking === null || asking < 0) {
+      errors.askingPrice = 'Valid asking price is required'
     }
 
-    if (!input.monthlyPayment) {
-      errors.monthlyPayment = 'Monthly payment is required'
-    } else {
-      const monthly = parseNumber(input.monthlyPayment)
-      if (monthly === null || monthly < 0) {
-        errors.monthlyPayment = 'Monthly payment must be a valid positive number'
-      }
+    const monthly = toFloat(input.monthlyPayment)
+    if (monthly === null || monthly < 0) {
+      errors.monthlyPayment = 'Valid monthly payment is required'
     }
 
-    if (!input.remainingTerm || !sanitizeString(input.remainingTerm)) {
+    if (!hasValue(input.remainingTerm)) {
       errors.remainingTerm = 'Remaining term is required'
     }
   }
 
-  // Location validation
-  if (!input.district || !sanitizeString(input.district)) {
-    errors.district = 'District is required'
-  }
-
-  if (!input.city || !sanitizeString(input.city)) {
-    errors.city = 'City is required'
-  }
-
-  // Description validation (optional but if provided, validate length)
-  if (input.description && sanitizeDescription(input.description).length > MAX_DESCRIPTION_LENGTH) {
-    errors.description = `Description must be less than ${MAX_DESCRIPTION_LENGTH} characters`
-  }
-
-  // Phone validation
-  if (!input.phone || !sanitizeString(input.phone)) {
+  // Phone - required, valid format
+  if (!hasValue(input.phone)) {
     errors.phone = 'Phone number is required'
   } else if (!isValidPhone(input.phone)) {
-    errors.phone = 'Invalid phone number format'
+    errors.phone = 'Invalid phone number'
   }
 
-  // WhatsApp validation (optional but if provided, must be valid)
-  if (input.whatsapp && !isValidPhone(input.whatsapp)) {
-    errors.whatsapp = 'Invalid WhatsApp number format'
+  // Email - optional, but must be valid if provided
+  if (hasValue(input.email) && !isValidEmail(input.email)) {
+    errors.email = 'Invalid email address'
   }
 
-  // Email validation (optional but if provided, must be valid)
-  if (input.email && !isValidEmail(input.email)) {
-    errors.email = 'Invalid email format'
-  }
-
-  // Fuel type validation (if provided)
-  if (input.fuelType && !['Petrol', 'Diesel', 'Hybrid', 'Electric'].includes(input.fuelType)) {
-    errors.fuelType = 'Invalid fuel type'
-  }
-
-  // Transmission validation (if provided)
-  if (input.transmission && !['Automatic', 'Manual'].includes(input.transmission)) {
-    errors.transmission = 'Invalid transmission type'
-  }
-
-  // Condition validation
-  if (!input.condition || !sanitizeString(input.condition)) {
-    errors.condition = 'Vehicle condition is required'
-  } else if (!['New', 'Used', 'Refurbished'].includes(input.condition)) {
-    errors.condition = 'Invalid condition value'
-  }
-
-  // Engine capacity validation (optional but if provided, must be valid)
-  if (input.engineCapacity !== undefined && input.engineCapacity !== null && input.engineCapacity !== '') {
-    const capacity = parseInteger(input.engineCapacity)
-    if (capacity === null) {
-      errors.engineCapacity = 'Invalid engine capacity format'
-    } else if (capacity < MIN_ENGINE_CAPACITY) {
-      errors.engineCapacity = `Engine capacity must be at least ${MIN_ENGINE_CAPACITY}cc`
-    } else if (capacity > MAX_ENGINE_CAPACITY) {
-      errors.engineCapacity = `Engine capacity exceeds maximum allowed value (${MAX_ENGINE_CAPACITY}cc)`
-    }
-  }
-
-  // Registration year validation (optional but if provided, must be valid)
-  if (input.registrationYear !== undefined && input.registrationYear !== null && input.registrationYear !== '') {
-    const regYear = parseInteger(input.registrationYear)
-    if (regYear === null) {
-      errors.registrationYear = 'Invalid registration year format'
-    } else if (regYear < MIN_YEAR || regYear > currentYear) {
-      errors.registrationYear = `Registration year must be between ${MIN_YEAR} and ${currentYear}`
-    }
-  }
-
-  // Previous owners validation (optional but if provided, must be valid)
-  if (input.previousOwners !== undefined && input.previousOwners !== null && input.previousOwners !== '') {
-    const owners = parseInteger(input.previousOwners)
-    if (owners === null) {
-      errors.previousOwners = 'Invalid previous owners format'
-    } else if (owners < 0) {
-      errors.previousOwners = 'Previous owners cannot be negative'
-    } else if (owners > 50) {
-      errors.previousOwners = 'Previous owners exceeds maximum allowed value'
-    }
-  }
-
-  // Image URLs validation (at least 1 image required)
+  // Images - at least 1 required
   if (!input.imageUrls || input.imageUrls.length === 0) {
     errors.imageUrls = 'At least one image is required'
-  } else {
-    // Validate each image URL format
-    input.imageUrls.forEach((url, index) => {
-      if (!url || !sanitizeString(url)) {
-        errors[`imageUrls[${index}]`] = 'Invalid image URL'
-      } else if (!isValidUrl(url)) {
-        errors[`imageUrls[${index}]`] = 'Image URL format is invalid'
-      }
-    })
+  } else if (input.imageUrls.length > 15) {
+    errors.imageUrls = 'Maximum 15 images allowed'
+  }
 
-    if (input.imageUrls.length > 15) {
-      errors.imageUrls = 'Maximum 15 images allowed'
+  // Optional validations
+  if (input.mileage !== undefined && input.mileage !== null && input.mileage !== '') {
+    const mileage = toInt(input.mileage)
+    if (mileage !== null && (mileage < 0 || mileage > 10000000)) {
+      errors.mileage = 'Invalid mileage'
+    }
+  }
+
+  if (input.engineCapacity !== undefined && input.engineCapacity !== null && input.engineCapacity !== '') {
+    const capacity = toInt(input.engineCapacity)
+    if (capacity !== null && (capacity < 50 || capacity > 10000)) {
+      errors.engineCapacity = 'Invalid engine capacity'
+    }
+  }
+
+  if (input.registrationYear !== undefined && input.registrationYear !== null && input.registrationYear !== '') {
+    const regYear = toInt(input.registrationYear)
+    if (regYear !== null && (regYear < 1990 || regYear > currentYear)) {
+      errors.registrationYear = `Registration year must be between 1990 and ${currentYear}`
+    }
+  }
+
+  if (input.previousOwners !== undefined && input.previousOwners !== null && input.previousOwners !== '') {
+    const owners = toInt(input.previousOwners)
+    if (owners !== null && (owners < 0 || owners > 50)) {
+      errors.previousOwners = 'Invalid previous owners count'
     }
   }
 
@@ -360,62 +256,56 @@ export function validateListing(input: ListingInput): ValidationResult {
 }
 
 /**
- * Sanitize listing input
+ * Sanitize listing input - clean all strings
  */
 export function sanitizeListing(input: ListingInput): ListingInput {
   return {
-    title: sanitizeString(input.title),
-    description: sanitizeDescription(input.description),
-    details: sanitizeDescription(input.details),
-    vehicleType: sanitizeString(input.vehicleType),
-    make: sanitizeString(input.make),
-    customMake: sanitizeString(input.customMake),
-    model: sanitizeString(input.model),
-    customModel: sanitizeString(input.customModel),
-    condition: sanitizeString(input.condition),
-    fuelType: sanitizeString(input.fuelType),
-    transmission: sanitizeString(input.transmission),
-    bodyType: sanitizeString(input.bodyType),
-    color: sanitizeString(input.color),
-    trim: sanitizeString(input.trim),
-    grade: sanitizeString(input.grade),
-    district: sanitizeString(input.district),
-    city: sanitizeString(input.city),
-    location: sanitizeString(input.location),
-    phone: sanitizeString(input.phone),
-    whatsapp: sanitizeString(input.whatsapp),
-    email: sanitizeString(input.email),
-    financeType: sanitizeString(input.financeType),
-    remainingTerm: sanitizeString(input.remainingTerm),
-    interiorColor: sanitizeString(input.interiorColor),
-    vehicleConditionDetails: sanitizeDescription(input.vehicleConditionDetails),
-    // Numbers are parsed and validated, not sanitized
+    title: clean(input.title),
+    description: clean(input.description)?.substring(0, 5000) || undefined,
+    vehicleType: clean(input.vehicleType),
+    make: clean(input.make),
+    customMake: clean(input.customMake),
+    model: clean(input.model),
+    customModel: clean(input.customModel),
     year: input.year,
     mileage: input.mileage,
+    condition: clean(input.condition),
+    fuelType: clean(input.fuelType),
+    transmission: clean(input.transmission),
+    color: clean(input.color),
     engineCapacity: input.engineCapacity,
+    trim: clean(input.trim),
+    grade: clean(input.grade),
     price: input.price,
+    pricingType: input.pricingType,
+    negotiable: input.negotiable,
+    financeType: clean(input.financeType),
     outstandingBalance: input.outstandingBalance,
     monthlyPayment: input.monthlyPayment,
+    remainingTerm: clean(input.remainingTerm),
     askingPrice: input.askingPrice,
+    district: clean(input.district),
+    city: clean(input.city),
+    phone: clean(input.phone),
+    whatsapp: clean(input.whatsapp),
+    email: clean(input.email),
+    imageUrls: input.imageUrls,
+    interiorColor: clean(input.interiorColor),
     registrationYear: input.registrationYear,
+    vehicleConditionDetails: clean(input.vehicleConditionDetails),
     previousOwners: input.previousOwners,
-    // Booleans and arrays passed through
-    negotiable: input.negotiable,
-    pricingType: input.pricingType,
-    serviceRecordsAvailable: input.serviceRecordsAvailable,
-    imageUrls: input.imageUrls
+    serviceRecordsAvailable: input.serviceRecordsAvailable
   }
 }
 
 /**
- * Generate title from listing input
+ * Generate title from listing data
  */
 export function generateListingTitle(input: ListingInput): string {
-  const actualMake = input.make === 'Other' ? input.customMake : input.make
-  const actualModel = input.model === 'Other' ? input.customModel : input.model
-  const year = parseInteger(input.year) || ''
-  
-  const parts = [year, actualMake, actualModel].filter(Boolean)
-  return parts.join(' ').trim()
-}
+  const make = input.make === 'Other' ? input.customMake : input.make
+  const model = input.model === 'Other' ? input.customModel : input.model
+  const year = input.year
 
+  const parts = [year, make, model].filter(v => v !== undefined && v !== null && String(v).trim() !== '')
+  return parts.join(' ') || 'Vehicle Listing'
+}
