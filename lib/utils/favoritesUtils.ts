@@ -68,5 +68,4 @@ export function getUrgencyColor(isHighPriority?: boolean): string {
 
 export function getUrgencyLabel(isHighPriority?: boolean): string {
   return isHighPriority ? 'High Priority' : ''
-  }
 }
