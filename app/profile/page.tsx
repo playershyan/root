@@ -452,8 +452,6 @@ export default function ProfilePage() {
           console.error('Error fetching user listings:', error)
           setListings([])
         } else {
-          console.log('Raw listings from database:', data)
-          console.log('First listing raw data:', data?.[0])
           // Transform database format to profile page format
           const transformedListings = data?.map(listing => ({
             id: listing.id,
@@ -471,7 +469,6 @@ export default function ProfilePage() {
             isPaused: listing.is_paused || false
           })) || []
 
-          console.log('Transformed listings:', transformedListings)
           setListings(transformedListings)
         }
       } catch (error) {
