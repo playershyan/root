@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { supabase } from '@/lib/supabase'
@@ -63,6 +63,8 @@ export default function AdvancedListingsPage() {
   const { toggleFavorite } = useFavorites()
   const { getAIToken } = useRecaptcha()
   const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
   
   // State management
   const [listings, setListings] = useState<Listing[]>([])
@@ -150,14 +152,12 @@ export default function AdvancedListingsPage() {
 
   // Restore scroll position after OAuth redirect (wait for content to load)
   useEffect(() => {
-    if (loading) return // Wait for listings to load
+    if (loading) return
 
     const pendingScrollY = localStorage.getItem('pendingScrollY')
     if (pendingScrollY) {
-      setTimeout(() => {
-        window.scrollTo(0, parseInt(pendingScrollY))
-        localStorage.removeItem('pendingScrollY')
-      }, 100)
+      window.scrollTo(0, parseInt(pendingScrollY))
+      localStorage.removeItem('pendingScrollY')
     }
   }, [loading])
 
@@ -222,10 +222,52 @@ export default function AdvancedListingsPage() {
       setSelectedLocation(location)
     }
 
-    // Year
+    // Year range
     const year = searchParams?.get('year')
     if (year && typeof year === 'string') {
       setMinYear(year)
+    }
+    const minYearParam = searchParams?.get('minYear')
+    if (minYearParam && typeof minYearParam === 'string') {
+      setMinYear(minYearParam)
+    }
+    const maxYearParam = searchParams?.get('maxYear')
+    if (maxYearParam && typeof maxYearParam === 'string') {
+      setMaxYear(maxYearParam)
+    }
+
+    // Price range
+    const minPriceParam = searchParams?.get('minPrice')
+    if (minPriceParam && typeof minPriceParam === 'string') {
+      setMinPrice(minPriceParam)
+    }
+    const maxPriceParam = searchParams?.get('maxPrice')
+    if (maxPriceParam && typeof maxPriceParam === 'string') {
+      setMaxPrice(maxPriceParam)
+    }
+
+    // Fuel types
+    const fuelParam = searchParams?.get('fuel')
+    if (fuelParam && typeof fuelParam === 'string') {
+      setFuelTypes(fuelParam.split(','))
+    }
+
+    // Transmission types
+    const transmissionParam = searchParams?.get('transmission')
+    if (transmissionParam && typeof transmissionParam === 'string') {
+      setTransmissionTypes(transmissionParam.split(','))
+    }
+
+    // Urgent filter
+    const urgentParam = searchParams?.get('urgent')
+    if (urgentParam === 'true') {
+      setUrgentOnly(true)
+    }
+
+    // Sort
+    const sortParam = searchParams?.get('sort')
+    if (sortParam && typeof sortParam === 'string') {
+      setSortBy(sortParam)
     }
 
     initializedFromQueryRef.current = true
@@ -286,6 +328,37 @@ export default function AdvancedListingsPage() {
     applyFilters()
   }, [listings, searchTerm, selectedVehicleCategory, selectedLocation, selectedMake, selectedModel,
       debouncedMinYear, debouncedMaxYear, debouncedMinPrice, debouncedMaxPrice, fuelTypes, transmissionTypes, sortBy, urgentOnly])
+
+  // Sync filters to URL for persistence across navigation
+  useEffect(() => {
+    if (!pathname) return
+
+    const params = new URLSearchParams()
+
+    if (searchTerm) params.set('q', searchTerm)
+    if (selectedVehicleCategory) params.set('category', selectedVehicleCategory)
+    if (selectedLocation) params.set('location', selectedLocation)
+    if (selectedMake && selectedMake !== 'All Makes') params.set('make', selectedMake)
+    if (selectedModel && selectedModel !== 'All Models') params.set('model', selectedModel)
+    if (minYear) params.set('minYear', minYear)
+    if (maxYear) params.set('maxYear', maxYear)
+    if (minPrice) params.set('minPrice', minPrice)
+    if (maxPrice) params.set('maxPrice', maxPrice)
+    if (fuelTypes.length > 0) params.set('fuel', fuelTypes.join(','))
+    if (transmissionTypes.length > 0) params.set('transmission', transmissionTypes.join(','))
+    if (urgentOnly) params.set('urgent', 'true')
+    if (sortBy !== 'recent') params.set('sort', sortBy)
+
+    const queryString = params.toString()
+    const newUrl = queryString ? `${pathname}?${queryString}` : pathname
+
+    // Only update if URL changed to avoid unnecessary history entries
+    if (window.location.pathname + window.location.search !== newUrl) {
+      router.replace(newUrl, { scroll: false })
+    }
+  }, [searchTerm, selectedVehicleCategory, selectedLocation, selectedMake, selectedModel,
+      minYear, maxYear, minPrice, maxPrice, fuelTypes, transmissionTypes, sortBy, urgentOnly,
+      pathname, router])
   
   // Clear make/model filters when vehicle category changes
   useEffect(() => {

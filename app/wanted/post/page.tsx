@@ -456,32 +456,39 @@ export default function PostWantedPage() {
         setTimeout(() => router.push('/profile?updated=wanted-request'), 1000)
       } else {
         // Create new wanted request via API route
+        const requestPayload = {
+          title: title,
+          description: formData.description.trim() || null,
+          min_budget: formData.min_budget,
+          max_budget: formData.max_budget,
+          make: formData.make,
+          customMake: formData.customMake,
+          model: formData.model,
+          customModel: formData.customModel,
+          min_year: formData.min_year,
+          max_year: formData.max_year,
+          location: locationString,
+          phone: formData.phone,
+          fuel_type: formData.fuel_type || null,
+          transmission: formData.transmission || null,
+          max_mileage: formData.max_mileage || null,
+          countryCode: selectedCountry.dialCode || '94' // Send dial code (numeric), fallback to '94' for Sri Lanka
+        }
+
+        console.log('[WANTED POST] Sending request payload:', requestPayload)
+
         const response = await fetch('/api/wanted-requests', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            title: title,
-            description: formData.description.trim() || null,
-            min_budget: formData.min_budget,
-            max_budget: formData.max_budget,
-            make: formData.make,
-            customMake: formData.customMake,
-            model: formData.model,
-            customModel: formData.customModel,
-            min_year: formData.min_year,
-            max_year: formData.max_year,
-            location: locationString,
-            phone: formData.phone,
-            fuel_type: formData.fuel_type || null,
-            transmission: formData.transmission || null,
-            max_mileage: formData.max_mileage || null,
-            countryCode: selectedCountry.dialCode || '94' // Send dial code (numeric), fallback to '94' for Sri Lanka
-          })
+          body: JSON.stringify(requestPayload)
         })
 
+        console.log('[WANTED POST] Response status:', response.status)
+
         const result = await response.json()
+        console.log('[WANTED POST] Response body:', result)
 
         if (!response.ok) {
           // Handle validation errors
@@ -527,8 +534,18 @@ export default function PostWantedPage() {
         }, 1000)
       }
     } catch (error) {
-      showError('Error posting request. Please try again.', 4000)
-      console.error(error)
+      console.error('[WANTED POST] Error posting request:', error)
+
+      // Show more specific error message
+      if (error instanceof Error) {
+        if (error.message.includes('fetch')) {
+          showError('Network error. Please check your connection and try again.', 4000)
+        } else {
+          showError(`Error: ${error.message}`, 4000)
+        }
+      } else {
+        showError('Error posting request. Please try again.', 4000)
+      }
     } finally {
       setLoading(false)
     }
