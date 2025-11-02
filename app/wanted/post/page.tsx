@@ -116,7 +116,7 @@ export default function PostWantedPage() {
             // Map database fields to form fields
             setFormData({
               description: data.description || '',
-              vehicleType: '',
+              vehicleType: data.vehicle_type || '',
               min_budget: data.min_budget ? data.min_budget.toString() : '',
               max_budget: data.max_budget ? data.max_budget.toString() : '',
               make: data.make || '',
