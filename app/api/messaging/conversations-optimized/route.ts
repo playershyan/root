@@ -89,8 +89,8 @@ export async function GET(request: NextRequest) {
         seller_unread_count,
         buyer_archived,
         seller_archived,
-        buyer:buyer_id(name, avatar_url),
-        seller:seller_id(name, avatar_url)
+        buyer:profiles!buyer_id(name, avatar_url),
+        seller:profiles!seller_id(name, avatar_url)
       `)
       .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
       .eq('is_active', true)
