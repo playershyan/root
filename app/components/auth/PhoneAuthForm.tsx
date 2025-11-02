@@ -7,7 +7,6 @@ import { authConfig } from '@/lib/config/auth.config'
 import { signInWithOTP } from '@/lib/auth'
 import { validatePhone } from '@/lib/errorHandling'
 import { formatPhoneForStorage, formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
-import CountrySelector, { useCountrySelector } from '../CountrySelector'
 import type { PhoneAuthProps, AuthResult } from './types'
 
 interface PhoneAuthFormProps extends PhoneAuthProps {
@@ -27,27 +26,21 @@ export default function PhoneAuthForm({
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  
+
   const { refreshUser } = useAuth()
   const router = useRouter()
-  const { selectedCountry, setSelectedCountry } = useCountrySelector(initialCountryCode)
 
   if (!authConfig.phone.enabled) {
     return null
   }
 
-  const handleCountryChange = (country: any) => {
-    setSelectedCountry(country)
-    onCountryChange?.(country.code)
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (loading || externalLoading || disabled) return
 
-    // Format phone for storage (country code + number without zero)
-    const fullPhone = formatPhoneForStorage(phone, selectedCountry.dialCode)
+    // Format phone for storage (Sri Lankan format only - country code + number without zero)
+    const fullPhone = formatPhoneForStorage(phone, '94')
     
     if (!validatePhone(fullPhone)) {
       const errorMessage = 'Please enter a valid phone number'
@@ -101,25 +94,23 @@ export default function PhoneAuthForm({
           <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
             Phone Number
           </label>
-          <div className="flex">
-            <CountrySelector
-              selectedCountry={selectedCountry}
-              onCountrySelect={handleCountryChange}
-              className="border-r-0 rounded-r-none"
-              disabled={loading || externalLoading || disabled}
-            />
+          <div className="flex items-center gap-2">
+            <span className="px-4 py-3 border border-gray-300 rounded-l-lg bg-gray-50 text-gray-700 font-medium">
+              +94
+            </span>
             <input
               id="phone"
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))}
               className={`${inputClasses} ${error ? errorInputClasses : ''}`}
-              placeholder="Enter phone number"
+              placeholder="77 123 4567"
+              maxLength={10}
               disabled={loading || externalLoading || disabled}
             />
           </div>
           <p className="mt-1 text-sm text-gray-500">
-            We'll send you a verification code via SMS
+            Enter your 10-digit Sri Lankan mobile number. We'll send you a verification code via SMS
           </p>
         </div>
 

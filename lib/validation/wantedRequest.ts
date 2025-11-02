@@ -71,14 +71,15 @@ function parseInteger(value: number | string | undefined | null): number | null 
 }
 
 /**
- * Validate phone number format
+ * Validate Sri Lankan phone number format
+ * Accepts: 0XXXXXXXXX (10 digits) or XXXXXXXXX (9 digits without leading 0)
  */
 function isValidPhone(phone: string): boolean {
   if (!phone) return false
-  // Remove country code prefix if present
+  // Remove any whitespace and country code prefix
   const cleaned = phone.replace(/^\+94\s?/, '').replace(/\s+/g, '')
-  // Sri Lankan phone numbers: 9 digits after removing leading 0
-  return /^\d{9}$/.test(cleaned) || /^0\d{9}$/.test(cleaned)
+  // Sri Lankan phone numbers: exactly 10 digits starting with 0, or 9 digits without 0
+  return /^0\d{9}$/.test(cleaned) || /^\d{9}$/.test(cleaned)
 }
 
 /**
@@ -224,36 +225,32 @@ export function sanitizeWantedRequest(input: WantedRequestInput): WantedRequestI
 }
 
 /**
- * Format phone number with country code
+ * Format phone number to Sri Lankan international format
+ * Input: 0XXXXXXXXX or XXXXXXXXX
+ * Output: +94 XX XXX XXXX
  */
-export function formatPhoneNumber(phone: string, countryCode: string = 'LK'): string {
+export function formatPhoneNumber(phone: string, countryCode: string = '94'): string {
   if (!phone) return ''
-  
+
   // Remove any non-digit characters
   const cleanPhone = phone.replace(/\D/g, '')
-  
-  if (countryCode === 'LK') {
-    // Sri Lankan format: +94 XX XXX XXXX
-    let formattedPhone = cleanPhone
-    
-    // Remove leading 0 if present
-    if (formattedPhone.startsWith('0')) {
-      formattedPhone = formattedPhone.substring(1)
-    }
-    
-    // Format as +94 XX XXX XXXX
-    if (formattedPhone.length >= 9) {
-      const areaCode = formattedPhone.substring(0, 2)
-      const firstPart = formattedPhone.substring(2, 5)
-      const secondPart = formattedPhone.substring(5, 9)
-      return `+94 ${areaCode} ${firstPart} ${secondPart}`
-    }
-    
-    return `+94 ${formattedPhone}`
-  } else {
-    // For other countries, just prepend country code
-    return `+${countryCode} ${cleanPhone}`
+
+  let formattedPhone = cleanPhone
+
+  // Remove leading 0 if present
+  if (formattedPhone.startsWith('0')) {
+    formattedPhone = formattedPhone.substring(1)
   }
+
+  // Format as +94 XX XXX XXXX
+  if (formattedPhone.length >= 9) {
+    const areaCode = formattedPhone.substring(0, 2)
+    const firstPart = formattedPhone.substring(2, 5)
+    const secondPart = formattedPhone.substring(5, 9)
+    return `+94 ${areaCode} ${firstPart} ${secondPart}`
+  }
+
+  return `+94 ${formattedPhone}`
 }
 
 /**

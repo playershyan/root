@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { User, MapPin, Phone, ArrowRight, Check } from 'lucide-react'
-import CountrySelector from '../CountrySelector'
-import { countries, Country } from '@/lib/data/countries'
 import { formatPhoneForStorage } from '@/lib/utils/phoneFormatter'
 
 interface ProfileSetupProps {

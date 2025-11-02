@@ -30,8 +30,6 @@ import WantedRequestStatusMessage from '@/app/components/wantedRequests/WantedRe
 import { ConversationData, MessageData } from '@/lib/utils/messageUtils'
 import { Listing } from '@/lib/types'
 import { BusinessProfile, CreateBusinessProfileData, UpdateBusinessProfileData } from '@/lib/types/businessProfile'
-import CountrySelector from '@/app/components/CountrySelector'
-import { countries, Country } from '@/lib/data/countries'
 import MobileProfileTabs from '@/app/components/mobile/MobileProfileTabs'
 
 // Lazy load tab components for better performance (Phase 2 optimization)

@@ -38,8 +38,7 @@ export async function POST(request: NextRequest) {
       phone,
       fuel_type,
       transmission,
-      max_mileage,
-      countryCode = 'LK'
+      max_mileage
     } = body
 
     // Sanitize input
@@ -71,10 +70,8 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Format phone number (countryCode is like 'LK', need to convert to dial code like '94')
-    // Default to '94' (Sri Lanka) if countryCode is 'LK' or not a numeric code
-    const dialCode = countryCode === 'LK' || !/^\d+$/.test(countryCode) ? '94' : countryCode
-    const formattedPhone = formatPhoneNumber(sanitized.phone || '', dialCode)
+    // Format phone number (Sri Lankan format only)
+    const formattedPhone = formatPhoneNumber(sanitized.phone || '', '94')
 
     // Generate title if not provided
     const finalTitle = title || generateWantedRequestTitle(sanitized)

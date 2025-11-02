@@ -10,7 +10,6 @@ import {
   AlertCircle, Upload, X, Sparkles, ChevronRight,
   FileText, User, Image as ImageIcon, Star
 } from 'lucide-react'
-import CountrySelector, { useCountrySelector } from '@/app/components/CountrySelector'
 import { formatPhoneForStorage, formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
 import {
   DISTRICTS,
@@ -126,8 +125,6 @@ export default function EnhancedPostVehiclePage() {
   const [availableCities, setAvailableCities] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [editDataLoading, setEditDataLoading] = useState(false)
-  const { selectedCountry, setSelectedCountry } = useCountrySelector('LK')
-  const { selectedCountry: selectedWhatsAppCountry, setSelectedCountry: setSelectedWhatsAppCountry } = useCountrySelector('LK')
   const [aiLoading, setAiLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [dragActive, setDragActive] = useState(false)
@@ -360,9 +357,8 @@ export default function EnhancedPostVehiclePage() {
   useEffect(() => {
     if (formData.whatsappSameAsPhone) {
       setFormData(prev => ({ ...prev, whatsapp: prev.phone }))
-      setSelectedWhatsAppCountry(selectedCountry) // Sync country code too
     }
-  }, [formData.phone, formData.whatsappSameAsPhone, selectedCountry])
+  }, [formData.phone, formData.whatsappSameAsPhone])
   
   // Clear make and model only when the user changes vehicle type (not on initial edit load)
   const prevVehicleTypeRef = useRef<string | undefined>(undefined)
@@ -760,8 +756,8 @@ export default function EnhancedPostVehiclePage() {
         image_url: imageUrls[0] || null, // This is the primary image
         status: 'pending', // New listings start as pending
         // Contact information
-        phone: formatPhoneDisplay(formData.phone, selectedCountry.dialCode),
-        whatsapp: formatPhoneDisplay(formData.whatsapp || formData.phone, formData.whatsappSameAsPhone ? selectedCountry.dialCode : selectedWhatsAppCountry.dialCode),
+        phone: formatPhoneDisplay(formData.phone, '94'),
+        whatsapp: formatPhoneDisplay(formData.whatsapp || formData.phone, '94'),
         email: formData.email,
         // Finance information
         pricing_type: formData.pricingType,
@@ -897,8 +893,7 @@ export default function EnhancedPostVehiclePage() {
             registrationYear: listingData.registration_year,
             vehicleConditionDetails: listingData.vehicle_condition_details,
             previousOwners: listingData.previous_owners,
-            serviceRecordsAvailable: listingData.service_records_available,
-            countryCode: selectedCountry.dialCode || '94' // Send dial code (numeric), fallback to '94' for Sri Lanka
+            serviceRecordsAvailable: listingData.service_records_available
           })
         })
 
@@ -1393,23 +1388,26 @@ export default function EnhancedPostVehiclePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number <span className="text-red-500">*</span></label>
-                    <div className="flex">
-                      <CountrySelector
-                        selectedCountry={selectedCountry}
-                        onCountrySelect={setSelectedCountry}
-                        className="w-32"
-                      />
+                    <div className="flex items-center gap-2">
+                      <span className="px-4 py-3 border border-gray-300 rounded-l-lg bg-gray-50 text-gray-700 font-medium">
+                        +94
+                      </span>
                       <input
                         type="tel"
                         name="phone"
                         value={formData.phone}
-                        onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                        placeholder="Enter phone number"
-                        className={`flex-1 px-4 py-3 h-[50px] border border-l-0 rounded-r-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 focus:outline-none ${
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '')
+                          setFormData(prev => ({ ...prev, phone: value }))
+                        }}
+                        placeholder="77 123 4567"
+                        maxLength={10}
+                        className={`flex-1 px-4 py-3 border rounded-r-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 focus:outline-none ${
                           errors.phone ? 'border-red-300' : 'border-gray-300'
                         }`}
                       />
                     </div>
+                    <p className="text-xs text-gray-500 mt-1">Enter 10-digit Sri Lankan mobile number (e.g., 0771234567)</p>
                     {errors.phone && <p className="text-red-600 text-sm mt-1">{errors.phone}</p>}
                   </div>
                   
@@ -1424,21 +1422,22 @@ export default function EnhancedPostVehiclePage() {
                       />
                       <span className="text-sm text-gray-700">Same as phone number</span>
                     </label>
-                    <div className="flex">
-                      <CountrySelector
-                        selectedCountry={selectedWhatsAppCountry}
-                        onCountrySelect={setSelectedWhatsAppCountry}
-                        className="w-32"
-                        disabled={formData.whatsappSameAsPhone}
-                      />
+                    <div className="flex items-center gap-2">
+                      <span className="px-4 py-3 border border-gray-300 rounded-l-lg bg-gray-50 text-gray-700 font-medium">
+                        +94
+                      </span>
                       <input
                         type="tel"
                         name="whatsapp"
                         value={formData.whatsapp}
-                        onChange={(e) => setFormData(prev => ({ ...prev, whatsapp: e.target.value }))}
-                        placeholder="Enter WhatsApp number"
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '')
+                          setFormData(prev => ({ ...prev, whatsapp: value }))
+                        }}
+                        placeholder="77 123 4567"
+                        maxLength={10}
                         disabled={formData.whatsappSameAsPhone}
-                        className={`flex-1 px-4 py-3 h-[50px] border border-l-0 rounded-r-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 focus:outline-none ${
+                        className={`flex-1 px-4 py-3 border rounded-r-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 focus:outline-none ${
                           formData.whatsappSameAsPhone ? 'bg-gray-50' : ''
                         } ${errors.whatsapp ? 'border-red-300' : 'border-gray-300'}`}
                       />

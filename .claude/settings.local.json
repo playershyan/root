@@ -16,7 +16,11 @@
       "Bash(nul)",
       "Bash(netstat:*)",
       "Bash(findstr:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(cd:*)",
+      "Bash(del /F appcomponentsCountrySelector.tsx)",
+      "Bash(del /F libdatacountries.ts)",
+      "Bash(test:*)"
     ],
     "deny": [],
     "ask": []

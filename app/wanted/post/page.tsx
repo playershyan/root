@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/app/contexts/AuthContext'
 import Link from 'next/link'
-import CountrySelector, { useCountrySelector } from '@/app/components/CountrySelector'
 import {
   DISTRICTS,
   getCitiesByDistrictId,
@@ -48,7 +47,6 @@ export default function PostWantedPage() {
   const searchParams = useSearchParams()
   const { user, loading: authLoading } = useAuth()
   const { profile, loading: profileLoading, getPhoneNumber } = useUserProfile()
-  const { selectedCountry, setSelectedCountry } = useCountrySelector('LK')
   const { toasts, showError, showSuccess, removeToast } = useToast()
   const [loading, setLoading] = useState(false)
   const [highPriority, setHighPriority] = useState(false)
@@ -107,10 +105,12 @@ export default function PostWantedPage() {
               }
             }
 
-            // Parse phone number to remove country code if present
+            // Parse phone number - convert to local format (0XXXXXXXXX)
             let phoneNumber = data.phone || ''
             if (phoneNumber.startsWith('+94 ')) {
-              phoneNumber = phoneNumber.replace('+94 ', '0')
+              phoneNumber = '0' + phoneNumber.replace('+94 ', '').replace(/\s/g, '')
+            } else if (phoneNumber.startsWith('+94')) {
+              phoneNumber = '0' + phoneNumber.substring(3).replace(/\s/g, '')
             }
 
             // Map database fields to form fields
@@ -375,33 +375,27 @@ export default function PostWantedPage() {
     setStep(step - 1)
   }
 
-  // Format phone number based on country
-  const formatPhoneNumber = (phone: string, countryCode: string): string => {
+  // Format phone number for Sri Lanka only
+  const formatPhoneNumber = (phone: string): string => {
     // Remove any non-digit characters
     const cleanPhone = phone.replace(/\D/g, '')
-    
-    if (countryCode === 'LK') {
-      // For Sri Lankan numbers
-      let formattedPhone = cleanPhone
-      
-      // If number starts with 0, remove it
-      if (formattedPhone.startsWith('0')) {
-        formattedPhone = formattedPhone.substring(1)
-      }
-      
-      // Format as +94 XX XXX XXXX
-      if (formattedPhone.length >= 9) {
-        const areaCode = formattedPhone.substring(0, 2)
-        const firstPart = formattedPhone.substring(2, 5)
-        const secondPart = formattedPhone.substring(5, 9)
-        return `+94 ${areaCode} ${firstPart} ${secondPart}`
-      }
-      
-      return `+94 ${formattedPhone}`
-    } else {
-      // For other countries, just combine country code with the number
-      return `+${selectedCountry.dialCode} ${cleanPhone}`
+
+    let formattedPhone = cleanPhone
+
+    // If number starts with 0, remove it
+    if (formattedPhone.startsWith('0')) {
+      formattedPhone = formattedPhone.substring(1)
     }
+
+    // Format as +94 XX XXX XXXX
+    if (formattedPhone.length >= 9) {
+      const areaCode = formattedPhone.substring(0, 2)
+      const firstPart = formattedPhone.substring(2, 5)
+      const secondPart = formattedPhone.substring(5, 9)
+      return `+94 ${areaCode} ${firstPart} ${secondPart}`
+    }
+
+    return `+94 ${formattedPhone}`
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -413,8 +407,8 @@ export default function PostWantedPage() {
 
     setLoading(true)
 
-    // Format phone number
-    const formattedPhone = formatPhoneNumber(formData.phone, selectedCountry.code)
+    // Format phone number (Sri Lankan format only)
+    const formattedPhone = formatPhoneNumber(formData.phone)
 
     // Combine city and district for location
     const locationString = formData.location && selectedDistrict
@@ -471,11 +465,8 @@ export default function PostWantedPage() {
           phone: formData.phone,
           fuel_type: formData.fuel_type || null,
           transmission: formData.transmission || null,
-          max_mileage: formData.max_mileage || null,
-          countryCode: selectedCountry.dialCode || '94' // Send dial code (numeric), fallback to '94' for Sri Lanka
+          max_mileage: formData.max_mileage || null
         }
-
-        console.log('[WANTED POST] Sending request payload:', requestPayload)
 
         const response = await fetch('/api/wanted-requests', {
           method: 'POST',
@@ -485,10 +476,7 @@ export default function PostWantedPage() {
           body: JSON.stringify(requestPayload)
         })
 
-        console.log('[WANTED POST] Response status:', response.status)
-
         const result = await response.json()
-        console.log('[WANTED POST] Response body:', result)
 
         if (!response.ok) {
           // Handle validation errors
@@ -534,18 +522,8 @@ export default function PostWantedPage() {
         }, 1000)
       }
     } catch (error) {
-      console.error('[WANTED POST] Error posting request:', error)
-
-      // Show more specific error message
-      if (error instanceof Error) {
-        if (error.message.includes('fetch')) {
-          showError('Network error. Please check your connection and try again.', 4000)
-        } else {
-          showError(`Error: ${error.message}`, 4000)
-        }
-      } else {
-        showError('Error posting request. Please try again.', 4000)
-      }
+      console.error('[WANTED POST] Error:', error)
+      showError('Error posting request. Please try again.', 4000)
     } finally {
       setLoading(false)
     }
@@ -1038,26 +1016,28 @@ export default function PostWantedPage() {
                 <label className="block text-sm font-medium mb-2">
                   Phone Number <span className="text-red-500">*</span>
                 </label>
-                <div className="flex">
-                  <CountrySelector
-                    selectedCountry={selectedCountry}
-                    onCountrySelect={setSelectedCountry}
-                    className="w-32"
-                  />
+                <div className="flex items-center gap-2">
+                  <span className="px-4 py-3 border border-gray-300 rounded-l-lg bg-gray-50 text-gray-700 font-medium">
+                    +94
+                  </span>
                   <input
                     type="tel"
                     required
-                    placeholder="Enter phone number"
-                    className={`flex-1 px-4 py-3 h-[50px] border border-l-0 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${
+                    placeholder="77 123 4567"
+                    maxLength={10}
+                    className={`flex-1 px-4 py-3 border rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${
                       errors.phone ? 'border-red-500' : 'border-gray-300'
                     }`}
                     value={formData.phone}
                     onChange={(e) => {
-                      setFormData({ ...formData, phone: e.target.value })
+                      // Only allow digits
+                      const value = e.target.value.replace(/\D/g, '')
+                      setFormData({ ...formData, phone: value })
                       if (errors.phone) setErrors({ ...errors, phone: '' })
                     }}
                   />
                 </div>
+                <p className="text-xs text-gray-500 mt-1">Enter 10-digit Sri Lankan mobile number (e.g., 0771234567)</p>
                 {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
               </div>
 
