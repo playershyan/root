@@ -15,6 +15,8 @@ export function useUnreadMessages() {
         return
       }
 
+      console.log('[useUnreadMessages] Fetching unread count for user:', user.id)
+
       // Fetch unread count from conversations
       const { data: conversations } = await supabase
         .from('conversations')
@@ -24,11 +26,12 @@ export function useUnreadMessages() {
 
       if (conversations) {
         const total = conversations.reduce((sum, conv) => {
-          const count = conv.buyer_id === user.id 
-            ? conv.buyer_unread_count 
+          const count = conv.buyer_id === user.id
+            ? conv.buyer_unread_count
             : conv.seller_unread_count
           return sum + (count || 0)
         }, 0)
+        console.log('[useUnreadMessages] Total unread:', total, 'from', conversations.length, 'conversations')
         setUnreadCount(total)
       }
     }
