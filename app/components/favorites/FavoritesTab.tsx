@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Heart, Star, Grid } from 'lucide-react'
 import { FavoriteAdData, FavoriteWantedData } from '@/lib/utils/favoritesUtils'
 import FavoriteAdCard from './FavoriteAdCard'
@@ -18,6 +18,8 @@ interface FavoritesTabProps {
 
 type FavoriteType = 'ads' | 'wanted'
 
+const STORAGE_KEY = 'favorites-active-tab'
+
 export default function FavoritesTab({
   favoriteAds,
   favoriteWanted,
@@ -27,7 +29,19 @@ export default function FavoritesTab({
   onShareWanted,
   loading = false
 }: FavoritesTabProps) {
-  const [activeType, setActiveType] = useState<FavoriteType>('ads')
+  const [activeType, setActiveType] = useState<FavoriteType>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      return (saved === 'ads' || saved === 'wanted') ? saved : 'ads'
+    }
+    return 'ads'
+  })
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY, activeType)
+    }
+  }, [activeType])
 
   if (loading) {
     return (
