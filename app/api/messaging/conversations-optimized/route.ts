@@ -71,8 +71,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Single optimized query with JOINs - NO N+1 queries
-    // This fetches conversations with buyer and seller profiles in ONE query
+    // Fetch conversations
     const query = supabase
       .from('conversations')
       .select(`
@@ -88,9 +87,7 @@ export async function GET(request: NextRequest) {
         buyer_unread_count,
         seller_unread_count,
         buyer_archived,
-        seller_archived,
-        buyer:profiles!buyer_id(name, avatar_url),
-        seller:profiles!seller_id(name, avatar_url)
+        seller_archived
       `)
       .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
       .eq('is_active', true)
@@ -112,7 +109,23 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Transform to flat structure - server-side transformation is faster
+    // Fetch all unique user IDs
+    const userIds = new Set<string>()
+    conversations?.forEach(conv => {
+      userIds.add(conv.buyer_id)
+      userIds.add(conv.seller_id)
+    })
+
+    // Fetch profiles for all users in one query
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, name, avatar_url')
+      .in('id', Array.from(userIds))
+
+    // Create profile map for fast lookup
+    const profileMap = new Map(profiles?.map(p => [p.id, p]) || [])
+
+    // Transform to flat structure with profile data
     const transformedConversations: ConversationResponse[] = (conversations || []).map(conv => ({
       id: conv.id,
       listing_id: conv.listing_id,
@@ -127,10 +140,10 @@ export async function GET(request: NextRequest) {
       seller_unread_count: conv.seller_unread_count || 0,
       buyer_archived: conv.buyer_archived || false,
       seller_archived: conv.seller_archived || false,
-      buyer_name: (conv.buyer as any)?.name || 'Unknown User',
-      buyer_avatar_url: (conv.buyer as any)?.avatar_url || null,
-      seller_name: (conv.seller as any)?.name || 'Unknown User',
-      seller_avatar_url: (conv.seller as any)?.avatar_url || null,
+      buyer_name: profileMap.get(conv.buyer_id)?.name || 'Unknown User',
+      buyer_avatar_url: profileMap.get(conv.buyer_id)?.avatar_url || null,
+      seller_name: profileMap.get(conv.seller_id)?.name || 'Unknown User',
+      seller_avatar_url: profileMap.get(conv.seller_id)?.avatar_url || null,
     }))
 
     return NextResponse.json({
