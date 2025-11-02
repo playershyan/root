@@ -82,7 +82,7 @@ export async function GET(
       )
     }
 
-    // Single optimized query with JOIN - NO N+1 queries
+    // Fetch messages
     let query = supabase
       .from('messages')
       .select(`
@@ -93,8 +93,7 @@ export async function GET(
         is_read,
         created_at,
         message_type,
-        offer_data,
-        sender:sender_id(name, avatar_url)
+        offer_data
       `)
       .eq('conversation_id', conversationId)
       .eq('status', 'active')
@@ -116,6 +115,18 @@ export async function GET(
       )
     }
 
+    // Fetch sender profiles for all unique senders
+    const senderIds = new Set<string>()
+    messages?.forEach(msg => senderIds.add(msg.sender_id))
+
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, name, avatar_url')
+      .in('id', Array.from(senderIds))
+
+    // Create profile map for fast lookup
+    const profileMap = new Map(profiles?.map(p => [p.id, p]) || [])
+
     // Transform to flat structure - server-side is faster than client-side
     const transformedMessages: MessageResponse[] = (messages || []).map(msg => ({
       id: msg.id,
@@ -126,8 +137,8 @@ export async function GET(
       created_at: msg.created_at,
       message_type: msg.message_type,
       offer_data: msg.offer_data,
-      sender_name: (msg.sender as any)?.name || 'Unknown User',
-      sender_avatar_url: (msg.sender as any)?.avatar_url || null,
+      sender_name: profileMap.get(msg.sender_id)?.name || 'Unknown User',
+      sender_avatar_url: profileMap.get(msg.sender_id)?.avatar_url || null,
     }))
 
     // Reverse to get chronological order (oldest first)
