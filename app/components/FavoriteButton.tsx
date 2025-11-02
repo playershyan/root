@@ -29,39 +29,8 @@ export default function FavoriteButton({
 
   const isFavorite = isFavorited(listingId)
 
-  // Check for pending favorite action after OAuth redirect
-  useEffect(() => {
-    const pendingAction = localStorage.getItem('pendingAction')
-    const pendingActionDataStr = localStorage.getItem('pendingActionData')
-
-    if (pendingAction === 'add-favorite' && user && pendingActionDataStr) {
-      try {
-        const actionData = JSON.parse(pendingActionDataStr)
-        // Only execute if this is the correct listing
-        if (actionData.listingId === listingId) {
-          console.log('🎬 Detected pending add-favorite action after OAuth for listing:', listingId)
-          localStorage.removeItem('pendingAction')
-          localStorage.removeItem('pendingRedirect')
-          localStorage.removeItem('pendingActionData')
-
-          // Execute the favorite toggle
-          setIsProcessing(true)
-          toggleFavorite(listingId)
-            .then((newState) => {
-              onToggle?.(newState)
-            })
-            .catch((error) => {
-              console.error('Failed to add favorite after OAuth:', error)
-            })
-            .finally(() => {
-              setIsProcessing(false)
-            })
-        }
-      } catch (error) {
-        console.error('Failed to parse pending action data:', error)
-      }
-    }
-  }, [user, listingId, toggleFavorite, onToggle])
+  // NOTE: Pending action handling moved to parent component (listings page)
+  // to avoid race conditions with multiple FavoriteButton instances
 
   // Handle size classes
   const sizeClasses = {

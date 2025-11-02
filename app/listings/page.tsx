@@ -18,6 +18,8 @@ import { RotationService } from '@/lib/services/rotationService'
 import { PromotionService, PromotedListing } from '@/lib/services/promotionService'
 import { useRecaptcha } from '@/lib/hooks/useRecaptcha'
 import { Listing } from '@/lib/types'
+import { useAuth } from '@/app/contexts/AuthContext'
+import { useFavorites } from '@/lib/contexts/FavoritesContext'
 
 // Lazy load large filter component (Phase 2 optimization - 1068 lines)
 const MobileFilterSheet = dynamic(() => import('@/app/components/filters/MobileFilterSheet'), {
@@ -57,6 +59,8 @@ const PLACEHOLDER_TEXTS = [
 
 export default function AdvancedListingsPage() {
   // Hooks
+  const { user } = useAuth()
+  const { toggleFavorite } = useFavorites()
   const { getAIToken } = useRecaptcha()
   const searchParams = useSearchParams()
   
@@ -143,6 +147,51 @@ export default function AdvancedListingsPage() {
   useEffect(() => {
     setPlaceholderText(PLACEHOLDER_TEXTS[placeholderIndex])
   }, [placeholderIndex])
+
+  // Restore scroll position after OAuth redirect
+  useEffect(() => {
+    const pendingScrollY = localStorage.getItem('pendingScrollY')
+    if (pendingScrollY) {
+      console.log('📜 Restoring scroll position:', pendingScrollY)
+      // Use requestAnimationFrame to ensure DOM is ready
+      requestAnimationFrame(() => {
+        window.scrollTo(0, parseInt(pendingScrollY))
+        localStorage.removeItem('pendingScrollY')
+      })
+    }
+  }, [])
+
+  // Handle pending favorite action after OAuth redirect
+  useEffect(() => {
+    const pendingAction = localStorage.getItem('pendingAction')
+    const pendingActionDataStr = localStorage.getItem('pendingActionData')
+
+    if (pendingAction === 'add-favorite' && user && pendingActionDataStr) {
+      try {
+        const actionData = JSON.parse(pendingActionDataStr)
+        const listingId = actionData.listingId
+
+        console.log('⭐ Detected pending add-favorite action after OAuth for listing:', listingId)
+
+        // Clean up localStorage immediately to prevent re-execution
+        localStorage.removeItem('pendingAction')
+        localStorage.removeItem('pendingActionData')
+
+        // Execute the favorite toggle
+        toggleFavorite(listingId)
+          .then((newState) => {
+            console.log('✅ Favorite toggled successfully:', newState)
+          })
+          .catch((error) => {
+            console.error('❌ Failed to add favorite after OAuth:', error)
+          })
+      } catch (error) {
+        console.error('Failed to parse pending action data:', error)
+        localStorage.removeItem('pendingAction')
+        localStorage.removeItem('pendingActionData')
+      }
+    }
+  }, [user, toggleFavorite])
 
   // Initialize from URL query params (from home page filters)
   useEffect(() => {

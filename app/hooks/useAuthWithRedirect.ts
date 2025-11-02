@@ -34,10 +34,14 @@ export function useAuthWithRedirect() {
     localStorage.setItem('pendingRedirect', redirectPath)
     console.log('✅ openAuthWithRedirect - Verify localStorage:', localStorage.getItem('pendingRedirect'))
 
+    // Store scroll position for page reload scenarios
+    localStorage.setItem('pendingScrollY', window.scrollY.toString())
+
     setAuthCallback(() => () => {
       // This callback executes for non-OAuth flows (Email/Phone)
       router.push(redirectPath)
       localStorage.removeItem('pendingRedirect')
+      localStorage.removeItem('pendingScrollY')
     })
     setShowAuthModal(true)
   }
@@ -50,12 +54,17 @@ export function useAuthWithRedirect() {
    * @param actionData - Additional data needed to re-execute action after OAuth (e.g., listingId)
    */
   const openAuthWithAction = (action: () => void, actionType?: string, actionData?: any) => {
-    // For OAuth flows (Google), store current page as redirect target
-    // This ensures user returns to current page, then callback executes
-    const currentPath = window.location.pathname
+    // For OAuth flows (Google), store current page WITH search params as redirect target
+    // This preserves filters and other query parameters
+    const currentPath = window.location.pathname + window.location.search
     console.log('🎬 openAuthWithAction - Storing current path for OAuth:', currentPath)
     localStorage.setItem('pendingRedirect', currentPath)
     localStorage.setItem('pendingAction', actionType || 'true') // Store action type
+
+    // Store scroll position to restore after OAuth redirect
+    localStorage.setItem('pendingScrollY', window.scrollY.toString())
+    console.log('📍 Storing scroll position:', window.scrollY)
+
     if (actionData) {
       localStorage.setItem('pendingActionData', JSON.stringify(actionData))
     }
@@ -73,6 +82,7 @@ export function useAuthWithRedirect() {
     localStorage.removeItem('pendingRedirect')
     localStorage.removeItem('pendingAction')
     localStorage.removeItem('pendingActionData')
+    localStorage.removeItem('pendingScrollY')
   }
 
   /**
