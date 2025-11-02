@@ -63,7 +63,6 @@ export async function POST(request: NextRequest) {
       .from('wanted_requests')
       .update({
         status: 'fulfilled',
-        closed_at: now.toISOString(),
         updated_at: now.toISOString()
       })
       .eq('id', requestId)
