@@ -2275,8 +2275,16 @@ export default function ProfilePage() {
                             <tr key={listing.id} className="hover:bg-gray-50">
                               <td className="px-4 py-4">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-16 h-12 bg-gray-200 rounded flex items-center justify-center text-gray-500">
-                                    <Camera className="w-5 h-5" />
+                                  <div className="w-16 h-12 bg-gray-200 rounded flex items-center justify-center text-gray-500 overflow-hidden">
+                                    {listing.primary_image_url || listing.image_url || (listing.image_urls && listing.image_urls[0]) ? (
+                                      <img
+                                        src={listing.primary_image_url || listing.image_url || listing.image_urls[0]}
+                                        alt={listing.title}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    ) : (
+                                      <Camera className="w-5 h-5" />
+                                    )}
                                   </div>
                                   <div>
                                     <Link
@@ -2314,18 +2322,8 @@ export default function ProfilePage() {
                                       </Link>
                                     </>
                                   )}
-                                  
-                                  {listing.status === 'sold' && (
-                                    <Link
-                                      href={`/post?edit=${listing.id}`}
-                                      className="bg-gray-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-700 inline-flex items-center gap-2 font-medium shadow-sm transition-all h-9"
-                                    >
-                                      <Edit className="w-4 h-4" />
-                                      Edit
-                                    </Link>
-                                  )}
-                                  
-                                  {listing.status !== 'sold' && (
+
+                                  {listing.status !== 'sold' && listing.status !== 'deleted' && (
                                     <ListingActions
                                       listing={listing}
                                       onPause={handlePauseAd}
@@ -2351,8 +2349,16 @@ export default function ProfilePage() {
                             {/* Card Header with Image and Title */}
                             <div className="p-4">
                               <div className="flex gap-3">
-                                <div className="min-w-[64px] w-16 h-14 bg-gray-200 rounded flex items-center justify-center text-gray-500 flex-shrink-0">
-                                  <Camera className="w-5 h-5" />
+                                <div className="min-w-[64px] w-16 h-14 bg-gray-200 rounded flex items-center justify-center text-gray-500 flex-shrink-0 overflow-hidden">
+                                  {listing.primary_image_url || listing.image_url || (listing.image_urls && listing.image_urls[0]) ? (
+                                    <img
+                                      src={listing.primary_image_url || listing.image_url || listing.image_urls[0]}
+                                      alt={listing.title}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <Camera className="w-5 h-5" />
+                                  )}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-start justify-between gap-2">
@@ -2362,17 +2368,19 @@ export default function ProfilePage() {
                                     >
                                       {listing.title}
                                     </Link>
-                                    <div className="flex-shrink-0">
-                                      <ListingActions
-                                        listing={listing}
-                                        onPause={handlePauseAd}
-                                        onResume={handleResumeAd}
-                                        onMarkAsSold={handleMarkAsSold}
-                                        onDelete={(id) => handleDelete(id, 'listing')}
-                                        onShare={handleShare}
-                                        viewMode="mobile"
-                                      />
-                                    </div>
+                                    {listing.status !== 'sold' && listing.status !== 'deleted' && (
+                                      <div className="flex-shrink-0">
+                                        <ListingActions
+                                          listing={listing}
+                                          onPause={handlePauseAd}
+                                          onResume={handleResumeAd}
+                                          onMarkAsSold={handleMarkAsSold}
+                                          onDelete={(id) => handleDelete(id, 'listing')}
+                                          onShare={handleShare}
+                                          viewMode="mobile"
+                                        />
+                                      </div>
+                                    )}
                                   </div>
                                   <div className="mt-2">
                                     <span className="text-base font-semibold text-gray-900">Rs. {listing.price?.toLocaleString() || '0'}</span>
@@ -2418,16 +2426,6 @@ export default function ProfilePage() {
                                 )}
 
                                 <ListingStatusMessage listing={listing} />
-                                
-                                {listing.status === 'sold' && (
-                                  <Link
-                                    href={`/post?edit=${listing.id}`}
-                                    className="bg-gray-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-gray-700 flex items-center justify-center gap-2 font-medium transition-all"
-                                  >
-                                    <Edit className="w-4 h-4" />
-                                    Edit
-                                  </Link>
-                                )}
                               </div>
                             </div>
                           </div>
