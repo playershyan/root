@@ -6,6 +6,8 @@ import { useAuth } from '@/app/contexts/AuthContext'
 import { useFavorites } from '@/lib/contexts/FavoritesContext'
 import { AuthModal } from './auth'
 import { useAuthWithRedirect } from '../hooks/useAuthWithRedirect'
+import { useToast } from '@/app/components/notifications/useToast'
+import { ToastContainer } from '@/app/components/notifications/ToastContainer'
 
 interface FavoriteButtonProps {
   listingId: string
@@ -25,6 +27,7 @@ export default function FavoriteButton({
   const { user } = useAuth()
   const { isFavorited, toggleFavorite } = useFavorites()
   const { showAuthModal, openAuthWithAction, closeAuth, handleAuthSuccess } = useAuthWithRedirect()
+  const { toasts, showSuccess, removeToast } = useToast()
   const [isProcessing, setIsProcessing] = useState(false)
 
   const isFavorite = isFavorited(listingId)
@@ -75,6 +78,13 @@ export default function FavoriteButton({
     try {
       const newState = await toggleFavorite(listingId)
       onToggle?.(newState)
+
+      // Show toast notification
+      if (newState) {
+        showSuccess('Added to favorites', 2000)
+      } else {
+        showSuccess('Removed from favorites', 2000)
+      }
     } catch (error) {
       console.error('Failed to toggle favorite:', error)
     } finally {
@@ -84,6 +94,7 @@ export default function FavoriteButton({
 
   return (
     <>
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
       <button
         onClick={handleClick}
         disabled={isProcessing}

@@ -1187,7 +1187,7 @@ export default function ProfilePage() {
       }
 
       const data = await response.json()
-      showSuccess(`${data.message}\n\n${data.next_steps}`)
+      showSuccess(`${data.message}\n\n${data.next_steps}`, 5000)
 
       // Reload bin items to reflect changes
       await loadBinItems()

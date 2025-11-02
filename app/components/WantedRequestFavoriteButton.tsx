@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { Heart } from 'lucide-react'
+import { useToast } from '@/app/components/notifications/useToast'
+import { ToastContainer } from '@/app/components/notifications/ToastContainer'
 
 interface WantedRequestFavoriteButtonProps {
   requestId: string
@@ -18,6 +20,7 @@ export default function WantedRequestFavoriteButton({
   className = '',
   onToggle
 }: WantedRequestFavoriteButtonProps) {
+  const { toasts, showSuccess, removeToast } = useToast()
   const [isFavorite, setIsFavorite] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
 
@@ -73,6 +76,7 @@ export default function WantedRequestFavoriteButton({
           }
 
           onToggle?.(false)
+          showSuccess('Removed from favorites', 2000)
         } else {
           // Add to favorites
           savedSet.add(requestId)
@@ -82,6 +86,7 @@ export default function WantedRequestFavoriteButton({
           // This is handled in the parent component or detail page
 
           onToggle?.(true)
+          showSuccess('Added to favorites', 2000)
         }
 
         localStorage.setItem('savedWantedRequests', JSON.stringify(Array.from(savedSet)))
@@ -110,10 +115,12 @@ export default function WantedRequestFavoriteButton({
   }
 
   return (
-    <button
-      onClick={handleClick}
-      disabled={isProcessing}
-      className={`
+    <>
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
+      <button
+        onClick={handleClick}
+        disabled={isProcessing}
+        className={`
         ${sizeClasses[size]}
         ${className}
         ${isProcessing ? 'opacity-50 cursor-wait' : ''}
@@ -138,5 +145,6 @@ export default function WantedRequestFavoriteButton({
         </span>
       )}
     </button>
+    </>
   )
 }
