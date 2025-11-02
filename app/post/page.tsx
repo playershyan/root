@@ -900,26 +900,52 @@ export default function EnhancedPostVehiclePage() {
         const result = await response.json()
 
         if (!response.ok) {
+          console.error('API Error Response:', result)
+
           // Handle validation errors
           if (response.status === 400 && result.errors) {
             setErrors(result.errors)
-            showError(result.error || 'Validation failed. Please check your input.', 4000)
-            return
-          }
-          
-          // Handle duplicate errors
-          if (response.status === 409) {
-            showError(result.error || 'You have already posted a similar listing recently.', 4000)
-            return
-          }
-          
-          // Handle rate limiting
-          if (response.status === 429) {
-            showError(result.message || 'Too many requests. Please try again later.', 4000)
+
+            // Show detailed validation errors to user
+            const errorFields = Object.keys(result.errors)
+            const errorCount = errorFields.length
+            const firstError = result.errors[errorFields[0]]
+
+            if (errorCount === 1) {
+              showError(`Validation failed: ${firstError}`, 5000)
+            } else {
+              showError(`Validation failed: ${errorCount} errors found. ${firstError}`, 6000)
+            }
+
+            // Scroll to first error field
+            if (errorFields.length > 0) {
+              const firstField = errorFields[0]
+              setTimeout(() => {
+                const element = document.querySelector(`[name="${firstField}"]`) as HTMLElement
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                  element.focus()
+                }
+              }, 100)
+            }
             return
           }
 
-          throw new Error(result.error || 'Failed to create listing')
+          // Handle duplicate errors
+          if (response.status === 409) {
+            showError(result.error || 'You have already posted a similar listing recently.', 6000)
+            return
+          }
+
+          // Handle server errors with details
+          if (response.status === 500 && result.details) {
+            showError(`Server error: ${result.details}`, 7000)
+            return
+          }
+
+          // Generic error with details if available
+          showError(result.error || result.details || 'Failed to create listing', 5000)
+          return
         }
 
         console.log('Listing created successfully:', result.listing)
@@ -937,27 +963,10 @@ export default function EnhancedPostVehiclePage() {
       }
     } catch (error: any) {
       console.error('Error posting vehicle:', error)
-      
-      // Provide more specific error messages
-      let errorMessage = 'Error posting vehicle. Please try again.'
 
-      if (error?.message) {
-        if (error.message.includes('user_id')) {
-          errorMessage = 'Please log in to post a listing'
-        } else if (error.message.includes('duplicate')) {
-          errorMessage = 'A similar listing already exists'
-        } else if (error.message.includes('violates')) {
-          errorMessage = 'Please check all required fields are filled correctly'
-        } else if (error.message.includes('timeout')) {
-          errorMessage = 'Request timed out. Please check your connection.'
-        } else if (error.message.includes('42501') || error.message.includes('policy')) {
-          errorMessage = 'Permission denied. Please try logging out and back in.'
-        } else {
-          errorMessage = `Error: ${error.message}`
-        }
-      }
-
-      showError(errorMessage, 5000)
+      // Show the actual error message to the user
+      const errorMessage = error?.message || 'Error posting vehicle. Please try again.'
+      showError(errorMessage, 7000)
     } finally {
       setLoading(false)
     }
