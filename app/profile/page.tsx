@@ -2091,10 +2091,9 @@ export default function ProfilePage() {
                           <label className="block text-sm font-medium text-gray-700 mb-2">
                             Country
                           </label>
-                          <CountrySelector
-                            selectedCountry={countries.find(c => c.code === profile.country) || countries.find(c => c.code === 'LK')!}
-                            onCountrySelect={(country) => setProfile({...profile, country: country.code})}
-                          />
+                          <div className="px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 font-medium">
+                            🇱🇰 Sri Lanka
+                          </div>
                         </div>
                       </div>
                       <div className="flex gap-3">
