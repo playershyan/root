@@ -20,7 +20,8 @@
       "Bash(cd:*)",
       "Bash(del /F appcomponentsCountrySelector.tsx)",
       "Bash(del /F libdatacountries.ts)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(psql:*)"
     ],
     "deny": [],
     "ask": []
