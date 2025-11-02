@@ -21,7 +21,8 @@
       "Bash(del /F appcomponentsCountrySelector.tsx)",
       "Bash(del /F libdatacountries.ts)",
       "Bash(test:*)",
-      "Bash(psql:*)"
+      "Bash(psql:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

@@ -785,9 +785,14 @@ export default function ProfilePage() {
   }, [activeTab, loadBinItems])
 
   // Message handlers - OPTIMIZED VERSION
-  const fetchConversations = async () => {
+  const fetchConversations = useCallback(async () => {
     try {
-      if (!user) return
+      if (!user) {
+        console.warn('[fetchConversations] User not loaded yet')
+        return
+      }
+
+      console.log('[fetchConversations] Fetching for user:', user.id)
 
       // Use optimized API endpoint - single query with JOINs
       const response = await fetch('/api/messaging/conversations-optimized?limit=50&offset=0')
@@ -797,6 +802,7 @@ export default function ProfilePage() {
       }
 
       const { conversations: conversationsData } = await response.json()
+      console.log('[fetchConversations] Received', conversationsData?.length || 0, 'conversations')
 
       // Transform to match ConversationData interface
       const transformedConversations = conversationsData?.map((conv: any) => ({
@@ -826,12 +832,13 @@ export default function ProfilePage() {
         }
       })) || []
 
+      console.log('[fetchConversations] Setting', transformedConversations.length, 'conversations')
       setConversations(transformedConversations)
     } catch (error) {
-      console.error('Error fetching conversations:', error)
+      console.error('[fetchConversations] Error:', error)
       setConversations([])
     }
-  }
+  }, [user])
 
   const handleFetchMessages = async (conversationId: string): Promise<MessageData[]> => {
     try {
@@ -1084,9 +1091,9 @@ export default function ProfilePage() {
 
   // Load conversations when messages tab is active
   useEffect(() => {
-    if (activeTab === 'messages') {
+    if (activeTab === 'messages' && user) {
       fetchConversations()
-      
+
       // Set up real-time subscription
       const channel = supabase
         .channel('conversations')
@@ -1103,7 +1110,7 @@ export default function ProfilePage() {
         supabase.removeChannel(channel)
       }
     }
-  }, [activeTab])
+  }, [activeTab, user, fetchConversations])
 
   // Load messages when a conversation is selected
   useEffect(() => {
