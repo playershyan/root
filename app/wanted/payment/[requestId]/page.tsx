@@ -96,11 +96,18 @@ export default function WantedPaymentPage() {
         throw new Error(result.error || 'Payment failed')
       }
 
-      showSuccess('Payment successful! Your request is now marked as High Priority.', 3000)
-      setTimeout(() => router.push('/wanted?payment=success'), 2000)
+      // Check if feature activation failed
+      if (result.activationFailed) {
+        router.push('/profile?tab=wanted&error=activation-failed')
+        return
+      }
+
+      // Success - redirect to profile with success notification
+      router.push('/profile?tab=wanted&payment=success&features=high-priority&type=wanted')
     } catch (error) {
       console.error('Payment error:', error)
-      showError('Payment failed. Please try again.', 4000)
+      // Redirect to profile with error notification
+      router.push('/profile?tab=wanted&payment=failed')
     } finally {
       setLoading(false)
     }

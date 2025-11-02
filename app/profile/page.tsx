@@ -31,6 +31,8 @@ import { ConversationData, MessageData } from '@/lib/utils/messageUtils'
 import { Listing } from '@/lib/types'
 import { BusinessProfile, CreateBusinessProfileData, UpdateBusinessProfileData } from '@/lib/types/businessProfile'
 import MobileProfileTabs from '@/app/components/mobile/MobileProfileTabs'
+import { useToast } from '@/app/components/notifications/useToast'
+import { ToastContainer } from '@/app/components/notifications/ToastContainer'
 
 // Lazy load tab components for better performance (Phase 2 optimization)
 const MessagesTab = dynamic(() => import('@/app/components/messages/MessagesTab'), {
@@ -129,6 +131,7 @@ interface DeletedItem {
 export default function ProfilePage() {
   const router = useRouter()
   const { user, loading } = useAuth()
+  const { toasts, showSuccess, showError, removeToast } = useToast()
   
   // Debug: Check what happened during auth
   useEffect(() => {
@@ -190,6 +193,62 @@ export default function ProfilePage() {
       setSelectedConversation(conversationId)
     }
   }, [searchParams])
+
+  // Handle payment success/failure notifications
+  useEffect(() => {
+    const payment = searchParams.get('payment')
+    const features = searchParams.get('features')
+    const error = searchParams.get('error')
+    const itemType = searchParams.get('type') // 'listing' or 'wanted'
+
+    if (payment === 'success' && features) {
+      // Parse features (could be comma-separated for multiple features)
+      const featureList = features.split(',')
+
+      // Show success message for each feature
+      featureList.forEach(feature => {
+        let message = ''
+        switch (feature) {
+          case 'featured':
+            message = 'Congratulations! Your ad is now featured'
+            break
+          case 'top-spot':
+            message = 'Congratulations! Your ad now has a top spot'
+            break
+          case 'boost':
+            message = itemType === 'wanted'
+              ? 'Congratulations! Your request is now high priority'
+              : 'Congratulations! Your ad is now boosted'
+            break
+          case 'urgent':
+            message = 'Congratulations! Your ad is now marked as urgent'
+            break
+          case 'high-priority':
+            message = 'Congratulations! Your request is now high priority'
+            break
+          default:
+            message = 'Congratulations! Your paid feature has been activated'
+        }
+        showSuccess(message, 3000)
+      })
+
+      // Clear URL parameters after showing notification
+      const newUrl = window.location.pathname + (searchParams.get('tab') ? `?tab=${searchParams.get('tab')}` : '')
+      window.history.replaceState({}, '', newUrl)
+    } else if (payment === 'failed') {
+      showError('Payment failed. Please try again', 4000)
+
+      // Clear URL parameters
+      const newUrl = window.location.pathname + (searchParams.get('tab') ? `?tab=${searchParams.get('tab')}` : '')
+      window.history.replaceState({}, '', newUrl)
+    } else if (error === 'activation-failed') {
+      showError('Payment processed but feature activation failed. Contact support', 4000)
+
+      // Clear URL parameters
+      const newUrl = window.location.pathname + (searchParams.get('tab') ? `?tab=${searchParams.get('tab')}` : '')
+      window.history.replaceState({}, '', newUrl)
+    }
+  }, [searchParams, showSuccess, showError])
 
   // Calculate dropdown position before rendering to prevent flicker
   const getDropdownPosition = (elementId: string) => {
@@ -1128,14 +1187,14 @@ export default function ProfilePage() {
       }
 
       const data = await response.json()
-      alert(data.message + '\n\n' + data.next_steps)
+      showSuccess(`${data.message}\n\n${data.next_steps}`)
 
       // Reload bin items to reflect changes
       await loadBinItems()
 
     } catch (error) {
       console.error('Error restoring item:', error)
-      alert(error instanceof Error ? error.message : 'Failed to restore item')
+      showError(error instanceof Error ? error.message : 'Failed to restore item')
     } finally {
       setRestoring(null)
     }
@@ -1206,18 +1265,18 @@ export default function ProfilePage() {
       }
 
       // Update local state
-      setListings(prevListings => 
-        prevListings.map(listing => 
-          listing.id === listingId 
+      setListings(prevListings =>
+        prevListings.map(listing =>
+          listing.id === listingId
             ? { ...listing, status: 'sold' as const }
             : listing
         )
       )
 
-      alert(data.message)
+      showSuccess(data.message || 'Listing marked as sold successfully')
     } catch (error) {
       console.error('Error marking as sold:', error)
-      alert(error instanceof Error ? error.message : 'Failed to mark listing as sold')
+      showError(error instanceof Error ? error.message : 'Failed to mark listing as sold')
     }
   }
   
@@ -1238,18 +1297,18 @@ export default function ProfilePage() {
       }
 
       // Update local state - set to pending (under review)
-      setListings(prevListings => 
-        prevListings.map(listing => 
-          listing.id === listingId 
+      setListings(prevListings =>
+        prevListings.map(listing =>
+          listing.id === listingId
             ? { ...listing, status: 'pending' as const }
             : listing
         )
       )
 
-      alert(data.message)
+      showSuccess(data.message || 'Listing relisted successfully')
     } catch (error) {
       console.error('Error relisting:', error)
-      alert(error instanceof Error ? error.message : 'Failed to relist the item')
+      showError(error instanceof Error ? error.message : 'Failed to relist the item')
     }
   }
 
@@ -1328,11 +1387,11 @@ export default function ProfilePage() {
       }
 
       // Update local state
-      setListings(prevListings => 
-        prevListings.map(listing => 
-          listing.id === listingId 
-            ? { 
-                ...listing, 
+      setListings(prevListings =>
+        prevListings.map(listing =>
+          listing.id === listingId
+            ? {
+                ...listing,
                 status: 'pending' as const,
                 isPaused: true,
                 pauseDate: new Date().toISOString()
@@ -1341,11 +1400,11 @@ export default function ProfilePage() {
         )
       )
 
-      alert(data.message)
+      showSuccess(data.message || 'Listing paused successfully')
       setShowActionMenu(null)
     } catch (error) {
       console.error('Error pausing ad:', error)
-      alert(error instanceof Error ? error.message : 'Failed to pause ad. Please try again.')
+      showError(error instanceof Error ? error.message : 'Failed to pause ad. Please try again.')
     }
   }
 
@@ -1366,11 +1425,11 @@ export default function ProfilePage() {
       }
 
       // Update local state
-      setListings(prevListings => 
-        prevListings.map(listing => 
-          listing.id === listingId 
-            ? { 
-                ...listing, 
+      setListings(prevListings =>
+        prevListings.map(listing =>
+          listing.id === listingId
+            ? {
+                ...listing,
                 status: 'active' as const,
                 isPaused: false,
                 pauseDate: undefined
@@ -1379,11 +1438,11 @@ export default function ProfilePage() {
         )
       )
 
-      alert(data.message)
+      showSuccess(data.message || 'Listing resumed successfully')
       setShowActionMenu(null)
     } catch (error) {
       console.error('Error resuming ad:', error)
-      alert(error instanceof Error ? error.message : 'Failed to resume ad. Please try again.')
+      showError(error instanceof Error ? error.message : 'Failed to resume ad. Please try again.')
     }
   }
 
@@ -1407,7 +1466,7 @@ export default function ProfilePage() {
     try {
       let endpoint: string
       let bodyKey: string
-      
+
       if (itemType === 'listing') {
         endpoint = '/api/listings/delete'
         bodyKey = 'listingId'
@@ -1418,7 +1477,7 @@ export default function ProfilePage() {
         endpoint = '/api/messages/delete'
         bodyKey = 'conversationId'
       }
-      
+
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -1435,33 +1494,33 @@ export default function ProfilePage() {
 
       // Update local state based on item type
       if (itemType === 'listing') {
-        setListings(prevListings => 
-          prevListings.map(listing => 
-            listing.id === itemId 
+        setListings(prevListings =>
+          prevListings.map(listing =>
+            listing.id === itemId
               ? { ...listing, status: 'deleted' as const }
               : listing
           )
         )
       } else if (itemType === 'wanted request') {
-        setWantedRequests(prevRequests => 
-          prevRequests.map(request => 
-            request.id === itemId 
+        setWantedRequests(prevRequests =>
+          prevRequests.map(request =>
+            request.id === itemId
               ? { ...request, status: 'deleted' as const }
               : request
           )
         )
       } else if (itemType === 'message') {
         // Remove conversation from list
-        setConversations(prevConversations => 
+        setConversations(prevConversations =>
           prevConversations.filter(conversation => conversation.id !== itemId)
         )
       }
 
-      alert(data.message || `${itemType} moved to bin successfully`)
+      showSuccess(data.message || `${itemType} moved to bin successfully`)
       setShowActionMenu(null)
     } catch (error) {
       console.error(`Error deleting ${itemType}:`, error)
-      alert(error instanceof Error ? error.message : `Failed to delete ${itemType}`)
+      showError(error instanceof Error ? error.message : `Failed to delete ${itemType}`)
     }
   }
 
@@ -1489,18 +1548,18 @@ export default function ProfilePage() {
       }
 
       // Update local state
-      setWantedRequests(prevRequests => 
-        prevRequests.map(request => 
-          request.id === requestId 
+      setWantedRequests(prevRequests =>
+        prevRequests.map(request =>
+          request.id === requestId
             ? { ...request, status: action === 'pause' ? 'paused' as const : 'active' as const }
             : request
         )
       )
 
-      alert(data.message)
+      showSuccess(data.message || `Wanted request ${action}d successfully`)
     } catch (error) {
       console.error(`Error ${action}ing wanted request:`, error)
-      alert(error instanceof Error ? error.message : `Failed to ${action} wanted request`)
+      showError(error instanceof Error ? error.message : `Failed to ${action} wanted request`)
     }
   }
 
@@ -1525,18 +1584,18 @@ export default function ProfilePage() {
       }
 
       // Update local state
-      setWantedRequests(prevRequests => 
-        prevRequests.map(request => 
-          request.id === requestId 
+      setWantedRequests(prevRequests =>
+        prevRequests.map(request =>
+          request.id === requestId
             ? { ...request, status: 'closed' as const }
             : request
         )
       )
 
-      alert(data.message)
+      showSuccess(data.message || 'Wanted request closed successfully')
     } catch (error) {
       console.error('Error closing wanted request:', error)
-      alert(error instanceof Error ? error.message : 'Failed to close wanted request')
+      showError(error instanceof Error ? error.message : 'Failed to close wanted request')
     }
   }
 
@@ -1557,18 +1616,18 @@ export default function ProfilePage() {
       }
 
       // Update local state
-      setWantedRequests(prevRequests => 
-        prevRequests.map(request => 
-          request.id === requestId 
+      setWantedRequests(prevRequests =>
+        prevRequests.map(request =>
+          request.id === requestId
             ? { ...request, status: 'active' as const, postedDate: new Date().toLocaleDateString() }
             : request
         )
       )
 
-      alert(data.message)
+      showSuccess(data.message || 'Wanted request renewed successfully')
     } catch (error) {
       console.error('Error renewing wanted request:', error)
-      alert(error instanceof Error ? error.message : 'Failed to renew wanted request')
+      showError(error instanceof Error ? error.message : 'Failed to renew wanted request')
     }
   }
 
@@ -1597,10 +1656,10 @@ export default function ProfilePage() {
         )
       )
 
-      alert(data.message || 'Wanted request marked as fulfilled successfully!')
+      showSuccess(data.message || 'Wanted request marked as fulfilled successfully')
     } catch (error) {
       console.error('Error marking wanted request as fulfilled:', error)
-      alert(error instanceof Error ? error.message : 'Failed to mark wanted request as fulfilled')
+      showError(error instanceof Error ? error.message : 'Failed to mark wanted request as fulfilled')
     }
   }
 
@@ -1936,6 +1995,9 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
+
       {/* Mobile Tabs - Only on Mobile */}
       <MobileProfileTabs
         activeTab={activeTab}

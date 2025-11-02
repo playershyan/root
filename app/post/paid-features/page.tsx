@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 
 export default function AdPaidFeatures() {
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([])
   const searchParams = useSearchParams()
+  const router = useRouter()
   const [isNewPost, setIsNewPost] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const listingId = searchParams.get('listing')
   
   useEffect(() => {
     // Check if coming from new post flow
@@ -82,8 +85,8 @@ export default function AdPaidFeatures() {
   ]
 
   const toggleFeature = (featureId: string) => {
-    setSelectedFeatures(prev => 
-      prev.includes(featureId) 
+    setSelectedFeatures(prev =>
+      prev.includes(featureId)
         ? prev.filter(id => id !== featureId)
         : [...prev, featureId]
     )
@@ -93,6 +96,57 @@ export default function AdPaidFeatures() {
     return features
       .filter(feature => selectedFeatures.includes(feature.id))
       .reduce((total, feature) => total + parseInt(feature.price.replace('Rs. ', '').replace(',', '')), 0)
+  }
+
+  const handlePayment = async () => {
+    if (!listingId) {
+      alert('No listing ID provided')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      // Simulate payment processing
+      await new Promise(resolve => setTimeout(resolve, 2000))
+
+      // Call API endpoint to process payment and activate features
+      const response = await fetch('/api/listings/payment/complete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          listingId,
+          features: selectedFeatures,
+          amount: getTotalPrice()
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Payment failed')
+      }
+
+      // Check if features were activated successfully
+      if (result.activationFailed) {
+        // Payment succeeded but feature activation failed
+        router.push(`/profile?tab=listings&error=activation-failed`)
+        return
+      }
+
+      // Success - redirect to profile with success message
+      const featuresParam = selectedFeatures.join(',')
+      router.push(`/profile?tab=listings&payment=success&features=${featuresParam}&type=listing`)
+
+    } catch (error) {
+      console.error('Payment error:', error)
+      // Redirect to profile with error
+      router.push(`/profile?tab=listings&payment=failed`)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -241,15 +295,22 @@ export default function AdPaidFeatures() {
               </Link>
               
               {selectedFeatures.length > 0 && (
-                <button 
-                  className="btn-primary"
-                  onClick={() => {
-                    // Handle payment/checkout logic here
-                    console.log('Selected features:', selectedFeatures)
-                  }}
+                <button
+                  className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handlePayment}
+                  disabled={loading}
                 >
-                  <i className="fas fa-credit-card mr-2"></i>
-                  Proceed to Payment
+                  {loading ? (
+                    <>
+                      <i className="fas fa-spinner fa-spin mr-2"></i>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-credit-card mr-2"></i>
+                      Proceed to Payment
+                    </>
+                  )}
                 </button>
               )}
             </div>

@@ -646,10 +646,20 @@ export default function ListingDetailClient({
 
           {/* Finance Calculator */}
           <div className="bg-white lg:bg-white lg:rounded-xl lg:shadow-sm px-4 lg:p-6 py-4 lg:py-6 border-b lg:border" id="finance-calculator">
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Calculator className="w-5 h-5 text-blue-600" />
-              Finance Calculator
-            </h2>
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-1">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <Calculator className="w-5 h-5 text-blue-600" />
+                  Finance Calculator
+                </h2>
+                <span className="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-semibold rounded-full">
+                  AI Powered
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 italic">
+                Complete all fields below to calculate your estimated monthly payment
+              </p>
+            </div>
             
             {listing.pricing_type === 'finance' && (
               <div className="mb-4 p-3 bg-amber-50 border border-amber-100 rounded-lg">
