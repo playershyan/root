@@ -175,7 +175,7 @@ export default function Header() {
                 {/* Messages Notification */}
                 {unreadMessages > 0 && (
                   <Link
-                    href="/profile?tab=messages"
+                    href="/profile/messages"
                     className="relative p-2 text-gray-600 hover:text-blue-600 rounded-lg hover:bg-gray-50 transition-colors"
                     title="Messages"
                   >
@@ -239,16 +239,16 @@ export default function Header() {
                       </Link>
                       
                       <Link
-                        href="/profile?tab=listings"
+                        href="/profile/listings"
                         className="block px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3 text-sm sm:text-base"
                         onClick={() => setUserMenuOpen(false)}
                       >
                         <Car className="w-4 h-4" />
                         My Listings
                       </Link>
-                      
+
                       <Link
-                        href="/profile?tab=messages"
+                        href="/profile/messages"
                         className="block px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3 text-sm sm:text-base"
                         onClick={() => setUserMenuOpen(false)}
                       >
@@ -260,18 +260,18 @@ export default function Header() {
                           </span>
                         )}
                       </Link>
-                      
+
                       <Link
-                        href="/profile?tab=favorites"
+                        href="/profile/favorites"
                         className="block px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3 text-sm sm:text-base"
                         onClick={() => setUserMenuOpen(false)}
                       >
                         <Heart className="w-4 h-4" />
                         Favorites
                       </Link>
-                      
+
                       <Link
-                        href="/profile?tab=wanted"
+                        href="/profile/wanted"
                         className="block px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3 text-sm sm:text-base"
                         onClick={() => setUserMenuOpen(false)}
                       >
@@ -279,7 +279,7 @@ export default function Header() {
                         Wanted Requests
                       </Link>
                       <Link
-                        href="/profile?tab=notifications"
+                        href="/profile/notifications"
                         className="block px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3 text-sm sm:text-base"
                         onClick={() => setUserMenuOpen(false)}
                       >
@@ -287,7 +287,7 @@ export default function Header() {
                         Notifications
                       </Link>
                       <Link
-                        href="/profile?tab=bin"
+                        href="/profile/bin"
                         className="block px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3 text-sm sm:text-base"
                         onClick={() => setUserMenuOpen(false)}
                       >
@@ -300,7 +300,7 @@ export default function Header() {
 
                     <div className="py-2">
                       <Link
-                        href="/profile?tab=security"
+                        href="/profile/security"
                         className="block px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3 text-sm sm:text-base"
                         onClick={() => setUserMenuOpen(false)}
                       >
@@ -546,7 +546,7 @@ export default function Header() {
                       <span className="font-medium">My Profile</span>
                     </Link>
                     <Link
-                      href="/profile?tab=listings"
+                      href="/profile/listings"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
                       onClick={(e) => {
                         setTimeout(() => setMobileMenuOpen(false), 100)
@@ -556,7 +556,7 @@ export default function Header() {
                       <span className="font-medium">My Listings</span>
                     </Link>
                     <Link
-                      href="/profile?tab=messages"
+                      href="/profile/messages"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
                       onClick={(e) => {
                         setTimeout(() => setMobileMenuOpen(false), 100)
@@ -571,7 +571,7 @@ export default function Header() {
                       )}
                     </Link>
                     <Link
-                      href="/profile?tab=favorites"
+                      href="/profile/favorites"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
                       onClick={(e) => {
                         setTimeout(() => setMobileMenuOpen(false), 100)
@@ -581,7 +581,7 @@ export default function Header() {
                       <span className="font-medium">Favorites</span>
                     </Link>
                     <Link
-                      href="/profile?tab=wanted"
+                      href="/profile/wanted"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
                       onClick={(e) => {
                         setTimeout(() => setMobileMenuOpen(false), 100)
@@ -591,7 +591,7 @@ export default function Header() {
                       <span className="font-medium">My Wanted Requests</span>
                     </Link>
                     <Link
-                      href="/profile?tab=notifications"
+                      href="/profile/notifications"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
                       onClick={(e) => {
                         setTimeout(() => setMobileMenuOpen(false), 100)
@@ -601,7 +601,7 @@ export default function Header() {
                       <span className="font-medium">Notifications</span>
                     </Link>
                     <Link
-                      href="/profile?tab=bin"
+                      href="/profile/bin"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
                       onClick={(e) => {
                         setTimeout(() => setMobileMenuOpen(false), 100)
@@ -668,7 +668,7 @@ export default function Header() {
               {user && (
                 <div className="border-t pt-4">
                   <Link
-                    href="/profile?tab=security"
+                    href="/profile/security"
                     className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
