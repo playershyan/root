@@ -81,8 +81,8 @@ export default function ListingsPage() {
     }
   }
 
-  const handleShare = (listing: any) => {
-    const url = `${window.location.origin}/listings/${listing.id}`
+  const handleShare = (listingId: string) => {
+    const url = `${window.location.origin}/listings/${listingId}`
     navigator.clipboard.writeText(url).then(() => {
       alert('Link copied to clipboard!')
     }).catch(() => {
