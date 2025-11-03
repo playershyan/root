@@ -65,14 +65,9 @@ export default function ProfileLandingPage() {
     {
       title: 'Content',
       links: [
-        { title: 'My Listings', href: '/profile/listings', icon: Car, badge: listings.length },
+        { title: 'My Listings', href: '/profile/listings', icon: Car },
         { title: 'Wanted Requests', href: '/profile/wanted', icon: Search },
-        {
-          title: 'Favorites',
-          href: '/profile/favorites',
-          icon: Heart,
-          badge: favoritedAds.length + favoritedWantedRequests.length
-        },
+        { title: 'Favorites', href: '/profile/favorites', icon: Heart },
         {
           title: 'Messages',
           href: '/profile/messages',
