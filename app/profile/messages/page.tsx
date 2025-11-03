@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { useAuth } from '@/app/contexts/AuthContext'
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import MessagesTab from '@/app/components/messages/MessagesTab'
 import { MessageData, ConversationData } from '@/lib/utils/messageUtils'
 import { supabase } from '@/lib/supabase'
@@ -161,6 +161,13 @@ export default function MessagesPage() {
       console.error('Error marking conversation as read:', error)
     }
   }, [fetchConversations])
+
+  // Fetch conversations on mount
+  useEffect(() => {
+    if (user) {
+      fetchConversations()
+    }
+  }, [user, fetchConversations])
 
   return (
     <div className="min-h-screen bg-gray-50">
