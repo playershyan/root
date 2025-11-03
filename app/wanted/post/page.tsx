@@ -549,7 +549,7 @@ export default function PostWantedPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 lg:py-8">
+    <div className="min-h-screen bg-gray-50 lg:py-8 pb-12">
       <div className="max-w-3xl mx-auto px-4 lg:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-4 lg:mb-8 py-4 lg:py-0 bg-white lg:bg-transparent -mx-4 px-4 lg:mx-0 border-b lg:border-0">
