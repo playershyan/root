@@ -3,10 +3,60 @@
 import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { useBusinessProfile } from '@/app/hooks/useBusinessProfile'
+import BusinessPageTab from '@/app/components/profile/BusinessPageTab'
+import BusinessProfileRecovery from '@/app/components/profile/BusinessProfileRecovery'
+import { useState } from 'react'
+
+interface UpdateBusinessProfileData {
+  business_name?: string
+  business_description?: string
+  business_address?: string
+  business_phone?: string
+  business_email?: string
+  business_website?: string
+}
 
 export default function BusinessPage() {
   const router = useRouter()
-  const { businessProfile, loading } = useBusinessProfile()
+  const { businessProfile, loading, fetchBusinessProfile } = useBusinessProfile()
+  const [businessLoading, setBusinessLoading] = useState(false)
+
+  // Handle business profile update
+  const handleUpdateBusinessProfile = async (data: UpdateBusinessProfileData) => {
+    setBusinessLoading(true)
+    try {
+      const response = await fetch('/api/business-profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update business profile')
+      }
+
+      const result = await response.json()
+
+      // Refresh business profile data
+      await fetchBusinessProfile()
+
+      alert('Business profile updated successfully')
+      return result
+    } catch (error) {
+      console.error('Error updating business profile:', error)
+      throw error
+    } finally {
+      setBusinessLoading(false)
+    }
+  }
+
+  // Handle recovery callback
+  const handleRecovered = async (businessName: string) => {
+    console.log(`Business profile "${businessName}" recovered`)
+    // Refresh business profile data
+    await fetchBusinessProfile()
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -25,12 +75,13 @@ export default function BusinessPage() {
           {loading ? (
             <p className="text-gray-600">Loading business profile...</p>
           ) : businessProfile ? (
-            <div>
-              <p className="text-gray-600 mb-4">Business: {businessProfile.business_name}</p>
-              <p className="text-sm text-gray-500">Business page - Full content will be migrated from backup</p>
-            </div>
+            <BusinessPageTab
+              businessProfile={businessProfile}
+              onUpdate={handleUpdateBusinessProfile}
+              loading={businessLoading}
+            />
           ) : (
-            <p className="text-gray-600">No business profile found</p>
+            <BusinessProfileRecovery onRecovered={handleRecovered} />
           )}
         </div>
       </div>
