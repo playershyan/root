@@ -7,6 +7,7 @@ import { Heart } from 'lucide-react'
 import PriceDisplay from '@/app/components/PriceDisplay'
 import PromotionBadges from './PromotionBadges'
 import FavoriteButton from '@/app/components/FavoriteButton'
+import { Button } from '@/components/ui/button'
 
 // Lazy load modals (Phase 2 optimization)
 const ContactModal = dynamic(() => import('@/app/components/modals/ContactModal'))
@@ -121,24 +122,28 @@ export default function RegularAdCard({
             {/* Image Navigation */}
             {images.length > 1 && onImageNavigate && (
               <>
-                <button
+                <Button
                   onClick={(e) => {
                     e.preventDefault()
                     onImageNavigate('prev')
                   }}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
                 >
                   <i className="fas fa-chevron-left"></i>
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={(e) => {
                     e.preventDefault()
                     onImageNavigate('next')
                   }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
                 >
                   <i className="fas fa-chevron-right"></i>
-                </button>
+                </Button>
                 <div className="absolute bottom-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
                   {activeImageIndex + 1}/{images.length}
                 </div>
@@ -211,26 +216,30 @@ export default function RegularAdCard({
         {/* Action Footer */}
         <div className="px-4 pb-4">
         <div className="flex gap-2">
-          <button 
+          <Button
             onClick={(e) => {
               e.preventDefault()
               setShowContactModal(true)
             }}
-            className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+            variant="primary"
+            size="default"
+            className="flex-1 gap-2"
           >
-            <i className="fas fa-phone mr-2"></i>
+            <i className="fas fa-phone"></i>
             Call Now
-          </button>
-          <button 
+          </Button>
+          <Button
             onClick={(e) => {
               e.preventDefault()
               setShowConversationModal(true)
             }}
-            className="flex-1 border border-blue-600 text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition-colors font-medium text-sm"
+            variant="outline"
+            size="default"
+            className="flex-1 border-blue-600 text-blue-600 hover:bg-blue-50 gap-2"
           >
-            <i className="fas fa-envelope mr-2"></i>
+            <i className="fas fa-envelope"></i>
             Message
-          </button>
+          </Button>
         </div>
       </div>
       </div>

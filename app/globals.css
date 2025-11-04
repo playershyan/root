@@ -2,6 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
 /* Custom scrollbar styles */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
@@ -110,33 +166,33 @@
 @layer components {
   /* Button System - Clean, Modern Design with Blue/Gray Palette */
   
-  /* Primary Button - Main CTAs like "Sell Vehicle", "Post Ad" */
+  /* Primary Button - Main CTAs like "Sell Vehicle", "Post Ad" - MOBILE OPTIMIZED */
   .btn-primary {
-    @apply bg-blue-600 text-white px-6 py-3 rounded-full font-medium hover:bg-blue-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+    @apply bg-blue-600 text-white px-6 py-4 min-h-touch-android rounded-full font-medium hover:bg-blue-700 active:scale-95 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
   }
-  
-  /* Secondary Button - Important but less prominent like "Make Offer" */
+
+  /* Secondary Button - Important but less prominent like "Make Offer" - MOBILE OPTIMIZED */
   .btn-secondary {
-    @apply bg-white text-blue-600 border-2 border-blue-600 px-6 py-3 rounded-md font-medium hover:bg-blue-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+    @apply bg-white text-blue-600 border-2 border-blue-600 px-6 py-4 min-h-touch-android rounded-md font-medium hover:bg-blue-50 active:scale-95 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
   }
-  
-  /* Tertiary Button - Supporting actions like "Call", "Save" */
+
+  /* Tertiary Button - Supporting actions like "Call", "Save" - MOBILE OPTIMIZED */
   .btn-tertiary {
-    @apply bg-gray-50 text-gray-700 border border-gray-300 px-6 py-3 rounded-md font-medium hover:bg-gray-100 hover:text-gray-900 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+    @apply bg-gray-50 text-gray-700 border border-gray-300 px-6 py-4 min-h-touch-android rounded-md font-medium hover:bg-gray-100 hover:text-gray-900 active:scale-95 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
   }
-  
-  /* Quaternary Button - Minimal emphasis like "Cancel", "View More" */
+
+  /* Quaternary Button - Minimal emphasis like "Cancel", "View More" - MOBILE OPTIMIZED */
   .btn-quaternary {
-    @apply bg-transparent text-gray-600 px-6 py-3 rounded-md font-medium hover:bg-gray-50 hover:text-gray-900 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+    @apply bg-transparent text-gray-600 px-6 py-4 min-h-touch-android rounded-md font-medium hover:bg-gray-50 hover:text-gray-900 active:scale-95 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
   }
-  
-  /* Button Size Variants */
+
+  /* Button Size Variants - MOBILE OPTIMIZED */
   .btn-sm {
-    @apply px-4 py-2 text-sm;
+    @apply px-4 py-3 text-sm min-h-touch;
   }
-  
+
   .btn-lg {
-    @apply px-8 py-4 text-lg;
+    @apply px-8 py-5 text-lg min-h-[56px];
   }
   
   /* Full Width Button */
@@ -154,49 +210,61 @@
     @apply opacity-50 cursor-not-allowed hover:shadow-none;
   }
   
-  /* Special Button Variants */
+  /* Special Button Variants - MOBILE OPTIMIZED */
   .btn-danger {
-    @apply bg-white text-red-600 border border-red-200 px-6 py-3 rounded-md font-medium hover:bg-red-50 hover:border-red-300 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2;
+    @apply bg-white text-red-600 border border-red-200 px-6 py-4 min-h-touch-android rounded-md font-medium hover:bg-red-50 hover:border-red-300 active:scale-95 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2;
   }
-  
+
   .btn-success {
-    @apply bg-white text-green-600 border border-green-200 px-6 py-3 rounded-md font-medium hover:bg-green-50 hover:border-green-300 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2;
+    @apply bg-white text-green-600 border border-green-200 px-6 py-4 min-h-touch-android rounded-md font-medium hover:bg-green-50 hover:border-green-300 active:scale-95 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2;
   }
-  
-  /* WhatsApp Button - Brand Specific */
+
+  /* WhatsApp Button - Brand Specific - MOBILE OPTIMIZED */
   .btn-whatsapp {
-    @apply bg-white text-green-600 border border-green-500 px-6 py-3 rounded-md font-medium hover:bg-green-50 hover:border-green-600 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2;
+    @apply bg-white text-green-600 border border-green-500 px-6 py-4 min-h-touch-android rounded-md font-medium hover:bg-green-50 hover:border-green-600 active:scale-95 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2;
   }
-  
-  /* Contact Button Variants */
+
+  /* Contact Button Variants - MOBILE OPTIMIZED */
   .btn-call {
     background-color: rgb(239 246 255); /* blue-50 */
     color: rgb(29 78 216); /* blue-700 */
     border: 1px solid rgb(191 219 254); /* blue-200 */
-    padding: 0.75rem 1.5rem;
+    padding: 1rem 1.5rem; /* 16px = 48px+ with text */
+    min-height: 48px;
     border-radius: 0.375rem;
     font-weight: 500;
     transition: all 150ms;
   }
-  
+
   .btn-call:hover {
     background-color: rgb(219 234 254); /* blue-100 */
     border-color: rgb(147 197 253); /* blue-300 */
+    transform: scale(0.95);
   }
-  
+
+  .btn-call:active {
+    transform: scale(0.95);
+  }
+
   .btn-message {
     background-color: rgb(250 245 255); /* purple-50 */
     color: rgb(126 34 206); /* purple-700 */
     border: 1px solid rgb(233 213 255); /* purple-200 */
-    padding: 0.75rem 1.5rem;
+    padding: 1rem 1.5rem; /* 16px = 48px+ with text */
+    min-height: 48px;
     border-radius: 0.375rem;
     font-weight: 500;
     transition: all 150ms;
   }
-  
+
   .btn-message:hover {
     background-color: rgb(243 232 255); /* purple-100 */
     border-color: rgb(216 180 254); /* purple-300 */
+    transform: scale(0.95);
+  }
+
+  .btn-message:active {
+    transform: scale(0.95);
   }
   
   .card {
@@ -244,5 +312,84 @@
     font-style: italic !important;
     color: #666 !important;
     font-size: 0.75rem !important;
+  }
+}
+
+/* Mobile-First Utility Classes */
+@layer utilities {
+  /* Touch Target Enforcement */
+  .touch-target {
+    @apply min-h-touch-android min-w-touch-android;
+  }
+
+  .touch-target-ios {
+    @apply min-h-touch min-w-touch;
+  }
+
+  /* Touch Feedback */
+  .tap-active {
+    @apply active:scale-95 transition-transform duration-75;
+  }
+
+  /* Mobile-optimized inputs */
+  .input-mobile {
+    @apply h-12 px-4 text-base rounded-lg border border-input bg-background ring-offset-background;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* Mobile-optimized buttons */
+  .btn-mobile {
+    @apply h-12 px-6 text-base rounded-lg font-medium min-h-touch-android;
+    @apply transition-all duration-150 active:scale-95;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-mobile-lg {
+    @apply h-14 px-8 text-lg rounded-lg font-medium;
+    @apply transition-all duration-150 active:scale-95;
+  }
+
+  .btn-mobile-sm {
+    @apply h-10 px-4 text-sm rounded-lg font-medium min-h-[40px];
+    @apply transition-all duration-150 active:scale-95;
+  }
+
+  /* Safe area padding utilities */
+  .safe-top {
+    padding-top: max(var(--safe-area-inset-top), env(safe-area-inset-top, 0px));
+  }
+
+  .safe-bottom {
+    padding-bottom: max(var(--safe-area-inset-bottom), env(safe-area-inset-bottom, 0px));
+  }
+
+  .safe-left {
+    padding-left: max(var(--safe-area-inset-left), env(safe-area-inset-left, 0px));
+  }
+
+  .safe-right {
+    padding-right: max(var(--safe-area-inset-right), env(safe-area-inset-right, 0px));
+  }
+
+  .safe-x {
+    padding-left: max(var(--safe-area-inset-left), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--safe-area-inset-right), env(safe-area-inset-right, 0px));
+  }
+
+  .safe-y {
+    padding-top: max(var(--safe-area-inset-top), env(safe-area-inset-top, 0px));
+    padding-bottom: max(var(--safe-area-inset-bottom), env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Mobile card padding */
+  .card-mobile {
+    @apply p-4 rounded-lg bg-card text-card-foreground shadow-sm;
+  }
+
+  /* Prevent iOS zoom on input focus */
+  .no-zoom {
+    font-size: 16px !important;
   }
 }

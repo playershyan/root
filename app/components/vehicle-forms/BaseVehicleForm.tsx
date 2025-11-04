@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { VehicleFormProps, FUEL_TYPES, TRANSMISSION_TYPES, VEHICLE_CONDITIONS, COLORS, getFuelTypesByVehicleType } from './types'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
 
 interface BaseVehicleFormConfig {
   showModel?: boolean
@@ -104,18 +107,17 @@ export default function BaseVehicleForm({
     <>
       {/* Title */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <Label htmlFor="title">
           Listing Title <span className="text-red-500">*</span>
-        </label>
-        <input
+        </Label>
+        <Input
+          id="title"
           type="text"
           name="title"
           value={formData.title}
           onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
           placeholder="e.g., 2019 Toyota Prius - Excellent Condition"
-          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
-            errors.title ? 'border-red-300' : 'border-gray-300'
-          }`}
+          className={errors.title ? 'border-red-300' : ''}
         />
         {errors.title && <p className="text-red-600 text-sm mt-1">{errors.title}</p>}
       </div>
@@ -128,30 +130,30 @@ export default function BaseVehicleForm({
           </label>
           {formData.make === 'Other' ? (
             <div className="space-y-2">
-              <input
+              <Input
                 type="text"
                 name="customMake"
                 value={formData.customMake || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, customMake: e.target.value }))}
                 placeholder="Enter make name"
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
-                  errors.make ? 'border-red-300' : 'border-gray-300'
-                }`}
+                className={errors.make ? 'border-red-300' : ''}
               />
-              <button
+              <Button
                 type="button"
                 onClick={() => {
                   setFormData(prev => ({ ...prev, make: '', customMake: '', model: '' }))
                   setMakeSearch('')
                 }}
-                className="text-sm text-blue-600 hover:text-blue-800"
+                variant="link"
+                size="sm"
+                className="h-auto p-0"
               >
                 ← Back to search
-              </button>
+              </Button>
             </div>
           ) : (
             <div>
-              <input
+              <Input
                 type="text"
                 value={makeSearch}
                 onChange={(e) => {
@@ -161,9 +163,7 @@ export default function BaseVehicleForm({
                 onFocus={() => setShowMakeDropdown(true)}
                 placeholder="Search make..."
                 disabled={!formData.vehicleType}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
-                  errors.make ? 'border-red-300' : 'border-gray-300'
-                } ${!formData.vehicleType ? 'bg-gray-50' : ''}`}
+                className={errors.make ? 'border-red-300' : ''}
               />
               {showMakeDropdown && (
                 <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -173,7 +173,7 @@ export default function BaseVehicleForm({
                         <div
                           key={make.id}
                           onClick={() => handleMakeSelect(make.name)}
-                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
+                          className="px-4 py-3 min-h-touch hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0 active:scale-95 transition-transform"
                         >
                           {make.name}
                         </div>
@@ -183,7 +183,7 @@ export default function BaseVehicleForm({
                           setFormData(prev => ({ ...prev, make: 'Other', model: '', customMake: '' }))
                           setShowMakeDropdown(false)
                         }}
-                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-blue-600 border-t border-gray-200"
+                        className="px-4 py-3 min-h-touch hover:bg-gray-100 cursor-pointer text-blue-600 border-t border-gray-200 active:scale-95 transition-transform"
                       >
                         Other (Type custom make)
                       </div>
@@ -217,30 +217,30 @@ export default function BaseVehicleForm({
             </label>
             {formData.model === 'Other' ? (
               <div className="space-y-2">
-                <input
+                <Input
                   type="text"
                   name="customModel"
                   value={formData.customModel || ''}
                   onChange={(e) => setFormData(prev => ({ ...prev, customModel: e.target.value }))}
                   placeholder="Enter model name"
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
-                    errors.model ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  className={errors.model ? 'border-red-300' : ''}
                 />
-                <button
+                <Button
                   type="button"
                   onClick={() => {
                     setFormData(prev => ({ ...prev, model: '', customModel: '' }))
                     setModelSearch('')
                   }}
-                  className="text-sm text-blue-600 hover:text-blue-800"
+                  variant="link"
+                  size="sm"
+                  className="h-auto p-0"
                 >
                   ← Back to search
-                </button>
+                </Button>
               </div>
             ) : (
               <div>
-                <input
+                <Input
                   type="text"
                   value={modelSearch}
                   onChange={(e) => {
@@ -250,9 +250,7 @@ export default function BaseVehicleForm({
                   onFocus={() => setShowModelDropdown(true)}
                   placeholder="Search model..."
                   disabled={!formData.make}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
-                    errors.model ? 'border-red-300' : 'border-gray-300'
-                  } ${!formData.make ? 'bg-gray-50' : ''}`}
+                  className={errors.model ? 'border-red-300' : ''}
                 />
                 {showModelDropdown && formData.make && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -262,7 +260,7 @@ export default function BaseVehicleForm({
                           <div
                             key={model}
                             onClick={() => handleModelSelect(model)}
-                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
+                            className="px-4 py-3 min-h-touch hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0 active:scale-95 transition-transform"
                           >
                             {model}
                           </div>
@@ -272,7 +270,7 @@ export default function BaseVehicleForm({
                             setFormData(prev => ({ ...prev, model: 'Other', customModel: '' }))
                             setShowModelDropdown(false)
                           }}
-                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-blue-600 border-t border-gray-200"
+                          className="px-4 py-3 min-h-touch hover:bg-gray-100 cursor-pointer text-blue-600 border-t border-gray-200 active:scale-95 transition-transform"
                         >
                           Other (Type custom model)
                         </div>
@@ -325,18 +323,17 @@ export default function BaseVehicleForm({
         {/* Mileage */}
         {config.showMileage !== false && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <Label htmlFor="mileage">
               Mileage (km) {config.mileageRequired !== false && <span className="text-red-500">*</span>}
-            </label>
-            <input
+            </Label>
+            <Input
+              id="mileage"
               type="number"
               name="mileage"
               value={formData.mileage || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, mileage: e.target.value }))}
               placeholder="e.g., 45000"
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
-                errors.mileage ? 'border-red-300' : 'border-gray-300'
-              }`}
+              className={errors.mileage ? 'border-red-300' : ''}
             />
             {errors.mileage && <p className="text-red-600 text-sm mt-1">{errors.mileage}</p>}
           </div>

@@ -8,6 +8,7 @@ import { verifyOTP } from '@/lib/auth'
 import type { OTPVerificationProps, AuthResult } from './types'
 import { isNative, readFromClipboard } from '@/lib/capacitor-bridge'
 import { Capacitor } from '@capacitor/core'
+import { Button } from '@/components/ui/button'
 
 export default function OTPVerification({
   phone,
@@ -211,16 +212,18 @@ export default function OTPVerification({
               onChange={(e) => handleInputChange(index, e.target.value)}
               onKeyDown={(e) => handleKeyDown(index, e)}
               onPaste={handlePaste}
-              className="w-12 h-12 text-center text-xl font-semibold border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
+              className="w-12 h-12 min-h-touch text-center text-xl font-semibold border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors active:scale-95"
               disabled={loading}
             />
           ))}
         </div>
 
-        <button
+        <Button
           onClick={() => handleVerify()}
           disabled={loading || otp.some(digit => !digit)}
-          className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          variant="primary"
+          size="default"
+          className="w-full"
         >
           {loading ? (
             <>
@@ -230,7 +233,7 @@ export default function OTPVerification({
           ) : (
             'Verify Code'
           )}
-        </button>
+        </Button>
       </div>
 
       <div className="text-center space-y-2">
@@ -238,12 +241,14 @@ export default function OTPVerification({
           Didn't receive the code?
         </p>
         {canResend ? (
-          <button
+          <Button
             onClick={handleResend}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium focus:outline-none"
+            variant="link"
+            size="sm"
+            className="h-auto p-0"
           >
             Resend Code
-          </button>
+          </Button>
         ) : (
           <p className="text-sm text-gray-500">
             Resend in {formatTimer(timer)}

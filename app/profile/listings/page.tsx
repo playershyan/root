@@ -9,6 +9,7 @@ import ListingStatusBadge from '@/app/components/listings/ListingStatusBadge'
 import ListingActions from '@/app/components/listings/ListingActions'
 import ListingStatusMessage from '@/app/components/listings/ListingStatusMessage'
 import { filterListingsByStatus } from '@/lib/utils/listingStatus'
+import { Button } from '@/components/ui/button'
 
 // Helper function to format listing dates
 function formatListingDate(dateString: string): string {
@@ -93,13 +94,15 @@ export default function ListingsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <button
+        <Button
           onClick={() => router.push('/profile')}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+          variant="ghost"
+          size="sm"
+          className="mb-6 gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Profile
-        </button>
+        </Button>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           {/* Header */}
@@ -137,12 +140,15 @@ export default function ListingsPage() {
                 <p className="text-sm text-gray-600 mb-4">
                   {statusFilter === 'all' ? 'Start selling by posting your first vehicle' : 'Try selecting a different filter'}
                 </p>
-                <Link
-                  href="/post"
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium inline-block"
+                <Button
+                  asChild
+                  variant="primary"
+                  size="default"
                 >
-                  Post Your First Ad
-                </Link>
+                  <Link href="/post">
+                    Post Your First Ad
+                  </Link>
+                </Button>
               </div>
             ) : (
               <>
@@ -195,20 +201,24 @@ export default function ListingsPage() {
                             <div className="flex items-center gap-2">
                               {listing.status === 'active' && (
                                 <>
-                                  <button
+                                  <Button
                                     onClick={() => handleMarkAsSold(listing.id)}
-                                    className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 flex items-center gap-2 font-medium shadow-sm transition-all whitespace-nowrap h-9"
+                                    size="default"
+                                    className="bg-green-600 hover:bg-green-700 text-white gap-2 whitespace-nowrap"
                                   >
                                     <CheckCircle className="w-4 h-4" />
                                     Sold
-                                  </button>
-                                  <Link
-                                    href={`/post/paid-features?listing=${listing.id}`}
-                                    className="bg-amber-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-amber-600 inline-flex items-center gap-2 font-medium shadow-sm transition-all h-9"
+                                  </Button>
+                                  <Button
+                                    asChild
+                                    size="default"
+                                    className="bg-amber-500 hover:bg-amber-600 text-white gap-2"
                                   >
-                                    <Zap className="w-4 h-4 animate-pulse" />
-                                    Boost
-                                  </Link>
+                                    <Link href={`/post/paid-features?listing=${listing.id}`}>
+                                      <Zap className="w-4 h-4 animate-pulse" />
+                                      Boost
+                                    </Link>
+                                  </Button>
                                 </>
                               )}
 
@@ -297,20 +307,24 @@ export default function ListingsPage() {
                         <div className="space-y-2">
                           {listing.status === 'active' && (
                             <div className="flex gap-2">
-                              <button
+                              <Button
                                 onClick={() => handleMarkAsSold(listing.id)}
-                                className="flex-1 bg-green-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-green-700 flex items-center justify-center gap-2 font-medium transition-all"
+                                size="default"
+                                className="flex-1 bg-green-600 hover:bg-green-700 text-white gap-2"
                               >
                                 <CheckCircle className="w-4 h-4" />
                                 Mark as Sold
-                              </button>
-                              <Link
-                                href={`/post/paid-features?listing=${listing.id}`}
-                                className="flex-1 bg-amber-500 text-white py-2 px-3 rounded-lg text-sm hover:bg-amber-600 flex items-center justify-center gap-2 font-medium transition-all"
+                              </Button>
+                              <Button
+                                asChild
+                                size="default"
+                                className="flex-1 bg-amber-500 hover:bg-amber-600 text-white gap-2"
                               >
-                                <Zap className="w-4 h-4" />
-                                Boost
-                              </Link>
+                                <Link href={`/post/paid-features?listing=${listing.id}`}>
+                                  <Zap className="w-4 h-4" />
+                                  Boost
+                                </Link>
+                              </Button>
                             </div>
                           )}
 

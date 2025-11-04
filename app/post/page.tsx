@@ -27,6 +27,10 @@ import { useUserProfile } from '@/lib/hooks/useUserProfile'
 import { useRecaptcha } from '@/lib/hooks/useRecaptcha'
 import { useToast } from '@/app/components/notifications/useToast'
 import { ToastContainer } from '@/app/components/notifications/ToastContainer'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 
 // Lazy load form components (Phase 2 optimization)
 import type { DescriptionGeneratorRef } from '@/app/components/vehicle-forms/DescriptionGenerator'
@@ -1106,16 +1110,18 @@ export default function EnhancedPostVehiclePage() {
                 
                 {/* Dropdown Menu */}
                 <div ref={vehicleDropdownRef} className="relative mb-6">
-                  <button
+                  <Button
                     type="button"
-                    onClick={() => setFormData(prev => ({ 
-                      ...prev, 
-                      showVehicleDropdown: !prev.showVehicleDropdown 
+                    onClick={() => setFormData(prev => ({
+                      ...prev,
+                      showVehicleDropdown: !prev.showVehicleDropdown
                     } as any))}
-                    className={`w-full px-6 py-4 border-2 rounded-lg text-left flex items-center justify-between transition-all ${
-                      formData.vehicleType 
-                        ? 'border-blue-300 bg-blue-50' 
-                        : 'border-gray-300 bg-white hover:border-gray-400'
+                    variant="outline"
+                    size="default"
+                    className={`w-full px-6 justify-between text-left ${
+                      formData.vehicleType
+                        ? 'border-blue-300 bg-blue-50'
+                        : ''
                     }`}
                   >
                     <div className="flex items-center gap-4">
@@ -1162,7 +1168,7 @@ export default function EnhancedPostVehiclePage() {
                       )}
                     </div>
                     <i className={`fas fa-chevron-${(formData as any).showVehicleDropdown ? 'up' : 'down'} text-gray-400`}></i>
-                  </button>
+                  </Button>
                   
                   {/* Dropdown Options */}
                   {(formData as any).showVehicleDropdown && (
@@ -1171,12 +1177,12 @@ export default function EnhancedPostVehiclePage() {
                           <button
                             key={type.value}
                             type="button"
-                            onClick={() => setFormData(prev => ({ 
-                              ...prev, 
+                            onClick={() => setFormData(prev => ({
+                              ...prev,
                               vehicleType: type.value as VehicleType,
                               showVehicleDropdown: false
                             } as any))}
-                            className={`w-full p-4 rounded-lg transition-all text-left hover:bg-gray-50 ${
+                            className={`w-full p-4 min-h-touch rounded-lg transition-all text-left hover:bg-gray-50 active:scale-95 ${
                               formData.vehicleType === type.value
                                 ? 'bg-blue-50'
                                 : ''
@@ -1428,12 +1434,13 @@ export default function EnhancedPostVehiclePage() {
               <div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number <span className="text-red-500">*</span></label>
+                    <Label htmlFor="phone">Phone Number <span className="text-red-500">*</span></Label>
                     <div className="flex items-center gap-2">
-                      <span className="px-4 py-3 border border-gray-300 rounded-l-lg bg-gray-50 text-gray-700 font-medium">
+                      <span className="h-12 px-4 flex items-center border border-gray-300 rounded-l-lg bg-gray-50 text-gray-700 font-medium">
                         +94
                       </span>
-                      <input
+                      <Input
+                        id="phone"
                         type="tel"
                         name="phone"
                         value={formData.phone}
@@ -1443,9 +1450,7 @@ export default function EnhancedPostVehiclePage() {
                         }}
                         placeholder="77 123 4567"
                         maxLength={10}
-                        className={`flex-1 px-4 py-3 border rounded-r-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 focus:outline-none ${
-                          errors.phone ? 'border-red-300' : 'border-gray-300'
-                        }`}
+                        className={`flex-1 rounded-l-none ${errors.phone ? 'border-red-300' : ''}`}
                       />
                     </div>
                     <p className="text-xs text-gray-500 mt-1">Enter 10-digit Sri Lankan mobile number (e.g., 0771234567)</p>
@@ -1453,7 +1458,7 @@ export default function EnhancedPostVehiclePage() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">WhatsApp Number</label>
+                    <Label htmlFor="whatsapp">WhatsApp Number</Label>
                     <label className="flex items-center mb-2">
                       <input
                         type="checkbox"
@@ -1464,10 +1469,11 @@ export default function EnhancedPostVehiclePage() {
                       <span className="text-sm text-gray-700">Same as phone number</span>
                     </label>
                     <div className="flex items-center gap-2">
-                      <span className="px-4 py-3 border border-gray-300 rounded-l-lg bg-gray-50 text-gray-700 font-medium">
+                      <span className="h-12 px-4 flex items-center border border-gray-300 rounded-l-lg bg-gray-50 text-gray-700 font-medium">
                         +94
                       </span>
-                      <input
+                      <Input
+                        id="whatsapp"
                         type="tel"
                         name="whatsapp"
                         value={formData.whatsapp}
@@ -1478,9 +1484,7 @@ export default function EnhancedPostVehiclePage() {
                         placeholder="77 123 4567"
                         maxLength={10}
                         disabled={formData.whatsappSameAsPhone}
-                        className={`flex-1 px-4 py-3 border rounded-r-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 focus:outline-none ${
-                          formData.whatsappSameAsPhone ? 'bg-gray-50' : ''
-                        } ${errors.whatsapp ? 'border-red-300' : 'border-gray-300'}`}
+                        className={`flex-1 rounded-l-none ${errors.whatsapp ? 'border-red-300' : ''}`}
                       />
                     </div>
                     {errors.whatsapp && <p className="text-red-600 text-sm mt-1">{errors.whatsapp}</p>}
@@ -1519,84 +1523,98 @@ export default function EnhancedPostVehiclePage() {
             {/* Mobile Layout */}
             <div className="block md:hidden space-y-3">
               {currentStep < 3 ? (
-                <button
+                <Button
                   type="button"
                   onClick={handleNext}
-                  className="w-full px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
+                  variant="primary"
+                  size="default"
+                  className="w-full gap-2"
                 >
                   Next
                   <ChevronRight className="w-4 h-4" />
-                </button>
+                </Button>
               ) : (
-                <button
+                <Button
                   type="button"
                   onClick={handleSubmit}
                   disabled={loading}
-                  className="w-full px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  variant="primary"
+                  size="default"
+                  className="w-full"
                 >
                   {loading ? (isEditMode ? 'Updating...' : 'Publishing...') : (isEditMode ? 'Update Listing' : 'Publish Listing')}
-                </button>
+                </Button>
               )}
-              
+
               <div className="flex gap-2">
                 {currentStep > 1 && (
-                  <button
+                  <Button
                     type="button"
                     onClick={handlePrevious}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 flex items-center justify-center"
+                    variant="outline"
+                    size="default"
+                    className="flex-1"
                   >
                     <span className="text-lg">‹‹</span>
-                  </button>
+                  </Button>
                 )}
-                <button
+                <Button
                   type="button"
                   onClick={() => router.push('/listings')}
-                  className="flex-1 px-4 py-2 border border-blue-600 text-blue-600 font-medium rounded-lg hover:bg-blue-50"
+                  variant="outline"
+                  size="default"
+                  className="flex-1 border-blue-600 text-blue-600 hover:bg-blue-50"
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
             
             {/* Desktop Layout */}
             <div className="hidden md:flex justify-between">
               {currentStep > 1 && (
-                <button
+                <Button
                   type="button"
                   onClick={handlePrevious}
-                  className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50"
+                  variant="outline"
+                  size="default"
                 >
                   Previous
-                </button>
+                </Button>
               )}
-              
+
               <div className="ml-auto flex gap-3">
-                <button
+                <Button
                   type="button"
                   onClick={() => router.push('/listings')}
-                  className="px-6 py-3 border border-blue-600 text-blue-600 font-medium rounded-lg hover:bg-blue-50"
+                  variant="outline"
+                  size="default"
+                  className="border-blue-600 text-blue-600 hover:bg-blue-50"
                 >
                   Cancel
-                </button>
-              
+                </Button>
+
               {currentStep < 3 ? (
-                <button
+                <Button
                   type="button"
                   onClick={handleNext}
-                  className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                  variant="primary"
+                  size="default"
+                  className="gap-2"
                 >
                   Next
                   <ChevronRight className="w-4 h-4" />
-                </button>
+                </Button>
               ) : (
-                <button
+                <Button
                   type="button"
                   onClick={handleSubmit}
                   disabled={loading}
-                  className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  variant="primary"
+                  size="default"
                 >
                   {loading ? (isEditMode ? 'Updating...' : 'Publishing...') : (isEditMode ? 'Update Listing' : 'Publish Listing')}
-                </button>
+                </Button>
               )}
               </div>
             </div>

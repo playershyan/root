@@ -2,6 +2,8 @@
 
 import { Bell } from 'lucide-react'
 import ProfileMenu from './ProfileMenu'
+import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 
 interface MobileProfileHeaderProps {
   userName?: string
@@ -37,21 +39,25 @@ export default function MobileProfileHeader({
         {/* Right: Notifications & Avatar */}
         <div className="flex items-center gap-2">
           {/* Notifications */}
-          <button
+          <Button
             onClick={onNotificationsClick}
-            className="p-2 hover:bg-gray-100 rounded-full relative transition-colors"
+            variant="ghost"
+            size="icon"
+            className="relative"
             aria-label="Notifications"
           >
             <Bell className="w-5 h-5 text-gray-700" />
             {notificationCount > 0 && (
               <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
             )}
-          </button>
+          </Button>
 
           {/* User Avatar */}
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-            {userInitials}
-          </div>
+          <Avatar className="h-11 w-11">
+            <AvatarFallback className="bg-gradient-to-br from-blue-600 to-blue-700 text-white">
+              {userInitials}
+            </AvatarFallback>
+          </Avatar>
         </div>
       </div>
     </header>

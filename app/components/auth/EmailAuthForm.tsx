@@ -7,6 +7,9 @@ import { authConfig } from '@/lib/config/auth.config'
 import { signUp, signInWithPassword } from '@/lib/auth'
 import { validateEmail } from '@/lib/errorHandling'
 import type { EmailAuthProps, AuthResult } from './types'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 interface EmailAuthFormProps extends EmailAuthProps {
   showToggle?: boolean;
@@ -147,9 +150,6 @@ export default function EmailAuthForm({
     }
   }
 
-  const inputClasses = "w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-  const errorInputClasses = "border-red-500 focus:ring-red-500"
-
   return (
     <div className={`space-y-4 ${className}`}>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -160,16 +160,16 @@ export default function EmailAuthForm({
         )}
 
         {type === 'register' && (
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+          <div className="space-y-2">
+            <Label htmlFor="name">
               Full Name
-            </label>
-            <input
+            </Label>
+            <Input
               id="name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className={`${inputClasses} ${errors.name ? errorInputClasses : ''}`}
+              className={errors.name ? 'border-red-500 focus-visible:ring-red-500' : ''}
               placeholder="Enter your full name"
               disabled={loading || externalLoading || disabled}
             />
@@ -177,44 +177,47 @@ export default function EmailAuthForm({
           </div>
         )}
 
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+        <div className="space-y-2">
+          <Label htmlFor="email">
             Email Address
-          </label>
-          <input
+          </Label>
+          <Input
             id="email"
             type="email"
+            inputMode="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className={`${inputClasses} ${errors.email ? errorInputClasses : ''}`}
+            className={errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}
             placeholder="Enter your email"
             disabled={loading || externalLoading || disabled}
           />
           {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
         </div>
 
-        <div>
-          <div className="flex justify-between items-center mb-1">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <Label htmlFor="password">
               Password
-            </label>
+            </Label>
             {type === 'login' && onForgotPassword && (
-              <button
+              <Button
                 type="button"
+                variant="link"
+                size="sm"
                 onClick={onForgotPassword}
-                className="text-sm text-blue-600 hover:text-blue-700 focus:outline-none"
+                className="h-auto p-0 text-sm"
                 disabled={loading || externalLoading || disabled}
               >
                 Forgot password?
-              </button>
+              </Button>
             )}
           </div>
-          <input
+          <Input
             id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className={`${inputClasses} ${errors.password ? errorInputClasses : ''}`}
+            className={errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}
             placeholder="Enter your password"
             disabled={loading || externalLoading || disabled}
           />
@@ -222,16 +225,16 @@ export default function EmailAuthForm({
         </div>
 
         {type === 'register' && (
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">
               Confirm Password
-            </label>
-            <input
+            </Label>
+            <Input
               id="confirmPassword"
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className={`${inputClasses} ${errors.confirmPassword ? errorInputClasses : ''}`}
+              className={errors.confirmPassword ? 'border-red-500 focus-visible:ring-red-500' : ''}
               placeholder="Confirm your password"
               disabled={loading || externalLoading || disabled}
             />
@@ -239,10 +242,12 @@ export default function EmailAuthForm({
           </div>
         )}
 
-        <button
+        <Button
           type="submit"
+          variant="primary"
+          size="default"
+          className="w-full"
           disabled={loading || externalLoading || disabled}
-          className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {loading || externalLoading ? (
             <>
@@ -252,22 +257,24 @@ export default function EmailAuthForm({
           ) : (
             type === 'register' ? 'Create Account' : 'Sign In'
           )}
-        </button>
+        </Button>
       </form>
 
       {showToggle && (
         <div className="text-center">
-          <button
+          <Button
             type="button"
+            variant="link"
+            size="sm"
             onClick={() => setType(type === 'register' ? 'login' : 'register')}
-            className="text-sm text-blue-600 hover:text-blue-700 focus:outline-none"
+            className="h-auto p-0"
             disabled={loading || externalLoading || disabled}
           >
-            {type === 'register' 
-              ? 'Already have an account? Sign in' 
+            {type === 'register'
+              ? 'Already have an account? Sign in'
               : "Don't have an account? Create one"
             }
-          </button>
+          </Button>
         </div>
       )}
     </div>

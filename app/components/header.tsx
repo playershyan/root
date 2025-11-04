@@ -14,6 +14,8 @@ import { AuthModal } from './auth'
 import { useUnreadMessages } from '@/lib/hooks/useUnreadMessages'
 import { useNotificationCount } from '@/lib/hooks/useWantedNotifications'
 import { useAuthWithRedirect } from '../hooks/useAuthWithRedirect'
+import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 interface User {
   id: string
@@ -138,12 +140,14 @@ export default function Header() {
           {/* Left side - Mobile menu button + Logo */}
           <div className="flex items-center gap-3">
             {/* Mobile menu button */}
-            <button
+            <Button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-50"
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
+            </Button>
             
             {/* Logo */}
             <Link href="/" className="flex items-center">
@@ -174,30 +178,36 @@ export default function Header() {
               <div className="hidden md:flex items-center gap-2">
                 {/* Messages Notification */}
                 {unreadMessages > 0 && (
-                  <Link
-                    href="/profile/messages"
-                    className="relative p-2 text-gray-600 hover:text-blue-600 rounded-lg hover:bg-gray-50 transition-colors"
-                    title="Messages"
+                  <Button
+                    asChild
+                    variant="ghost"
+                    size="icon"
+                    className="relative"
                   >
-                    <MessageSquare className="w-5 h-5" />
-                    <span className="absolute -top-1 -right-1 min-w-[1.25rem] h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center px-1">
-                      {unreadMessages > 10 ? '10+' : unreadMessages}
-                    </span>
-                  </Link>
+                    <Link href="/profile/messages" title="Messages">
+                      <MessageSquare className="w-5 h-5" />
+                      <span className="absolute -top-1 -right-1 min-w-[1.25rem] h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center px-1">
+                        {unreadMessages > 10 ? '10+' : unreadMessages}
+                      </span>
+                    </Link>
+                  </Button>
                 )}
-                
+
                 {/* Wanted Requests Notification */}
                 {wantedNotificationCount > 0 && (
-                  <Link
-                    href="/wanted"
-                    className="relative p-2 text-gray-600 hover:text-blue-600 rounded-lg hover:bg-gray-50 transition-colors"
-                    title="Wanted Requests"
+                  <Button
+                    asChild
+                    variant="ghost"
+                    size="icon"
+                    className="relative"
                   >
-                    <Search className="w-5 h-5" />
-                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                      {wantedNotificationCount > 9 ? '9+' : wantedNotificationCount}
-                    </span>
-                  </Link>
+                    <Link href="/wanted" title="Wanted Requests">
+                      <Search className="w-5 h-5" />
+                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                        {wantedNotificationCount > 9 ? '9+' : wantedNotificationCount}
+                      </span>
+                    </Link>
+                  </Button>
                 )}
               </div>
             )}
@@ -205,20 +215,18 @@ export default function Header() {
             {/* User Menu / Auth Button - Desktop Only */}
             {user ? (
               <div className="relative hidden sm:block" ref={userMenuRef}>
-                <button
+                <Button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="p-2 rounded-lg hover:bg-gray-50 transition-colors"
+                  variant="ghost"
+                  size="icon"
                 >
-                  <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center">
-                    {avatarUrl ? (
-                      <Image src={avatarUrl} alt="Avatar" width={32} height={32} className="object-cover w-8 h-8" />
-                    ) : (
-                      <span className="text-white text-sm font-medium">
-                        {displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                </button>
+                  <Avatar className="h-11 w-11">
+                    <AvatarImage src={avatarUrl} alt={displayName} />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-600 to-blue-700 text-white">
+                      {displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
 
                 {/* User Dropdown Menu */}
                 {userMenuOpen && (
@@ -357,66 +365,83 @@ export default function Header() {
               )}
 
               {/* Wanted Button - Mobile Only */}
-              <Link
-                href="/wanted"
-                className="sm:hidden text-gray-600 hover:text-blue-600 font-medium items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-gray-50 transition-colors flex flex-col text-xs"
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="sm:hidden flex-col h-auto py-2 px-3 gap-0.5"
               >
-                <Search className="w-3 h-3" />
-                <span>Wanted</span>
-              </Link>
+                <Link href="/wanted">
+                  <Search className="w-5 h-5" />
+                  <span className="text-xs">Wanted</span>
+                </Link>
+              </Button>
 
               {/* Browse Button - Mobile Only */}
-              <Link
-                href="/listings"
-                className="sm:hidden text-gray-600 hover:text-blue-600 font-medium items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-gray-50 transition-colors flex flex-col text-xs"
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="sm:hidden flex-col h-auto py-2 px-3 gap-0.5"
               >
-                <Globe className="w-3 h-3" />
-                <span>Browse</span>
-              </Link>
-              
+                <Link href="/listings">
+                  <Globe className="w-5 h-5" />
+                  <span className="text-xs">Browse</span>
+                </Link>
+              </Button>
+
               {/* User Icon Button - Mobile Only */}
               {user ? (
-                <Link
-                  href="/profile"
-                  className="sm:hidden text-gray-600 hover:text-blue-600 font-medium items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-gray-50 transition-colors flex flex-col text-xs"
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="sm"
+                  className="sm:hidden flex-col h-auto py-2 px-3 gap-0.5"
                 >
-                  <div className="w-6 h-6 rounded-full overflow-hidden bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center">
-                    {avatarUrl ? (
-                      <Image src={avatarUrl} alt="Avatar" width={24} height={24} className="object-cover w-6 h-6" />
-                    ) : (
-                      <span className="text-white text-[10px] font-medium">
+                  <Link href="/profile">
+                    <Avatar className="h-6 w-6">
+                      <AvatarImage src={avatarUrl} alt={displayName} />
+                      <AvatarFallback className="bg-gradient-to-br from-blue-600 to-blue-700 text-white text-[10px]">
                         {displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                </Link>
+                      </AvatarFallback>
+                    </Avatar>
+                  </Link>
+                </Button>
               ) : (
-                <button
+                <Button
                   onClick={() => openAuthWithRedirect(pathname)}
-                  className="sm:hidden text-gray-600 hover:text-blue-600 font-medium items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-gray-50 transition-colors flex flex-col text-xs"
+                  variant="ghost"
+                  size="sm"
+                  className="sm:hidden flex-col h-auto py-2 px-3 gap-0.5"
                 >
-                  <User className="w-3 h-3" />
-                  <span>User</span>
-                </button>
+                  <User className="w-5 h-5" />
+                  <span className="text-xs">User</span>
+                </Button>
               )}
               
               {/* Primary CTA - Sell (Desktop Only) */}
               {user ? (
-                <Link
-                  href="/post"
-                  className="hidden sm:flex bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 font-medium transition-colors items-center gap-2 shadow-sm hover:shadow-md"
+                <Button
+                  asChild
+                  variant="primary"
+                  size="default"
+                  className="hidden sm:flex rounded-full gap-2 shadow-sm hover:shadow-md"
                 >
-                  <Car className="w-4 h-4" />
-                  <span>Sell</span>
-                </Link>
+                  <Link href="/post">
+                    <Car className="w-4 h-4" />
+                    <span>Sell</span>
+                  </Link>
+                </Button>
               ) : (
-                <button
+                <Button
                   onClick={() => openAuthWithRedirect('/post')}
-                  className="hidden sm:flex bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 font-medium transition-colors items-center gap-2 shadow-sm hover:shadow-md"
+                  variant="primary"
+                  size="default"
+                  className="hidden sm:flex rounded-full gap-2 shadow-sm hover:shadow-md"
                 >
                   <Car className="w-4 h-4" />
                   <span>Sell</span>
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -464,13 +489,14 @@ export default function Header() {
                   VERA
                 </Link>
               )}
-              <button
+              <Button
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-2 hover:bg-white/50 rounded-full transition-colors"
+                variant="ghost"
+                size="icon"
                 aria-label="Close menu"
               >
                 <X className="w-5 h-5 text-gray-700" />
-              </button>
+              </Button>
             </div>
 
             {/* Menu Content */}

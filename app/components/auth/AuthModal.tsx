@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X } from 'lucide-react'
+import { X, Phone, Mail, ArrowLeft, Check } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { authConfig } from '@/lib/config/auth.config'
 import GoogleSignInButton from './GoogleSignInButton'
@@ -11,6 +11,7 @@ import OTPVerification from './OTPVerification'
 import SimpleForgotPassword from './SimpleForgotPassword'
 import StreamlinedSignup from './StreamlinedSignup'
 import type { AuthModalProps, AuthResult } from './types'
+import { Button } from '@/components/ui/button'
 
 type AuthView = 'main' | 'email' | 'phone' | 'otp-verify' | 'forgot-password' | 'streamlined-signup'
 
@@ -135,16 +136,16 @@ export default function AuthModal({
           <div className="space-y-3">
             {/* Phone Registration - Primary */}
             {enabledMethods.includes('phone') && (
-              <button
+              <Button
                 onClick={() => setCurrentView('streamlined-signup')}
-                className="w-full flex items-center justify-center gap-3 p-4 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium"
+                variant="primary-outline"
+                size="default"
+                className="w-full gap-3"
                 disabled={loading}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                </svg>
+                <Phone className="w-5 h-5" />
                 <span>Continue with Phone</span>
-              </button>
+              </Button>
             )}
 
             {/* Google Registration - Secondary */}
@@ -162,16 +163,18 @@ export default function AuthModal({
 
           {/* Footer */}
           <div className="text-center">
-            <p className="text-sm text-gray-500 mb-3">
+            <p className="text-sm text-muted-foreground mb-3">
               By continuing, you agree to our Terms of Service and Privacy Policy
             </p>
-            <button
+            <Button
               onClick={() => setAuthType('login')}
-              className="text-sm text-blue-600 hover:text-blue-700 focus:outline-none"
+              variant="link"
+              size="sm"
+              className="h-auto p-0"
               disabled={loading}
             >
               Already have an account? Sign in
-            </button>
+            </Button>
           </div>
         </div>
       )
@@ -194,16 +197,16 @@ export default function AuthModal({
         <div className="space-y-3">
           {/* Phone Auth */}
           {enabledMethods.includes('phone') && (
-            <button
+            <Button
               onClick={() => setCurrentView('phone')}
-              className="w-full flex items-center justify-center gap-3 p-3 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium"
+              variant="primary-outline"
+              size="default"
+              className="w-full gap-3"
               disabled={loading}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
+              <Phone className="w-5 h-5" />
               <span>Login with Phone</span>
-            </button>
+            </Button>
           )}
 
           {/* Google Auth */}
@@ -220,28 +223,30 @@ export default function AuthModal({
 
           {/* Email Auth */}
           {enabledMethods.includes('email') && (
-            <button
+            <Button
               onClick={() => setCurrentView('email')}
-              className="w-full flex items-center justify-center gap-3 p-3 border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors"
+              variant="outline"
+              size="default"
+              className="w-full gap-3"
               disabled={loading}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              <span className="font-medium text-gray-700">Login with Email</span>
-            </button>
+              <Mail className="w-5 h-5" />
+              <span>Login with Email</span>
+            </Button>
           )}
         </div>
 
         {/* Toggle to register */}
         <div className="text-center">
-          <button
+          <Button
             onClick={() => setAuthType('register')}
-            className="text-sm text-blue-600 hover:text-blue-700 focus:outline-none"
+            variant="link"
+            size="sm"
+            className="h-auto p-0"
             disabled={loading}
           >
             Don't have an account? Create one
-          </button>
+          </Button>
         </div>
       </div>
     )
@@ -269,15 +274,15 @@ export default function AuthModal({
       case 'email':
         return (
           <div>
-            <button
+            <Button
               onClick={() => setCurrentView('main')}
-              className="mb-4 flex items-center text-sm text-gray-600 hover:text-gray-800"
+              variant="ghost"
+              size="sm"
+              className="mb-4 gap-1"
             >
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
+              <ArrowLeft className="w-4 h-4" />
               Back
-            </button>
+            </Button>
             <EmailAuthForm
               type={authType}
               onSuccess={handleAuthSuccess}
@@ -294,15 +299,15 @@ export default function AuthModal({
       case 'phone':
         return (
           <div>
-            <button
+            <Button
               onClick={() => setCurrentView('main')}
-              className="mb-4 flex items-center text-sm text-gray-600 hover:text-gray-800"
+              variant="ghost"
+              size="sm"
+              className="mb-4 gap-1"
             >
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
+              <ArrowLeft className="w-4 h-4" />
               Back
-            </button>
+            </Button>
             <PhoneAuthForm
               onSuccess={handleAuthSuccess}
               onError={handleAuthError}
@@ -315,15 +320,15 @@ export default function AuthModal({
       case 'otp-verify':
         return (
           <div>
-            <button
+            <Button
               onClick={() => setCurrentView(verificationData.phone ? 'phone' : 'email')}
-              className="mb-4 flex items-center text-sm text-gray-600 hover:text-gray-800"
+              variant="ghost"
+              size="sm"
+              className="mb-4 gap-1"
             >
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
+              <ArrowLeft className="w-4 h-4" />
               Back
-            </button>
+            </Button>
             <OTPVerification
               phone={verificationData.phone}
               email={verificationData.email}
@@ -364,13 +369,15 @@ export default function AuthModal({
           {/* Header with close button */}
           <div className="flex justify-between items-center mb-6">
             <div /> {/* Spacer */}
-            <button
+            <Button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              variant="ghost"
+              size="icon"
+              className="text-gray-400 hover:text-gray-600"
               aria-label="Close modal"
             >
               <X size={24} />
-            </button>
+            </Button>
           </div>
 
           {/* Content */}

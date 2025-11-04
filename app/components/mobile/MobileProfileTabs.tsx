@@ -57,9 +57,9 @@ export default function MobileProfileTabs({
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={`
-                flex-1 min-w-[90px] px-4 py-3 relative
+                flex-1 min-w-[90px] px-4 py-3 min-h-touch relative
                 flex flex-col items-center gap-1
-                transition-all duration-200
+                transition-all duration-200 active:scale-95
                 ${activeTab === tab.id
                   ? 'text-blue-600'
                   : 'text-gray-600 hover:text-gray-900'
