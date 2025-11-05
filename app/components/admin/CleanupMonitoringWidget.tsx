@@ -185,7 +185,7 @@ export default function CleanupMonitoringWidget({ className = "" }: CleanupMonit
         <p className="text-red-700 text-sm mb-4">{error}</p>
         <button
           onClick={fetchStats}
-          className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+          className="px-4 py-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors min-h-touch active:scale-95"
         >
           Retry
         </button>
@@ -211,18 +211,18 @@ export default function CleanupMonitoringWidget({ className = "" }: CleanupMonit
               </p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={fetchStats}
               disabled={loading}
-              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-3 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors min-h-touch min-w-touch flex items-center justify-center active:scale-95"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
             <button
               onClick={() => triggerManualCleanup('bin')}
               disabled={binCleanupLoading}
-              className="flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 min-h-touch active:scale-95"
             >
               {binCleanupLoading ? (
                 <>
@@ -239,7 +239,7 @@ export default function CleanupMonitoringWidget({ className = "" }: CleanupMonit
             <button
               onClick={() => triggerManualCleanup('all')}
               disabled={manualCleanupLoading}
-              className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 min-h-touch active:scale-95"
             >
               {manualCleanupLoading ? (
                 <>

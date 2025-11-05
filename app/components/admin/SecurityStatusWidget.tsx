@@ -81,7 +81,7 @@ export default function SecurityStatusWidget() {
           <Shield className="w-5 h-5 text-blue-600" />
           <h3 className="text-lg font-semibold text-gray-800">Security & Abuse Protection</h3>
         </div>
-        <button onClick={load} className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1">
+        <button onClick={load} className="px-4 py-3 text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1 min-h-touch active:scale-95 transition-transform">
           <RefreshCw className="w-4 h-4" /> Refresh
         </button>
       </div>
@@ -162,7 +162,7 @@ export default function SecurityStatusWidget() {
               )}
             </div>
             <div className="mt-3 flex gap-2">
-              <button onClick={resetCounters} className="px-3 py-1.5 bg-gray-100 rounded hover:bg-gray-200 text-sm">Reset Counters</button>
+              <button onClick={resetCounters} className="px-4 py-3 bg-gray-100 rounded hover:bg-gray-200 text-sm min-h-touch active:scale-95 transition-transform">Reset Counters</button>
             </div>
           </div>
 
@@ -189,10 +189,10 @@ export default function SecurityStatusWidget() {
             <div className="font-medium mb-2">Quarantine</div>
             <div className="text-sm">Recent strike buckets: {data.quarantine.strikesSize}</div>
             <div className="text-sm mb-2">Currently blocked IPs (cache size): {data.quarantine.blockedSize}</div>
-            <div className="mt-2 flex gap-2 items-center">
-              <input value={ipToUnblock} onChange={(e) => setIpToUnblock(e.target.value)} placeholder="IP to unblock" className="border rounded px-2 py-1 text-sm" />
-              <button onClick={handleUnblockIp} className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm">Unblock IP</button>
-              <button onClick={resetQuarantine} className="px-3 py-1.5 bg-gray-100 rounded hover:bg-gray-200 text-sm">Reset Quarantine Caches</button>
+            <div className="mt-2 flex flex-wrap gap-2 items-center">
+              <input value={ipToUnblock} onChange={(e) => setIpToUnblock(e.target.value)} placeholder="IP to unblock" className="border rounded px-4 py-3 text-sm min-h-touch" />
+              <button onClick={handleUnblockIp} className="px-4 py-3 bg-blue-600 text-white rounded text-sm min-h-touch active:scale-95 transition-transform">Unblock IP</button>
+              <button onClick={resetQuarantine} className="px-4 py-3 bg-gray-100 rounded hover:bg-gray-200 text-sm min-h-touch active:scale-95 transition-transform">Reset Quarantine Caches</button>
             </div>
           </div>
 

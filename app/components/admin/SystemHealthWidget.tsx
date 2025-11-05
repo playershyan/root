@@ -93,7 +93,7 @@ export default function SystemHealthWidget({ className = "" }: SystemHealthWidge
         <p className="text-red-700 text-xs mb-2">{error}</p>
         <button
           onClick={checkSystemHealth}
-          className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
+          className="text-xs px-4 py-3 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors min-h-touch active:scale-95"
         >
           Retry
         </button>
@@ -136,7 +136,7 @@ export default function SystemHealthWidget({ className = "" }: SystemHealthWidge
         </div>
         <button
           onClick={checkSystemHealth}
-          className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+          className="p-3 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors min-h-touch min-w-touch flex items-center justify-center active:scale-95"
         >
           <RefreshCw className="w-3 h-3" />
         </button>
