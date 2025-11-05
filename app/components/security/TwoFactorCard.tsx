@@ -2,6 +2,9 @@
 
 import { useState } from 'react'
 import { Shield, Smartphone, AlertTriangle, CheckCircle, Key } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
 import { TwoFactorAuthData } from '@/lib/utils/securityUtils'
 
 interface TwoFactorCardProps {
@@ -132,37 +135,39 @@ export default function TwoFactorCard({
           {setupStep === 'phone' && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-blue-800 mb-2">
+                <Label htmlFor="2fa-phone" className="text-blue-800">
                   Phone Number
-                </label>
-                <input
+                </Label>
+                <Input
+                  id="2fa-phone"
                   type="tel"
+                  inputMode="tel"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   placeholder="+1 (555) 123-4567"
-                  className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-2 border-blue-300"
                   disabled={enabling}
                 />
                 <p className="text-sm text-blue-600 mt-1">
                   We'll send a verification code to this number
                 </p>
               </div>
-              
-              <div className="flex gap-3">
-                <button
+
+              <div className="flex flex-wrap gap-3">
+                <Button
                   onClick={handlePhoneSubmit}
                   disabled={enabling || !phoneNumber}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  variant="primary"
                 >
                   {enabling ? 'Sending Code...' : 'Send Verification Code'}
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={cancelSetup}
                   disabled={enabling}
-                  className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 font-medium"
+                  variant="secondary"
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -170,15 +175,17 @@ export default function TwoFactorCard({
           {setupStep === 'verify' && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-blue-800 mb-2">
+                <Label htmlFor="2fa-code" className="text-blue-800">
                   Verification Code
-                </label>
-                <input
+                </Label>
+                <Input
+                  id="2fa-code"
                   type="text"
+                  inputMode="numeric"
                   value={verificationCode}
                   onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   placeholder="123456"
-                  className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center text-lg font-mono tracking-wider"
+                  className="mt-2 border-blue-300 text-center text-lg font-mono tracking-wider"
                   disabled={enabling}
                   maxLength={6}
                 />
@@ -186,29 +193,29 @@ export default function TwoFactorCard({
                   Enter the 6-digit code sent to {phoneNumber}
                 </p>
               </div>
-              
-              <div className="flex gap-3">
-                <button
+
+              <div className="flex flex-wrap gap-3">
+                <Button
                   onClick={handleVerifyCode}
                   disabled={enabling || verificationCode.length !== 6}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="bg-green-600 hover:bg-green-700"
                 >
                   {enabling ? 'Verifying...' : 'Verify & Enable'}
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => setSetupStep('phone')}
                   disabled={enabling}
-                  className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 font-medium"
+                  variant="secondary"
                 >
                   Back
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={cancelSetup}
                   disabled={enabling}
-                  className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 font-medium"
+                  variant="secondary"
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -263,21 +270,22 @@ export default function TwoFactorCard({
           
           <div className="flex flex-col gap-2">
             {twoFactorData?.isEnabled ? (
-              <button 
+              <Button
                 onClick={handleDisable}
                 disabled={disabling || loading}
-                className="bg-red-100 text-red-700 hover:bg-red-200 px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                variant="destructive"
+                className="min-h-[48px]"
               >
                 {disabling ? 'Disabling...' : 'Disable'}
-              </button>
+              </Button>
             ) : (
-              <button 
+              <Button
                 onClick={handleEnable}
                 disabled={loading}
-                className="bg-green-100 text-green-700 hover:bg-green-200 px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-green-600 hover:bg-green-700 min-h-[48px]"
               >
                 Enable 2FA
-              </button>
+              </Button>
             )}
           </div>
         </div>

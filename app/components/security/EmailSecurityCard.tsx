@@ -2,7 +2,10 @@
 
 import { useState } from 'react'
 import { Mail, CheckCircle, AlertTriangle, Eye, EyeOff } from 'lucide-react'
-import { 
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import {
   EmailUpdateData,
   validateEmail
 } from '@/lib/utils/securityUtils'
@@ -76,24 +79,25 @@ export default function EmailSecurityCard({
       <div className="space-y-4 max-w-md">
         {/* Current Email */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Current Email
-          </label>
-          <div className="relative">
-            <input
+          <Label htmlFor="current-email">Current Email</Label>
+          <div className="relative mt-2">
+            <Input
+              id="current-email"
               type={showCurrentEmail ? 'email' : 'password'}
               value={emailData?.currentEmail || ''}
               disabled
-              className="w-full px-4 py-2 pr-20 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 font-mono text-sm"
+              className="pr-32 font-mono text-sm"
             />
-            <div className="absolute right-2 top-2 flex items-center gap-2">
-              <button
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon-sm"
                 onClick={() => setShowCurrentEmail(!showCurrentEmail)}
-                className="p-1 text-gray-500 hover:text-gray-700 rounded"
+                className="h-8 w-8"
               >
                 {showCurrentEmail ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
+              </Button>
               {emailData?.isVerified ? (
                 <div className="flex items-center gap-1">
                   <CheckCircle className="w-4 h-4 text-green-500" />
@@ -121,33 +125,33 @@ export default function EmailSecurityCard({
             </div>
           )}
         </div>
-        
+
         {/* New Email */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            New Email Address
-          </label>
-          <input
+          <Label htmlFor="new-email">New Email Address</Label>
+          <Input
+            id="new-email"
             type="email"
+            inputMode="email"
             value={formData.newEmail}
             onChange={(e) => setFormData({ ...formData, newEmail: e.target.value })}
             placeholder="Enter new email address"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="mt-2"
             disabled={submitting || loading}
           />
         </div>
-        
+
         {/* Confirm Email */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Confirm New Email
-          </label>
-          <input
+          <Label htmlFor="confirm-email">Confirm New Email</Label>
+          <Input
+            id="confirm-email"
             type="email"
+            inputMode="email"
             value={formData.confirmEmail}
             onChange={(e) => setFormData({ ...formData, confirmEmail: e.target.value })}
             placeholder="Confirm new email address"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="mt-2"
             disabled={submitting || loading}
           />
         </div>
@@ -160,20 +164,21 @@ export default function EmailSecurityCard({
             ))}
           </div>
         )}
-        
+
         {/* Submit Button */}
-        <button 
+        <Button
           onClick={handleSubmit}
           disabled={submitting || loading || !formData.newEmail || !formData.confirmEmail}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          variant="primary"
+          className="w-full sm:w-auto"
         >
           {submitting ? (
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
               Updating Email...
-            </div>
+            </>
           ) : 'Update Email'}
-        </button>
+        </Button>
 
         {/* Security Notice */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">

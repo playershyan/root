@@ -16,6 +16,8 @@ import { AuthModal } from '@/app/components/auth'
 import { getContextualQuickReplies, trackQuickReplyUsage, SmartQuickReplies } from '@/lib/messaging/quickReplies'
 import { updateMessageStatus, markMessagesAsDelivered } from '@/lib/messaging/status'
 import { getMessagingRealtime } from '@/lib/messaging/realtime'
+import { Button } from '@/app/components/ui/button'
+import { Input } from '@/app/components/ui/input'
 
 interface Message {
   id: string
@@ -394,18 +396,28 @@ export default function EnhancedConversationModal({ isOpen, onClose, listing }: 
             </div>
 
             <div className="flex items-center gap-2">
-              <button className="p-2 rounded-full hover:bg-gray-200 transition-colors">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-full active:scale-95"
+              >
                 <Phone className="w-4 h-4 text-gray-500" />
-              </button>
-              <button className="p-2 rounded-full hover:bg-gray-200 transition-colors">
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-full active:scale-95"
+              >
                 <MoreVertical className="w-4 h-4 text-gray-500" />
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={onClose}
-                className="p-2 rounded-full hover:bg-gray-200 transition-colors"
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-full active:scale-95"
               >
                 <X className="w-4 h-4 text-gray-500" />
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -448,24 +460,26 @@ export default function EnhancedConversationModal({ isOpen, onClose, listing }: 
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Log in to send messages</h3>
                 <p className="text-gray-600 mb-6 text-sm">Connect with the seller instantly</p>
                 <div className="flex gap-3">
-                  <button
+                  <Button
                     onClick={() => {
                       setAuthType('login')
                       setShowAuthModal(true)
                     }}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors font-medium"
+                    variant="primary"
+                    className="px-6"
                   >
                     Log In
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => {
                       setAuthType('register')
                       setShowAuthModal(true)
                     }}
-                    className="border border-blue-600 text-blue-600 px-6 py-3 rounded-xl hover:bg-blue-50 transition-colors font-medium"
+                    variant="outline"
+                    className="px-6"
                   >
                     Sign Up
-                  </button>
+                  </Button>
                 </div>
               </div>
             ) : loading ? (
@@ -504,12 +518,14 @@ export default function EnhancedConversationModal({ isOpen, onClose, listing }: 
 
             {/* Scroll to bottom button */}
             {showScrollToBottom && (
-              <button
+              <Button
                 onClick={() => scrollToBottom()}
-                className="fixed bottom-32 right-8 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-all duration-200 animate-bounce-subtle"
+                variant="primary"
+                size="icon"
+                className="fixed bottom-32 right-8 h-11 w-11 rounded-full shadow-lg animate-bounce-subtle"
               >
                 <ArrowDown className="w-4 h-4" />
-              </button>
+              </Button>
             )}
           </div>
 
@@ -523,14 +539,15 @@ export default function EnhancedConversationModal({ isOpen, onClose, listing }: 
                     <p className="text-xs text-gray-500 mb-2 font-medium">Quick replies:</p>
                     <div className="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
                       {[...quickReplies.contextual, ...quickReplies.personalized].slice(0, 6).map((reply) => (
-                        <button
+                        <Button
                           key={reply.id}
                           onClick={() => handleQuickReply(reply.text)}
-                          className="text-xs px-3 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 rounded-full hover:from-blue-100 hover:to-indigo-100 transition-all duration-200 border border-blue-200 font-medium"
+                          variant="outline"
+                          className="text-xs px-3 min-h-touch bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 rounded-full hover:from-blue-100 hover:to-indigo-100 border-blue-200 font-medium h-auto"
                           disabled={sending}
                         >
                           {reply.text}
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   </div>
@@ -539,44 +556,50 @@ export default function EnhancedConversationModal({ isOpen, onClose, listing }: 
                 {/* Enhanced input form */}
                 <form onSubmit={handleSendMessage} className="flex gap-3 items-end">
                   <div className="flex-1 relative">
-                    <input
+                    <Input
                       ref={messageInputRef}
                       type="text"
                       value={newMessage}
                       onChange={handleMessageChange}
                       onKeyDown={handleKeyDown}
                       placeholder="Type your message..."
-                      className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-none max-h-20"
+                      className="pr-20 rounded-2xl"
                       disabled={sending}
                       maxLength={2000}
                     />
 
                     {/* Input accessories */}
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
-                      <button
+                      <Button
                         type="button"
-                        className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full"
                         disabled={sending}
                       >
                         <Paperclip className="w-4 h-4 text-gray-400" />
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
-                        className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full"
                         disabled={sending}
                       >
                         <Smile className="w-4 h-4 text-gray-400" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
-                  <button
+                  <Button
                     type="submit"
                     disabled={!newMessage.trim() || sending}
-                    className="bg-blue-600 text-white p-3 rounded-2xl hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 shadow-md hover:shadow-lg"
+                    variant="primary"
+                    size="icon"
+                    className="h-12 w-12 rounded-2xl shadow-md hover:shadow-lg flex-shrink-0"
                   >
                     <Send className="w-5 h-5" />
-                  </button>
+                  </Button>
                 </form>
 
                 {/* Character count */}

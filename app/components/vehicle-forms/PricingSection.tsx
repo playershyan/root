@@ -31,7 +31,7 @@ export default function PricingSection({ formData, setFormData, errors, showPric
             <button
               type="button"
               onClick={() => setFormData(prev => ({ ...prev, pricingType: 'cash' }))}
-              className={`flex-1 py-2 px-4 rounded-md font-medium text-sm transition-all flex items-center justify-center gap-2 ${
+              className={`flex-1 py-4 px-4 rounded-md font-medium text-sm transition-all flex items-center justify-center gap-2 min-h-touch active:scale-95 ${
                 formData.pricingType === 'cash'
                   ? 'bg-white shadow-md text-green-700 border border-green-300'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
@@ -43,7 +43,7 @@ export default function PricingSection({ formData, setFormData, errors, showPric
             <button
               type="button"
               onClick={() => setFormData(prev => ({ ...prev, pricingType: 'finance' }))}
-              className={`flex-1 py-2 px-4 rounded-md font-medium text-sm transition-all flex items-center justify-center gap-2 ${
+              className={`flex-1 py-4 px-4 rounded-md font-medium text-sm transition-all flex items-center justify-center gap-2 min-h-touch active:scale-95 ${
                 formData.pricingType === 'finance'
                   ? 'bg-white shadow-md text-blue-700 border border-blue-300'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'

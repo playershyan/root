@@ -1,19 +1,20 @@
 'use client'
 
 import { useState } from 'react'
-import { 
-  Monitor, 
-  Smartphone, 
-  Tablet, 
-  Laptop, 
-  RotateCcw, 
-  AlertTriangle, 
-  MapPin, 
-  Clock, 
+import {
+  Monitor,
+  Smartphone,
+  Tablet,
+  Laptop,
+  RotateCcw,
+  AlertTriangle,
+  MapPin,
+  Clock,
   Wifi,
   Shield
 } from 'lucide-react'
-import { 
+import { Button } from '@/components/ui/button'
+import {
   SecuritySession,
   formatSessionTime,
   getSessionStatus,
@@ -99,24 +100,28 @@ export default function SessionsCard({
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
-          <button
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
             onClick={handleRefresh}
             disabled={loading}
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium disabled:opacity-50 flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+            variant="outline"
+            size="sm"
+            className="min-h-[44px]"
           >
-            <RotateCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <RotateCcw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             {loading ? 'Loading...' : 'Refresh'}
-          </button>
-          
+          </Button>
+
           {otherSessions.length > 0 && (
-            <button
+            <Button
               onClick={handleRevokeAll}
               disabled={revokingAll || loading}
-              className="text-red-600 hover:text-red-800 text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+              variant="destructive"
+              size="sm"
+              className="min-h-[44px]"
             >
               {revokingAll ? 'Revoking All...' : `Revoke All Others (${otherSessions.length})`}
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -248,14 +253,16 @@ export default function SessionsCard({
                         <div className="text-xs text-gray-500">
                           IP: {session.ip_address}
                         </div>
-                        
-                        <button
+
+                        <Button
                           onClick={() => handleRevokeSession(session.id, session.device_name)}
                           disabled={isRevoking || revokingAll || loading}
-                          className="text-red-600 hover:text-red-800 text-sm font-medium px-3 py-1 rounded hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          variant="destructive"
+                          size="sm"
+                          className="min-h-[44px]"
                         >
                           {isRevoking ? 'Revoking...' : 'Revoke'}
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   </div>

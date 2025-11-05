@@ -3,6 +3,10 @@
 import { useState } from 'react'
 import { X, DollarSign } from 'lucide-react'
 import { useAuth } from '@/app/contexts/AuthContext'
+import { Button } from '@/app/components/ui/button'
+import { Input } from '@/app/components/ui/input'
+import { Textarea } from '@/app/components/ui/textarea'
+import { Label } from '@/app/components/ui/label'
 
 interface OfferModalProps {
   isOpen: boolean
@@ -75,13 +79,15 @@ export default function OfferModal({
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-gray-900">Make an Offer</h2>
-            <button
+            <Button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10"
               disabled={submitting || loading}
             >
-              <X size={24} />
-            </button>
+              <X size={20} />
+            </Button>
           </div>
 
           {/* Listing Info */}
@@ -96,20 +102,20 @@ export default function OfferModal({
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Offer Amount */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Label htmlFor="offer-amount">
                 Your Offer Amount <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-500 sm:text-sm">Rs.</span>
+              </Label>
+              <div className="relative mt-2">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                  <span className="text-gray-500 text-sm">Rs.</span>
                 </div>
-                <input
+                <Input
+                  id="offer-amount"
                   type="number"
+                  inputMode="numeric"
                   value={offerAmount}
                   onChange={(e) => setOfferAmount(e.target.value)}
-                  className={`w-full pl-12 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.amount ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  className={`pl-12 ${errors.amount ? 'border-red-300' : ''}`}
                   placeholder="Enter your offer amount"
                   disabled={submitting || loading}
                   min="1"
@@ -123,14 +129,15 @@ export default function OfferModal({
 
             {/* Optional Message */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Label htmlFor="offer-message">
                 Message (Optional)
-              </label>
-              <textarea
+              </Label>
+              <Textarea
+                id="offer-message"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="mt-2"
                 placeholder="Add a message to explain your offer..."
                 disabled={submitting || loading}
                 maxLength={500}
@@ -142,18 +149,20 @@ export default function OfferModal({
 
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4">
-              <button
+              <Button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+                variant="outline"
+                className="flex-1"
                 disabled={submitting || loading}
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
                 disabled={submitting || loading}
-                className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50"
+                variant="primary"
+                className="flex-1"
               >
                 {submitting || loading ? (
                   <>
@@ -163,7 +172,7 @@ export default function OfferModal({
                 ) : (
                   'Send Offer'
                 )}
-              </button>
+              </Button>
             </div>
           </form>
         </div>

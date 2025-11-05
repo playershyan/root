@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { Lock, Eye, EyeOff, AlertTriangle, Shield, Check } from 'lucide-react'
-import { 
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import {
   validatePassword,
   getPasswordStrengthColor
 } from '@/lib/utils/securityUtils'
@@ -145,54 +148,56 @@ export default function PasswordSecurityCard({
         {/* Current Password - only show if password exists */}
         {hasExistingPassword && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Current Password
-            </label>
-          <div className="relative">
-            <input
-              type={showPassword.current ? 'text' : 'password'}
-              value={formData.currentPassword}
-              onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
-              placeholder="Enter current password"
-              className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              disabled={submitting || loading}
-              autoComplete="current-password"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword({ ...showPassword, current: !showPassword.current })}
-              className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
-              disabled={submitting || loading}
-            >
-              {showPassword.current ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
+            <Label htmlFor="current-password">Current Password</Label>
+            <div className="relative mt-2">
+              <Input
+                id="current-password"
+                type={showPassword.current ? 'text' : 'password'}
+                value={formData.currentPassword}
+                onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
+                placeholder="Enter current password"
+                className="pr-12"
+                disabled={submitting || loading}
+                autoComplete="current-password"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => setShowPassword({ ...showPassword, current: !showPassword.current })}
+                disabled={submitting || loading}
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8"
+              >
+                {showPassword.current ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </Button>
+            </div>
           </div>
-        </div>
         )}
 
         {/* New Password */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            New Password
-          </label>
-          <div className="relative">
-            <input
+          <Label htmlFor="new-password">New Password</Label>
+          <div className="relative mt-2">
+            <Input
+              id="new-password"
               type={showPassword.new ? 'text' : 'password'}
               value={formData.newPassword}
               onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
               placeholder="Enter new password"
-              className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="pr-12"
               disabled={submitting || loading}
               autoComplete="new-password"
             />
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon-sm"
               onClick={() => setShowPassword({ ...showPassword, new: !showPassword.new })}
-              className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
               disabled={submitting || loading}
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8"
             >
               {showPassword.new ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
+            </Button>
           </div>
           
           {/* Password Strength Indicator */}
@@ -250,27 +255,28 @@ export default function PasswordSecurityCard({
         
         {/* Confirm Password */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Confirm New Password
-          </label>
-          <div className="relative">
-            <input
+          <Label htmlFor="confirm-password">Confirm New Password</Label>
+          <div className="relative mt-2">
+            <Input
+              id="confirm-password"
               type={showPassword.confirm ? 'text' : 'password'}
               value={formData.confirmPassword}
               onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
               placeholder="Confirm new password"
-              className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="pr-12"
               disabled={submitting || loading}
               autoComplete="new-password"
             />
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon-sm"
               onClick={() => setShowPassword({ ...showPassword, confirm: !showPassword.confirm })}
-              className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
               disabled={submitting || loading}
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8"
             >
               {showPassword.confirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
+            </Button>
           </div>
           {formData.confirmPassword && formData.newPassword !== formData.confirmPassword && (
             <p className="mt-1 text-sm text-red-600">Passwords do not match</p>
@@ -285,9 +291,9 @@ export default function PasswordSecurityCard({
             ))}
           </div>
         )}
-        
+
         {/* Submit Button */}
-        <button
+        <Button
           onClick={handleSubmit}
           disabled={
             submitting ||
@@ -298,15 +304,16 @@ export default function PasswordSecurityCard({
             formData.newPassword !== formData.confirmPassword ||
             passwordStrength.strength === 'weak'
           }
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          variant="primary"
+          className="w-full sm:w-auto"
         >
           {submitting ? (
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
               {hasExistingPassword ? 'Updating Password...' : 'Creating Password...'}
-            </div>
+            </>
           ) : (hasExistingPassword ? 'Update Password' : 'Create Password')}
-        </button>
+        </Button>
 
         {/* Security Tips */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">

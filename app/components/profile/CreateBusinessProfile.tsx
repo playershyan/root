@@ -3,6 +3,10 @@
 import { useState } from 'react'
 import { Building2, Star, Globe, X } from 'lucide-react'
 import { CreateBusinessProfileData } from '@/lib/types/businessProfile'
+import { Button } from '@/app/components/ui/button'
+import { Input } from '@/app/components/ui/input'
+import { Textarea } from '@/app/components/ui/textarea'
+import { Label } from '@/app/components/ui/label'
 
 interface CreateBusinessProfileProps {
   onSubmit: (data: CreateBusinessProfileData) => Promise<void>
@@ -63,12 +67,14 @@ export default function CreateBusinessProfile({
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold">Create Business Profile</h2>
-          <button
+          <Button
             onClick={onCancel}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         <div className="p-6">
@@ -102,17 +108,16 @@ export default function CreateBusinessProfile({
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Label htmlFor="business-name">
                   Business Name <span className="text-red-500">*</span>
-                </label>
-                <input
+                </Label>
+                <Input
+                  id="business-name"
                   type="text"
                   value={formData.business_name}
                   onChange={(e) => setFormData({...formData, business_name: e.target.value})}
                   placeholder="e.g., City Motors, Premium Auto Sales"
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.business_name ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  className={errors.business_name ? 'border-red-300' : ''}
                   disabled={loading}
                 />
                 {errors.business_name && (
@@ -122,17 +127,17 @@ export default function CreateBusinessProfile({
 
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Label htmlFor="website">
                   Website
-                </label>
-                <input
+                </Label>
+                <Input
+                  id="website"
                   type="url"
+                  inputMode="url"
                   value={formData.website}
                   onChange={(e) => setFormData({...formData, website: e.target.value})}
                   placeholder="https://yourbusiness.com"
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.website ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  className={errors.website ? 'border-red-300' : ''}
                   disabled={loading}
                 />
                 {errors.website && (
@@ -141,45 +146,45 @@ export default function CreateBusinessProfile({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Label htmlFor="phone">
                   Business Phone
-                </label>
-                <input
+                </Label>
+                <Input
+                  id="phone"
                   type="tel"
+                  inputMode="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
                   placeholder="+94 11 123 4567"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   disabled={loading}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Label htmlFor="address">
                 Business Address
-              </label>
-              <textarea
+              </Label>
+              <Textarea
+                id="address"
                 value={formData.address}
                 onChange={(e) => setFormData({...formData, address: e.target.value})}
                 placeholder="Street address, city, postal code"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 rows={3}
                 disabled={loading}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Label htmlFor="description">
                 Business Description <span className="text-red-500">*</span>
-              </label>
-              <textarea
+              </Label>
+              <Textarea
+                id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
                 placeholder="Tell customers about your business, services, and what makes you special..."
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.description ? 'border-red-300' : 'border-gray-300'
-                }`}
+                className={errors.description ? 'border-red-300' : ''}
                 rows={4}
                 disabled={loading}
               />
@@ -189,35 +194,37 @@ export default function CreateBusinessProfile({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Label htmlFor="operating-hours">
                 Operating Hours
-              </label>
-              <input
+              </Label>
+              <Input
+                id="operating-hours"
                 type="text"
                 value={formData.operating_hours}
                 onChange={(e) => setFormData({...formData, operating_hours: e.target.value})}
                 placeholder="e.g., Mon-Fri 9AM-6PM, Sat 9AM-4PM"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 disabled={loading}
               />
             </div>
 
             <div className="flex gap-3 pt-4 border-t">
-              <button
+              <Button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                variant="primary"
+                className="flex-1"
               >
                 {loading ? 'Creating...' : 'Create Business Profile'}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={onCancel}
                 disabled={loading}
-                className="flex-1 bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                variant="outline"
+                className="flex-1"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </form>
         </div>

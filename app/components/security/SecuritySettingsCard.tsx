@@ -1,24 +1,24 @@
 'use client'
 
 import { useState } from 'react'
-import { 
-  Mail, 
-  Lock, 
-  Shield, 
-  Smartphone, 
-  Laptop, 
-  Monitor, 
-  Tablet, 
-  CheckCircle, 
-  AlertTriangle, 
+import {
+  Mail,
+  Lock,
+  Shield,
+  Smartphone,
+  Laptop,
+  Monitor,
+  Tablet,
+  CheckCircle,
+  AlertTriangle,
   RotateCcw,
   Eye,
   EyeOff
 } from 'lucide-react'
-import { 
-  SecuritySession, 
-  EmailUpdateData, 
-  PasswordChangeData, 
+import {
+  SecuritySession,
+  EmailUpdateData,
+  PasswordChangeData,
   TwoFactorAuthData,
   formatSessionTime,
   getSessionStatus,
@@ -27,6 +27,9 @@ import {
   validatePassword,
   getPasswordStrengthColor
 } from '@/lib/utils/securityUtils'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
 
 interface SecuritySettingsCardProps {
   type: 'email' | 'password' | '2fa' | 'sessions'
@@ -113,17 +116,17 @@ export default function SecuritySettingsCard({
 
         <div className="space-y-4 max-w-md">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Current Email
-            </label>
-            <div className="relative">
-              <input
+            <Label htmlFor="current-email">Current Email</Label>
+            <div className="relative mt-2">
+              <Input
+                id="current-email"
                 type="email"
+                inputMode="email"
                 value={emailData?.currentEmail || ''}
                 disabled
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-600"
+                className="bg-gray-50 text-gray-600"
               />
-              <div className="absolute right-3 top-2.5">
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
                 {emailData?.isVerified ? (
                   <div className="flex items-center gap-1">
                     <CheckCircle className="w-4 h-4 text-green-500" />
@@ -138,33 +141,33 @@ export default function SecuritySettingsCard({
               </div>
             </div>
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              New Email Address
-            </label>
-            <input
+            <Label htmlFor="new-email">New Email Address</Label>
+            <Input
+              id="new-email"
               type="email"
+              inputMode="email"
               value={formData.newEmail || ''}
               onChange={(e) => setFormData({ ...formData, newEmail: e.target.value })}
               placeholder="Enter new email address"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="mt-2"
             />
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Confirm New Email
-            </label>
-            <input
+            <Label htmlFor="confirm-email">Confirm New Email</Label>
+            <Input
+              id="confirm-email"
               type="email"
+              inputMode="email"
               value={formData.confirmEmail || ''}
               onChange={(e) => setFormData({ ...formData, confirmEmail: e.target.value })}
               placeholder="Confirm new email address"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="mt-2"
             />
           </div>
-          
+
           {errors.length > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3">
               {errors.map((error, index) => (
@@ -172,14 +175,15 @@ export default function SecuritySettingsCard({
               ))}
             </div>
           )}
-          
-          <button 
+
+          <Button
             onClick={handleSubmit}
             disabled={submitting || loading}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
+            variant="primary"
+            className="w-full sm:w-auto"
           >
             {submitting ? 'Updating...' : 'Update Email'}
-          </button>
+          </Button>
         </div>
       </div>
     )
@@ -200,43 +204,41 @@ export default function SecuritySettingsCard({
 
         <div className="space-y-4 max-w-md">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Current Password
-            </label>
-            <div className="relative">
-              <input
+            <Label htmlFor="current-password">Current Password</Label>
+            <div className="relative mt-2">
+              <Input
+                id="current-password"
                 type={showPassword.current ? 'text' : 'password'}
                 value={formData.currentPassword || ''}
                 onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
                 placeholder="Enter current password"
-                className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="pr-10"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword({ ...showPassword, current: !showPassword.current })}
-                className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 h-10 w-10 flex items-center justify-center active:scale-95 transition-transform"
               >
                 {showPassword.current ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              New Password
-            </label>
-            <div className="relative">
-              <input
+            <Label htmlFor="new-password">New Password</Label>
+            <div className="relative mt-2">
+              <Input
+                id="new-password"
                 type={showPassword.new ? 'text' : 'password'}
                 value={formData.newPassword || ''}
                 onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
                 placeholder="Enter new password (min. 6 characters)"
-                className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="pr-10"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword({ ...showPassword, new: !showPassword.new })}
-                className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 h-10 w-10 flex items-center justify-center active:scale-95 transition-transform"
               >
                 {showPassword.new ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -256,29 +258,28 @@ export default function SecuritySettingsCard({
               </div>
             )}
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Confirm New Password
-            </label>
-            <div className="relative">
-              <input
+            <Label htmlFor="confirm-password">Confirm New Password</Label>
+            <div className="relative mt-2">
+              <Input
+                id="confirm-password"
                 type={showPassword.confirm ? 'text' : 'password'}
                 value={formData.confirmPassword || ''}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                 placeholder="Confirm new password"
-                className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="pr-10"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword({ ...showPassword, confirm: !showPassword.confirm })}
-                className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 h-10 w-10 flex items-center justify-center active:scale-95 transition-transform"
               >
                 {showPassword.confirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
-          
+
           {errors.length > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3">
               {errors.map((error, index) => (
@@ -286,14 +287,15 @@ export default function SecuritySettingsCard({
               ))}
             </div>
           )}
-          
-          <button 
+
+          <Button
             onClick={handleSubmit}
             disabled={submitting || loading}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
+            variant="primary"
+            className="w-full sm:w-auto"
           >
             {submitting ? 'Updating...' : 'Update Password'}
-          </button>
+          </Button>
         </div>
       </div>
     )
@@ -314,27 +316,24 @@ export default function SecuritySettingsCard({
           </div>
         </div>
 
-        <div className="bg-gray-50 rounded-lg p-6 flex items-center justify-between">
+        <div className="bg-gray-50 rounded-lg p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <p className="font-medium">SMS Authentication</p>
             <p className="text-sm text-gray-600 mt-1">
-              {twoFAData?.isEnabled 
+              {twoFAData?.isEnabled
                 ? `Enabled for ${twoFAData.phoneNumber || 'your phone'}`
                 : 'Receive verification codes via SMS'
               }
             </p>
           </div>
-          <button 
+          <Button
             onClick={() => onUpdate && onUpdate({ action: twoFAData?.isEnabled ? 'disable' : 'enable' })}
             disabled={loading}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              twoFAData?.isEnabled
-                ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                : 'bg-green-100 text-green-700 hover:bg-green-200'
-            }`}
+            variant={twoFAData?.isEnabled ? 'danger' : 'success'}
+            className="w-full sm:w-auto"
           >
             {twoFAData?.isEnabled ? 'Disable' : 'Enable'}
-          </button>
+          </Button>
         </div>
       </div>
     )
@@ -356,22 +355,26 @@ export default function SecuritySettingsCard({
             </div>
           </div>
           
-          <div className="flex gap-2">
-            <button
+          <div className="flex flex-wrap gap-2">
+            <Button
               onClick={() => onUpdate && onUpdate({ action: 'refresh' })}
               disabled={loading}
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium disabled:opacity-50 flex items-center gap-1"
+              variant="ghost"
+              size="sm"
+              className="h-11"
             >
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw className="w-4 h-4 mr-2" />
               {loading ? 'Loading...' : 'Refresh'}
-            </button>
+            </Button>
             {sessions && sessions.length > 1 && (
-              <button
+              <Button
                 onClick={() => onUpdate && onUpdate({ action: 'revokeAll' })}
-                className="text-red-600 hover:text-red-800 text-sm font-medium"
+                variant="ghost"
+                size="sm"
+                className="h-11 text-red-600 hover:text-red-800 hover:bg-red-50"
               >
                 Revoke All Others
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -436,12 +439,14 @@ export default function SecuritySettingsCard({
                         <span className={`text-sm ${sessionStatus.color}`}>
                           {sessionStatus.label}
                         </span>
-                        <button
+                        <Button
                           onClick={() => onUpdate && onUpdate({ action: 'revoke', sessionId: session.id })}
-                          className="text-red-600 hover:text-red-800 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                          variant="ghost"
+                          size="sm"
+                          className="h-11 text-red-600 hover:text-red-800 hover:bg-red-50"
                         >
                           Revoke
-                        </button>
+                        </Button>
                       </>
                     )}
                   </div>

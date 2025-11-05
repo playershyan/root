@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Building2, Plus, Pause, Play, Trash2, AlertTriangle } from 'lucide-react'
 import { BusinessProfile } from '@/lib/types/businessProfile'
+import { Button } from '@/app/components/ui/button'
 
 interface BusinessProfileManagementProps {
   businessProfile: BusinessProfile | null
@@ -38,17 +39,17 @@ export default function BusinessProfileManagement({
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Business Profile</h3>
             <p className="text-gray-600 mb-4">
-              Create a business profile to showcase your dealership, build trust with customers, 
+              Create a business profile to showcase your dealership, build trust with customers,
               and access advanced selling tools.
             </p>
-            <button
+            <Button
               onClick={onCreateProfile}
               disabled={loading}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="primary"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 mr-2" />
               Create Business Profile
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -88,33 +89,33 @@ export default function BusinessProfileManagement({
           <h4 className="font-medium text-gray-900 mb-3">Business Profile Actions</h4>
           <div className="flex flex-wrap gap-3">
             {!businessProfile.is_active ? (
-              <button
+              <Button
                 onClick={onResumeProfile}
                 disabled={loading}
-                className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                variant="success"
               >
-                <Play className="w-4 h-4" />
+                <Play className="w-4 h-4 mr-2" />
                 Activate Business Profile
-              </button>
+              </Button>
             ) : (
-              <button
+              <Button
                 onClick={onPauseProfile}
                 disabled={loading}
-                className="flex items-center gap-2 bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-yellow-600 hover:bg-yellow-700 text-white"
               >
-                <Pause className="w-4 h-4" />
+                <Pause className="w-4 h-4 mr-2" />
                 Deactivate Business Profile
-              </button>
+              </Button>
             )}
-            
-            <button
+
+            <Button
               onClick={() => setShowDeleteConfirm(true)}
               disabled={loading}
-              className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="danger"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-4 h-4 mr-2" />
               Delete Business Profile
-            </button>
+            </Button>
           </div>
 
           {!businessProfile.is_active && (
@@ -162,19 +163,21 @@ export default function BusinessProfileManagement({
             </div>
 
             <div className="flex gap-3">
-              <button
+              <Button
                 onClick={handleDelete}
                 disabled={loading}
-                className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                variant="danger"
+                className="flex-1"
               >
                 Yes, Delete Profile
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                variant="outline"
+                className="flex-1"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </div>
         </div>

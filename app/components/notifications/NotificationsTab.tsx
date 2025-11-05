@@ -2,13 +2,14 @@
 
 import { useState } from 'react'
 import { Bell, CheckCircle, AlertTriangle, Save } from 'lucide-react'
-import { 
+import {
   NotificationPreferences,
   notificationGroups,
   validateNotificationPreferences,
   getEnabledNotificationsCount
 } from '@/lib/utils/notificationsUtils'
 import NotificationCard from './NotificationCard'
+import { Button } from '@/components/ui/button'
 
 interface NotificationsTabProps {
   preferences: NotificationPreferences
@@ -105,31 +106,35 @@ export default function NotificationsTab({
                 <AlertTriangle className="w-5 h-5 text-blue-600" />
                 <span className="font-medium text-blue-900">You have unsaved changes</span>
               </div>
-              <div className="flex gap-2">
-                <button
+              <div className="flex flex-wrap gap-2">
+                <Button
                   onClick={handleReset}
                   disabled={updating}
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium px-3 py-1 rounded hover:bg-blue-100 transition-colors"
+                  variant="ghost"
+                  size="sm"
+                  className="h-11"
                 >
                   Reset
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleSave}
                   disabled={updating}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium text-sm disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+                  variant="primary"
+                  size="sm"
+                  className="h-12"
                 >
                   {updating ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                       Saving...
                     </>
                   ) : (
                     <>
-                      <Save className="w-4 h-4" />
+                      <Save className="w-4 h-4 mr-2" />
                       Save Changes
                     </>
                   )}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -192,31 +197,33 @@ export default function NotificationsTab({
                   <p className="font-medium text-gray-900">Changes pending</p>
                   <p className="text-sm text-gray-600">Don't forget to save your notification preferences</p>
                 </div>
-                <div className="flex gap-2">
-                  <button
+                <div className="flex flex-wrap gap-2">
+                  <Button
                     onClick={handleReset}
                     disabled={updating}
-                    className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 font-medium transition-colors"
+                    variant="secondary"
+                    className="h-12"
                   >
                     Reset Changes
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={handleSave}
                     disabled={updating}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+                    variant="primary"
+                    className="h-12"
                   >
                     {updating ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                         Saving...
                       </>
                     ) : (
                       <>
-                        <Save className="w-4 h-4" />
+                        <Save className="w-4 h-4 mr-2" />
                         Save All Changes
                       </>
                     )}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>

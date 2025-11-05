@@ -116,7 +116,7 @@ export default function ImageLightbox({
         </div>
         <button
           onClick={onClose}
-          className="p-2 hover:bg-white/10 rounded-full transition-colors"
+          className="p-3 hover:bg-white/10 rounded-full transition-colors min-h-touch min-w-touch flex items-center justify-center active:scale-95"
           aria-label="Close lightbox"
         >
           <X className="w-5 h-5 md:w-6 md:h-6" />
@@ -132,7 +132,7 @@ export default function ImageLightbox({
               e.stopPropagation()
               navigatePrevious()
             }}
-            className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 p-3 rounded-full transition-all z-10"
+            className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 p-3 rounded-full transition-all z-10 min-h-touch min-w-touch items-center justify-center active:scale-95"
             aria-label="Previous image"
           >
             <ChevronLeft className="w-6 h-6 text-white" />
@@ -160,7 +160,7 @@ export default function ImageLightbox({
               e.stopPropagation()
               navigateNext()
             }}
-            className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 p-3 rounded-full transition-all z-10"
+            className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 p-3 rounded-full transition-all z-10 min-h-touch min-w-touch items-center justify-center active:scale-95"
             aria-label="Next image"
           >
             <ChevronRight className="w-6 h-6 text-white" />
@@ -180,7 +180,7 @@ export default function ImageLightbox({
                   e.stopPropagation()
                   onNavigate(index)
                 }}
-                className={`flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                className={`flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 transition-all active:scale-95 ${
                   index === currentIndex
                     ? 'border-white ring-2 ring-white/50'
                     : 'border-white/30 hover:border-white/60'
@@ -208,7 +208,7 @@ export default function ImageLightbox({
                   e.stopPropagation()
                   onNavigate(index)
                 }}
-                className={`w-2 h-2 rounded-full transition-all ${
+                className={`w-2 h-2 rounded-full transition-all min-h-touch min-w-touch flex items-center justify-center active:scale-95 ${
                   index === currentIndex
                     ? 'bg-white w-6'
                     : 'bg-white/40 hover:bg-white/60'

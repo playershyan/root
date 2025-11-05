@@ -17,6 +17,7 @@ import {
 } from '@/lib/utils/image-compression'
 import { UPLOAD_CONSTRAINTS } from '@/lib/config/images'
 import { takePhoto, pickFromGallery, isNative } from '@/lib/capacitor-bridge'
+import { Button } from '@/components/ui/button'
 
 export interface ImageUploadWithCompressionProps {
   images: File[]
@@ -276,24 +277,26 @@ export default function ImageUploadWithCompression({
             {/* Native camera/gallery buttons */}
             {isNative() && (
               <div className="flex justify-center gap-3 mt-3">
-                <button
+                <Button
                   type="button"
                   onClick={handleTakePhoto}
                   disabled={disabled || compressing}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  variant="primary"
+                  className="h-12"
                 >
-                  <Camera className="w-4 h-4" />
+                  <Camera className="w-4 h-4 mr-2" />
                   Camera
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={handlePickFromGallery}
                   disabled={disabled || compressing}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  variant="secondary"
+                  className="h-12"
                 >
-                  <Upload className="w-4 h-4" />
+                  <Upload className="w-4 h-4 mr-2" />
                   Gallery
-                </button>
+                </Button>
               </div>
             )}
             
@@ -341,7 +344,7 @@ export default function ImageUploadWithCompression({
               <button
                 type="button"
                 onClick={() => onRemove(index)}
-                className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute top-1 right-1 bg-red-600 text-white p-2 rounded opacity-0 group-hover:opacity-100 transition-opacity min-h-touch min-w-touch active:scale-95"
                 disabled={disabled}
               >
                 <X className="w-4 h-4" />

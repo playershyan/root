@@ -2,14 +2,15 @@
 
 import { useState } from 'react'
 import { Search, RotateCcw, MapPin, Calendar, MessageCircle, User } from 'lucide-react'
-import { 
-  BinItemData, 
-  formatDeletedDate, 
-  getDeletionUrgencyColor, 
+import {
+  BinItemData,
+  formatDeletedDate,
+  getDeletionUrgencyColor,
   getDeletionUrgencyMessage,
   formatPrice,
-  truncateText 
+  truncateText
 } from '@/lib/utils/binUtils'
+import { Button } from '@/components/ui/button'
 
 interface BinWantedCardProps {
   wanted: BinItemData
@@ -60,7 +61,7 @@ export default function BinWantedCard({
                 {wanted.description.length > 100 && (
                   <button
                     onClick={() => setIsExpanded(!isExpanded)}
-                    className="ml-1 text-blue-600 hover:text-blue-700 font-medium"
+                    className="ml-1 text-blue-600 hover:text-blue-700 font-medium min-h-touch active:scale-95 transition-transform inline-flex items-center"
                   >
                     {isExpanded ? 'Show less' : 'Show more'}
                   </button>
@@ -83,25 +84,27 @@ export default function BinWantedCard({
         {/* Restore button */}
         <div className="flex-shrink-0 ml-3">
           {wanted.can_restore ? (
-            <button
+            <Button
               onClick={handleRestore}
               disabled={restoring}
-              className="bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 text-sm transition-colors"
+              variant="success"
+              size="sm"
+              className="h-12"
             >
               {restoring ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                   Restoring...
                 </>
               ) : (
                 <>
-                  <RotateCcw className="w-4 h-4" />
+                  <RotateCcw className="w-4 h-4 mr-2" />
                   Restore
                 </>
               )}
-            </button>
+            </Button>
           ) : (
-            <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1.5 rounded-lg">
+            <span className="text-xs text-gray-500 bg-gray-100 px-3 py-3 rounded-lg inline-block min-h-touch">
               Cannot Restore
             </span>
           )}
