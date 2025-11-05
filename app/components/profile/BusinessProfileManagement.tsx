@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Building2, Plus, Pause, Play, Trash2, AlertTriangle } from 'lucide-react'
 import { BusinessProfile } from '@/lib/types/businessProfile'
-import { Button } from '@/app/components/ui/button'
+import { Button } from '@/components/ui/button'
 
 interface BusinessProfileManagementProps {
   businessProfile: BusinessProfile | null
