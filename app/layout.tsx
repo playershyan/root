@@ -56,7 +56,7 @@ export default function RootLayout({
                 <Suspense fallback={<div className="min-h-screen" />}>
                   <AuthWrapper>
                     <Header />
-                    <main className="min-h-screen">
+                    <main className="min-h-screen safe-top safe-bottom">
                       {children}
                     </main>
                     <Footer />

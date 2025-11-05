@@ -16,8 +16,8 @@ import { AuthModal } from '@/app/components/auth'
 import { getContextualQuickReplies, trackQuickReplyUsage, SmartQuickReplies } from '@/lib/messaging/quickReplies'
 import { updateMessageStatus, markMessagesAsDelivered } from '@/lib/messaging/status'
 import { getMessagingRealtime } from '@/lib/messaging/realtime'
-import { Button } from '@/app/components/ui/button'
-import { Input } from '@/app/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 interface Message {
   id: string

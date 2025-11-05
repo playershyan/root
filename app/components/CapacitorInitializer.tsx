@@ -13,7 +13,7 @@ import { initializePushNotifications } from '@/lib/push-notifications'
 import { App } from '@capacitor/app'
 import { SplashScreen } from '@capacitor/splash-screen'
 import { StatusBar, Style } from '@capacitor/status-bar'
-import { SafeArea } from '@capacitor-community/safe-area'
+import SafeArea from '@capacitor-community/safe-area'
 
 export default function CapacitorInitializer() {
   useEffect(() => {
