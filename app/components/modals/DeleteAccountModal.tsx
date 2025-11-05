@@ -2,6 +2,9 @@
 
 import { useState } from 'react'
 import { X, AlertTriangle, Loader2, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 interface DeleteAccountModalProps {
   isOpen: boolean
@@ -90,13 +93,15 @@ export default function DeleteAccountModal({
                 <p className="text-sm text-gray-500">This action cannot be undone</p>
               </div>
             </div>
-            <button
+            <Button
               onClick={handleClose}
               disabled={loading}
-              className="text-gray-400 hover:text-gray-500 disabled:opacity-50"
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10"
             >
               <X className="w-5 h-5" />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -147,18 +152,22 @@ export default function DeleteAccountModal({
 
               {/* Action Buttons */}
               <div className="flex gap-3 mt-6">
-                <button
+                <Button
                   onClick={handleClose}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  variant="outline"
+                  size="default"
+                  className="flex-1"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => setStep(2)}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  variant="destructive"
+                  size="default"
+                  className="flex-1"
                 >
                   Continue with Deletion
-                </button>
+                </Button>
               </div>
             </>
           ) : (
@@ -174,30 +183,30 @@ export default function DeleteAccountModal({
 
                 {/* Confirmation Phrase */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Label htmlFor="confirm-phrase" className="mb-2">
                     Type <span className="font-mono bg-gray-100 px-2 py-1 rounded">DELETE MY ACCOUNT</span> to confirm
-                  </label>
-                  <input
+                  </Label>
+                  <Input
+                    id="confirm-phrase"
                     type="text"
                     value={confirmPhrase}
                     onChange={(e) => setConfirmPhrase(e.target.value)}
                     placeholder="Type the phrase here"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                     disabled={loading}
                   />
                 </div>
 
                 {/* Password (Optional but recommended) */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Label htmlFor="password" className="mb-2">
                     Enter your password for security (optional)
-                  </label>
-                  <input
+                  </Label>
+                  <Input
+                    id="password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                     disabled={loading}
                   />
                 </div>
@@ -212,17 +221,21 @@ export default function DeleteAccountModal({
 
               {/* Action Buttons */}
               <div className="flex gap-3 mt-6">
-                <button
+                <Button
                   onClick={() => setStep(1)}
                   disabled={loading}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  variant="outline"
+                  size="default"
+                  className="flex-1"
                 >
                   Back
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleDelete}
                   disabled={loading || confirmPhrase !== 'DELETE MY ACCOUNT'}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  variant="destructive"
+                  size="default"
+                  className="flex-1 gap-2"
                 >
                   {loading ? (
                     <>
@@ -235,7 +248,7 @@ export default function DeleteAccountModal({
                       Delete My Account
                     </>
                   )}
-                </button>
+                </Button>
               </div>
             </>
           )}

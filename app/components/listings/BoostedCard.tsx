@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic'
 import { MapPin, Calendar, Eye, TrendingUp, Star, Crown } from 'lucide-react'
 import OptimizedImage from '@/components/ui/OptimizedImage'
 import FavoriteButton from '@/app/components/FavoriteButton'
+import { Button } from '@/components/ui/button'
 
 // Lazy load modals (Phase 2 optimization)
 const ContactModal = dynamic(() => import('@/app/components/modals/ContactModal'))
@@ -214,26 +215,30 @@ export default function BoostedCard({ listing }: BoostedCardProps) {
 
             {/* Action Buttons */}
             <div className="flex gap-2">
-              <button
+              <Button
                 onClick={(e) => {
                   e.preventDefault()
                   setShowContactModal(true)
                 }}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-1"
+                variant="primary"
+                size="default"
+                className="flex-1 gap-1"
               >
                 <i className="fas fa-phone text-xs"></i>
                 Call
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={(e) => {
                   e.preventDefault()
                   setShowConversationModal(true)
                 }}
-                className="flex-1 border border-blue-600 text-blue-600 hover:bg-blue-50 py-2 px-3 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-1"
+                variant="outline"
+                size="default"
+                className="flex-1 gap-1"
               >
                 <i className="fas fa-envelope text-xs"></i>
                 Message
-              </button>
+              </Button>
             </div>
           </div>
         </div>

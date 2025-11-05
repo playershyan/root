@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
 
 interface OTPInputProps {
   phoneNumber: string
@@ -199,9 +201,9 @@ export default function OTPInput({
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
+          <Label className="block mb-3 text-center">
             Verification Code
-          </label>
+          </Label>
           <div className="flex gap-3 justify-center">
             {otp.map((digit, index) => (
               <input
@@ -214,7 +216,7 @@ export default function OTPInput({
                 value={digit}
                 onChange={(e) => handleInputChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
-                className={`w-12 h-12 text-center text-lg font-semibold border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                className={`w-12 h-12 min-h-touch text-center text-lg font-semibold border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                   error ? 'border-red-300' : 'border-gray-300'
                 }`}
                 disabled={loading}
@@ -224,10 +226,12 @@ export default function OTPInput({
         </div>
 
         {/* Manual Submit Button (for desktop) */}
-        <button
+        <Button
           onClick={handleManualSubmit}
           disabled={loading || otp.join('').length !== 6}
-          className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          variant="default"
+          size="default"
+          className="w-full"
         >
           {loading ? (
             <>
@@ -237,7 +241,7 @@ export default function OTPInput({
           ) : (
             'Verify Code'
           )}
-        </button>
+        </Button>
       </div>
 
       {/* Resend Code */}
@@ -245,16 +249,18 @@ export default function OTPInput({
         <p className="text-sm text-gray-600 mb-2">
           Didn't receive the code?
         </p>
-        <button
+        <Button
           onClick={handleResendOTP}
           disabled={loading || resendCooldown > 0}
-          className="text-blue-600 hover:text-blue-700 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          variant="ghost"
+          size="sm"
+          className="text-blue-600 hover:text-blue-700"
         >
           {resendCooldown > 0
             ? `Resend in ${resendCooldown}s`
             : 'Resend Code'
           }
-        </button>
+        </Button>
       </div>
     </div>
   )

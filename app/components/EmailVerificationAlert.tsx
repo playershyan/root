@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { CheckCircle, X, AlertTriangle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export default function EmailVerificationAlert() {
   const searchParams = useSearchParams()
@@ -42,12 +43,14 @@ export default function EmailVerificationAlert() {
             <p className="text-green-800 font-medium">Email Verified Successfully!</p>
             <p className="text-green-700 text-sm">Your email address has been verified.</p>
           </div>
-          <button
+          <Button
             onClick={() => setShowSuccess(false)}
-            className="text-green-600 hover:text-green-800"
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 text-green-600 hover:text-green-800"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
       </div>
     )
@@ -62,12 +65,14 @@ export default function EmailVerificationAlert() {
             <p className="text-red-800 font-medium">Verification Failed</p>
             <p className="text-red-700 text-sm">The verification link is invalid or expired.</p>
           </div>
-          <button
+          <Button
             onClick={() => setShowError(false)}
-            className="text-red-600 hover:text-red-800"
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 text-red-600 hover:text-red-800"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
       </div>
     )

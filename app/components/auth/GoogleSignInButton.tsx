@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { authConfig } from '@/lib/config/auth.config'
 import { signInWithGoogle } from '@/lib/auth'
 import type { AuthButtonProps, AuthResult } from './types'
+import { Button } from '@/components/ui/button'
 
 interface GoogleSignInButtonProps extends AuthButtonProps {
   showIcon?: boolean;
@@ -60,34 +61,16 @@ export default function GoogleSignInButton({
     }
   }
 
-  const baseClasses = 'flex items-center justify-center gap-3 font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2'
-  
-  const variantClasses = {
-    default: 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:ring-gray-500',
-    outlined: 'bg-transparent border-2 border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-500',
-    text: 'bg-transparent border-none text-gray-700 hover:bg-gray-100 focus:ring-gray-500'
-  }
-
-  const sizeClasses = {
-    small: 'px-3 py-2 text-sm rounded-md',
-    medium: 'px-4 py-3 text-base rounded-lg',
-    large: 'px-6 py-4 text-lg rounded-lg'
-  }
-
-  const finalClassName = `
-    ${baseClasses}
-    ${variantClasses[variant]}
-    ${sizeClasses[size]}
-    ${loading || externalLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-    ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-    ${className}
-  `.trim().replace(/\s+/g, ' ')
+  const buttonSize = size === 'small' ? 'sm' : size === 'large' ? 'lg' : 'default'
+  const buttonVariant = variant === 'outlined' || variant === 'default' ? 'outline' : 'ghost'
 
   return (
-    <button
+    <Button
       onClick={handleSignIn}
       disabled={loading || externalLoading || disabled}
-      className={finalClassName}
+      variant={buttonVariant}
+      size={buttonSize}
+      className={`gap-3 ${className}`}
       type="button"
       aria-label="Sign in with Google"
     >
@@ -109,6 +92,6 @@ export default function GoogleSignInButton({
           <span>{text}</span>
         </>
       )}
-    </button>
+    </Button>
   )
 }

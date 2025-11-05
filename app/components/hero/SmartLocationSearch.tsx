@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { DISTRICTS, CITIES, POPULAR_LOCATIONS } from '@/lib/constants/locations'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 interface SmartLocationSearchProps {
   selectedLocation: string | null
@@ -235,14 +237,14 @@ const SmartLocationSearch = ({ selectedLocation, onLocationChange }: SmartLocati
       {/* Search Input */}
       <div className="relative" ref={searchRef}>
         <div className="relative">
-          <input
+          <Input
             ref={inputRef}
             type="text"
             placeholder="Search location..."
             value={query}
             onChange={handleInputChange}
             onFocus={handleFocus}
-            className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
+            className="w-full pr-10"
           />
           <svg
             className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -261,10 +263,12 @@ const SmartLocationSearch = ({ selectedLocation, onLocationChange }: SmartLocati
               searchResults.length > 0 ? (
                 <div className="p-2">
                   {searchResults.map((result) => (
-                    <button
+                    <Button
                       key={result.id}
                       onClick={() => handleSelectLocation(result.name)}
-                      className="w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                      variant="ghost"
+                      size="default"
+                      className="w-full justify-start h-auto min-h-touch p-3"
                     >
                       <div className="flex items-center justify-between">
                         <div>
@@ -292,7 +296,7 @@ const SmartLocationSearch = ({ selectedLocation, onLocationChange }: SmartLocati
                           )}
                         </div>
                       </div>
-                    </button>
+                    </Button>
                   ))}
                 </div>
               ) : (
@@ -307,13 +311,15 @@ const SmartLocationSearch = ({ selectedLocation, onLocationChange }: SmartLocati
                   <div className="mb-3">
                     <div className="px-3 py-2 text-xs font-semibold text-gray-500">RECENT SEARCHES</div>
                     {recentSearches.map((location) => (
-                      <button
+                      <Button
                         key={location}
                         onClick={() => handleSelectLocation(location)}
-                        className="w-full text-left p-2 rounded hover:bg-gray-50 text-sm text-gray-700"
+                        variant="ghost"
+                        size="default"
+                        className="w-full justify-start min-h-touch"
                       >
                         {location}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 )}
@@ -322,13 +328,15 @@ const SmartLocationSearch = ({ selectedLocation, onLocationChange }: SmartLocati
                 <div>
                   <div className="px-3 py-2 text-xs font-semibold text-gray-500">POPULAR LOCATIONS</div>
                   {POPULAR_LOCATIONS.slice(0, 6).map((location) => (
-                    <button
+                    <Button
                       key={location}
                       onClick={() => handleSelectLocation(location)}
-                      className="w-full text-left p-2 rounded hover:bg-gray-50 text-sm text-gray-700"
+                      variant="ghost"
+                      size="default"
+                      className="w-full justify-start min-h-touch"
                     >
                       {location}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -348,11 +356,13 @@ const SmartLocationSearch = ({ selectedLocation, onLocationChange }: SmartLocati
             const locationData = district || city
             
             return (
-              <button
+              <Button
                 key={location}
                 onClick={() => handleSelectLocation(location)}
+                variant={selectedLocation === location ? 'default' : 'outline'}
+                size="default"
                 className={`
-                  px-3 py-2 rounded-lg border transition-all text-sm font-medium text-left
+                  min-h-touch h-auto justify-start
                   ${selectedLocation === location
                     ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                     : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
@@ -367,7 +377,7 @@ const SmartLocationSearch = ({ selectedLocation, onLocationChange }: SmartLocati
                     </div>
                   )}
                 </div>
-              </button>
+              </Button>
             )
           })}
         </div>
@@ -383,15 +393,17 @@ const SmartLocationSearch = ({ selectedLocation, onLocationChange }: SmartLocati
             </svg>
             <span className="text-sm font-medium text-blue-700">{selectedLocation}</span>
           </div>
-          <button
+          <Button
             onClick={() => onLocationChange(null)}
-            className="text-blue-600 hover:text-blue-800"
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 text-blue-600 hover:text-blue-800"
             aria-label="Clear location"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
-          </button>
+          </Button>
         </div>
       )}
     </div>

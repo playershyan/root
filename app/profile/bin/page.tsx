@@ -6,6 +6,7 @@ import { useAuth } from '@/app/contexts/AuthContext'
 import BinTab from '@/app/components/bin/BinTab'
 import { useState, useCallback, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { Button } from '@/components/ui/button'
 
 export default function BinPage() {
   const router = useRouter()
@@ -91,13 +92,15 @@ export default function BinPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <button
+        <Button
           onClick={() => router.push('/profile')}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+          variant="ghost"
+          size="sm"
+          className="mb-6 gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Profile
-        </button>
+        </Button>
 
         <BinTab
           binItems={binItems}

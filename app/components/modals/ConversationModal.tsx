@@ -9,6 +9,8 @@ import { useAuth } from '@/app/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { AuthModal } from '@/app/components/auth'
 import { getContextualQuickReplies } from '@/lib/messaging/quickReplies'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 interface Message {
   id: string
@@ -277,12 +279,14 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
               <p className="text-xs text-gray-500">Quick message to seller</p>
             </div>
           </div>
-          <button
+          <Button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-gray-200 transition-colors"
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 rounded-full"
           >
-            <X className="w-4 h-4 text-gray-500" />
-          </button>
+            <X className="w-4 h-4" />
+          </Button>
         </div>
 
         {/* Vehicle Info */}
@@ -320,24 +324,26 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Log in to send messages</h3>
               <p className="text-gray-600 mb-4 text-sm">You need to be logged in to contact the seller</p>
               <div className="flex gap-3">
-                <button
+                <Button
                   onClick={() => {
                     setAuthType('login')
                     setShowAuthModal(true)
                   }}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                  variant="primary"
+                  size="default"
                 >
                   Log In
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => {
                     setAuthType('register')
                     setShowAuthModal(true)
                   }}
-                  className="border border-blue-600 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors font-medium text-sm"
+                  variant="outline"
+                  size="default"
                 >
                   Sign Up
-                </button>
+                </Button>
               </div>
             </div>
           ) : loading ? (
@@ -420,35 +426,38 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
         <div className="p-4 border-t bg-white rounded-b-2xl">
           {user ? (
             <>
-              <form onSubmit={handleSendMessage} className="flex gap-2">
-                <input
+              <form onSubmit={handleSendMessage} className="flex gap-2 items-end">
+                <Input
                   type="text"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="Type your message..."
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  className="flex-1 rounded-full"
                   disabled={sending}
                 />
-                <button
+                <Button
                   type="submit"
                   disabled={!newMessage.trim() || sending}
-                  className="bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                  size="icon"
+                  className="flex-shrink-0 h-12 w-12 rounded-full"
                 >
                   <Send className="w-4 h-4" />
-                </button>
+                </Button>
               </form>
 
               {/* Smart Quick Messages */}
               <div className="mt-3 flex flex-wrap gap-2">
                 {getContextualQuickReplies(messages, user?.id === listing.user_id ? 'seller' : 'buyer').map((quickMsg) => (
-                  <button
+                  <Button
                     key={quickMsg}
                     onClick={() => setNewMessage(quickMsg)}
-                    className="text-xs px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs px-3 py-1.5 h-auto rounded-full bg-gray-100 hover:bg-gray-200"
                     disabled={sending}
                   >
                     {quickMsg}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </>

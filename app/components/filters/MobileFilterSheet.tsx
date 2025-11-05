@@ -3,6 +3,9 @@
 import { useState } from 'react'
 import LocationFilter from '@/app/components/LocationFilter'
 import { getVehicleCategories, getMakesByCategory, getModelsByMake, getCategoryInfo } from '@/lib/constants/vehicleData'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 interface MobileFilterSheetProps {
   // Filter states
@@ -200,12 +203,14 @@ export default function MobileFilterSheet({
                   {activeCount} {activeCount === 1 ? 'filter' : 'filters'} applied
                 </span>
               )}
-              <button
+              <Button
                 onClick={onClose}
-                className="text-blue-600 text-sm font-semibold hover:text-blue-700"
+                variant="ghost"
+                size="sm"
+                className="text-blue-600 hover:text-blue-700"
               >
                 Done
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -217,12 +222,14 @@ export default function MobileFilterSheet({
                     <i className="fas fa-hand-point-down text-4xl text-blue-600 mb-3 animate-bounce"></i>
                     <h3 className="text-lg font-bold text-blue-900 mb-2">Start Here!</h3>
                     <p className="text-sm text-blue-700 mb-4">Select a vehicle category first to see all available filters</p>
-                    <button
+                    <Button
                       onClick={() => showPage('category')}
-                      className="w-full bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg text-base hover:bg-blue-700 active:bg-blue-800 transition-colors"
+                      variant="primary"
+                      size="default"
+                      className="w-full"
                     >
                       Choose Vehicle Category
-                    </button>
+                    </Button>
                   </div>
                 </div>
                 <div className="text-center text-xs text-gray-400">
@@ -400,15 +407,17 @@ function CategoryFilterPage({
   return (
     <>
       <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 bg-white sticky top-0 z-10">
-        <button onClick={onBack} className="text-blue-600 text-2xl leading-none">‹</button>
+        <Button onClick={onBack} variant="ghost" size="icon" className="h-10 w-10 text-blue-600 text-2xl">‹</Button>
         <h2 className="text-base font-semibold text-gray-900 flex-1">Vehicle Category</h2>
         {selectedCategory && (
-          <button
+          <Button
             onClick={() => onSelect('')}
-            className="text-red-600 text-sm font-medium"
+            variant="ghost"
+            size="sm"
+            className="text-red-600"
           >
             Clear
-          </button>
+          </Button>
         )}
       </div>
 
@@ -458,15 +467,17 @@ function LocationFilterPage({
   return (
     <>
       <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 bg-white sticky top-0 z-10 shrink-0">
-        <button onClick={onBack} className="text-blue-600 text-2xl leading-none">‹</button>
+        <Button onClick={onBack} variant="ghost" size="icon" className="h-10 w-10 text-blue-600 text-2xl">‹</Button>
         <h2 className="text-base font-semibold text-gray-900 flex-1">Location</h2>
         {selectedLocation && selectedLocation !== 'All of Sri Lanka' && (
-          <button
+          <Button
             onClick={() => onLocationChange(null)}
-            className="text-red-600 text-sm font-medium"
+            variant="ghost"
+            size="sm"
+            className="text-red-600"
           >
             Clear
-          </button>
+          </Button>
         )}
       </div>
 
@@ -507,36 +518,40 @@ function MakeFilterPage({
   return (
     <>
       <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 bg-white sticky top-0 z-10">
-        <button onClick={onBack} className="text-blue-600 text-2xl leading-none">‹</button>
+        <Button onClick={onBack} variant="ghost" size="icon" className="h-10 w-10 text-blue-600 text-2xl">‹</Button>
         <h2 className="text-base font-semibold text-gray-900 flex-1">Make</h2>
         {selectedMake !== 'All Makes' && (
-          <button
+          <Button
             onClick={() => onSelect('All Makes')}
-            className="text-red-600 text-sm font-medium"
+            variant="ghost"
+            size="sm"
+            className="text-red-600"
           >
             Clear
-          </button>
+          </Button>
         )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
         <div className="relative mb-4">
-          <input
+          <Input
             type="text"
             placeholder="Search makes..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="pr-10"
           />
           {searchTerm && (
-            <button
+            <Button
               onClick={() => onSearchChange('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
+              variant="ghost"
+              size="icon"
+              className="absolute right-0 top-0 h-12 w-10"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </button>
+            </Button>
           )}
         </div>
 
@@ -609,36 +624,40 @@ function ModelFilterPage({
   return (
     <>
       <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 bg-white sticky top-0 z-10">
-        <button onClick={onBack} className="text-blue-600 text-2xl leading-none">‹</button>
+        <Button onClick={onBack} variant="ghost" size="icon" className="h-10 w-10 text-blue-600 text-2xl">‹</Button>
         <h2 className="text-base font-semibold text-gray-900 flex-1">Model</h2>
         {selectedModel !== 'All Models' && (
-          <button
+          <Button
             onClick={() => onSelect('All Models')}
-            className="text-red-600 text-sm font-medium"
+            variant="ghost"
+            size="sm"
+            className="text-red-600"
           >
             Clear
-          </button>
+          </Button>
         )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
         <div className="relative mb-4">
-          <input
+          <Input
             type="text"
             placeholder="Search models..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="pr-10"
           />
           {searchTerm && (
-            <button
+            <Button
               onClick={() => onSearchChange('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
+              variant="ghost"
+              size="icon"
+              className="absolute right-0 top-0 h-12 w-10"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </button>
+            </Button>
           )}
         </div>
 
@@ -715,12 +734,12 @@ function PriceFilterPage({
   return (
     <>
       <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 bg-white sticky top-0 z-10">
-        <button onClick={onBack} className="text-blue-600 text-2xl leading-none">‹</button>
+        <Button onClick={onBack} variant="ghost" size="icon" className="h-10 w-10 text-blue-600 text-2xl">‹</Button>
         <h2 className="text-base font-semibold text-gray-900 flex-1">Price Range</h2>
         {(minPrice || maxPrice) && (
-          <button onClick={onClear} className="text-red-600 text-sm font-medium">
+          <Button onClick={onClear} variant="ghost" size="sm" className="text-red-600">
             Clear
-          </button>
+          </Button>
         )}
       </div>
 
@@ -729,57 +748,57 @@ function PriceFilterPage({
           <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Quick Presets</div>
           <div className="grid grid-cols-3 gap-2">
             {presets.map((preset) => (
-              <button
+              <Button
                 key={preset.label}
                 onClick={() => {
                   onMinChange(preset.min)
                   onMaxChange(preset.max)
                 }}
-                className={`py-2 px-3 border rounded-lg text-xs font-medium transition-all ${
-                  currentPreset?.label === preset.label
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'border-gray-300 hover:bg-gray-50'
-                }`}
+                variant={currentPreset?.label === preset.label ? "primary" : "outline"}
+                size="sm"
+                className="text-xs h-auto py-2"
               >
                 {preset.label}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
-            <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide mb-2">
+            <Label htmlFor="min-price" className="uppercase tracking-wide mb-2">
               Minimum (LKR)
-            </label>
-            <input
+            </Label>
+            <Input
+              id="min-price"
               type="number"
               placeholder="0"
               value={minPrice}
               onChange={(e) => onMinChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide mb-2">
+            <Label htmlFor="max-price" className="uppercase tracking-wide mb-2">
               Maximum (LKR)
-            </label>
-            <input
+            </Label>
+            <Input
+              id="max-price"
               type="number"
               placeholder="Any"
               value={maxPrice}
               onChange={(e) => onMaxChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
           </div>
         </div>
 
-        <button
+        <Button
           onClick={onApply}
-          className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors"
+          variant="primary"
+          size="default"
+          className="w-full"
         >
           Apply Price Range
-        </button>
+        </Button>
       </div>
     </>
   )
@@ -817,12 +836,12 @@ function YearFilterPage({
   return (
     <>
       <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 bg-white sticky top-0 z-10">
-        <button onClick={onBack} className="text-blue-600 text-2xl leading-none">‹</button>
+        <Button onClick={onBack} variant="ghost" size="icon" className="h-10 w-10 text-blue-600 text-2xl">‹</Button>
         <h2 className="text-base font-semibold text-gray-900 flex-1">Year Range</h2>
         {(minYear || maxYear) && (
-          <button onClick={onClear} className="text-red-600 text-sm font-medium">
+          <Button onClick={onClear} variant="ghost" size="sm" className="text-red-600">
             Clear
-          </button>
+          </Button>
         )}
       </div>
 
@@ -831,57 +850,57 @@ function YearFilterPage({
           <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Quick Presets</div>
           <div className="grid grid-cols-3 gap-2">
             {presets.map((preset) => (
-              <button
+              <Button
                 key={preset.label}
                 onClick={() => {
                   onMinChange(preset.min)
                   onMaxChange(preset.max)
                 }}
-                className={`py-2 px-3 border rounded-lg text-xs font-medium transition-all ${
-                  currentPreset?.label === preset.label
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'border-gray-300 hover:bg-gray-50'
-                }`}
+                variant={currentPreset?.label === preset.label ? "primary" : "outline"}
+                size="sm"
+                className="text-xs h-auto py-2"
               >
                 {preset.label}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
-            <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide mb-2">
+            <Label htmlFor="min-year" className="uppercase tracking-wide mb-2">
               From Year
-            </label>
-            <input
+            </Label>
+            <Input
+              id="min-year"
               type="number"
               placeholder="Any"
               value={minYear}
               onChange={(e) => onMinChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide mb-2">
+            <Label htmlFor="max-year" className="uppercase tracking-wide mb-2">
               To Year
-            </label>
-            <input
+            </Label>
+            <Input
+              id="max-year"
               type="number"
               placeholder="Any"
               value={maxYear}
               onChange={(e) => onMaxChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
           </div>
         </div>
 
-        <button
+        <Button
           onClick={onApply}
-          className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors"
+          variant="primary"
+          size="default"
+          className="w-full"
         >
           Apply Year Range
-        </button>
+        </Button>
       </div>
     </>
   )
@@ -903,12 +922,12 @@ function FuelFilterPage({
   return (
     <>
       <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 bg-white sticky top-0 z-10">
-        <button onClick={onBack} className="text-blue-600 text-2xl leading-none">‹</button>
+        <Button onClick={onBack} variant="ghost" size="icon" className="h-10 w-10 text-blue-600 text-2xl">‹</Button>
         <h2 className="text-base font-semibold text-gray-900 flex-1">Fuel Type</h2>
         {selectedFuels.length > 0 && (
-          <button onClick={onClear} className="text-red-600 text-sm font-medium">
+          <Button onClick={onClear} variant="ghost" size="sm" className="text-red-600">
             Clear
-          </button>
+          </Button>
         )}
       </div>
 
@@ -917,10 +936,12 @@ function FuelFilterPage({
           {fuels.map((fuel) => {
             const isSelected = selectedFuels.includes(fuel)
             return (
-              <button
+              <Button
                 key={fuel}
                 onClick={() => onToggle(fuel)}
-                className="w-full flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+                variant="ghost"
+                size="default"
+                className="w-full flex items-center justify-start gap-3 min-h-touch"
               >
                 <div className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-all ${
                   isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-300'
@@ -932,17 +953,19 @@ function FuelFilterPage({
                   )}
                 </div>
                 <span className="text-sm text-gray-700">{fuel}</span>
-              </button>
+              </Button>
             )
           })}
         </div>
 
-        <button
+        <Button
           onClick={onBack}
-          className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors"
+          variant="primary"
+          size="default"
+          className="w-full"
         >
           Apply Fuel Types {selectedFuels.length > 0 && `(${selectedFuels.length})`}
-        </button>
+        </Button>
       </div>
     </>
   )
@@ -964,12 +987,12 @@ function TransmissionFilterPage({
   return (
     <>
       <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 bg-white sticky top-0 z-10">
-        <button onClick={onBack} className="text-blue-600 text-2xl leading-none">‹</button>
+        <Button onClick={onBack} variant="ghost" size="icon" className="h-10 w-10 text-blue-600 text-2xl">‹</Button>
         <h2 className="text-base font-semibold text-gray-900 flex-1">Transmission</h2>
         {selectedTransmissions.length > 0 && (
-          <button onClick={onClear} className="text-red-600 text-sm font-medium">
+          <Button onClick={onClear} variant="ghost" size="sm" className="text-red-600">
             Clear
-          </button>
+          </Button>
         )}
       </div>
 
@@ -978,10 +1001,12 @@ function TransmissionFilterPage({
           {transmissions.map((transmission) => {
             const isSelected = selectedTransmissions.includes(transmission)
             return (
-              <button
+              <Button
                 key={transmission}
                 onClick={() => onToggle(transmission)}
-                className="w-full flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+                variant="ghost"
+                size="default"
+                className="w-full flex items-center justify-start gap-3 min-h-touch"
               >
                 <div className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-all ${
                   isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-300'
@@ -993,17 +1018,19 @@ function TransmissionFilterPage({
                   )}
                 </div>
                 <span className="text-sm text-gray-700">{transmission}</span>
-              </button>
+              </Button>
             )
           })}
         </div>
 
-        <button
+        <Button
           onClick={onBack}
-          className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors"
+          variant="primary"
+          size="default"
+          className="w-full"
         >
           Apply Transmissions {selectedTransmissions.length > 0 && `(${selectedTransmissions.length})`}
-        </button>
+        </Button>
       </div>
     </>
   )
@@ -1030,7 +1057,7 @@ function SortFilterPage({
   return (
     <>
       <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 bg-white sticky top-0 z-10">
-        <button onClick={onBack} className="text-blue-600 text-2xl leading-none">‹</button>
+        <Button onClick={onBack} variant="ghost" size="icon" className="h-10 w-10 text-blue-600 text-2xl">‹</Button>
         <h2 className="text-base font-semibold text-gray-900 flex-1">Sort By</h2>
       </div>
 

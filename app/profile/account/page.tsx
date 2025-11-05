@@ -10,6 +10,9 @@ import { supabase } from '@/lib/supabase'
 import BusinessProfileManagement from '@/app/components/profile/BusinessProfileManagement'
 import CreateBusinessProfile from '@/app/components/profile/CreateBusinessProfile'
 import { CreateBusinessProfileData } from '@/lib/types/businessProfile'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 interface ProfileData {
   id: string
@@ -167,13 +170,15 @@ export default function AccountPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <button
+        <Button
           onClick={() => router.push('/profile')}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+          variant="ghost"
+          size="sm"
+          className="mb-6 gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Profile
-        </button>
+        </Button>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-6 border-b">
@@ -203,13 +208,15 @@ export default function AccountPage() {
                           : 'U'
                     )}
                   </div>
-                  <button
+                  <Button
                     type="button"
-                    className="absolute bottom-0 right-0 bg-white border-2 border-gray-300 rounded-full p-1 hover:bg-gray-50"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute bottom-0 right-0 bg-white border-2 border-gray-300 rounded-full hover:bg-gray-50 h-8 w-8"
                     title="Avatar upload coming soon"
                   >
                     <Camera className="w-4 h-4 text-gray-600" />
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -217,50 +224,50 @@ export default function AccountPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Full Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Label htmlFor="fullName">
                     Full Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
+                  </Label>
+                  <Input
+                    id="fullName"
                     type="text"
                     value={profile.fullName}
                     onChange={(e) => setProfile({...profile, fullName: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   />
                 </div>
 
                 {/* Email (disabled) */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Label htmlFor="email">
                     Email
-                  </label>
-                  <input
+                  </Label>
+                  <Input
+                    id="email"
                     type="email"
                     value={user?.email || ''}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
                     disabled
                   />
                 </div>
 
                 {/* Phone Number */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Label htmlFor="phone">
                     Phone Number
-                  </label>
-                  <input
+                  </Label>
+                  <Input
+                    id="phone"
                     type="tel"
                     value={profile.phone}
                     onChange={(e) => setProfile({...profile, phone: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
                 {/* Country (static) */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Label htmlFor="country">
                     Country
-                  </label>
-                  <div className="px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 font-medium">
+                  </Label>
+                  <div className="h-12 px-4 flex items-center border border-gray-300 rounded-lg bg-gray-50 text-gray-700 font-medium">
                     🇱🇰 Sri Lanka
                   </div>
                 </div>
@@ -268,13 +275,14 @@ export default function AccountPage() {
 
               {/* Submit Button */}
               <div className="flex gap-3">
-                <button
+                <Button
                   type="submit"
                   disabled={isLoading}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50"
+                  variant="primary"
+                  size="default"
                 >
                   {isLoading ? 'Saving...' : 'Save Changes'}
-                </button>
+                </Button>
               </div>
             </form>
 

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { MessageSquare, ChevronRight, MoreVertical, Eye, Trash2 } from 'lucide-react'
 import { ConversationData, formatMessageDate, formatPrice, getOtherUser, truncateMessage } from '@/lib/utils/messageUtils'
+import { Button } from '@/components/ui/button'
 
 interface MessagePreviewProps {
   conversation: ConversationData
@@ -100,30 +101,32 @@ export default function MessagePreview({
                   
                   {/* Three-dotted menu */}
                   <div className="relative" data-menu-button>
-                    <button
+                    <Button
                       onClick={(e) => {
                         e.stopPropagation()
                         setShowMenu(!showMenu)
                       }}
-                      className="p-1 hover:bg-gray-200 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 opacity-0 group-hover:opacity-100"
                     >
                       <MoreVertical className="w-4 h-4 text-gray-500" />
-                    </button>
+                    </Button>
                     
                     {showMenu && (
                       <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
                         <button
                           onClick={(e) => handleMenuAction(() => onClick(), e)}
-                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full text-left"
+                          className="flex items-center gap-2 px-4 py-3 min-h-touch text-sm text-gray-700 hover:bg-gray-50 w-full text-left active:scale-95 transition-transform"
                         >
                           <Eye className="w-4 h-4" />
                           View Conversation
                         </button>
-                        
+
                         {conversation.unread_count > 0 && onMarkAsRead && (
                           <button
                             onClick={(e) => handleMenuAction(() => onMarkAsRead(conversation.id), e)}
-                            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full text-left"
+                            className="flex items-center gap-2 px-4 py-3 min-h-touch text-sm text-gray-700 hover:bg-gray-50 w-full text-left active:scale-95 transition-transform"
                           >
                             <MessageSquare className="w-4 h-4" />
                             Mark as Read
@@ -135,7 +138,7 @@ export default function MessagePreview({
                             <hr className="my-1" />
                             <button
                               onClick={(e) => handleMenuAction(() => onMoveToBin(conversation.id), e)}
-                              className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left"
+                              className="flex items-center gap-2 px-4 py-3 min-h-touch text-sm text-red-600 hover:bg-red-50 w-full text-left active:scale-95 transition-transform"
                             >
                               <Trash2 className="w-4 h-4" />
                               Move to Bin

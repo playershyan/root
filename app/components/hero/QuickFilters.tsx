@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import SmartLocationSearch from './SmartLocationSearch'
 import { getVehicleCategories, getMakesByCategory } from '@/lib/constants/vehicleData'
+import { Button } from '@/components/ui/button'
 
 interface QuickFiltersProps {
   selectedCategory: string
@@ -116,15 +117,17 @@ export default function QuickFilters({
       {/* Clear Button */}
       {hasFilters && (
         <div className="flex justify-end mt-3">
-          <button
+          <Button
             onClick={onClearFilters}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm font-medium hover:bg-red-100 hover:border-red-300 transition-colors"
+            variant="outline"
+            size="default"
+            className="gap-2 bg-red-50 border-red-200 text-red-700 hover:bg-red-100 hover:border-red-300"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
             Clear All Filters
-          </button>
+          </Button>
         </div>
       )}
     </div>

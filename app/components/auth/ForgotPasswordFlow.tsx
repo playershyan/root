@@ -4,6 +4,9 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { validateEmail } from '@/lib/errorHandling'
 import { supabase } from '@/lib/supabase'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 interface ForgotPasswordFlowProps {
   onBack?: () => void;
@@ -269,16 +272,18 @@ export default function ForgotPasswordFlow({
     <div className="space-y-4">
       {/* Back Button (not shown on success) */}
       {currentStep !== 'success' && (
-        <button
+        <Button
           onClick={handleBackNavigation}
-          className="mb-4 flex items-center text-sm text-gray-600 hover:text-gray-800"
+          variant="ghost"
+          size="sm"
+          className="mb-4 gap-2"
           type="button"
         >
-          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
           Back
-        </button>
+        </Button>
       )}
 
       {/* General Error */}
@@ -300,25 +305,28 @@ export default function ForgotPasswordFlow({
 
           <form onSubmit={handleEmailSubmit} className="space-y-4">
             <div>
-              <label htmlFor="reset-email" className="block text-sm font-medium text-gray-700 mb-1">
+              <Label htmlFor="reset-email">
                 Email Address
-              </label>
-              <input
+              </Label>
+              <Input
                 id="reset-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={`${inputClasses} ${errors.email ? errorInputClasses : ''}`}
+                className={errors.email ? 'border-red-300' : ''}
                 placeholder="Enter your email"
                 disabled={loading}
+                inputMode="email"
               />
               {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
             </div>
 
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              variant="default"
+              size="default"
+              className="w-full"
             >
               {loading ? (
                 <>
@@ -328,7 +336,7 @@ export default function ForgotPasswordFlow({
               ) : (
                 'Next'
               )}
-            </button>
+            </Button>
           </form>
         </div>
       )}
@@ -346,9 +354,9 @@ export default function ForgotPasswordFlow({
 
           <form id="reset-verification-form" onSubmit={handleCodeVerification} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3 text-center">
+              <Label className="block mb-3 text-center">
                 Verification Code
-              </label>
+              </Label>
               <div className="flex justify-center gap-3 mb-4">
                 {otp.map((digit, index) => (
                   <input
@@ -360,7 +368,7 @@ export default function ForgotPasswordFlow({
                     value={digit}
                     onChange={(e) => handleOtpChange(index, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                    className="w-12 h-12 text-center text-xl font-semibold border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
+                    className="w-12 h-12 min-h-touch text-center text-xl font-semibold border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
                     disabled={loading}
                   />
                 ))}
@@ -368,10 +376,12 @@ export default function ForgotPasswordFlow({
               {errors.otp && <p className="text-sm text-red-600 text-center">{errors.otp}</p>}
             </div>
 
-            <button
+            <Button
               type="submit"
               disabled={loading || otp.some(digit => !digit)}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              variant="default"
+              size="default"
+              className="w-full"
             >
               {loading ? (
                 <>
@@ -381,7 +391,7 @@ export default function ForgotPasswordFlow({
               ) : (
                 'Verify'
               )}
-            </button>
+            </Button>
           </form>
 
           <div className="text-center mt-4">
@@ -393,13 +403,15 @@ export default function ForgotPasswordFlow({
                 Resend in {resendTimer} seconds
               </p>
             ) : (
-              <button
+              <Button
                 onClick={handleResendCode}
                 disabled={loading}
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium focus:outline-none disabled:opacity-50"
+                variant="ghost"
+                size="sm"
+                className="text-blue-600 hover:text-blue-700"
               >
                 Resend
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -415,15 +427,15 @@ export default function ForgotPasswordFlow({
 
           <form onSubmit={handlePasswordReset} className="space-y-4">
             <div>
-              <label htmlFor="new-password" className="block text-sm font-medium text-gray-700 mb-1">
+              <Label htmlFor="new-password">
                 New Password
-              </label>
-              <input
+              </Label>
+              <Input
                 id="new-password"
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className={`${inputClasses} ${errors.password ? errorInputClasses : ''}`}
+                className={errors.password ? 'border-red-300' : ''}
                 placeholder="Enter new password"
                 disabled={loading}
               />
@@ -431,25 +443,27 @@ export default function ForgotPasswordFlow({
             </div>
 
             <div>
-              <label htmlFor="confirm-new-password" className="block text-sm font-medium text-gray-700 mb-1">
+              <Label htmlFor="confirm-new-password">
                 Confirm Password
-              </label>
-              <input
+              </Label>
+              <Input
                 id="confirm-new-password"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className={`${inputClasses} ${errors.confirmPassword ? errorInputClasses : ''}`}
+                className={errors.confirmPassword ? 'border-red-300' : ''}
                 placeholder="Confirm new password"
                 disabled={loading}
               />
               {errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>}
             </div>
 
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              variant="default"
+              size="default"
+              className="w-full"
             >
               {loading ? (
                 <>
@@ -459,7 +473,7 @@ export default function ForgotPasswordFlow({
               ) : (
                 'Confirm'
               )}
-            </button>
+            </Button>
           </form>
         </div>
       )}

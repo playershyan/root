@@ -3,6 +3,9 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Check, X, Loader2 } from 'lucide-react'
 import { debounce } from 'lodash'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 interface UsernameCreationProps {
   phoneNumber: string
@@ -212,19 +215,19 @@ export default function UsernameCreation({
         )}
 
         <div>
-          <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+          <Label htmlFor="username">
             Choose a Username
-          </label>
+          </Label>
           <div className="relative">
-            <input
+            <Input
               id="username"
               type="text"
               value={username}
               onChange={handleUsernameChange}
-              className={`w-full px-4 py-3 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+              className={`pr-10 ${
                 usernameStatus === 'available' ? 'border-green-300' :
                 usernameStatus === 'taken' || usernameStatus === 'invalid' ? 'border-red-300' :
-                'border-gray-300'
+                ''
               }`}
               placeholder="your_username"
               disabled={loading}
@@ -257,10 +260,12 @@ export default function UsernameCreation({
           </div>
         </div>
 
-        <button
+        <Button
           type="submit"
           disabled={isSubmitDisabled}
-          className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          variant="default"
+          size="default"
+          className="w-full"
         >
           {loading ? (
             <>
@@ -270,7 +275,7 @@ export default function UsernameCreation({
           ) : (
             'Create Account'
           )}
-        </button>
+        </Button>
       </form>
 
       {/* Footer */}

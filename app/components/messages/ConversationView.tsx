@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { ArrowLeft, User, Car, Send } from 'lucide-react'
 import { ConversationData, MessageData, formatMessageDate, formatPrice, getOtherUser, shouldShowDateSeparator, getDateSeparatorText } from '@/lib/utils/messageUtils'
 import OfferCard from '@/app/components/messaging/OfferCard'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 
 interface ConversationViewProps {
   conversation: ConversationData
@@ -42,12 +44,14 @@ export default function ConversationView({
       <div className="border-b px-3 md:px-6 py-3 md:py-4 bg-white sticky top-0 z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
-            <button 
+            <Button
               onClick={onBack}
-              className="text-gray-500 hover:text-gray-700 flex-shrink-0 p-1 hover:bg-gray-100 rounded-full transition-colors"
+              variant="ghost"
+              size="icon"
+              className="flex-shrink-0 h-10 w-10"
             >
               <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
-            </button>
+            </Button>
             
             <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
               <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
@@ -215,11 +219,11 @@ export default function ConversationView({
       <div className="border-t bg-white px-3 md:px-6 py-4 sticky bottom-0">
         <form onSubmit={handleSubmit} className="flex gap-3 items-end">
           <div className="flex-1">
-            <textarea
+            <Textarea
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Type a message..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none min-h-[44px] max-h-[120px] text-sm leading-relaxed"
+              className="w-full rounded-2xl resize-none min-h-[48px] max-h-[120px]"
               disabled={sendingMessage}
               rows={1}
               onKeyDown={(e) => {
@@ -230,17 +234,18 @@ export default function ConversationView({
               }}
             />
           </div>
-          <button
+          <Button
             type="submit"
             disabled={!newMessage.trim() || sendingMessage}
-            className="bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0 shadow-lg hover:shadow-xl"
+            size="icon"
+            className="flex-shrink-0 h-12 w-12 rounded-full shadow-lg hover:shadow-xl"
           >
             {sendingMessage ? (
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
             ) : (
               <Send className="w-5 h-5" />
             )}
-          </button>
+          </Button>
         </form>
         <p className="text-xs text-gray-500 mt-2 text-center">
           Press Enter to send, Shift+Enter for new line

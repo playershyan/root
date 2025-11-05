@@ -3,6 +3,9 @@
 import { useState } from 'react'
 import { useRecaptcha } from '@/lib/hooks/useRecaptcha'
 import { X, AlertTriangle, Shield, Copy, Tag, Zap } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
 
 interface ReportModalProps {
   isOpen: boolean
@@ -139,13 +142,15 @@ export default function ReportModal({
             <h2 className="text-xl font-bold text-gray-800">
               Report {itemType === 'listing' ? 'Listing' : 'Wanted Request'}
             </h2>
-            <button
+            <Button
               onClick={handleClose}
               disabled={loading}
-              className="text-gray-400 hover:text-gray-600 transition-colors disabled:cursor-not-allowed"
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10"
             >
-              <X size={24} />
-            </button>
+              <X className="w-5 h-5" />
+            </Button>
           </div>
           <p className="text-sm text-gray-600 mt-2">
             Report: <span className="font-medium">{itemTitle}</span>
@@ -177,9 +182,10 @@ export default function ReportModal({
                   {REPORT_REASONS.map((reason) => {
                     const IconComponent = reason.icon
                     return (
-                      <div
+                      <button
                         key={reason.id}
-                        className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                        type="button"
+                        className={`border-2 rounded-lg p-4 transition-all w-full text-left min-h-touch active:scale-95 ${
                           selectedReason === reason.id
                             ? 'border-blue-500 bg-blue-50'
                             : 'border-gray-200 hover:border-gray-300'
@@ -209,7 +215,7 @@ export default function ReportModal({
                             )}
                           </div>
                         </div>
-                      </div>
+                      </button>
                     )
                   })}
                 </div>
@@ -217,14 +223,15 @@ export default function ReportModal({
 
               {/* Additional Details */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Label htmlFor="details" className="mb-2">
                   Additional Details (Optional)
-                </label>
-                <textarea
+                </Label>
+                <Textarea
+                  id="details"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Provide any additional information that might help us understand the issue..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                  className="resize-none"
                   rows={4}
                   maxLength={500}
                   disabled={loading}
@@ -243,20 +250,24 @@ export default function ReportModal({
 
               {/* Action Buttons */}
               <div className="flex gap-3">
-                <button
+                <Button
                   onClick={handleClose}
                   disabled={loading}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  variant="outline"
+                  size="default"
+                  className="flex-1"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleSubmit}
                   disabled={loading || !selectedReason}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  variant="destructive"
+                  size="default"
+                  className="flex-1"
                 >
                   {loading ? 'Submitting...' : 'Submit Report'}
-                </button>
+                </Button>
               </div>
 
               {/* Disclaimer */}

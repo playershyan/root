@@ -4,6 +4,9 @@ import { useState } from 'react'
 import { X, CreditCard, Smartphone } from 'lucide-react'
 import { PayHerePaymentForm } from '@/lib/payments/payhereService'
 import { PromotionType } from '@/lib/services/promotionService'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 interface PaymentModalProps {
   isOpen: boolean
@@ -75,12 +78,14 @@ export default function PaymentModal({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-semibold">Complete Payment</h2>
-          <button
+          <Button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         <div className="p-6">
@@ -106,45 +111,44 @@ export default function PaymentModal({
           {/* Customer Information */}
           <div className="space-y-4 mb-6">
             <h3 className="font-semibold">Contact Information</h3>
-            
+
             <div>
-              <label className="block text-sm font-medium mb-1">Full Name *</label>
-              <input
+              <Label htmlFor="name">Full Name *</Label>
+              <Input
+                id="name"
                 type="text"
                 value={customerInfo.name}
                 onChange={(e) => setCustomerInfo(prev => ({ ...prev, name: e.target.value }))}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.name ? 'border-red-300' : 'border-gray-300'
-                }`}
+                className={errors.name ? 'border-red-300' : ''}
                 placeholder="Enter your full name"
               />
               {errors.name && <p className="text-red-600 text-xs mt-1">{errors.name}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Email *</label>
-              <input
+              <Label htmlFor="email">Email *</Label>
+              <Input
+                id="email"
                 type="email"
                 value={customerInfo.email}
                 onChange={(e) => setCustomerInfo(prev => ({ ...prev, email: e.target.value }))}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.email ? 'border-red-300' : 'border-gray-300'
-                }`}
+                className={errors.email ? 'border-red-300' : ''}
                 placeholder="your@email.com"
+                inputMode="email"
               />
               {errors.email && <p className="text-red-600 text-xs mt-1">{errors.email}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Phone Number *</label>
-              <input
+              <Label htmlFor="phone">Phone Number *</Label>
+              <Input
+                id="phone"
                 type="tel"
                 value={customerInfo.phone}
                 onChange={(e) => setCustomerInfo(prev => ({ ...prev, phone: e.target.value }))}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.phone ? 'border-red-300' : 'border-gray-300'
-                }`}
+                className={errors.phone ? 'border-red-300' : ''}
                 placeholder="0771234567"
+                inputMode="tel"
               />
               {errors.phone && <p className="text-red-600 text-xs mt-1">{errors.phone}</p>}
             </div>
@@ -154,14 +158,14 @@ export default function PaymentModal({
           <div className="mb-6">
             <h3 className="font-semibold mb-3">Payment Method</h3>
             <div className="space-y-3">
-              <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+              <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 min-h-touch active:scale-95 transition-transform">
                 <input
                   type="radio"
                   name="paymentMethod"
                   value="payhere"
                   checked={true}
                   readOnly
-                  className="mr-3"
+                  className="mr-3 w-5 h-5"
                 />
                 <Smartphone className="w-5 h-5 mr-3 text-green-600" />
                 <div>
@@ -190,12 +194,14 @@ export default function PaymentModal({
             )}
 
 
-            <button
+            <Button
               onClick={onClose}
-              className="w-full border border-gray-300 text-gray-700 font-semibold py-3 px-6 rounded-lg hover:bg-gray-50 transition-colors"
+              variant="outline"
+              size="default"
+              className="w-full"
             >
               Cancel
-            </button>
+            </Button>
           </div>
 
           {/* Security Note */}

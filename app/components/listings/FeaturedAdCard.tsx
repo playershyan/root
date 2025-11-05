@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic'
 import { Heart, MapPin, Calendar, Eye, Star } from 'lucide-react'
 import PromotionBadges from './PromotionBadges'
 import ImageCarousel from '@/components/ui/ImageCarousel'
+import { Button } from '@/components/ui/button'
 
 // Lazy load modals (Phase 2 optimization)
 const ContactModal = dynamic(() => import('@/app/components/modals/ContactModal'))
@@ -174,15 +175,17 @@ export default function FeaturedAdCard({ listing, promotionType }: FeaturedAdCar
               </div>
 
               {/* Favorite Button */}
-              <button
+              <Button
                 onClick={(e) => {
                   e.preventDefault()
                   setIsFavorite(!isFavorite)
                 }}
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10"
               >
                 <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
-              </button>
+              </Button>
             </div>
 
             {/* Price Section */}
@@ -210,26 +213,30 @@ export default function FeaturedAdCard({ listing, promotionType }: FeaturedAdCar
               {/* CTA Buttons for Featured Ads */}
               {priority === 'featured' && (
                 <div className="flex gap-2">
-                  <button
+                  <Button
                     onClick={(e) => {
                       e.preventDefault()
                       setShowContactModal(true)
                     }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2"
+                    variant="primary"
+                    size="default"
+                    className="gap-2"
                   >
                     <i className="fas fa-phone text-sm"></i>
                     Call
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={(e) => {
                       e.preventDefault()
                       setShowConversationModal(true)
                     }}
-                    className="border border-blue-600 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2"
+                    variant="outline"
+                    size="default"
+                    className="gap-2"
                   >
                     <i className="fas fa-envelope text-sm"></i>
                     Message
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>

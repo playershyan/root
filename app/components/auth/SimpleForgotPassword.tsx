@@ -3,6 +3,9 @@
 import React, { useState } from 'react'
 import { validateEmail } from '@/lib/errorHandling'
 import { supabase } from '@/lib/supabase'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 interface SimpleForgotPasswordProps {
   onBack?: () => void;
@@ -81,12 +84,14 @@ export default function SimpleForgotPassword({
             <br />
             The link will expire in 1 hour.
           </p>
-          <button
+          <Button
             onClick={onBack}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium focus:outline-none"
+            variant="ghost"
+            size="sm"
+            className="text-blue-600 hover:text-blue-700"
           >
             Back to Login
-          </button>
+          </Button>
         </div>
       </div>
     )
@@ -95,16 +100,18 @@ export default function SimpleForgotPassword({
   return (
     <div className="space-y-4">
       {/* Back Button */}
-      <button
+      <Button
         onClick={onBack}
-        className="mb-4 flex items-center text-sm text-gray-600 hover:text-gray-800"
+        variant="ghost"
+        size="sm"
+        className="mb-4 gap-2"
         type="button"
       >
-        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
         Back
-      </button>
+      </Button>
 
       <div className="text-center mb-6">
         <h3 className="text-lg font-medium text-gray-900 mb-2">Reset your password</h3>
@@ -121,24 +128,26 @@ export default function SimpleForgotPassword({
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="reset-email" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="reset-email">
             Email Address
-          </label>
-          <input
+          </Label>
+          <Input
             id="reset-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Enter your email"
             disabled={loading}
+            inputMode="email"
           />
         </div>
 
-        <button
+        <Button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          variant="default"
+          size="default"
+          className="w-full"
         >
           {loading ? (
             <>
@@ -148,7 +157,7 @@ export default function SimpleForgotPassword({
           ) : (
             'Send Reset Link'
           )}
-        </button>
+        </Button>
       </form>
     </div>
   )

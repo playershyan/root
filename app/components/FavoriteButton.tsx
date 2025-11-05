@@ -8,6 +8,7 @@ import { AuthModal } from './auth'
 import { useAuthWithRedirect } from '../hooks/useAuthWithRedirect'
 import { useToast } from '@/app/components/notifications/useToast'
 import { ToastContainer } from '@/app/components/notifications/ToastContainer'
+import { Button } from '@/components/ui/button'
 
 interface FavoriteButtonProps {
   listingId: string
@@ -35,11 +36,11 @@ export default function FavoriteButton({
   // NOTE: Pending action handling moved to parent component (listings page)
   // to avoid race conditions with multiple FavoriteButton instances
 
-  // Handle size classes
+  // Handle size classes for Button component
   const sizeClasses = {
-    small: 'p-1.5',
-    medium: 'p-2',
-    large: 'p-3'
+    small: 'h-10 w-10', // 40px (iOS minimum)
+    medium: 'h-11 w-11', // 44px (iOS standard)
+    large: 'h-12 w-12' // 48px (Android standard)
   }
 
   const iconSizes = {
@@ -95,21 +96,22 @@ export default function FavoriteButton({
   return (
     <>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
-      <button
+      <Button
         onClick={handleClick}
         disabled={isProcessing}
+        variant="ghost"
+        size="icon"
         className={`
           ${sizeClasses[size]}
           ${className}
           ${isProcessing ? 'opacity-50 cursor-wait' : ''}
-          transition-all duration-200
           relative pointer-events-auto
         `}
         style={{ zIndex: 30 }}
         aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
         title={!user ? 'Sign in to save favorites' : (isFavorite ? 'Remove from favorites' : 'Add to favorites')}
       >
-        <Heart 
+        <Heart
           className={`
             ${iconSizes[size]}
             ${isFavorite && user ? 'fill-red-500 text-red-500' : 'text-gray-600'}
@@ -122,7 +124,7 @@ export default function FavoriteButton({
             {isFavorite && user ? 'Saved' : 'Save'}
           </span>
         )}
-      </button>
+      </Button>
 
       {/* Auth Modal */}
       <AuthModal

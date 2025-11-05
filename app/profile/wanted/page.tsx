@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase'
 import WantedRequestStatusBadge from '@/app/components/wantedRequests/WantedRequestStatusBadge'
 import WantedRequestActions from '@/app/components/wantedRequests/WantedRequestActions'
 import WantedRequestStatusMessage from '@/app/components/wantedRequests/WantedRequestStatusMessage'
+import { Button } from '@/components/ui/button'
 
 interface WantedRequest {
   id: string
@@ -246,24 +247,30 @@ export default function WantedPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <button
+        <Button
           onClick={() => router.push('/profile')}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+          variant="ghost"
+          size="sm"
+          className="mb-6 gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Profile
-        </button>
+        </Button>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           {/* Header */}
           <div className="p-6 border-b flex justify-between items-center">
             <h1 className="text-2xl font-semibold">Wanted Requests</h1>
-            <Link
-              href="/wanted/post"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2"
+            <Button
+              asChild
+              variant="primary"
+              size="default"
+              className="gap-2"
             >
-              <span>+</span> Publish a Request
-            </Link>
+              <Link href="/wanted/post">
+                <span>+</span> Publish a Request
+              </Link>
+            </Button>
           </div>
 
           <div className="p-6">
@@ -282,12 +289,15 @@ export default function WantedPage() {
                 <Search className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                 <p className="font-medium text-gray-900 mb-1">No wanted requests yet</p>
                 <p className="text-sm text-gray-600 mb-4">Create your first wanted request to find your ideal vehicle</p>
-                <Link
-                  href="/wanted/post"
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium inline-block"
+                <Button
+                  asChild
+                  variant="primary"
+                  size="default"
                 >
-                  Post Your First Request
-                </Link>
+                  <Link href="/wanted/post">
+                    Post Your First Request
+                  </Link>
+                </Button>
               </div>
             ) : (
               <>
@@ -331,39 +341,45 @@ export default function WantedPage() {
                             <div className="flex items-center gap-2">
                               {request.status === 'active' && (
                                 <>
-                                  <button
+                                  <Button
                                     onClick={() => handleCloseWantedRequest(request.id)}
-                                    className="bg-gray-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-gray-700 flex items-center gap-1 font-medium transition-all"
+                                    size="default"
+                                    className="bg-gray-600 hover:bg-gray-700 text-white gap-1"
                                   >
                                     <X className="w-3 h-3" />
                                     Close
-                                  </button>
-                                  <Link
-                                    href={`/wanted-request/paid-features?request=${request.id}`}
-                                    className="bg-amber-500 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-amber-600 inline-flex items-center gap-1 font-medium shadow-sm transition-all"
+                                  </Button>
+                                  <Button
+                                    asChild
+                                    size="default"
+                                    className="bg-amber-500 hover:bg-amber-600 text-white gap-1"
                                   >
-                                    <Zap className="w-3 h-3 animate-pulse" />
-                                    Boost
-                                  </Link>
+                                    <Link href={`/wanted-request/paid-features?request=${request.id}`}>
+                                      <Zap className="w-3 h-3 animate-pulse" />
+                                      Boost
+                                    </Link>
+                                  </Button>
                                 </>
                               )}
 
                               {request.status === 'paused' && (
                                 <>
-                                  <button
+                                  <Button
                                     onClick={() => handlePauseResumeWantedRequest(request.id, 'resume')}
-                                    className="bg-green-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-green-700 flex items-center gap-1 font-medium transition-all"
+                                    size="default"
+                                    className="bg-green-600 hover:bg-green-700 text-white gap-1"
                                   >
                                     <Play className="w-3 h-3" />
                                     Resume
-                                  </button>
-                                  <button
+                                  </Button>
+                                  <Button
                                     onClick={() => handleCloseWantedRequest(request.id)}
-                                    className="bg-gray-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-gray-700 flex items-center gap-1 font-medium transition-all"
+                                    size="default"
+                                    className="bg-gray-600 hover:bg-gray-700 text-white gap-1"
                                   >
                                     <X className="w-3 h-3" />
                                     Close
-                                  </button>
+                                  </Button>
                                 </>
                               )}
 
@@ -396,12 +412,14 @@ export default function WantedPage() {
                           >
                             {request.title}
                           </Link>
-                          <button
+                          <Button
                             onClick={() => setShowActionMenu(showActionMenu === request.id ? null : request.id)}
-                            className="p-2 hover:bg-gray-100 rounded-full flex-shrink-0"
+                            variant="ghost"
+                            size="icon"
+                            className="flex-shrink-0 h-10 w-10"
                           >
                             <MoreVertical className="w-5 h-5" />
-                          </button>
+                          </Button>
                         </div>
 
                         <div className="space-y-3 mt-3">
@@ -426,28 +444,34 @@ export default function WantedPage() {
                           {/* Quick Actions */}
                           {request.status === 'active' && (
                             <div className="flex gap-2 pt-2">
-                              <button
+                              <Button
                                 onClick={() => handlePauseResumeWantedRequest(request.id, 'pause')}
-                                className="flex-1 bg-gray-100 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-200"
+                                variant="outline"
+                                size="default"
+                                className="flex-1"
                               >
                                 Pause
-                              </button>
-                              <Link
-                                href={`/wanted-request/paid-features?request=${request.id}`}
-                                className="flex-1 bg-amber-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-amber-600 text-center"
+                              </Button>
+                              <Button
+                                asChild
+                                size="default"
+                                className="flex-1 bg-amber-500 hover:bg-amber-600 text-white"
                               >
-                                Boost
-                              </Link>
+                                <Link href={`/wanted-request/paid-features?request=${request.id}`}>
+                                  Boost
+                                </Link>
+                              </Button>
                             </div>
                           )}
 
                           {request.status === 'paused' && (
-                            <button
+                            <Button
                               onClick={() => handlePauseResumeWantedRequest(request.id, 'resume')}
-                              className="w-full bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-700"
+                              size="default"
+                              className="w-full bg-green-600 hover:bg-green-700 text-white"
                             >
                               Resume
-                            </button>
+                            </Button>
                           )}
                         </div>
                       </div>

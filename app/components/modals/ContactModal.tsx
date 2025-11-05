@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { X, Phone, MessageCircle, Copy, Check } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 interface ContactModalProps {
   isOpen: boolean
@@ -104,12 +105,14 @@ export default function ContactModal({ isOpen, onClose, listing }: ContactModalP
       <div className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4">
         {/* Header */}
         <div className="relative bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-t-2xl">
-          <button
+          <Button
             onClick={onClose}
-            className="absolute top-3 right-3 p-1.5 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+            variant="ghost"
+            size="icon"
+            className="absolute top-3 right-3 h-10 w-10 rounded-full bg-white/20 hover:bg-white/30"
           >
-            <X className="w-3 h-3" />
-          </button>
+            <X className="w-4 h-4" />
+          </Button>
           
           <div className="pr-10">
             <h2 className="text-lg font-bold">Contact Seller</h2>
@@ -136,25 +139,28 @@ export default function ContactModal({ isOpen, onClose, listing }: ContactModalP
                       </p>
                     </div>
                   </div>
-                  <button
+                  <Button
                     onClick={() => handleCopy(formatPhoneForDisplay(listing.phone), 'phone')}
-                    className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
                     title="Copy phone number"
                   >
                     {copiedField === 'phone' ? (
-                      <Check className="w-3 h-3 text-green-600" />
+                      <Check className="w-4 h-4 text-green-600" />
                     ) : (
-                      <Copy className="w-3 h-3" />
+                      <Copy className="w-4 h-4" />
                     )}
-                  </button>
+                  </Button>
                 </div>
-                <button
+                <Button
                   onClick={() => handlePhoneClick(listing.phone!)}
-                  className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center justify-center gap-2 text-sm"
+                  size="default"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white gap-2"
                 >
-                  <Phone className="w-3 h-3" />
+                  <Phone className="w-4 h-4" />
                   Call Now
-                </button>
+                </Button>
               </div>
             )}
 
@@ -173,25 +179,28 @@ export default function ContactModal({ isOpen, onClose, listing }: ContactModalP
                       </p>
                     </div>
                   </div>
-                  <button
+                  <Button
                     onClick={() => handleCopy(formatPhoneForDisplay(listing.whatsapp!), 'whatsapp')}
-                    className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
                     title="Copy WhatsApp number"
                   >
                     {copiedField === 'whatsapp' ? (
-                      <Check className="w-3 h-3 text-green-600" />
+                      <Check className="w-4 h-4 text-green-600" />
                     ) : (
-                      <Copy className="w-3 h-3" />
+                      <Copy className="w-4 h-4" />
                     )}
-                  </button>
+                  </Button>
                 </div>
-                <button
+                <Button
                   onClick={() => handleWhatsAppClick(listing.whatsapp!)}
-                  className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors font-medium flex items-center justify-center gap-2 text-sm"
+                  size="default"
+                  className="w-full bg-green-500 hover:bg-green-600 text-white gap-2"
                 >
                   <i className="fab fa-whatsapp text-base" />
                   WhatsApp
-                </button>
+                </Button>
               </div>
             )}
 

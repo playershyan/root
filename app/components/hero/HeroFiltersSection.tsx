@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import QuickFilters from './QuickFilters'
 import { isValidLocation } from '@/lib/constants/locations'
+import { Button } from '@/components/ui/button'
 
 export default function HeroFiltersSection() {
   const router = useRouter()
@@ -65,12 +66,14 @@ export default function HeroFiltersSection() {
 
       {/* Browse Button - Integrated with Filters */}
       <div className="mt-4">
-        <button
+        <Button
           onClick={handleBrowse}
-          className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm"
+          variant="default"
+          size="default"
+          className="w-full shadow-sm"
         >
           {hasFilters ? 'Browse Filtered Vehicles' : 'Browse Vehicles'}
-        </button>
+        </Button>
       </div>
     </div>
   )

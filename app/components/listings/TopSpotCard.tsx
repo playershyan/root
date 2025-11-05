@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic'
 import { MapPin, Calendar, Eye, Crown, Star, TrendingUp } from 'lucide-react'
 import OptimizedImage from '@/components/ui/OptimizedImage'
 import FavoriteButton from '@/app/components/FavoriteButton'
+import { Button } from '@/components/ui/button'
 
 // Lazy load modals (Phase 2 optimization)
 const ContactModal = dynamic(() => import('@/app/components/modals/ContactModal'))
@@ -197,26 +198,29 @@ export default function TopSpotCard({ listing }: TopSpotCardProps) {
           {/* Action Buttons */}
           <div className="mt-4 pt-3 border-t border-purple-200">
             <div className="flex gap-2 mb-3">
-              <button
+              <Button
                 onClick={(e) => {
                   e.preventDefault()
                   setShowContactModal(true)
                 }}
-                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 px-3 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-1"
+                size="default"
+                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white gap-1"
               >
                 <i className="fas fa-phone text-xs"></i>
                 Call
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={(e) => {
                   e.preventDefault()
                   setShowConversationModal(true)
                 }}
-                className="flex-1 border border-purple-600 text-purple-600 hover:bg-purple-50 py-2 px-3 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-1"
+                variant="outline"
+                size="default"
+                className="flex-1 border-purple-600 text-purple-600 hover:bg-purple-50 gap-1"
               >
                 <i className="fas fa-envelope text-xs"></i>
                 Message
-              </button>
+              </Button>
             </div>
 
             {/* Premium Features Indicator */}

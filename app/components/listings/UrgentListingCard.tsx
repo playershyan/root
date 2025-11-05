@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic'
 import { MapPin, Calendar, Eye, AlertTriangle, Phone, MessageCircle } from 'lucide-react'
 import OptimizedImage from '@/components/ui/OptimizedImage'
 import FavoriteButton from '@/app/components/FavoriteButton'
+import { Button } from '@/components/ui/button'
 
 // Lazy load modals (Phase 2 optimization)
 const ContactModal = dynamic(() => import('@/app/components/modals/ContactModal'))
@@ -170,28 +171,30 @@ export default function UrgentListingCard({ listing }: UrgentListingCardProps) {
 
           {/* Urgent Action Buttons */}
           <div className="flex gap-2 mt-4 pt-3 border-t border-red-100">
-            <button
+            <Button
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
                 setShowContactModal(true)
               }}
-              className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+              size="default"
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white gap-2"
             >
               <Phone className="w-4 h-4" />
               Call Now
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
                 setShowConversationModal(true)
               }}
-              className="flex-1 bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+              size="default"
+              className="flex-1 bg-red-100 hover:bg-red-200 text-red-700 gap-2"
             >
               <MessageCircle className="w-4 h-4" />
               Message
-            </button>
+            </Button>
           </div>
         </div>
       </Link>

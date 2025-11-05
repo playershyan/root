@@ -6,6 +6,7 @@ import { useBusinessProfile } from '@/app/hooks/useBusinessProfile'
 import BusinessPageTab from '@/app/components/profile/BusinessPageTab'
 import BusinessProfileRecovery from '@/app/components/profile/BusinessProfileRecovery'
 import { useState } from 'react'
+import { Button } from '@/components/ui/button'
 
 interface UpdateBusinessProfileData {
   business_name?: string
@@ -61,13 +62,15 @@ export default function BusinessPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <button
+        <Button
           onClick={() => router.push('/profile')}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+          variant="ghost"
+          size="sm"
+          className="mb-6 gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Profile
-        </button>
+        </Button>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           <h1 className="text-2xl font-semibold mb-6">Business Profile</h1>

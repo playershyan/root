@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 interface PhoneVerificationModalProps {
   isOpen: boolean
@@ -222,13 +223,15 @@ export default function PhoneVerificationModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-md w-full p-6 relative">
         {/* Close button */}
-        <button
+        <Button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+          variant="ghost"
+          size="icon"
+          className="absolute top-4 right-4 h-10 w-10"
           disabled={loading}
         >
-          <X size={24} />
-        </button>
+          <X className="w-5 h-5" />
+        </Button>
 
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-2">
@@ -253,7 +256,7 @@ export default function PhoneVerificationModal({
                 onChange={(e) => handleInputChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
                 onPaste={handlePaste}
-                className="w-12 h-12 text-center text-xl font-bold border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                className="w-12 h-12 min-h-touch text-center text-xl font-bold border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
                 disabled={loading}
                 autoComplete="one-time-code"
               />
@@ -283,30 +286,36 @@ export default function PhoneVerificationModal({
 
           {/* Action Buttons */}
           <div className="space-y-3">
-            <button
+            <Button
               onClick={() => handleVerifyOtp()}
               disabled={loading || otp.some(digit => digit === '')}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              variant="primary"
+              size="default"
+              className="w-full"
             >
               {loading ? 'Verifying...' : 'Verify'}
-            </button>
+            </Button>
 
             <div className="flex gap-2">
-              <button
+              <Button
                 onClick={handleResendOtp}
                 disabled={loading || !canResend}
-                className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+                variant="outline"
+                size="default"
+                className="flex-1"
               >
                 {loading ? 'Sending...' : 'Resend OTP'}
-              </button>
+              </Button>
 
-              <button
+              <Button
                 onClick={onPhoneNumberEdit}
                 disabled={loading}
-                className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-200 disabled:bg-gray-50 disabled:cursor-not-allowed transition-colors"
+                variant="outline"
+                size="default"
+                className="flex-1"
               >
                 Edit Number
-              </button>
+              </Button>
             </div>
           </div>
 

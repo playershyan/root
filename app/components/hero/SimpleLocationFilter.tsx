@@ -7,6 +7,8 @@ import {
   DISTRICTS,
   CITIES
 } from '@/lib/constants/locations'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 interface SimpleLocationFilterProps {
   selectedLocation: string | null
@@ -20,10 +22,12 @@ interface LocationChipProps {
 }
 
 const LocationChip = ({ label, active, onClick }: LocationChipProps) => (
-  <button
+  <Button
     onClick={onClick}
+    variant={active ? 'default' : 'outline'}
+    size="default"
     className={`
-      px-3 py-2 rounded-lg border transition-all text-sm font-medium
+      min-h-touch
       ${active
         ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
         : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
@@ -31,7 +35,7 @@ const LocationChip = ({ label, active, onClick }: LocationChipProps) => (
     `}
   >
     {label}
-  </button>
+  </Button>
 )
 
 export default function SimpleLocationFilter({
@@ -92,13 +96,13 @@ export default function SimpleLocationFilter({
       {/* Search Input */}
       <div className="relative" ref={searchRef}>
         <div className="relative">
-          <input
+          <Input
             type="text"
             placeholder="Search districts and cities..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => searchQuery && setShowSuggestions(true)}
-            className="w-full px-4 py-2.5 pr-10 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
+            className="w-full pr-10"
           />
           <svg
             className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -121,13 +125,15 @@ export default function SimpleLocationFilter({
                     <p className="text-xs font-semibold text-gray-500 mb-2">DISTRICTS</p>
                     <div className="space-y-1">
                       {suggestions.districts.slice(0, 5).map(district => (
-                        <button
+                        <Button
                           key={district.id}
                           onClick={() => handleSelectLocation(district.name)}
-                          className="w-full text-left py-2 px-3 rounded hover:bg-gray-50 text-sm text-gray-700 transition-colors"
+                          variant="ghost"
+                          size="default"
+                          className="w-full justify-start min-h-touch"
                         >
                           {district.name}
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   </div>
@@ -139,13 +145,15 @@ export default function SimpleLocationFilter({
                     <p className="text-xs font-semibold text-gray-500 mb-2">CITIES</p>
                     <div className="space-y-1">
                       {suggestions.cities.slice(0, 8).map(city => (
-                        <button
+                        <Button
                           key={city.id}
                           onClick={() => handleSelectLocation(city.name)}
-                          className="w-full text-left py-2 px-3 rounded hover:bg-gray-50 text-sm text-gray-600 transition-colors"
+                          variant="ghost"
+                          size="default"
+                          className="w-full justify-start min-h-touch"
                         >
                           {city.name}
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   </div>
@@ -185,15 +193,17 @@ export default function SimpleLocationFilter({
             </svg>
             <span className="text-sm font-medium text-blue-700">{selectedLocation}</span>
           </div>
-          <button
+          <Button
             onClick={() => onLocationChange(null)}
-            className="text-blue-600 hover:text-blue-800"
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 text-blue-600 hover:text-blue-800"
             aria-label="Clear location"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
-          </button>
+          </Button>
         </div>
       )}
     </div>
