@@ -163,7 +163,6 @@ export default function EnhancedPostVehiclePage() {
             .single()
 
           if (error || !listing) {
-            console.error('Error loading listing for edit:', error)
             showError('Listing not found or you do not have permission to edit it')
             setEditDataLoading(false)
             router.push('/profile')
@@ -280,7 +279,6 @@ export default function EnhancedPostVehiclePage() {
           setEditDataLoading(false)
 
         } catch (error) {
-          console.error('Error loading listing for edit:', error)
           showError('Failed to load listing data')
           setEditDataLoading(false)
           router.push('/profile')
@@ -344,7 +342,6 @@ export default function EnhancedPostVehiclePage() {
         delete parsed.imageUrls
         setFormData({ ...initialFormData, ...parsed })
       } catch (e) {
-        console.error('Error loading draft:', e)
       }
     }
   }, [isEditMode])
@@ -415,7 +412,6 @@ export default function EnhancedPostVehiclePage() {
           })
         }
       } catch (error) {
-        console.error('Error creating image previews:', error)
         setImagePreviews([])
       }
       return
@@ -682,11 +678,9 @@ export default function EnhancedPostVehiclePage() {
       // Validate images are actual File objects with type
       const validImages = images.filter(img => {
         if (!(img instanceof File)) {
-          console.error('Not a File object:', img)
           return false
         }
         if (!img.type) {
-          console.error('File has no type:', img.name)
           return false
         }
         return true
@@ -697,23 +691,13 @@ export default function EnhancedPostVehiclePage() {
         return []
       }
 
-      if (validImages.length < images.length) {
-        console.warn(`Filtered out ${images.length - validImages.length} invalid files`)
-      }
 
       // Create FormData with all images
       const formData = new FormData()
       validImages.forEach((image, index) => {
-        console.log(`Adding image ${index + 1}:`, {
-          name: image.name,
-          type: image.type,
-          size: image.size
-        })
         formData.append('images', image, image.name)
       })
       formData.append('listingId', userId)
-
-      console.log('Uploading images to Cloudinary...', validImages.length)
 
       // Upload to Cloudinary
       const response = await fetch('/api/upload/cloudinary', {
@@ -725,15 +709,12 @@ export default function EnhancedPostVehiclePage() {
 
       if (result.success && result.images) {
         const urls = result.images.map((img: any) => img.url)
-        console.log('Images uploaded to Cloudinary:', urls)
         return urls
       } else {
-        console.error('Cloudinary upload failed:', result.error)
         showError(`Upload failed: ${result.error || 'Unknown error'}`)
         return []
       }
     } catch (error) {
-      console.error('Error uploading images:', error)
       showError('Error uploading images')
       return []
     }
@@ -755,13 +736,11 @@ export default function EnhancedPostVehiclePage() {
       // Upload images first if any exist
       let imageUrls: string[] = []
       if (formData.images.length > 0) {
-        console.log('Uploading images...')
         showInfo('Uploading images...', 2000)
         imageUrls = await uploadImages(formData.images, user.id)
         if (imageUrls.length > 0) {
           showSuccess(`${imageUrls.length} image(s) uploaded successfully`, 3000)
         }
-        console.log('Images uploaded:', imageUrls)
       }
 
       // Prepare the listing data according to the database schema
@@ -818,8 +797,6 @@ export default function EnhancedPostVehiclePage() {
         is_urgent: false
       }
 
-      console.log('Submitting listing data:', listingData)
-
       // Validate required fields before submitting
       const requiredFields = {
         user_id: listingData.user_id,
@@ -827,14 +804,7 @@ export default function EnhancedPostVehiclePage() {
         price: listingData.price
       }
 
-      console.log('Required fields check:', requiredFields)
-
       // Check for any undefined or null values that could cause constraint violations
-      Object.entries(listingData).forEach(([key, value]) => {
-        if (value === undefined) {
-          console.warn(`Field ${key} is undefined - this may cause database issues`)
-        }
-      })
 
       // Check if we're in edit mode
       const editId = searchParams.get('edit')
@@ -842,7 +812,6 @@ export default function EnhancedPostVehiclePage() {
 
       if (editId) {
         // Update existing listing
-        console.log('Updating existing listing:', editId)
 
         // Don't change the status when updating - preserve existing status
         const updateData = { ...listingData }
@@ -866,16 +835,8 @@ export default function EnhancedPostVehiclePage() {
         error = result.error
 
         if (error) {
-          console.error('Supabase update error details:', {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code
-          })
           throw error
         }
-
-        console.log('Listing updated successfully:', data)
 
         localStorage.removeItem('vehiclePostDraft')
         showSuccess('Listing updated successfully!', 2000)
@@ -884,7 +845,6 @@ export default function EnhancedPostVehiclePage() {
 
       } else {
         // Create new listing via API route
-        console.log('Creating new listing via API')
 
         const response = await fetch('/api/listings', {
           method: 'POST',
@@ -936,7 +896,6 @@ export default function EnhancedPostVehiclePage() {
         const result = await response.json()
 
         if (!response.ok) {
-          console.error('API Error Response:', result)
 
           // Handle validation errors
           if (response.status === 400 && result.errors) {
@@ -984,8 +943,6 @@ export default function EnhancedPostVehiclePage() {
           return
         }
 
-        console.log('Listing created successfully:', result.listing)
-
         localStorage.removeItem('vehiclePostDraft')
         showSuccess('Listing created successfully! Redirecting...', 2000)
         // Redirect to paid features page with success message
@@ -998,8 +955,6 @@ export default function EnhancedPostVehiclePage() {
         }, 1000)
       }
     } catch (error: any) {
-      console.error('Error posting vehicle:', error)
-
       // Show the actual error message to the user
       const errorMessage = error?.message || 'Error posting vehicle. Please try again.'
       showError(errorMessage, 7000)

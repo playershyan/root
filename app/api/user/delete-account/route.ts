@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { AuditEvents } from '@/lib/utils/audit'
 
 // DELETE - Delete user account and all associated data
 export async function DELETE(request: NextRequest) {
@@ -41,7 +42,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Log the deletion attempt for audit purposes
-    console.log(`User ${user.id} (${user.email}) initiated account deletion at ${new Date().toISOString()}`)
+    AuditEvents.accountDeleted(user.id, user.email!)
 
     // The database triggers will handle:
     // 1. Archiving all listings to deleted_listings table
@@ -56,9 +57,8 @@ export async function DELETE(request: NextRequest) {
       .eq('id', user.id)
 
     if (profileDeleteError) {
-      console.error('Error deleting user profile:', profileDeleteError)
-      return NextResponse.json({ 
-        error: 'Failed to delete user profile. Please try again or contact support.' 
+      return NextResponse.json({
+        error: 'Failed to delete user profile. Please try again or contact support.'
       }, { status: 500 })
     }
 
@@ -67,10 +67,8 @@ export async function DELETE(request: NextRequest) {
     const { error: authDeleteError } = await supabase.auth.admin?.deleteUser(user.id)
 
     if (authDeleteError) {
-      console.error('Error deleting auth user:', authDeleteError)
       // Even if auth deletion fails, profile is deleted so account is effectively disabled
       // Log this for manual cleanup
-      console.error(`Auth deletion failed for user ${user.id} - manual cleanup required`)
     }
 
     // Sign out the user
@@ -82,9 +80,8 @@ export async function DELETE(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Unexpected error during account deletion:', error)
-    return NextResponse.json({ 
-      error: 'An unexpected error occurred. Please try again or contact support.' 
+    return NextResponse.json({
+      error: 'An unexpected error occurred. Please try again or contact support.'
     }, { status: 500 })
   }
 }
@@ -148,9 +145,8 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error checking deletion eligibility:', error)
-    return NextResponse.json({ 
-      error: 'Failed to check account status' 
+    return NextResponse.json({
+      error: 'Failed to check account status'
     }, { status: 500 })
   }
 }

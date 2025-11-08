@@ -42,9 +42,7 @@ export default function Header() {
   // Centralized function to check for showLogin flag
   const checkForShowLogin = (source = 'mount') => {
     const shouldShowLogin = localStorage.getItem('showLoginModal')
-    console.log(`Header: ${source} check - localStorage showLoginModal:`, shouldShowLogin)
     if (shouldShowLogin === 'true') {
-      console.log(`Header: ${source} check - Found showLoginModal=true, opening modal`)
       openAuthWithRedirect(window.location.pathname) // Use hook to open modal
       setShowEmailLogin(true)
       localStorage.removeItem('showLoginModal')

@@ -7,12 +7,6 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
-// Debug: Log configuration status (without exposing secrets)
-console.log('🔧 Cloudinary configuration:', {
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? '✅ Set' : '❌ Missing',
-  api_key: process.env.CLOUDINARY_API_KEY ? '✅ Set' : '❌ Missing',
-  api_secret: process.env.CLOUDINARY_API_SECRET ? '✅ Set' : '❌ Missing',
-})
 
 export interface CloudinaryUploadResult {
   success: boolean
@@ -48,16 +42,6 @@ export class CloudinaryService {
     } = {}
   ): Promise<CloudinaryUploadResult> {
     try {
-      console.log('🔍 CloudinaryService.uploadImage called with:', {
-        fileType: Buffer.isBuffer(file) ? 'Buffer' : typeof file,
-        fileSize: Buffer.isBuffer(file) ? file.length : 'N/A',
-        folder,
-        options: {
-          ...options,
-          // Don't log the full file buffer
-          fileType: options.fileType
-        }
-      })
 
       const uploadOptions: any = {
         folder,
@@ -77,15 +61,11 @@ export class CloudinaryService {
       // IMPORTANT: Don't use format transformations during upload
       // Format optimization (f_auto) should only be used in delivery URLs
 
-      console.log('📤 Cloudinary upload options:', uploadOptions)
 
       let uploadResult
 
       if (Buffer.isBuffer(file)) {
         // Upload buffer via stream (more efficient than base64 encoding)
-        console.log('📸 Uploading Buffer via stream')
-        console.log('📊 Buffer size:', file.length, 'bytes')
-
         // Use upload_stream for direct buffer upload without base64 overhead
         uploadResult = await new Promise((resolve, reject) => {
           const uploadStream = cloudinary.uploader.upload_stream(
@@ -100,21 +80,10 @@ export class CloudinaryService {
           uploadStream.end(file)
         })
       } else if (typeof file === 'string') {
-        console.log('📸 Uploading string (base64 or URL)')
         uploadResult = await cloudinary.uploader.upload(file, uploadOptions)
       } else {
         throw new Error('Invalid file type - only Buffer and string supported')
       }
-
-      console.log('✅ Cloudinary upload successful:', {
-        public_id: uploadResult.public_id,
-        url: uploadResult.url,
-        secure_url: uploadResult.secure_url,
-        format: uploadResult.format,
-        bytes: uploadResult.bytes,
-        width: uploadResult.width,
-        height: uploadResult.height
-      })
 
       return {
         success: true,
@@ -123,12 +92,6 @@ export class CloudinaryService {
         public_id: uploadResult.public_id,
       }
     } catch (error: any) {
-      console.error('❌ Cloudinary upload error:', {
-        message: error.message,
-        stack: error.stack,
-        code: error.code,
-        http_code: error.http_code
-      })
       return {
         success: false,
         error: error.message || 'Upload failed',
@@ -161,7 +124,6 @@ export class CloudinaryService {
         success: result.result === 'ok',
       }
     } catch (error: any) {
-      console.error('Cloudinary delete error:', error)
       return {
         success: false,
         error: error.message || 'Delete failed',

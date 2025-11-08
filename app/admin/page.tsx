@@ -1,50 +1,42 @@
-'use client'
-
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAdmin } from './components/AdminProvider'
+import { ensureAdmin } from '@/lib/server/admin-auth'
+import {
+  getDashboardStats,
+  getRecentActivity,
+  getRecentAlerts,
+  getSystemHealthStatus,
+} from '@/lib/server/admin-dashboard'
 import DashboardStats from './components/DashboardStats'
 import RecentActivity from './components/RecentActivity'
 import SystemHealth from './components/SystemHealth'
 import AlertsOverview from './components/AlertsOverview'
 
-export default function AdminDashboard() {
-  const { user, isLoading, isAdmin } = useAdmin()
-  const router = useRouter()
+export const dynamic = 'force-dynamic'
 
-  useEffect(() => {
-    if (!isLoading && !isAdmin) {
-      router.push('/')
-    }
-  }, [isLoading, isAdmin, router])
+export default async function AdminDashboard() {
+  const { supabase, user } = await ensureAdmin('view_dashboard')
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    )
-  }
-
-  if (!isAdmin) {
-    return null
-  }
+  const [stats, activities, health, alerts] = await Promise.all([
+    getDashboardStats(supabase, user.id),
+    getRecentActivity(supabase, user.id),
+    getSystemHealthStatus(supabase, user.id),
+    getRecentAlerts(supabase, user.id),
+  ])
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
-        <p className="text-gray-600 mt-1">Welcome back, {user?.email}</p>
+        <p className="text-gray-600 mt-1">Welcome back, {user.email ?? 'Admin'}</p>
       </div>
 
-      <DashboardStats />
+      <DashboardStats data={stats} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RecentActivity />
-        <AlertsOverview />
+        <RecentActivity initialActivities={activities} />
+        <AlertsOverview initialAlerts={alerts} />
       </div>
 
-      <SystemHealth />
+      <SystemHealth initialHealth={health} />
     </div>
   )
 }

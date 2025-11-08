@@ -1,5 +1,3 @@
-'use client'
-
 export default function AboutSection() {
   return (
     <section className="py-16 bg-white">

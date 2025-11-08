@@ -5,6 +5,7 @@ import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
 import { withRateLimit, rateLimiters } from '@/lib/middleware/rateLimiter'
 import { processWantedRequestMatching } from '@/lib/services/wantedMatching'
 import { incr } from '@/lib/security/metrics'
+import { AuditEvents } from '@/lib/utils/audit'
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,7 +45,6 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (updateError) {
-      console.error('Error approving listing:', updateError)
       return NextResponse.json({ error: 'Failed to approve listing' }, { status: 500 })
     }
 
@@ -62,10 +62,9 @@ export async function POST(request: NextRequest) {
     // Process wanted request matching for the approved listing
     try {
       const matchingResult = await processWantedRequestMatching(listingId)
-      console.log(`Wanted request matching completed for listing ${listingId}: ${matchingResult.matchCount} matches found`)
+      AuditEvents.listingApproved(listingId, (authResult.adminUser as any).user_id, matchingResult.matchCount)
     } catch (matchingError) {
       // Log the error but don't fail the approval process
-      console.error('Error in wanted request matching:', matchingError)
     }
 
     incr('admin.listing.approved')
@@ -80,7 +79,6 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Approve listing error:', error)
     incr('admin.listing.approve.error')
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

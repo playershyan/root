@@ -1,9 +1,6 @@
 import Link from 'next/link'
 import dynamicImport from 'next/dynamic'
-
-const AboutSection = dynamicImport(() => import('./components/AboutSection'), {
-  ssr: false
-})
+import AboutSection from './components/AboutSection'
 
 const GoogleOneTap = dynamicImport(() => import('./components/GoogleOneTap'), {
   ssr: false

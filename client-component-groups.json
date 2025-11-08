@@ -1,0 +1,3098 @@
+{
+  "B": [
+    {
+      "path": "app/listings/page.tsx",
+      "category": "B",
+      "reason": "Large client module mixing concerns; split server data + client UI",
+      "notes": [
+        "Heavy client usage or large file"
+      ],
+      "metrics": {
+        "hookCount": 5,
+        "eventCount": 3,
+        "lines": 1795,
+        "sizeKB": 73.8,
+        "hasBrowserAPIs": true,
+        "hasSupabase": true,
+        "hasFetch": true,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/post/page.tsx",
+      "category": "B",
+      "reason": "Large client module mixing concerns; split server data + client UI",
+      "notes": [
+        "Heavy client usage or large file"
+      ],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 2,
+        "lines": 1628,
+        "sizeKB": 67.5,
+        "hasBrowserAPIs": true,
+        "hasSupabase": true,
+        "hasFetch": true,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/wanted/page.tsx",
+      "category": "B",
+      "reason": "Large client module mixing concerns; split server data + client UI",
+      "notes": [
+        "Heavy client usage or large file"
+      ],
+      "metrics": {
+        "hookCount": 4,
+        "eventCount": 3,
+        "lines": 1325,
+        "sizeKB": 50.5,
+        "hasBrowserAPIs": true,
+        "hasSupabase": true,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/wanted/post/page.tsx",
+      "category": "B",
+      "reason": "Large client module mixing concerns; split server data + client UI",
+      "notes": [
+        "Heavy client usage or large file"
+      ],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 3,
+        "lines": 1179,
+        "sizeKB": 47.6,
+        "hasBrowserAPIs": true,
+        "hasSupabase": true,
+        "hasFetch": true,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/components/filters/MobileFilterSheet.tsx",
+      "category": "B",
+      "reason": "Large client module mixing concerns; split server data + client UI",
+      "notes": [
+        "Heavy client usage or large file"
+      ],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 2,
+        "lines": 1088,
+        "sizeKB": 35.8,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/listings/[id]/ListingDetailClient.tsx",
+      "category": "B",
+      "reason": "Large client module mixing concerns; split server data + client UI",
+      "notes": [
+        "Heavy client usage or large file"
+      ],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 2,
+        "lines": 933,
+        "sizeKB": 39.3,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/components/filters/MobileWantedFilterSheet.tsx",
+      "category": "B",
+      "reason": "Large client module mixing concerns; split server data + client UI",
+      "notes": [
+        "Heavy client usage or large file"
+      ],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 2,
+        "lines": 890,
+        "sizeKB": 28.3,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/admin-old/page.tsx",
+      "category": "B",
+      "reason": "Large client module mixing concerns; split server data + client UI",
+      "notes": [
+        "Heavy client usage or large file"
+      ],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 742,
+        "sizeKB": 29.3,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/components/header.tsx",
+      "category": "B",
+      "reason": "Large client module mixing concerns; split server data + client UI",
+      "notes": [
+        "Heavy client usage or large file"
+      ],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 1,
+        "lines": 723,
+        "sizeKB": 29.7,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/components/messaging/EnhancedConversationModal.tsx",
+      "category": "B",
+      "reason": "Large client module mixing concerns; split server data + client UI",
+      "notes": [
+        "Heavy client usage or large file"
+      ],
+      "metrics": {
+        "hookCount": 4,
+        "eventCount": 4,
+        "lines": 665,
+        "sizeKB": 23.6,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/admin/wanted-requests/page.tsx",
+      "category": "B",
+      "reason": "Large client module mixing concerns; split server data + client UI",
+      "notes": [
+        "Heavy client usage or large file"
+      ],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 3,
+        "lines": 611,
+        "sizeKB": 24.1,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/wanted/[id]/page.tsx",
+      "category": "B",
+      "reason": "Page performs data fetching plus limited UI; pull data server-side and keep small client widgets",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 564,
+        "sizeKB": 20.8,
+        "hasBrowserAPIs": true,
+        "hasSupabase": true,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/profile/wanted/page.tsx",
+      "category": "B",
+      "reason": "Page performs data fetching plus limited UI; pull data server-side and keep small client widgets",
+      "notes": [],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 1,
+        "lines": 557,
+        "sizeKB": 23.3,
+        "hasBrowserAPIs": true,
+        "hasSupabase": true,
+        "hasFetch": true,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/admin/analytics/page.tsx",
+      "category": "B",
+      "reason": "Page performs data fetching plus limited UI; pull data server-side and keep small client widgets",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 386,
+        "sizeKB": 14.7,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/admin-old/setup/page.tsx",
+      "category": "B",
+      "reason": "Page performs data fetching plus limited UI; pull data server-side and keep small client widgets",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 342,
+        "sizeKB": 12.9,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/post/paid-features/page.tsx",
+      "category": "B",
+      "reason": "Page performs data fetching plus limited UI; pull data server-side and keep small client widgets",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 335,
+        "sizeKB": 12.5,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": true,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/admin-old/templates/page.tsx",
+      "category": "B",
+      "reason": "Page performs data fetching plus limited UI; pull data server-side and keep small client widgets",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 296,
+        "sizeKB": 10.8,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/admin/users/page.tsx",
+      "category": "B",
+      "reason": "Page performs data fetching plus limited UI; pull data server-side and keep small client widgets",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 248,
+        "sizeKB": 9.7,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/profile/messages/page.tsx",
+      "category": "B",
+      "reason": "Page performs data fetching plus limited UI; pull data server-side and keep small client widgets",
+      "notes": [],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 1,
+        "lines": 201,
+        "sizeKB": 6.8,
+        "hasBrowserAPIs": false,
+        "hasSupabase": true,
+        "hasFetch": true,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/profile/security/page.tsx",
+      "category": "B",
+      "reason": "Page performs data fetching plus limited UI; pull data server-side and keep small client widgets",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 150,
+        "sizeKB": 4.5,
+        "hasBrowserAPIs": false,
+        "hasSupabase": true,
+        "hasFetch": true,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/profile/page.tsx",
+      "category": "B",
+      "reason": "Auth gating on client; move auth check to server and keep minimal client shell if needed",
+      "notes": [
+        "Auth guard pattern"
+      ],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 0,
+        "lines": 143,
+        "sizeKB": 4.4,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/profile/bin/page.tsx",
+      "category": "B",
+      "reason": "Page performs data fetching plus limited UI; pull data server-side and keep small client widgets",
+      "notes": [],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 1,
+        "lines": 115,
+        "sizeKB": 3.4,
+        "hasBrowserAPIs": false,
+        "hasSupabase": true,
+        "hasFetch": true,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/profile/business/page.tsx",
+      "category": "B",
+      "reason": "Page performs data fetching plus limited UI; pull data server-side and keep small client widgets",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 94,
+        "sizeKB": 2.9,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": true,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/profile/setup/page.tsx",
+      "category": "B",
+      "reason": "Auth gating on client; move auth check to server and keep minimal client shell if needed",
+      "notes": [
+        "Auth guard pattern"
+      ],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 0,
+        "lines": 84,
+        "sizeKB": 2.1,
+        "hasBrowserAPIs": false,
+        "hasSupabase": true,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/test-auth/page.tsx",
+      "category": "B",
+      "reason": "Page performs data fetching plus limited UI; pull data server-side and keep small client widgets",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 56,
+        "sizeKB": 1.7,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/security/recaptcha-test/page.tsx",
+      "category": "B",
+      "reason": "Page performs data fetching plus limited UI; pull data server-side and keep small client widgets",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 53,
+        "sizeKB": 1.7,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    }
+  ],
+  "C": [
+    {
+      "path": "app/wanted/search/page.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 3,
+        "lines": 560,
+        "sizeKB": 18.8,
+        "hasBrowserAPIs": true,
+        "hasSupabase": true,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/profile/BusinessPageTab.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 2,
+        "lines": 503,
+        "sizeKB": 20.6,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/auth/ForgotPasswordFlow.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 4,
+        "lines": 497,
+        "sizeKB": 15.2,
+        "hasBrowserAPIs": true,
+        "hasSupabase": true,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/modals/ConversationModal.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 4,
+        "eventCount": 3,
+        "lines": 481,
+        "sizeKB": 16.5,
+        "hasBrowserAPIs": true,
+        "hasSupabase": true,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/components/security/SecuritySettingsCard.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 2,
+        "lines": 463,
+        "sizeKB": 16.6,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/vehicle-forms/BaseVehicleForm.tsx",
+      "category": "C",
+      "reason": "Form components rely on client state via parent callbacks",
+      "notes": [
+        "Receives setFormData or event handlers"
+      ],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 3,
+        "lines": 463,
+        "sizeKB": 18.2,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/admin/CleanupMonitoringWidget.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 443,
+        "sizeKB": 17.5,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/hero/SmartLocationSearch.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 4,
+        "eventCount": 3,
+        "lines": 414,
+        "sizeKB": 14.7,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/admin/reports/page.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 2,
+        "lines": 399,
+        "sizeKB": 15.1,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/LocationFilter.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 3,
+        "lines": 395,
+        "sizeKB": 18.4,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/post/boost/page.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 2,
+        "lines": 395,
+        "sizeKB": 15.2,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/auth/AuthModal.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 389,
+        "sizeKB": 12,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "lib/utils/image-compression.ts",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 382,
+        "sizeKB": 9.6,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/ImageUploadWithCompression.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 2,
+        "lines": 368,
+        "sizeKB": 12.8,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/profile/listings/page.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 2,
+        "lines": 345,
+        "sizeKB": 15.9,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/wanted/payment/[requestId]/page.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 2,
+        "lines": 340,
+        "sizeKB": 13.2,
+        "hasBrowserAPIs": false,
+        "hasSupabase": true,
+        "hasFetch": true,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "lib/utils/image-performance.ts",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 337,
+        "sizeKB": 9.5,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/PhoneVerificationModal.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 3,
+        "lines": 330,
+        "sizeKB": 9.2,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/security/PasswordSecurityCard.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 2,
+        "lines": 330,
+        "sizeKB": 12.4,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/profile/account/page.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 3,
+        "lines": 320,
+        "sizeKB": 10.7,
+        "hasBrowserAPIs": false,
+        "hasSupabase": true,
+        "hasFetch": true,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/components/admin/AlertsWidget.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 319,
+        "sizeKB": 11.6,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/ContactProfile.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 319,
+        "sizeKB": 9.5,
+        "hasBrowserAPIs": false,
+        "hasSupabase": true,
+        "hasFetch": true,
+        "hasRouter": true,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/security/TwoFactorCard.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 2,
+        "lines": 311,
+        "sizeKB": 10.3,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/notifications/NotificationsTab.tsx",
+      "category": "C",
+      "reason": "Notification system relies on runtime event handlers or callbacks",
+      "notes": [
+        "Notification system requires client interactivity"
+      ],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 1,
+        "lines": 306,
+        "sizeKB": 13,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/admin/listings/page.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 3,
+        "lines": 303,
+        "sizeKB": 11.8,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/listings/FeaturedAdCard.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 303,
+        "sizeKB": 11.3,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/admin/business/page.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 2,
+        "lines": 295,
+        "sizeKB": 10.6,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/security/SessionsCard.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 293,
+        "sizeKB": 11.9,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/profile/ProfileSetup.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 2,
+        "lines": 292,
+        "sizeKB": 9.6,
+        "hasBrowserAPIs": false,
+        "hasSupabase": true,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/components/listings/BoostedCard.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 290,
+        "sizeKB": 10.6,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/auth/UsernameCreation.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 2,
+        "lines": 289,
+        "sizeKB": 8.3,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/ReportModal.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 2,
+        "lines": 284,
+        "sizeKB": 9,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/listings/RegularAdCard.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 283,
+        "sizeKB": 9.7,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/listings/TopSpotCard.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 283,
+        "sizeKB": 10.5,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/auth/EmailAuthForm.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 3,
+        "lines": 282,
+        "sizeKB": 9,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/components/admin/SecurityStatusWidget.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 2,
+        "lines": 277,
+        "sizeKB": 12.4,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/hooks/useSessionManager.ts",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 0,
+        "lines": 273,
+        "sizeKB": 7.4,
+        "hasBrowserAPIs": false,
+        "hasSupabase": true,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/CloudinaryTestUpload.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 2,
+        "lines": 272,
+        "sizeKB": 9.5,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/Footer.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 1,
+        "lines": 269,
+        "sizeKB": 14.9,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/auth/OTPInput.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 3,
+        "lines": 267,
+        "sizeKB": 7.2,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/wantedRequests/RegularWantedCard.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 266,
+        "sizeKB": 9,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/wantedRequests/UrgentWantedCard.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 264,
+        "sizeKB": 9.2,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/vehicle-forms/DescriptionGenerator.tsx",
+      "category": "C",
+      "reason": "Form components rely on client state via parent callbacks",
+      "notes": [
+        "Receives setFormData or event handlers"
+      ],
+      "metrics": {
+        "hookCount": 4,
+        "eventCount": 2,
+        "lines": 262,
+        "sizeKB": 10.5,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/auth/OTPVerification.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 3,
+        "lines": 260,
+        "sizeKB": 7.5,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/components/modals/DeleteAccountModal.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 2,
+        "lines": 259,
+        "sizeKB": 8.7,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/messages/ConversationView.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 4,
+        "lines": 256,
+        "sizeKB": 10.4,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/wanted/components/MatchNotificationBanner.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 249,
+        "sizeKB": 8.6,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/auth/StreamlinedSignup.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 2,
+        "lines": 247,
+        "sizeKB": 6.9,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/components/listings/GoldFeaturedCard.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 0,
+        "lines": 247,
+        "sizeKB": 9.7,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/listings/UrgentListingCard.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 245,
+        "sizeKB": 8.7,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "lib/hooks/useWantedNotifications.ts",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 0,
+        "lines": 243,
+        "sizeKB": 6.9,
+        "hasBrowserAPIs": false,
+        "hasSupabase": true,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/profile/BusinessProfileRecovery.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 236,
+        "sizeKB": 7.9,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/vehicle-forms/PricingSection.tsx",
+      "category": "C",
+      "reason": "Form components rely on client state via parent callbacks",
+      "notes": [
+        "Receives setFormData or event handlers"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 2,
+        "lines": 236,
+        "sizeKB": 12.2,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/profile/CreateBusinessProfile.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 3,
+        "lines": 234,
+        "sizeKB": 8,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/ImageLightbox.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 2,
+        "lines": 233,
+        "sizeKB": 7.4,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/listings/ListingActions.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 1,
+        "lines": 227,
+        "sizeKB": 6.8,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/ContactProfileOriginal.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 223,
+        "sizeKB": 6.9,
+        "hasBrowserAPIs": false,
+        "hasSupabase": true,
+        "hasFetch": true,
+        "hasRouter": true,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/modals/ContactModal.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 219,
+        "sizeKB": 7.5,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/payments/PaymentModal.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 3,
+        "lines": 216,
+        "sizeKB": 7,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/bin/BinTab.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 215,
+        "sizeKB": 7.8,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/wantedRequests/WantedRequestActions.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 213,
+        "sizeKB": 6.5,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/account/update-password/page.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 2,
+        "lines": 212,
+        "sizeKB": 7.1,
+        "hasBrowserAPIs": true,
+        "hasSupabase": true,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/hero/SimpleLocationFilter.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 3,
+        "lines": 212,
+        "sizeKB": 7.5,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/admin/SystemHealthWidget.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 209,
+        "sizeKB": 7.2,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "components/ui/ResponsiveImage.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 0,
+        "lines": 205,
+        "sizeKB": 5.5,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/security/SecurityTab.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 1,
+        "lines": 201,
+        "sizeKB": 7.5,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/security/EmailSecurityCard.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 2,
+        "lines": 200,
+        "sizeKB": 6.8,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/careers/page.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 2,
+        "lines": 198,
+        "sizeKB": 8.3,
+        "hasBrowserAPIs": false,
+        "hasSupabase": true,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/reset-password/page.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 2,
+        "lines": 196,
+        "sizeKB": 6.6,
+        "hasBrowserAPIs": false,
+        "hasSupabase": true,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "lib/hooks/useImageCapabilities.ts",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 0,
+        "lines": 191,
+        "sizeKB": 4.7,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/admin/components/AdminSidebar.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 189,
+        "sizeKB": 5,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/listings/PromotedListingsSection.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 1,
+        "lines": 189,
+        "sizeKB": 6.1,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/profile/BusinessProfileManagement.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 187,
+        "sizeKB": 6.6,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/listings/ListingCard.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 0,
+        "lines": 186,
+        "sizeKB": 7.2,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/mobile/ProfileMenu.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 184,
+        "sizeKB": 5.6,
+        "hasBrowserAPIs": true,
+        "hasSupabase": true,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/favorites/FavoriteAdCard.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 182,
+        "sizeKB": 6.2,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/messaging/OfferModal.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 3,
+        "lines": 182,
+        "sizeKB": 5.7,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/components/notifications/NotificationCard.tsx",
+      "category": "C",
+      "reason": "Notification system relies on runtime event handlers or callbacks",
+      "notes": [
+        "Notification system requires client interactivity"
+      ],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 2,
+        "lines": 182,
+        "sizeKB": 7,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/vehicle-forms/AdditionalInformationSection.tsx",
+      "category": "C",
+      "reason": "Form components rely on client state via parent callbacks",
+      "notes": [
+        "Receives setFormData or event handlers"
+      ],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 182,
+        "sizeKB": 7.3,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/faq/FAQClient.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 181,
+        "sizeKB": 8.6,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/CapacitorInitializer.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 0,
+        "lines": 172,
+        "sizeKB": 6.2,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/favorites/FavoritesTab.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 172,
+        "sizeKB": 5.9,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/listings/FairShareIndicator.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 0,
+        "lines": 172,
+        "sizeKB": 5.8,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/bin/BinListingCard.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 171,
+        "sizeKB": 5.8,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/messages/MessagesTab.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 0,
+        "lines": 171,
+        "sizeKB": 5.5,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/auth/PhoneNumberInput.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 2,
+        "lines": 166,
+        "sizeKB": 4.8,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/messages/MessagePreview.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 166,
+        "sizeKB": 6.9,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/auth/SimpleForgotPassword.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 3,
+        "lines": 164,
+        "sizeKB": 4.8,
+        "hasBrowserAPIs": true,
+        "hasSupabase": true,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/messaging/OfferCard.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 160,
+        "sizeKB": 5.8,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/favorites/FavoriteWantedCard.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 154,
+        "sizeKB": 5.4,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/admin/components/AlertsOverview.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 153,
+        "sizeKB": 4.8,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/bin/BinWantedCard.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 153,
+        "sizeKB": 5.2,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/WantedRequestFavoriteButton.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 151,
+        "sizeKB": 4.2,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/auth/PhoneAuthForm.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 2,
+        "lines": 143,
+        "sizeKB": 4.4,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/components/auth/GoogleOneTapProvider.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 0,
+        "lines": 139,
+        "sizeKB": 4.5,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/components/FavoriteButton.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 137,
+        "sizeKB": 4.1,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/components/hero/QuickFilters.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 2,
+        "lines": 136,
+        "sizeKB": 4.5,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "lib/contexts/FavoritesContext.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 4,
+        "eventCount": 0,
+        "lines": 131,
+        "sizeKB": 3.5,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/components/bin/BinMessageCard.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 127,
+        "sizeKB": 4.3,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/NotificationSystem.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 1,
+        "lines": 126,
+        "sizeKB": 3.9,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/mobile/MobileProfileTabs.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 1,
+        "lines": 119,
+        "sizeKB": 3.4,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/profile/favorites/page.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 118,
+        "sizeKB": 3.7,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/components/security/DeleteAccountCard.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 115,
+        "sizeKB": 3.9,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/GoogleOneTap.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 0,
+        "lines": 114,
+        "sizeKB": 3.3,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/components/vehicle-forms/VehicleFormFactory.tsx",
+      "category": "C",
+      "reason": "Form components rely on client state via parent callbacks",
+      "notes": [
+        "Receives setFormData or event handlers"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 112,
+        "sizeKB": 3.4,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/forgot-password/page.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 2,
+        "lines": 109,
+        "sizeKB": 3.6,
+        "hasBrowserAPIs": true,
+        "hasSupabase": true,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "lib/hooks/useFavorites.ts",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 0,
+        "lines": 104,
+        "sizeKB": 2.9,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/admin/components/AdminProvider.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 0,
+        "lines": 98,
+        "sizeKB": 2.3,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/components/auth/GoogleSignInButton.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 97,
+        "sizeKB": 3.2,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/components/vehicle-forms/FeaturesSection.tsx",
+      "category": "C",
+      "reason": "Form components rely on client state via parent callbacks",
+      "notes": [
+        "Receives setFormData or event handlers"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 1,
+        "lines": 97,
+        "sizeKB": 4,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/hooks/useAuthWithRedirect.ts",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 0,
+        "lines": 94,
+        "sizeKB": 2.9,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/components/notifications/Toast.tsx",
+      "category": "C",
+      "reason": "Notification system relies on runtime event handlers or callbacks",
+      "notes": [
+        "Notification system requires client interactivity"
+      ],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 89,
+        "sizeKB": 2.1,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/contexts/AuthContext.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 3,
+        "eventCount": 0,
+        "lines": 89,
+        "sizeKB": 2.5,
+        "hasBrowserAPIs": true,
+        "hasSupabase": true,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": true
+      }
+    },
+    {
+      "path": "app/components/EmailVerificationAlert.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 82,
+        "sizeKB": 2.9,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/hero/HeroFiltersSection.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 81,
+        "sizeKB": 2.6,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/admin/components/AdminHeader.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 1,
+        "lines": 79,
+        "sizeKB": 3,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/hero/HeroSearchBar.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 4,
+        "eventCount": 3,
+        "lines": 77,
+        "sizeKB": 2.4,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/mobile/MobileProfileHeader.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 1,
+        "lines": 66,
+        "sizeKB": 2,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/messages/MessagesList.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 1,
+        "lines": 62,
+        "sizeKB": 1.8,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/AuthWrapper.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 0,
+        "lines": 61,
+        "sizeKB": 1.8,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/ErrorBoundary.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 1,
+        "lines": 60,
+        "sizeKB": 1.7,
+        "hasBrowserAPIs": true,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/profile/notifications/page.tsx",
+      "category": "C",
+      "reason": "Notification system relies on runtime event handlers or callbacks",
+      "notes": [
+        "Notification system requires client interactivity"
+      ],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 1,
+        "lines": 57,
+        "sizeKB": 1.8,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/admin/page.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 0,
+        "lines": 50,
+        "sizeKB": 1.3,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/notifications/useToast.tsx",
+      "category": "C",
+      "reason": "Notification system relies on runtime event handlers or callbacks",
+      "notes": [
+        "Notification system requires client interactivity"
+      ],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 0,
+        "lines": 50,
+        "sizeKB": 1.3,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/vehicle-forms/BicycleForm.tsx",
+      "category": "C",
+      "reason": "Form components rely on client state via parent callbacks",
+      "notes": [
+        "Receives setFormData or event handlers"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 27,
+        "sizeKB": 0.7,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/vehicle-forms/BoatForm.tsx",
+      "category": "C",
+      "reason": "Form components rely on client state via parent callbacks",
+      "notes": [
+        "Receives setFormData or event handlers"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 27,
+        "sizeKB": 0.7,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/vehicle-forms/BusForm.tsx",
+      "category": "C",
+      "reason": "Form components rely on client state via parent callbacks",
+      "notes": [
+        "Receives setFormData or event handlers"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 27,
+        "sizeKB": 0.7,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/vehicle-forms/CarForm.tsx",
+      "category": "C",
+      "reason": "Form components rely on client state via parent callbacks",
+      "notes": [
+        "Receives setFormData or event handlers"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 27,
+        "sizeKB": 0.6,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/vehicle-forms/LorryForm.tsx",
+      "category": "C",
+      "reason": "Form components rely on client state via parent callbacks",
+      "notes": [
+        "Receives setFormData or event handlers"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 27,
+        "sizeKB": 0.7,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/vehicle-forms/MotorcycleForm.tsx",
+      "category": "C",
+      "reason": "Form components rely on client state via parent callbacks",
+      "notes": [
+        "Receives setFormData or event handlers"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 27,
+        "sizeKB": 0.7,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/vehicle-forms/PlantMachineryForm.tsx",
+      "category": "C",
+      "reason": "Form components rely on client state via parent callbacks",
+      "notes": [
+        "Receives setFormData or event handlers"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 27,
+        "sizeKB": 0.7,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/vehicle-forms/ThreeWheelerForm.tsx",
+      "category": "C",
+      "reason": "Form components rely on client state via parent callbacks",
+      "notes": [
+        "Receives setFormData or event handlers"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 27,
+        "sizeKB": 0.7,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/vehicle-forms/TractorForm.tsx",
+      "category": "C",
+      "reason": "Form components rely on client state via parent callbacks",
+      "notes": [
+        "Receives setFormData or event handlers"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 27,
+        "sizeKB": 0.7,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/vehicle-forms/VanForm.tsx",
+      "category": "C",
+      "reason": "Form components rely on client state via parent callbacks",
+      "notes": [
+        "Receives setFormData or event handlers"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 27,
+        "sizeKB": 0.7,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/wanted/edit/[id]/page.tsx",
+      "category": "C",
+      "reason": "Interactive component with client state or event handlers",
+      "notes": [],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 0,
+        "lines": 26,
+        "sizeKB": 0.7,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": true,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/notifications/ImageSizeError.tsx",
+      "category": "C",
+      "reason": "Notification system relies on runtime event handlers or callbacks",
+      "notes": [
+        "Notification system requires client interactivity"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 20,
+        "sizeKB": 0.3,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/notifications/ToastContainer.tsx",
+      "category": "C",
+      "reason": "Notification system relies on runtime event handlers or callbacks",
+      "notes": [
+        "Notification system requires client interactivity"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 18,
+        "sizeKB": 0.4,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    }
+  ],
+  "A": [
+    {
+      "path": "app/components/homepage/FeaturedListings.tsx",
+      "category": "A",
+      "reason": "Data fetching via useEffect without user interaction",
+      "notes": [
+        "Switch to server data loading"
+      ],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 0,
+        "lines": 262,
+        "sizeKB": 10.5,
+        "hasBrowserAPIs": false,
+        "hasSupabase": true,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/listings/PromotionBadges.tsx",
+      "category": "A",
+      "reason": "Pure presentational markup; remove client directive",
+      "notes": [
+        "Static UI component"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 180,
+        "sizeKB": 5.5,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/admin/components/DashboardStats.tsx",
+      "category": "A",
+      "reason": "Data fetching via useEffect without user interaction",
+      "notes": [
+        "Switch to server data loading"
+      ],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 0,
+        "lines": 166,
+        "sizeKB": 4.6,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "components/ui/OptimizedImage.tsx",
+      "category": "A",
+      "reason": "Data fetching via useEffect without user interaction",
+      "notes": [
+        "Switch to server data loading"
+      ],
+      "metrics": {
+        "hookCount": 1,
+        "eventCount": 0,
+        "lines": 162,
+        "sizeKB": 4.3,
+        "hasBrowserAPIs": false,
+        "hasSupabase": true,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/admin/components/SystemHealth.tsx",
+      "category": "A",
+      "reason": "Data fetching via useEffect without user interaction",
+      "notes": [
+        "Switch to server data loading"
+      ],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 0,
+        "lines": 160,
+        "sizeKB": 5.3,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/admin/components/RecentActivity.tsx",
+      "category": "A",
+      "reason": "Data fetching via useEffect without user interaction",
+      "notes": [
+        "Switch to server data loading"
+      ],
+      "metrics": {
+        "hookCount": 2,
+        "eventCount": 0,
+        "lines": 137,
+        "sizeKB": 5,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": true,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/listings/PremiumCardSelector.tsx",
+      "category": "A",
+      "reason": "Pure presentational markup; remove client directive",
+      "notes": [
+        "Static UI component"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 88,
+        "sizeKB": 2.2,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/listings/ListingStatusMessage.tsx",
+      "category": "A",
+      "reason": "Pure presentational markup; remove client directive",
+      "notes": [
+        "Static UI component"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 84,
+        "sizeKB": 2.8,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/wantedRequests/WantedRequestStatusMessage.tsx",
+      "category": "A",
+      "reason": "Pure presentational markup; remove client directive",
+      "notes": [
+        "Static UI component"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 77,
+        "sizeKB": 2.5,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/AboutSection.tsx",
+      "category": "A",
+      "reason": "Pure presentational markup; remove client directive",
+      "notes": [
+        "Static UI component"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 63,
+        "sizeKB": 4.4,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/hero/AnimatedHeroHeading.tsx",
+      "category": "A",
+      "reason": "Pure presentational markup; remove client directive",
+      "notes": [
+        "Static UI component"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 48,
+        "sizeKB": 1.1,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/listings/ListingStatusBadge.tsx",
+      "category": "A",
+      "reason": "Pure presentational markup; remove client directive",
+      "notes": [
+        "Static UI component"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 41,
+        "sizeKB": 0.9,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    },
+    {
+      "path": "app/components/wantedRequests/WantedRequestStatusBadge.tsx",
+      "category": "A",
+      "reason": "Pure presentational markup; remove client directive",
+      "notes": [
+        "Static UI component"
+      ],
+      "metrics": {
+        "hookCount": 0,
+        "eventCount": 0,
+        "lines": 41,
+        "sizeKB": 1,
+        "hasBrowserAPIs": false,
+        "hasSupabase": false,
+        "hasFetch": false,
+        "hasRouter": false,
+        "hasAuthContext": false
+      }
+    }
+  ]
+}

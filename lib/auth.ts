@@ -240,7 +240,6 @@ export async function signInWithPassword(email: string, password: string): Promi
         )
 
       if (profileError) {
-        console.error('Failed to sync email to profile:', profileError)
         // Non-blocking error - login still succeeds
       }
     }
@@ -272,7 +271,6 @@ export async function checkAndAutoSignIn(): Promise<{ shouldAutoLogin: boolean; 
     
     return { shouldAutoLogin: false }
   } catch (error) {
-    console.error('Error checking auto sign-in:', error)
     return { shouldAutoLogin: false }
   }
 }

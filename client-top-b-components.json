@@ -1,0 +1,192 @@
+[
+  {
+    "path": "app/listings/page.tsx",
+    "category": "B",
+    "reason": "Large client module mixing concerns; split server data + client UI",
+    "notes": [
+      "Heavy client usage or large file"
+    ],
+    "metrics": {
+      "hookCount": 5,
+      "eventCount": 3,
+      "lines": 1795,
+      "sizeKB": 73.8,
+      "hasBrowserAPIs": true,
+      "hasSupabase": true,
+      "hasFetch": true,
+      "hasRouter": true,
+      "hasAuthContext": true
+    }
+  },
+  {
+    "path": "app/post/page.tsx",
+    "category": "B",
+    "reason": "Large client module mixing concerns; split server data + client UI",
+    "notes": [
+      "Heavy client usage or large file"
+    ],
+    "metrics": {
+      "hookCount": 3,
+      "eventCount": 2,
+      "lines": 1628,
+      "sizeKB": 67.5,
+      "hasBrowserAPIs": true,
+      "hasSupabase": true,
+      "hasFetch": true,
+      "hasRouter": true,
+      "hasAuthContext": true
+    }
+  },
+  {
+    "path": "app/wanted/page.tsx",
+    "category": "B",
+    "reason": "Large client module mixing concerns; split server data + client UI",
+    "notes": [
+      "Heavy client usage or large file"
+    ],
+    "metrics": {
+      "hookCount": 4,
+      "eventCount": 3,
+      "lines": 1325,
+      "sizeKB": 50.5,
+      "hasBrowserAPIs": true,
+      "hasSupabase": true,
+      "hasFetch": false,
+      "hasRouter": false,
+      "hasAuthContext": false
+    }
+  },
+  {
+    "path": "app/wanted/post/page.tsx",
+    "category": "B",
+    "reason": "Large client module mixing concerns; split server data + client UI",
+    "notes": [
+      "Heavy client usage or large file"
+    ],
+    "metrics": {
+      "hookCount": 3,
+      "eventCount": 3,
+      "lines": 1179,
+      "sizeKB": 47.6,
+      "hasBrowserAPIs": true,
+      "hasSupabase": true,
+      "hasFetch": true,
+      "hasRouter": true,
+      "hasAuthContext": true
+    }
+  },
+  {
+    "path": "app/components/filters/MobileFilterSheet.tsx",
+    "category": "B",
+    "reason": "Large client module mixing concerns; split server data + client UI",
+    "notes": [
+      "Heavy client usage or large file"
+    ],
+    "metrics": {
+      "hookCount": 1,
+      "eventCount": 2,
+      "lines": 1088,
+      "sizeKB": 35.8,
+      "hasBrowserAPIs": false,
+      "hasSupabase": false,
+      "hasFetch": false,
+      "hasRouter": false,
+      "hasAuthContext": false
+    }
+  },
+  {
+    "path": "app/listings/[id]/ListingDetailClient.tsx",
+    "category": "B",
+    "reason": "Large client module mixing concerns; split server data + client UI",
+    "notes": [
+      "Heavy client usage or large file"
+    ],
+    "metrics": {
+      "hookCount": 2,
+      "eventCount": 2,
+      "lines": 933,
+      "sizeKB": 39.3,
+      "hasBrowserAPIs": true,
+      "hasSupabase": false,
+      "hasFetch": true,
+      "hasRouter": false,
+      "hasAuthContext": true
+    }
+  },
+  {
+    "path": "app/components/filters/MobileWantedFilterSheet.tsx",
+    "category": "B",
+    "reason": "Large client module mixing concerns; split server data + client UI",
+    "notes": [
+      "Heavy client usage or large file"
+    ],
+    "metrics": {
+      "hookCount": 2,
+      "eventCount": 2,
+      "lines": 890,
+      "sizeKB": 28.3,
+      "hasBrowserAPIs": false,
+      "hasSupabase": false,
+      "hasFetch": false,
+      "hasRouter": false,
+      "hasAuthContext": false
+    }
+  },
+  {
+    "path": "app/admin-old/page.tsx",
+    "category": "B",
+    "reason": "Large client module mixing concerns; split server data + client UI",
+    "notes": [
+      "Heavy client usage or large file"
+    ],
+    "metrics": {
+      "hookCount": 2,
+      "eventCount": 1,
+      "lines": 742,
+      "sizeKB": 29.3,
+      "hasBrowserAPIs": false,
+      "hasSupabase": false,
+      "hasFetch": true,
+      "hasRouter": true,
+      "hasAuthContext": true
+    }
+  },
+  {
+    "path": "app/components/header.tsx",
+    "category": "B",
+    "reason": "Large client module mixing concerns; split server data + client UI",
+    "notes": [
+      "Heavy client usage or large file"
+    ],
+    "metrics": {
+      "hookCount": 3,
+      "eventCount": 1,
+      "lines": 723,
+      "sizeKB": 29.7,
+      "hasBrowserAPIs": true,
+      "hasSupabase": false,
+      "hasFetch": false,
+      "hasRouter": true,
+      "hasAuthContext": true
+    }
+  },
+  {
+    "path": "app/components/messaging/EnhancedConversationModal.tsx",
+    "category": "B",
+    "reason": "Large client module mixing concerns; split server data + client UI",
+    "notes": [
+      "Heavy client usage or large file"
+    ],
+    "metrics": {
+      "hookCount": 4,
+      "eventCount": 4,
+      "lines": 665,
+      "sizeKB": 23.6,
+      "hasBrowserAPIs": false,
+      "hasSupabase": false,
+      "hasFetch": true,
+      "hasRouter": false,
+      "hasAuthContext": true
+    }
+  }
+]

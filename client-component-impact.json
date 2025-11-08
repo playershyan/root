@@ -1,0 +1,20 @@
+{
+  "B": {
+    "count": 26,
+    "totalLines": 15203,
+    "totalKB": 581.7,
+    "avgKB": 22.4
+  },
+  "C": {
+    "count": 137,
+    "totalLines": 28160,
+    "totalKB": 973.2,
+    "avgKB": 7.1
+  },
+  "A": {
+    "count": 13,
+    "totalLines": 1509,
+    "totalKB": 50.1,
+    "avgKB": 3.9
+  }
+}

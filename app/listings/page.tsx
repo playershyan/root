@@ -177,10 +177,8 @@ export default function AdvancedListingsPage() {
         localStorage.removeItem('pendingActionData')
 
         toggleFavorite(listingId).catch((error) => {
-          console.error('Failed to add favorite after OAuth:', error)
         })
       } catch (error) {
-        console.error('Failed to parse pending action data:', error)
         localStorage.removeItem('pendingAction')
         localStorage.removeItem('pendingActionData')
       }
@@ -398,7 +396,6 @@ export default function AdvancedListingsPage() {
         if (Array.isArray(response)) return response
         if (response.data && Array.isArray(response.data)) return response.data
         if (response.error) {
-          console.error('Service error:', response.error)
           return []
         }
         return []
@@ -415,19 +412,11 @@ export default function AdvancedListingsPage() {
       setBoostedAds(Array.isArray(boosted) ? boosted : [])
       setUrgentAds(Array.isArray(urgent) ? urgent : [])
 
-      // Debug logging (remove in production)
-      console.log('Promoted ads loaded:', {
-        featured: featured.length,
-        topSpot: topSpot.length,
-        boosted: boosted.length,
-        urgent: urgent.length
-      })
 
       // Note: Impression tracking will be implemented later
       // For now, we just load the promoted ads without tracking impressions
 
     } catch (error) {
-      console.error('Error loading promoted ads:', error)
     }
   }
 
@@ -451,7 +440,6 @@ export default function AdvancedListingsPage() {
       
       setListings(processedListings)
     } catch (error) {
-      console.error('Error fetching listings:', error)
     } finally {
       setLoading(false)
     }
@@ -637,8 +625,6 @@ export default function AdvancedListingsPage() {
       // Reset expansion state for new content
       setAIGuideExpanded(false)
     } catch (error) {
-      console.error('Error generating AI guide:', error)
-      
       // Fallback content with technical inspection protocol
       const fallbackCompact = `
         <p>Standard pre-purchase inspection protocol for ${selectedMake !== 'All Makes' ? selectedMake : (searchTerm || 'used vehicles')}. Applicable to most vehicles in Sri Lankan market conditions.</p>

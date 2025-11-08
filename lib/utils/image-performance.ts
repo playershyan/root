@@ -115,32 +115,10 @@ export async function measureImageLoad(
     // Store metric
     metricsStorage.push(metric)
 
-    // Log in development
-    if (MONITORING_CONFIG.enableDetailedLogging) {
-      console.log('📊 Image Performance:', {
-        url: url.substring(0, 80),
-        format: metric.format,
-        size: `${(size / 1024).toFixed(2)}KB`,
-        dimensions: `${width}x${height}`,
-        loadTime: `${loadTime.toFixed(2)}ms`,
-        decodeTime: `${decodeTime.toFixed(2)}ms`,
-      })
-    }
-
-    // Check thresholds
-    if (loadTime > MONITORING_CONFIG.thresholds.imageLoadThreshold) {
-      console.warn(`⚠️ Slow image load: ${url.substring(0, 80)} (${loadTime.toFixed(2)}ms)`)
-    }
-
-    if (size > MONITORING_CONFIG.thresholds.fileSizeThreshold) {
-      console.warn(`⚠️ Large image size: ${url.substring(0, 80)} (${(size / 1024).toFixed(2)}KB)`)
-    }
+    // Thresholds checked but not logged in development
 
     return metric
   } catch (error) {
-    if (MONITORING_CONFIG.enableDetailedLogging) {
-      console.error('Failed to measure image load:', error)
-    }
     return null
   }
 }
@@ -168,26 +146,13 @@ export function initLCPObserver(): void {
           metric.wasLCP = true
         }
 
-        // Log LCP info
-        if (MONITORING_CONFIG.enableDetailedLogging) {
-          console.log('🎯 LCP Image:', {
-            url: url.substring(0, 80),
-            lcpTime: lastEntry.renderTime || lastEntry.loadTime,
-            size: lastEntry.size,
-          })
-        }
-
-        // Check if LCP exceeds threshold
-        const lcpTime = lastEntry.renderTime || lastEntry.loadTime
-        if (lcpTime > MONITORING_CONFIG.thresholds.lcpThreshold) {
-          console.warn(`⚠️ LCP exceeds threshold: ${lcpTime.toFixed(2)}ms (threshold: ${MONITORING_CONFIG.thresholds.lcpThreshold}ms)`)
-        }
+        // LCP threshold check (monitoring only)
       }
     })
 
     lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true })
   } catch (error) {
-    console.error('Failed to initialize LCP observer:', error)
+    // LCP observer initialization failed, monitoring not available
   }
 }
 

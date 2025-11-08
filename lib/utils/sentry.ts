@@ -81,9 +81,6 @@ export const reportError = (error: AppError | Error, context?: {
         Sentry.captureException(error)
       }
     })
-  } else {
-    // Development - just console log
-    console.error('Error:', error, 'Context:', context)
   }
 }
 

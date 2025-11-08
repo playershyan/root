@@ -1,0 +1,85 @@
+{
+  "totals": {
+    "components": 176,
+    "pages": 37,
+    "layouts": 0,
+    "sharedComponents": 120,
+    "lib": 5,
+    "contexts": 1
+  },
+  "hooks": {
+    "useState": 138,
+    "useEffect": 90,
+    "useMemo": 3,
+    "useCallback": 18,
+    "useRef": 19,
+    "useImperativeHandle": 1,
+    "useContext": 4
+  },
+  "events": {
+    "onClick": 115,
+    "onChange": 59,
+    "onKeyPress": 4,
+    "onSubmit": 20,
+    "onKeyDown": 8,
+    "onFocus": 3,
+    "onTouch": 1
+  },
+  "usage": {
+    "supabase": 29,
+    "fetch": 55,
+    "router": 45,
+    "authContext": 36,
+    "browserAPIs": 44
+  },
+  "patterns": {
+    "dataFetchOnly": [
+      "app/components/homepage/FeaturedListings.tsx",
+      "app/admin/components/DashboardStats.tsx",
+      "components/ui/OptimizedImage.tsx",
+      "app/admin/components/SystemHealth.tsx",
+      "app/admin/components/RecentActivity.tsx"
+    ],
+    "authGuardOnly": [
+      "app/profile/page.tsx",
+      "app/profile/setup/page.tsx"
+    ],
+    "layoutWrappers": [],
+    "staticButClient": [
+      "app/components/listings/PromotionBadges.tsx",
+      "app/components/vehicle-forms/VehicleFormFactory.tsx",
+      "app/components/listings/PremiumCardSelector.tsx",
+      "app/components/listings/ListingStatusMessage.tsx",
+      "app/components/wantedRequests/WantedRequestStatusMessage.tsx",
+      "app/components/AboutSection.tsx",
+      "app/components/hero/AnimatedHeroHeading.tsx",
+      "app/components/listings/ListingStatusBadge.tsx",
+      "app/components/wantedRequests/WantedRequestStatusBadge.tsx",
+      "app/components/vehicle-forms/BicycleForm.tsx",
+      "app/components/vehicle-forms/BoatForm.tsx",
+      "app/components/vehicle-forms/BusForm.tsx",
+      "app/components/vehicle-forms/CarForm.tsx",
+      "app/components/vehicle-forms/LorryForm.tsx",
+      "app/components/vehicle-forms/MotorcycleForm.tsx",
+      "app/components/vehicle-forms/PlantMachineryForm.tsx",
+      "app/components/vehicle-forms/ThreeWheelerForm.tsx",
+      "app/components/vehicle-forms/TractorForm.tsx",
+      "app/components/vehicle-forms/VanForm.tsx",
+      "app/components/notifications/ImageSizeError.tsx",
+      "app/components/notifications/ToastContainer.tsx"
+    ],
+    "heavyClient": [
+      "app/listings/page.tsx",
+      "app/post/page.tsx",
+      "app/wanted/page.tsx",
+      "app/wanted/post/page.tsx",
+      "app/components/filters/MobileFilterSheet.tsx",
+      "app/listings/[id]/ListingDetailClient.tsx",
+      "app/components/filters/MobileWantedFilterSheet.tsx",
+      "app/admin-old/page.tsx",
+      "app/components/header.tsx",
+      "app/components/messaging/EnhancedConversationModal.tsx",
+      "app/admin/wanted-requests/page.tsx"
+    ]
+  }
+}

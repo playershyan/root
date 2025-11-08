@@ -36,7 +36,7 @@ export default function CapacitorInitializer() {
           await StatusBar.setStyle({ style: Style.Light })
           await StatusBar.setBackgroundColor({ color: '#1e40af' })
         } catch (error) {
-          console.warn('Initial status bar configuration failed:', error)
+          // Handle error silently
         }
 
         // Initialize safe area insets for Android
@@ -64,7 +64,6 @@ export default function CapacitorInitializer() {
                 root.style.setProperty('--safe-area-inset-bottom', `${insets.bottom}px`)
                 root.style.setProperty('--safe-area-inset-left', `${insets.left}px`)
               } catch (error) {
-                console.warn('Failed to get safe area insets:', error)
                 // Fallback to standard Android navigation bar height
                 document.documentElement.style.setProperty('--safe-area-inset-bottom', '48px')
               }
@@ -78,10 +77,8 @@ export default function CapacitorInitializer() {
               getSafeAreaInsets()
             }, 2500)
           } catch (error) {
-            console.warn('Safe area initialization failed:', error)
             // Fallback to standard Android navigation bar height
             document.documentElement.style.setProperty('--safe-area-inset-bottom', '48px')
-            console.log('Using fallback navigation bar height: 48px')
           }
         }
 

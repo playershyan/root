@@ -1,0 +1,249 @@
+[
+  {
+    "path": "app/components/homepage/FeaturedListings.tsx",
+    "category": "A",
+    "reason": "Data fetching via useEffect without user interaction",
+    "notes": [
+      "Switch to server data loading"
+    ],
+    "metrics": {
+      "hookCount": 2,
+      "eventCount": 0,
+      "lines": 262,
+      "sizeKB": 10.5,
+      "hasBrowserAPIs": false,
+      "hasSupabase": true,
+      "hasFetch": false,
+      "hasRouter": false,
+      "hasAuthContext": false
+    }
+  },
+  {
+    "path": "app/components/listings/PromotionBadges.tsx",
+    "category": "A",
+    "reason": "Pure presentational markup; remove client directive",
+    "notes": [
+      "Static UI component"
+    ],
+    "metrics": {
+      "hookCount": 0,
+      "eventCount": 0,
+      "lines": 180,
+      "sizeKB": 5.5,
+      "hasBrowserAPIs": false,
+      "hasSupabase": false,
+      "hasFetch": false,
+      "hasRouter": false,
+      "hasAuthContext": false
+    }
+  },
+  {
+    "path": "app/admin/components/DashboardStats.tsx",
+    "category": "A",
+    "reason": "Data fetching via useEffect without user interaction",
+    "notes": [
+      "Switch to server data loading"
+    ],
+    "metrics": {
+      "hookCount": 2,
+      "eventCount": 0,
+      "lines": 166,
+      "sizeKB": 4.6,
+      "hasBrowserAPIs": false,
+      "hasSupabase": false,
+      "hasFetch": true,
+      "hasRouter": false,
+      "hasAuthContext": false
+    }
+  },
+  {
+    "path": "components/ui/OptimizedImage.tsx",
+    "category": "A",
+    "reason": "Data fetching via useEffect without user interaction",
+    "notes": [
+      "Switch to server data loading"
+    ],
+    "metrics": {
+      "hookCount": 1,
+      "eventCount": 0,
+      "lines": 162,
+      "sizeKB": 4.3,
+      "hasBrowserAPIs": false,
+      "hasSupabase": true,
+      "hasFetch": false,
+      "hasRouter": false,
+      "hasAuthContext": false
+    }
+  },
+  {
+    "path": "app/admin/components/SystemHealth.tsx",
+    "category": "A",
+    "reason": "Data fetching via useEffect without user interaction",
+    "notes": [
+      "Switch to server data loading"
+    ],
+    "metrics": {
+      "hookCount": 2,
+      "eventCount": 0,
+      "lines": 160,
+      "sizeKB": 5.3,
+      "hasBrowserAPIs": false,
+      "hasSupabase": false,
+      "hasFetch": true,
+      "hasRouter": false,
+      "hasAuthContext": false
+    }
+  },
+  {
+    "path": "app/admin/components/RecentActivity.tsx",
+    "category": "A",
+    "reason": "Data fetching via useEffect without user interaction",
+    "notes": [
+      "Switch to server data loading"
+    ],
+    "metrics": {
+      "hookCount": 2,
+      "eventCount": 0,
+      "lines": 137,
+      "sizeKB": 5,
+      "hasBrowserAPIs": false,
+      "hasSupabase": false,
+      "hasFetch": true,
+      "hasRouter": false,
+      "hasAuthContext": false
+    }
+  },
+  {
+    "path": "app/components/listings/PremiumCardSelector.tsx",
+    "category": "A",
+    "reason": "Pure presentational markup; remove client directive",
+    "notes": [
+      "Static UI component"
+    ],
+    "metrics": {
+      "hookCount": 0,
+      "eventCount": 0,
+      "lines": 88,
+      "sizeKB": 2.2,
+      "hasBrowserAPIs": false,
+      "hasSupabase": false,
+      "hasFetch": false,
+      "hasRouter": false,
+      "hasAuthContext": false
+    }
+  },
+  {
+    "path": "app/components/listings/ListingStatusMessage.tsx",
+    "category": "A",
+    "reason": "Pure presentational markup; remove client directive",
+    "notes": [
+      "Static UI component"
+    ],
+    "metrics": {
+      "hookCount": 0,
+      "eventCount": 0,
+      "lines": 84,
+      "sizeKB": 2.8,
+      "hasBrowserAPIs": false,
+      "hasSupabase": false,
+      "hasFetch": false,
+      "hasRouter": false,
+      "hasAuthContext": false
+    }
+  },
+  {
+    "path": "app/components/wantedRequests/WantedRequestStatusMessage.tsx",
+    "category": "A",
+    "reason": "Pure presentational markup; remove client directive",
+    "notes": [
+      "Static UI component"
+    ],
+    "metrics": {
+      "hookCount": 0,
+      "eventCount": 0,
+      "lines": 77,
+      "sizeKB": 2.5,
+      "hasBrowserAPIs": false,
+      "hasSupabase": false,
+      "hasFetch": false,
+      "hasRouter": false,
+      "hasAuthContext": false
+    }
+  },
+  {
+    "path": "app/components/AboutSection.tsx",
+    "category": "A",
+    "reason": "Pure presentational markup; remove client directive",
+    "notes": [
+      "Static UI component"
+    ],
+    "metrics": {
+      "hookCount": 0,
+      "eventCount": 0,
+      "lines": 63,
+      "sizeKB": 4.4,
+      "hasBrowserAPIs": false,
+      "hasSupabase": false,
+      "hasFetch": false,
+      "hasRouter": false,
+      "hasAuthContext": false
+    }
+  },
+  {
+    "path": "app/components/hero/AnimatedHeroHeading.tsx",
+    "category": "A",
+    "reason": "Pure presentational markup; remove client directive",
+    "notes": [
+      "Static UI component"
+    ],
+    "metrics": {
+      "hookCount": 0,
+      "eventCount": 0,
+      "lines": 48,
+      "sizeKB": 1.1,
+      "hasBrowserAPIs": false,
+      "hasSupabase": false,
+      "hasFetch": false,
+      "hasRouter": false,
+      "hasAuthContext": false
+    }
+  },
+  {
+    "path": "app/components/listings/ListingStatusBadge.tsx",
+    "category": "A",
+    "reason": "Pure presentational markup; remove client directive",
+    "notes": [
+      "Static UI component"
+    ],
+    "metrics": {
+      "hookCount": 0,
+      "eventCount": 0,
+      "lines": 41,
+      "sizeKB": 0.9,
+      "hasBrowserAPIs": false,
+      "hasSupabase": false,
+      "hasFetch": false,
+      "hasRouter": false,
+      "hasAuthContext": false
+    }
+  },
+  {
+    "path": "app/components/wantedRequests/WantedRequestStatusBadge.tsx",
+    "category": "A",
+    "reason": "Pure presentational markup; remove client directive",
+    "notes": [
+      "Static UI component"
+    ],
+    "metrics": {
+      "hookCount": 0,
+      "eventCount": 0,
+      "lines": 41,
+      "sizeKB": 1,
+      "hasBrowserAPIs": false,
+      "hasSupabase": false,
+      "hasFetch": false,
+      "hasRouter": false,
+      "hasAuthContext": false
+    }
+  }
+]

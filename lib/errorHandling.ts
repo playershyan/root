@@ -38,8 +38,6 @@ export async function handleAPIResponse<T>(response: Response): Promise<T> {
 }
 
 export function handleError(error: unknown, fallbackMessage = 'An unexpected error occurred') {
-  console.error('Error:', error)
-  
   if (error instanceof APIError) {
     toast.error(error.message)
     return error.message

@@ -1,15 +1,17 @@
 /**
  * Simple API Endpoint Test Script
- * 
+ *
  * This script tests if the API endpoints are properly configured and accessible.
  * Run with: node scripts/test-api-endpoints.js
- * 
+ *
  * Note: This is a basic connectivity test. Full integration tests require authentication.
  */
 
+const { log } = require('../lib/utils/logger');
+
 const API_BASE = process.env.API_BASE_URL || 'http://localhost:3000';
 
-console.log('🧪 Testing API Endpoints...\n');
+log.info('🧪 Testing API Endpoints...\n');
 
 const tests = [
   {
@@ -44,10 +46,10 @@ const tests = [
 
 async function testEndpoint(test) {
   try {
-    console.log(`Testing: ${test.name}`);
-    console.log(`  URL: ${test.url}`);
-    console.log(`  Expected: ${test.expectedStatus} (${test.description})`);
-    
+    log.info(`Testing: ${test.name}`);
+    log.info(`  URL: ${test.url}`);
+    log.info(`  Expected: ${test.expectedStatus} (${test.description})`);
+
     const response = await fetch(test.url, {
       method: test.method,
       headers: {
@@ -58,26 +60,26 @@ async function testEndpoint(test) {
 
     const status = response.status;
     const isExpected = status === test.expectedStatus;
-    
-    console.log(`  Result: ${status} ${isExpected ? '✅' : '❌'}`);
-    
+
+    log.info(`  Result: ${status} ${isExpected ? '✅' : '❌'}`);
+
     if (!isExpected) {
       const text = await response.text();
-      console.log(`  Response: ${text.substring(0, 200)}`);
+      log.info(`  Response: ${text.substring(0, 200)}`);
     }
-    
-    console.log('');
+
+    log.info('');
     return isExpected;
   } catch (error) {
-    console.log(`  Result: ERROR ❌`);
-    console.log(`  Error: ${error.message}\n`);
+    log.error(`  Result: ERROR ❌`);
+    log.error(`  Error: ${error.message}\n`);
     return false;
   }
 }
 
 async function runTests() {
-  console.log(`Base URL: ${API_BASE}\n`);
-  console.log('=' .repeat(60) + '\n');
+  log.info(`Base URL: ${API_BASE}\n`);
+  log.info('=' .repeat(60) + '\n');
 
   const results = [];
   for (const test of tests) {
@@ -87,37 +89,37 @@ async function runTests() {
     await new Promise(resolve => setTimeout(resolve, 500));
   }
 
-  console.log('=' .repeat(60));
-  console.log('\n📊 Test Summary:\n');
-  
+  log.info('=' .repeat(60));
+  log.info('\n📊 Test Summary:\n');
+
   const passed = results.filter(r => r.passed).length;
   const total = results.length;
-  
+
   results.forEach(result => {
-    console.log(`${result.passed ? '✅' : '❌'} ${result.name}`);
+    log.info(`${result.passed ? '✅' : '❌'} ${result.name}`);
   });
-  
-  console.log(`\n${passed}/${total} tests passed`);
-  
+
+  log.info(`\n${passed}/${total} tests passed`);
+
   if (passed === total) {
-    console.log('\n🎉 All endpoints are accessible!');
-    console.log('\nNote: 401 responses are expected without authentication.');
-    console.log('This confirms the endpoints exist and are properly configured.');
+    log.info('\n🎉 All endpoints are accessible!');
+    log.info('\nNote: 401 responses are expected without authentication.');
+    log.info('This confirms the endpoints exist and are properly configured.');
   } else {
-    console.log('\n⚠️  Some endpoints may not be properly configured.');
-    console.log('Check the errors above for details.');
+    log.info('\n⚠️  Some endpoints may not be properly configured.');
+    log.info('Check the errors above for details.');
   }
 }
 
 // Check if fetch is available (Node.js 18+)
 if (typeof fetch === 'undefined') {
-  console.error('❌ This script requires Node.js 18+ or a fetch polyfill.');
-  console.error('   Install node-fetch: npm install node-fetch');
+  log.error('❌ This script requires Node.js 18+ or a fetch polyfill.');
+  log.error('   Install node-fetch: npm install node-fetch');
   process.exit(1);
 }
 
 runTests().catch(error => {
-  console.error('❌ Test runner error:', error);
+  log.error('❌ Test runner error:', error);
   process.exit(1);
 });
 
