@@ -30,7 +30,7 @@ export default function EmailSecurityCard({
   })
   const [errors, setErrors] = useState<string[]>([])
   const [submitting, setSubmitting] = useState(false)
-  const [showCurrentEmail, setShowCurrentEmail] = useState(false)
+  const [showCurrentEmail, setShowCurrentEmail] = useState(true)
 
   const handleSubmit = async () => {
     setErrors([])
