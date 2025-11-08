@@ -72,35 +72,6 @@ export default function SecurityTab({
     }
   }
 
-  // Calculate security score
-  const getSecurityScore = () => {
-    let score = 0
-    let total = 0
-    
-    // Email verification
-    total += 25
-    if (emailData?.isVerified) score += 25
-    
-    // Two-factor authentication
-    total += 50
-    if (twoFactorData?.isEnabled) score += 50
-    
-    // Session management (bonus for having few active sessions)
-    total += 25
-    if (sessions && sessions.length <= 2) score += 25
-    else if (sessions && sessions.length <= 4) score += 15
-    else if (sessions && sessions.length <= 6) score += 5
-    
-    return { score, total, percentage: Math.round((score / total) * 100) }
-  }
-
-  const securityScore = getSecurityScore()
-  const getScoreColor = (percentage: number) => {
-    if (percentage >= 80) return 'text-green-600 bg-green-50'
-    if (percentage >= 60) return 'text-yellow-600 bg-yellow-50'
-    return 'text-red-600 bg-red-50'
-  }
-
   useEffect(() => {
     return () => {
       if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current)
@@ -111,7 +82,7 @@ export default function SecurityTab({
   return (
     <div className="flex flex-col">
       {/* Header */}
-      <div className="sticky top-0 z-20 border-b border-gray-100 bg-white/95 px-4 py-3 backdrop-blur sm:static sm:rounded-t-2xl sm:px-6 sm:py-4">
+      <div className="border-b border-gray-100 bg-white px-4 py-3 sm:rounded-t-2xl sm:px-6 sm:py-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="flex items-center gap-2 text-xl font-semibold text-gray-900 sm:text-2xl">
@@ -135,36 +106,6 @@ export default function SecurityTab({
               </Button>
             </div>
           )}
-        </div>
-
-        {/* Security Score */}
-        <div className="mt-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 sm:mt-4 sm:px-6 sm:py-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h3 className="text-sm font-medium text-gray-900 sm:text-base">Security Score</h3>
-              <p className="mt-1 text-xs text-gray-600 sm:text-sm">
-                {securityScore.percentage >= 80 && 'Excellent security! Your account is well protected.'}
-                {securityScore.percentage >= 60 && securityScore.percentage < 80 && 'Good security. Enable the remaining protections to reach 100%.'}
-                {securityScore.percentage < 60 && 'Your account could be more secure. Enable additional safeguards.'}
-              </p>
-            </div>
-            <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ${getScoreColor(securityScore.percentage)}`}>
-              <span className="inline-flex h-2 w-2 rounded-full bg-current" />
-              {securityScore.percentage}%
-            </span>
-          </div>
-          <div className="mt-3 h-2 w-full rounded-full bg-white/80">
-            <div
-              className={`h-2 rounded-full transition-all duration-500 ${
-                securityScore.percentage >= 80
-                  ? 'bg-green-500'
-                  : securityScore.percentage >= 60
-                    ? 'bg-yellow-500'
-                    : 'bg-red-500'
-              }`}
-              style={{ width: `${securityScore.percentage}%` }}
-            />
-          </div>
         </div>
       </div>
 

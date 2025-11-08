@@ -88,7 +88,7 @@ export default function EmailSecurityCard({
               disabled
               className="border-0 bg-transparent pr-28 font-mono text-sm text-gray-700 focus-visible:ring-0"
             />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
               <Button
                 type="button"
                 variant="ghost"
@@ -98,18 +98,20 @@ export default function EmailSecurityCard({
               >
                 {showCurrentEmail ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
-              {emailData?.isVerified ? (
-                <div className="flex items-center gap-1">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-xs text-green-600 font-medium">Verified</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1">
-                  <AlertTriangle className="h-4 w-4 text-amber-500" />
-                  <span className="text-xs text-amber-600 font-medium">Unverified</span>
-                </div>
-              )}
             </div>
+          </div>
+          <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-xs font-medium text-gray-700 sm:bg-transparent sm:px-0 sm:py-0 sm:text-sm">
+            {emailData?.isVerified ? (
+              <>
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span className="text-green-600">Verified</span>
+              </>
+            ) : (
+              <>
+                <AlertTriangle className="h-4 w-4 text-amber-500" />
+                <span className="text-amber-600">Unverified</span>
+              </>
+            )}
           </div>
           {!emailData?.isVerified && (
             <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">

@@ -74,12 +74,7 @@ export default function NotificationCard({
             <GroupIcon className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-base font-semibold text-gray-900 sm:text-lg">{group.title}</h3>
-              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                {enabledCount}/{totalCount} on
-              </span>
-            </div>
+            <h3 className="text-base font-semibold text-gray-900 sm:text-lg">{group.title}</h3>
             <p className="mt-1 text-sm text-gray-600">{group.description}</p>
           </div>
         </div>
