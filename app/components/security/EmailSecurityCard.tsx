@@ -65,30 +65,30 @@ export default function EmailSecurityCard({
   }
 
   return (
-    <div className="bg-white border rounded-lg p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-          <Mail className="w-5 h-5 text-blue-600" />
+    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+      <div className="mb-4 flex items-start gap-3 sm:mb-5">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 sm:h-12 sm:w-12">
+          <Mail className="h-5 w-5 text-blue-600 sm:h-6 sm:w-6" />
         </div>
         <div>
-          <h3 className="text-lg font-semibold">Email Address</h3>
-          <p className="text-sm text-gray-600">Update your account email address securely</p>
+          <h3 className="text-base font-semibold text-gray-900 sm:text-lg">Email Address</h3>
+          <p className="text-sm text-gray-600">Update your account email address securely.</p>
         </div>
       </div>
 
-      <div className="space-y-4 max-w-md">
+      <div className="space-y-4 sm:space-y-5">
         {/* Current Email */}
         <div>
           <Label htmlFor="current-email">Current Email</Label>
-          <div className="relative mt-2">
+          <div className="relative mt-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-3">
             <Input
               id="current-email"
               type={showCurrentEmail ? 'email' : 'password'}
               value={emailData?.currentEmail || ''}
               disabled
-              className="pr-32 font-mono text-sm"
+              className="border-0 bg-transparent pr-28 font-mono text-sm text-gray-700 focus-visible:ring-0"
             />
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
               <Button
                 type="button"
                 variant="ghost"
@@ -96,16 +96,16 @@ export default function EmailSecurityCard({
                 onClick={() => setShowCurrentEmail(!showCurrentEmail)}
                 className="h-8 w-8"
               >
-                {showCurrentEmail ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showCurrentEmail ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
               {emailData?.isVerified ? (
                 <div className="flex items-center gap-1">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <CheckCircle className="h-4 w-4 text-green-500" />
                   <span className="text-xs text-green-600 font-medium">Verified</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-1">
-                  <AlertTriangle className="w-4 h-4 text-amber-500" />
+                  <AlertTriangle className="h-4 w-4 text-amber-500" />
                   <span className="text-xs text-amber-600 font-medium">Unverified</span>
                 </div>
               )}
@@ -135,7 +135,7 @@ export default function EmailSecurityCard({
             inputMode="email"
             value={formData.newEmail}
             onChange={(e) => setFormData({ ...formData, newEmail: e.target.value })}
-            placeholder="Enter new email address"
+            placeholder="you@example.com"
             className="mt-2"
             disabled={submitting || loading}
           />
@@ -158,9 +158,9 @@ export default function EmailSecurityCard({
         
         {/* Errors */}
         {errors.length > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+          <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
             {errors.map((error, index) => (
-              <p key={index} className="text-sm text-red-700">{error}</p>
+              <p key={index}>{error}</p>
             ))}
           </div>
         )}
@@ -170,23 +170,23 @@ export default function EmailSecurityCard({
           onClick={handleSubmit}
           disabled={submitting || loading || !formData.newEmail || !formData.confirmEmail}
           variant="primary"
-          className="w-full sm:w-auto"
+          className="h-12 w-full sm:w-auto"
         >
           {submitting ? (
             <>
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+              <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
               Updating Email...
             </>
           ) : 'Update Email'}
         </Button>
 
         {/* Security Notice */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <div className="flex items-start gap-2">
-            <Mail className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+        <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-3">
+          <div className="flex items-start gap-2 text-sm text-blue-800">
+            <Mail className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
             <div>
-              <p className="text-sm font-medium text-blue-800">Security Notice</p>
-              <p className="text-sm text-blue-700 mt-1">
+              <p className="font-medium text-blue-900">Security Notice</p>
+              <p className="mt-1">
                 You'll receive a verification email at your new address. Your email won't be changed until verified.
               </p>
             </div>

@@ -85,30 +85,30 @@ export default function SessionsCard({
   const otherSessions = sessions.filter(s => !s.is_current_session)
 
   return (
-    <div className="bg-white border rounded-lg p-6">
+    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-            <Monitor className="w-5 h-5 text-purple-600" />
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-purple-100 sm:h-12 sm:w-12">
+            <Monitor className="h-5 w-5 text-purple-600 sm:h-6 sm:w-6" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold">Active Sessions</h3>
+            <h3 className="text-base font-semibold text-gray-900 sm:text-lg">Active Sessions</h3>
             <p className="text-sm text-gray-600">
-              Manage devices that are currently signed in to your account
+              Manage and revoke devices that are signed in to your account.
             </p>
           </div>
         </div>
         
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Button
             onClick={handleRefresh}
             disabled={loading}
             variant="outline"
             size="sm"
-            className="min-h-[44px]"
+            className="h-11 w-full sm:h-10 sm:w-auto"
           >
-            <RotateCcw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            <RotateCcw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             {loading ? 'Loading...' : 'Refresh'}
           </Button>
 
@@ -118,9 +118,9 @@ export default function SessionsCard({
               disabled={revokingAll || loading}
               variant="destructive"
               size="sm"
-              className="min-h-[44px]"
+              className="h-11 w-full sm:h-10 sm:w-auto"
             >
-              {revokingAll ? 'Revoking All...' : `Revoke All Others (${otherSessions.length})`}
+              {revokingAll ? 'Revoking All...' : `Revoke ${otherSessions.length} Others`}
             </Button>
           )}
         </div>
@@ -129,70 +129,70 @@ export default function SessionsCard({
       {/* Sessions List */}
       <div className="space-y-4">
         {loading && sessions.length === 0 ? (
-          <div className="bg-gray-50 rounded-lg p-8 text-center">
-            <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading sessions...</p>
+          <div className="rounded-xl bg-gray-50 p-8 text-center">
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+            <p className="text-sm text-gray-600">Loading sessions...</p>
           </div>
         ) : sessions.length === 0 ? (
-          <div className="bg-gray-50 rounded-lg p-8 text-center">
-            <Monitor className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h4 className="font-medium text-gray-900 mb-2">No Active Sessions</h4>
-            <p className="text-gray-600">No active sessions found</p>
+          <div className="rounded-xl bg-gray-50 p-8 text-center">
+            <Monitor className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+            <h4 className="mb-2 text-base font-medium text-gray-900">No Active Sessions</h4>
+            <p className="text-sm text-gray-600">We’ll display devices here the next time you sign in elsewhere.</p>
           </div>
         ) : (
           <>
             {/* Current Session */}
             {currentSession && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+              <div className="rounded-2xl border border-blue-200 bg-blue-50/70 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
                     {(() => {
                       const DeviceIcon = iconMap[getDeviceIcon(currentSession.device_name, currentSession.os_name) as keyof typeof iconMap] || Monitor
-                      return <DeviceIcon className="w-6 h-6 text-blue-600" />
+                      return <DeviceIcon className="h-6 w-6 text-blue-600" />
                     })()}
                   </div>
                   
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium text-gray-900 truncate">
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h4 className="truncate text-base font-semibold text-gray-900">
                         {currentSession.device_name}
                       </h4>
-                      <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium flex-shrink-0">
+                      <span className="flex-shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
                         Current Device
                       </span>
-                      <div className="flex items-center gap-1 text-green-600 text-sm font-medium">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <div className="flex items-center gap-1 text-sm font-medium text-green-600">
+                        <div className="h-2 w-2 rounded-full bg-green-500"></div>
                         Active Now
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
+                    <div className="grid grid-cols-1 gap-2 text-sm text-gray-600 sm:grid-cols-2">
                       <div className="flex items-center gap-1">
-                        <Monitor className="w-4 h-4 flex-shrink-0" />
+                        <Monitor className="h-4 w-4 flex-shrink-0" />
                         <span className="truncate">
                           {currentSession.browser_name} {currentSession.browser_version}
                         </span>
                       </div>
                       
                       <div className="flex items-center gap-1">
-                        <Wifi className="w-4 h-4 flex-shrink-0" />
+                        <Wifi className="h-4 w-4 flex-shrink-0" />
                         <span className="truncate">{currentSession.os_name} {currentSession.os_version}</span>
                       </div>
                       
                       <div className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4 flex-shrink-0" />
+                        <MapPin className="h-4 w-4 flex-shrink-0" />
                         <span className="truncate">
                           {currentSession.location_city}, {currentSession.location_country}
                         </span>
                       </div>
                       
                       <div className="flex items-center gap-1">
-                        <Clock className="w-4 h-4 flex-shrink-0" />
-                        <span>Started {formatSessionTime(currentSession.created_at)}</span>
+                        <Clock className="h-4 w-4 flex-shrink-0" />
+                        <span className="truncate">Started {formatSessionTime(currentSession.created_at)}</span>
                       </div>
                     </div>
 
-                    <div className="mt-2 text-xs text-gray-500">
+                    <div className="text-xs text-gray-500">
                       IP: {currentSession.ip_address}
                     </div>
                   </div>
@@ -207,59 +207,52 @@ export default function SessionsCard({
               const isRevoking = revoking === session.id
 
               return (
-                <div key={session.id} className="bg-gray-50 border rounded-lg p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                      <DeviceIcon className="w-6 h-6 text-gray-600" />
+                <div key={session.id} className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
+                      <DeviceIcon className="h-6 w-6 text-gray-600" />
                     </div>
                     
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <h4 className="font-medium text-gray-900 truncate">
-                          {session.device_name}
-                        </h4>
-                        <span className={`text-sm font-medium ${sessionStatus.color}`}>
-                          {sessionStatus.label}
-                        </span>
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <h4 className="truncate text-base font-medium text-gray-900">{session.device_name}</h4>
+                        <span className={`text-sm font-medium ${sessionStatus.color}`}>{sessionStatus.label}</span>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
+                      <div className="grid grid-cols-1 gap-2 text-sm text-gray-600 sm:grid-cols-2">
                         <div className="flex items-center gap-1">
-                          <Monitor className="w-4 h-4 flex-shrink-0" />
+                          <Monitor className="h-4 w-4 flex-shrink-0" />
                           <span className="truncate">
                             {session.browser_name} {session.browser_version}
                           </span>
                         </div>
                         
                         <div className="flex items-center gap-1">
-                          <Wifi className="w-4 h-4 flex-shrink-0" />
+                          <Wifi className="h-4 w-4 flex-shrink-0" />
                           <span className="truncate">{session.os_name} {session.os_version}</span>
                         </div>
                         
                         <div className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4 flex-shrink-0" />
+                          <MapPin className="h-4 w-4 flex-shrink-0" />
                           <span className="truncate">
                             {session.location_city}, {session.location_country}
                           </span>
                         </div>
                         
                         <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4 flex-shrink-0" />
+                          <Clock className="h-4 w-4 flex-shrink-0" />
                           <span>Last active {formatSessionTime(session.last_activity)}</span>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between mt-2">
-                        <div className="text-xs text-gray-500">
-                          IP: {session.ip_address}
-                        </div>
-
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="text-xs text-gray-500">IP: {session.ip_address}</div>
                         <Button
                           onClick={() => handleRevokeSession(session.id, session.device_name)}
                           disabled={isRevoking || revokingAll || loading}
                           variant="destructive"
                           size="sm"
-                          className="min-h-[44px]"
+                          className="h-11 w-full sm:h-10 sm:w-32"
                         >
                           {isRevoking ? 'Revoking...' : 'Revoke'}
                         </Button>
@@ -275,24 +268,20 @@ export default function SessionsCard({
 
       {/* Security Notice */}
       {sessions.length > 1 && (
-        <div className="mt-6 bg-amber-50 border border-amber-200 rounded-lg p-4">
-          <div className="flex items-start gap-2">
-            <Shield className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-amber-800">Security Recommendation</p>
-              <p className="text-sm text-amber-700 mt-1">
-                You have {sessions.length} active sessions. If you don't recognize any of these devices or locations, 
-                revoke those sessions immediately and consider changing your password.
-              </p>
-            </div>
+        <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50/80 p-4">
+          <div className="flex items-start gap-2 text-sm text-amber-700">
+            <Shield className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
+            <p>
+              You have {sessions.length} active sessions. Revoke unfamiliar devices immediately and consider changing your password.
+            </p>
           </div>
         </div>
       )}
 
       {/* Help Section */}
-      <div className="mt-4 bg-gray-50 rounded-lg p-4">
-        <h4 className="text-sm font-medium text-gray-900 mb-2">Session Information</h4>
-        <ul className="text-sm text-gray-600 space-y-1">
+      <div className="mt-4 rounded-xl bg-gray-50 p-4">
+        <h4 className="mb-2 text-sm font-medium text-gray-900">Session Information</h4>
+        <ul className="space-y-1 text-sm text-gray-600">
           <li>• Sessions show devices currently signed in to your account</li>
           <li>• Revoking a session will immediately sign out that device</li>
           <li>• Check for unfamiliar locations or devices regularly</li>

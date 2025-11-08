@@ -111,31 +111,31 @@ export default function TwoFactorCard({
   }
 
   return (
-    <div className="bg-white border rounded-lg p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-          <Shield className="w-5 h-5 text-green-600" />
+    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+      <div className="mb-4 flex items-start gap-3 sm:mb-5">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-100 sm:h-12 sm:w-12">
+          <Shield className="h-5 w-5 text-green-600 sm:h-6 sm:w-6" />
         </div>
         <div>
-          <h3 className="text-lg font-semibold">Two-Factor Authentication</h3>
-          <p className="text-sm text-gray-600">Add an extra layer of security to your account</p>
+          <h3 className="text-base font-semibold text-gray-900 sm:text-lg">Two-Factor Authentication</h3>
+          <p className="text-sm text-gray-600">Add an extra layer of security to your account.</p>
         </div>
       </div>
 
       {/* Setup Steps */}
       {setupStep && (
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="flex items-center gap-2 mb-3">
-            <Key className="w-5 h-5 text-blue-600" />
-            <h4 className="font-medium text-blue-900">
-              {setupStep === 'phone' ? 'Step 1: Add Phone Number' : 'Step 2: Verify Code'}
+        <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50/70 p-4 sm:p-5">
+          <div className="mb-3 flex items-center gap-2">
+            <Key className="h-5 w-5 text-blue-600" />
+            <h4 className="text-sm font-semibold text-blue-900 sm:text-base">
+              {setupStep === 'phone' ? 'Step 1 · Add your phone number' : 'Step 2 · Enter verification code'}
             </h4>
           </div>
 
           {setupStep === 'phone' && (
             <div className="space-y-4">
               <div>
-                <Label htmlFor="2fa-phone" className="text-blue-800">
+                <Label htmlFor="2fa-phone" className="text-blue-900">
                   Phone Number
                 </Label>
                 <Input
@@ -145,19 +145,20 @@ export default function TwoFactorCard({
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   placeholder="+1 (555) 123-4567"
-                  className="mt-2 border-blue-300"
+                  className="mt-2 border-blue-200"
                   disabled={enabling}
                 />
-                <p className="text-sm text-blue-600 mt-1">
-                  We'll send a verification code to this number
+                <p className="mt-1 text-xs text-blue-700 sm:text-sm">
+                  We'll send a verification code to this number.
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <Button
                   onClick={handlePhoneSubmit}
                   disabled={enabling || !phoneNumber}
                   variant="primary"
+                  className="h-11 w-full sm:w-auto"
                 >
                   {enabling ? 'Sending Code...' : 'Send Verification Code'}
                 </Button>
@@ -165,6 +166,7 @@ export default function TwoFactorCard({
                   onClick={cancelSetup}
                   disabled={enabling}
                   variant="secondary"
+                  className="h-11 w-full sm:w-auto"
                 >
                   Cancel
                 </Button>
@@ -175,7 +177,7 @@ export default function TwoFactorCard({
           {setupStep === 'verify' && (
             <div className="space-y-4">
               <div>
-                <Label htmlFor="2fa-code" className="text-blue-800">
+                <Label htmlFor="2fa-code" className="text-blue-900">
                   Verification Code
                 </Label>
                 <Input
@@ -185,20 +187,20 @@ export default function TwoFactorCard({
                   value={verificationCode}
                   onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   placeholder="123456"
-                  className="mt-2 border-blue-300 text-center text-lg font-mono tracking-wider"
+                  className="mt-2 border-blue-200 text-center text-lg font-mono tracking-[0.35em]"
                   disabled={enabling}
                   maxLength={6}
                 />
-                <p className="text-sm text-blue-600 mt-1">
-                  Enter the 6-digit code sent to {phoneNumber}
+                <p className="mt-1 text-xs text-blue-700 sm:text-sm">
+                  Enter the 6-digit code sent to {phoneNumber}.
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                 <Button
                   onClick={handleVerifyCode}
                   disabled={enabling || verificationCode.length !== 6}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="h-11 w-full bg-green-600 hover:bg-green-700 sm:w-auto"
                 >
                   {enabling ? 'Verifying...' : 'Verify & Enable'}
                 </Button>
@@ -206,6 +208,7 @@ export default function TwoFactorCard({
                   onClick={() => setSetupStep('phone')}
                   disabled={enabling}
                   variant="secondary"
+                  className="h-11 w-full sm:w-auto"
                 >
                   Back
                 </Button>
@@ -213,6 +216,7 @@ export default function TwoFactorCard({
                   onClick={cancelSetup}
                   disabled={enabling}
                   variant="secondary"
+                  className="h-11 w-full sm:w-auto"
                 >
                   Cancel
                 </Button>
@@ -224,57 +228,56 @@ export default function TwoFactorCard({
 
       {/* Error Display */}
       {error && (
-        <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
-          <div className="flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-red-700">{error}</p>
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3">
+          <div className="flex items-start gap-2 text-sm text-red-700">
+            <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600" />
+            <p>{error}</p>
           </div>
         </div>
       )}
 
       {/* Current Status */}
       {!setupStep && (
-        <div className={`rounded-lg p-6 flex items-center justify-between ${
-          twoFactorData?.isEnabled
-            ? 'bg-green-50 border border-green-200'
-            : 'bg-gray-50 border border-gray-200'
-        }`}>
-          <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-              twoFactorData?.isEnabled
-                ? 'bg-green-100'
-                : 'bg-gray-100'
-            }`}>
-              <Smartphone className={`w-6 h-6 ${
-                twoFactorData?.isEnabled
-                  ? 'text-green-600'
-                  : 'text-gray-500'
-              }`} />
+        <div
+          className={`flex flex-col gap-4 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5 ${
+            twoFactorData?.isEnabled ? 'border-green-200 bg-green-50/70' : 'border-gray-200 bg-gray-50'
+          }`}
+        >
+          <div className="flex flex-1 items-start gap-3">
+            <div
+              className={`flex h-12 w-12 items-center justify-center rounded-full ${
+                twoFactorData?.isEnabled ? 'bg-green-100' : 'bg-gray-100'
+              }`}
+            >
+              <Smartphone
+                className={`h-6 w-6 ${
+                  twoFactorData?.isEnabled ? 'text-green-600' : 'text-gray-500'
+                }`}
+              />
             </div>
-            <div>
-              <p className="font-medium text-gray-900">SMS Authentication</p>
-              <p className="text-sm text-gray-600 mt-1">
-                {twoFactorData?.isEnabled 
-                  ? `Enabled for ${twoFactorData.phoneNumber || 'your phone number'}`
-                  : 'Receive verification codes via SMS for enhanced security'
-                }
+            <div className="space-y-1 text-sm text-gray-600">
+              <p className="text-base font-semibold text-gray-900">SMS Authentication</p>
+              <p>
+                {twoFactorData?.isEnabled
+                  ? `Enabled for ${twoFactorData.phoneNumber || 'your phone number'}.`
+                  : 'Receive verification codes via SMS for enhanced security.'}
               </p>
               {twoFactorData?.isEnabled && (
-                <div className="flex items-center gap-1 mt-2">
-                  <CheckCircle className="w-4 h-4 text-green-600" />
-                  <span className="text-sm font-medium text-green-700">Protected</span>
+                <div className="flex items-center gap-1 text-green-700">
+                  <CheckCircle className="h-4 w-4" />
+                  <span className="text-sm font-medium">Protected</span>
                 </div>
               )}
             </div>
           </div>
-          
-          <div className="flex flex-col gap-2">
+
+          <div className="flex w-full flex-col gap-2 sm:w-auto">
             {twoFactorData?.isEnabled ? (
               <Button
                 onClick={handleDisable}
                 disabled={disabling || loading}
                 variant="destructive"
-                className="min-h-[48px]"
+                className="h-11 w-full sm:w-36"
               >
                 {disabling ? 'Disabling...' : 'Disable'}
               </Button>
@@ -282,7 +285,7 @@ export default function TwoFactorCard({
               <Button
                 onClick={handleEnable}
                 disabled={loading}
-                className="bg-green-600 hover:bg-green-700 min-h-[48px]"
+                className="h-11 w-full bg-green-600 hover:bg-green-700 sm:w-36"
               >
                 Enable 2FA
               </Button>
@@ -293,19 +296,14 @@ export default function TwoFactorCard({
 
       {/* Benefits Section */}
       {!twoFactorData?.isEnabled && !setupStep && (
-        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-start gap-2">
-            <Shield className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-blue-800">Why Enable Two-Factor Authentication?</p>
-              <ul className="text-sm text-blue-700 mt-1 space-y-1">
-                <li>• Protects against unauthorized access</li>
-                <li>• Required even if someone knows your password</li>
-                <li>• Instant notifications of login attempts</li>
-                <li>• Industry-standard security practice</li>
-              </ul>
-            </div>
-          </div>
+        <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50/70 p-3 sm:p-4">
+          <p className="text-sm font-medium text-blue-900">Why enable two-factor authentication?</p>
+          <ul className="mt-2 space-y-1 text-sm text-blue-800">
+            <li>• Protects against unauthorized access</li>
+            <li>• Works even if someone knows your password</li>
+            <li>• Sends instant notifications of login attempts</li>
+            <li>• Follows industry-standard security practices</li>
+          </ul>
         </div>
       )}
     </div>

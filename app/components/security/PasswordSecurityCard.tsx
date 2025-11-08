@@ -116,26 +116,26 @@ export default function PasswordSecurityCard({
   }
 
   return (
-    <div className="bg-white border rounded-lg p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-          <Lock className="w-5 h-5 text-red-600" />
+    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+      <div className="mb-4 flex items-start gap-3 sm:mb-5">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-100 sm:h-12 sm:w-12">
+          <Lock className="h-5 w-5 text-red-600 sm:h-6 sm:w-6" />
         </div>
         <div>
-          <h3 className="text-lg font-semibold">Password Security</h3>
-          <p className="text-sm text-gray-600">Change your account password with enhanced security</p>
+          <h3 className="text-base font-semibold text-gray-900 sm:text-lg">Password Security</h3>
+          <p className="text-sm text-gray-600">Change your account password with enhanced security.</p>
         </div>
       </div>
 
-      <div className="space-y-4 max-w-md">
+      <div className="space-y-4 sm:space-y-5">
         {/* Informational Banner for Password Creation */}
         {!hasExistingPassword && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-start gap-2">
-              <Shield className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-medium text-blue-800">Create a Password</p>
-                <p className="text-sm text-blue-700 mt-1">
+          <div className="rounded-xl border border-blue-200 bg-blue-50/80 p-4">
+            <div className="flex items-start gap-2 text-sm text-blue-800">
+              <Shield className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" />
+              <div className="space-y-1">
+                <p className="font-medium text-blue-900">Create a password</p>
+                <p>
                   You signed up with {authProvider === 'google' ? 'Google' : 'Phone OTP'}.
                   Setting a password will allow you to sign in using email and password
                   in addition to {authProvider === 'google' ? 'Google' : 'Phone OTP'}.
@@ -285,7 +285,7 @@ export default function PasswordSecurityCard({
         
         {/* Errors */}
         {errors.length > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+          <div className="rounded-xl border border-red-200 bg-red-50 p-3">
             {errors.map((error, index) => (
               <p key={index} className="text-sm text-red-700">{error}</p>
             ))}
@@ -305,29 +305,24 @@ export default function PasswordSecurityCard({
             passwordStrength.strength === 'weak'
           }
           variant="primary"
-          className="w-full sm:w-auto"
+          className="h-12 w-full sm:w-auto"
         >
           {submitting ? (
             <>
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+              <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
               {hasExistingPassword ? 'Updating Password...' : 'Creating Password...'}
             </>
           ) : (hasExistingPassword ? 'Update Password' : 'Create Password')}
         </Button>
 
         {/* Security Tips */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <div className="flex items-start gap-2">
-            <Shield className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-blue-800">Password Security Tips</p>
-              <ul className="text-sm text-blue-700 mt-1 space-y-1">
-                <li>• Use a unique password you haven't used elsewhere</li>
-                <li>• Consider using a password manager</li>
-                <li>• Avoid common words or personal information</li>
-              </ul>
-            </div>
-          </div>
+        <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-3">
+          <p className="text-sm font-medium text-blue-900">Password security tips</p>
+          <ul className="mt-2 space-y-1 text-sm text-blue-800">
+            <li>• Use a unique password you haven't used elsewhere</li>
+            <li>• Consider using a password manager</li>
+            <li>• Avoid common words or personal information</li>
+          </ul>
         </div>
       </div>
     </div>

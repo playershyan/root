@@ -32,22 +32,24 @@ export default function NotificationsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Button
-          onClick={() => router.push('/profile')}
-          variant="ghost"
-          size="sm"
-          className="mb-6 gap-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Profile
-        </Button>
+      <div className="mx-auto w-full max-w-3xl">
+        <div className="px-4 pb-8 pt-6 sm:px-6 sm:pt-8">
+          <Button
+            onClick={() => router.push('/profile')}
+            variant="ghost"
+            size="sm"
+            className="mb-4 inline-flex items-center gap-2 px-0 text-sm font-medium sm:mb-6"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Profile
+          </Button>
 
-        <NotificationsTab
-          preferences={preferences}
-          onUpdate={handleUpdate}
-          loading={false}
-        />
+          <NotificationsTab
+            preferences={preferences}
+            onUpdate={handleUpdate}
+            loading={false}
+          />
+        </div>
       </div>
     </div>
   )

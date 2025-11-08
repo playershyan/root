@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Bell, CheckCircle, AlertTriangle, Save } from 'lucide-react'
 import {
   NotificationPreferences,
@@ -27,6 +27,8 @@ export default function NotificationsTab({
   const [hasChanges, setHasChanges] = useState(false)
   const [updateSuccess, setUpdateSuccess] = useState<string | null>(null)
   const [updateError, setUpdateError] = useState<string | null>(null)
+  const successTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const handleToggle = (key: keyof NotificationPreferences, value: boolean) => {
     const newPreferences = { ...localPreferences, [key]: value }
@@ -43,14 +45,16 @@ export default function NotificationsTab({
       await onUpdate(localPreferences)
       setHasChanges(false)
       setUpdateSuccess('Notification preferences updated successfully!')
-      
+
       // Clear success message after 5 seconds
-      setTimeout(() => setUpdateSuccess(null), 5000)
+      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current)
+      successTimeoutRef.current = setTimeout(() => setUpdateSuccess(null), 5000)
     } catch (error: any) {
       setUpdateError(error.message || 'Failed to update notification preferences')
-      
+
       // Clear error message after 10 seconds
-      setTimeout(() => setUpdateError(null), 10000)
+      if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current)
+      errorTimeoutRef.current = setTimeout(() => setUpdateError(null), 10000)
     } finally {
       setUpdating(false)
     }
@@ -64,55 +68,67 @@ export default function NotificationsTab({
   const validation = validateNotificationPreferences(localPreferences)
   const enabledCounts = getEnabledNotificationsCount(localPreferences)
 
+  useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current)
+      if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current)
+    }
+  }, [])
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">
       {/* Header */}
-      <div className="border-b px-6 py-4 bg-white">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-semibold flex items-center gap-2">
-            <Bell className="w-6 h-6" />
+      <div className="sticky top-0 z-20 border-b border-gray-100 bg-white/95 px-4 py-3 backdrop-blur sm:static sm:rounded-t-2xl sm:px-6 sm:py-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="flex items-center gap-2 text-xl font-semibold text-gray-900 sm:text-2xl">
+            <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
             Notification Preferences
           </h1>
-          <div className="flex items-center gap-4">
-            <div className="text-sm text-gray-600">
-              {enabledCounts.total} notifications enabled
-            </div>
+          <div className="flex items-center justify-between gap-3 text-sm text-gray-600 sm:justify-end">
+            <span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium uppercase tracking-wide text-gray-700 sm:text-sm">
+              <span className="h-2 w-2 rounded-full bg-green-500" />
+              {enabledCounts.total} enabled
+            </span>
           </div>
         </div>
 
         {/* Summary Stats */}
-        <div className="bg-gray-50 rounded-lg p-4 mb-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{enabledCounts.byType.email}</div>
-              <div className="text-sm text-gray-600">Email Notifications</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{enabledCounts.byType.sms}</div>
-              <div className="text-sm text-gray-600">SMS Notifications</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">{enabledCounts.byType.marketing}</div>
-              <div className="text-sm text-gray-600">Marketing Communications</div>
-            </div>
+        <div className="-mx-1 mt-3 flex gap-3 overflow-x-auto pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-4">
+          <div className="min-w-[145px] rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 sm:min-w-0">
+            <div className="text-sm font-medium text-blue-900">Email</div>
+            <div className="text-lg font-semibold text-blue-700 sm:text-2xl">{enabledCounts.byType.email}</div>
+            <div className="text-xs text-blue-700/70 sm:text-sm">Notifications</div>
+          </div>
+          <div className="min-w-[145px] rounded-xl border border-green-100 bg-green-50 px-4 py-3 sm:min-w-0">
+            <div className="text-sm font-medium text-green-900">SMS</div>
+            <div className="text-lg font-semibold text-green-700 sm:text-2xl">{enabledCounts.byType.sms}</div>
+            <div className="text-xs text-green-700/70 sm:text-sm">Notifications</div>
+          </div>
+          <div className="min-w-[145px] rounded-xl border border-purple-100 bg-purple-50 px-4 py-3 sm:min-w-0">
+            <div className="text-sm font-medium text-purple-900">Marketing</div>
+            <div className="text-lg font-semibold text-purple-700 sm:text-2xl">{enabledCounts.byType.marketing}</div>
+            <div className="text-xs text-purple-700/70 sm:text-sm">Touchpoints</div>
           </div>
         </div>
 
         {/* Changes indicator */}
         {hasChanges && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-blue-600" />
-                <span className="font-medium text-blue-900">You have unsaved changes</span>
+          <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 sm:mt-4 sm:px-5 sm:py-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-2 text-sm text-blue-900">
+                <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" />
+                <div>
+                  <p className="font-medium">You have unsaved changes</p>
+                  <p className="text-xs text-blue-700/80 sm:text-sm">Review your updates and save when ready.</p>
+                </div>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Button
                   onClick={handleReset}
                   disabled={updating}
                   variant="ghost"
                   size="sm"
-                  className="h-11"
+                  className="h-10 px-3 text-sm"
                 >
                   Reset
                 </Button>
@@ -121,16 +137,16 @@ export default function NotificationsTab({
                   disabled={updating}
                   variant="primary"
                   size="sm"
-                  className="h-12"
+                  className="h-10 px-4 text-sm"
                 >
                   {updating ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                       Saving...
                     </>
                   ) : (
                     <>
-                      <Save className="w-4 h-4 mr-2" />
+                      <Save className="mr-2 h-4 w-4" />
                       Save Changes
                     </>
                   )}
@@ -143,32 +159,32 @@ export default function NotificationsTab({
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        <div className="p-6">
+        <div className="space-y-6 px-4 pb-28 pt-5 sm:space-y-8 sm:px-6 sm:pb-6 sm:pt-6">
           {/* Success/Error Messages */}
           {updateSuccess && (
-            <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3">
-              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-700">
+              <CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
               <p className="text-green-700">{updateSuccess}</p>
             </div>
           )}
           
           {updateError && (
-            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600" />
               <p className="text-red-700">{updateError}</p>
             </div>
           )}
 
           {/* Validation Warnings */}
           {validation.warnings.length > 0 && (
-            <div className="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
               <div className="flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
                 <div>
-                  <p className="font-medium text-amber-800 mb-2">Notification Warnings</p>
-                  <ul className="space-y-1">
+                  <p className="mb-2 font-medium text-amber-800">Notification Warnings</p>
+                  <ul className="space-y-1 text-sm text-amber-700">
                     {validation.warnings.map((warning, index) => (
-                      <li key={index} className="text-sm text-amber-700">• {warning}</li>
+                      <li key={index}>• {warning}</li>
                     ))}
                   </ul>
                 </div>
@@ -177,7 +193,7 @@ export default function NotificationsTab({
           )}
 
           {/* Notification Groups */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {notificationGroups.map(group => (
               <NotificationCard
                 key={group.id}
@@ -191,8 +207,8 @@ export default function NotificationsTab({
 
           {/* Save Button (Footer) */}
           {hasChanges && (
-            <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center justify-between">
+            <>
+              <div className="hidden rounded-xl bg-gray-50 p-4 sm:flex sm:items-center sm:justify-between">
                 <div>
                   <p className="font-medium text-gray-900">Changes pending</p>
                   <p className="text-sm text-gray-600">Don't forget to save your notification preferences</p>
@@ -226,15 +242,53 @@ export default function NotificationsTab({
                   </Button>
                 </div>
               </div>
-            </div>
+
+              {/* Mobile sticky action bar */}
+              <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-center px-4 pb-[env(safe-area-inset-bottom,1rem)] pt-3 sm:hidden">
+                <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white/95 p-3 shadow-[0_-10px_30px_rgba(15,23,42,0.15)] backdrop-blur">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between text-xs text-gray-600">
+                      <span className="font-medium text-gray-900">Changes pending</span>
+                      <button
+                        onClick={handleReset}
+                        disabled={updating}
+                        className="font-medium text-blue-600 transition hover:text-blue-700 disabled:cursor-not-allowed disabled:text-gray-400"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                    <Button
+                      onClick={handleSave}
+                      disabled={updating}
+                      variant="primary"
+                      className="h-12 w-full text-base font-semibold"
+                    >
+                      {updating ? (
+                        <>
+                          <div className="mr-2 h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="mr-2 h-5 w-5" />
+                          Save All Changes
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </>
           )}
 
           {/* Information Section */}
-          <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-            <div className="flex items-start gap-3">
-              <Bell className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 sm:p-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 sm:h-12 sm:w-12">
+                <Bell className="h-5 w-5 text-blue-600 sm:h-6 sm:w-6" />
+              </div>
               <div>
-                <h3 className="font-medium text-blue-900 mb-2">About Notifications</h3>
+                <h3 className="mb-2 text-base font-semibold text-blue-900 sm:text-lg">About Notifications</h3>
                 <ul className="space-y-1 text-sm text-blue-800">
                   <li>• Email notifications are sent to your verified email address</li>
                   <li>• SMS notifications require phone verification and may incur charges</li>
