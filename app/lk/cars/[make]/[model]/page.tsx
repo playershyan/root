@@ -185,7 +185,7 @@ export default async function MakeModelListingsPage({ params }: PageParams) {
                     alt={item.title}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    quality="thumbnail"
+                    quality="listing"
                     watermark={true}
                     priority={false}
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"

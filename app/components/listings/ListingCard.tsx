@@ -74,7 +74,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
             className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
             onError={() => setImageError(true)}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            quality="thumbnail"
+            quality="listing"
             watermark={true}
             priority={false}
           />

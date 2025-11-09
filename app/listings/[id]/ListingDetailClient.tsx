@@ -10,6 +10,7 @@ import OfferModal from '@/app/components/messaging/OfferModal'
 import { useAuth } from '@/app/contexts/AuthContext'
 import ConversationModal from '@/app/components/modals/ConversationModal'
 import ImageLightbox from '@/app/components/ImageLightbox'
+import OptimizedImage from '@/components/ui/OptimizedImage'
 import ContactModal from '@/app/components/modals/ContactModal'
 import { useToast } from '@/app/components/notifications/useToast'
 import { ToastContainer } from '@/app/components/notifications/ToastContainer'
@@ -253,22 +254,27 @@ export default function ListingDetailClient({
       {/* Vehicle Top Section - Full Width */}
       <div className="lg:bg-white lg:rounded-xl lg:shadow-sm overflow-hidden mb-2 lg:mb-6 bg-white lg:bg-white border-b lg:border">
         <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-2 lg:gap-6 px-4 lg:p-6 py-4 lg:py-6">
-          {/* Image Gallery */}
+            {/* Image Gallery */}
           <div className="relative">
             {/* Main Image */}
             <div className="relative h-[400px] bg-gray-100 rounded-lg overflow-hidden">
               {images.length > 0 ? (
                 <>
-                  <img
-                    src={images[currentImageIndex]}
-                    alt={`${listing.title} - Image ${currentImageIndex + 1}`}
-                    className="w-full h-full object-cover cursor-pointer"
+                  <div
+                    className="relative h-full w-full cursor-pointer"
                     onClick={() => openLightbox(currentImageIndex)}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement
-                      target.src = '/api/placeholder/800/600'
-                    }}
-                  />
+                  >
+                    <OptimizedImage
+                      src={images[currentImageIndex]}
+                      alt={`${listing.title} - Image ${currentImageIndex + 1}`}
+                      fill
+                      className="object-cover md:object-contain"
+                      quality="gallery"
+                      watermark={true}
+                      priority
+                      sizes="(max-width: 1024px) 100vw, 60vw"
+                    />
+                  </div>
                   
                   {/* Navigation Arrows */}
                   {images.length > 1 && (
@@ -324,15 +330,17 @@ export default function ListingDetailClient({
                       index === currentImageIndex ? 'border-blue-600 ring-2 ring-blue-200' : 'border-gray-200 hover:border-gray-400'
                     }`}
                   >
-                    <img
-                      src={image}
-                      alt={`Thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement
-                        target.src = '/api/placeholder/80/60'
-                      }}
-                    />
+                    <div className="relative w-full h-full">
+                      <OptimizedImage
+                        src={image}
+                        alt={`Thumbnail ${index + 1}`}
+                        fill
+                        className="object-cover"
+                        quality="listing"
+                        watermark={true}
+                        sizes="80px"
+                      />
+                    </div>
                   </button>
                 ))}
               </div>

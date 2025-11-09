@@ -105,7 +105,7 @@ export default function RegularAdCard({
               fill
               className="object-cover transition-transform group-hover:scale-105"
               priority={false}
-              quality="thumbnail"
+              quality="listing"
               sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
               watermark={true}
               onLoad={onImageLoad}

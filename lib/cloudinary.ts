@@ -155,14 +155,12 @@ export class CloudinaryService {
     return {
       overlay: {
         font_family: "Arial",
-        font_size: 60,
+        font_size: 36,
         font_weight: "bold",
         text: "VERA.lk"
       },
-      gravity: "south_east",
-      x: 30,
-      y: 30,
-      opacity: 60,
+      gravity: "center",
+      opacity: 35,
       color: "white"
     }
   }
