@@ -1,38 +1,94 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { performance } from 'perf_hooks'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
 import { logger } from '@/lib/utils/logger'
+import { performanceMonitor } from '@/lib/monitoring/metrics'
 
 export async function GET(request: NextRequest) {
+  const requestStart = performance.now()
+  performanceMonitor.incrementCounter('admin.stats.requests', 1, { method: 'GET' })
+  logger.api.request('GET', '/api/admin/stats')
+
+  const finish = (
+    outcome: 'success' | 'failure',
+    response: NextResponse,
+    context: Record<string, any> = {}
+  ) => {
+    const durationMs = Math.round(performance.now() - requestStart)
+    const logContext = { ...context, durationMs }
+    performanceMonitor.trackApiResponseTime('/api/admin/stats', durationMs)
+    performanceMonitor.incrementCounter(`admin.stats.${outcome}`, 1, { method: 'GET' })
+
+    if (outcome === 'success') {
+      logger.api.success('GET', '/api/admin/stats', durationMs, logContext)
+    } else {
+      const reason = context.reason || 'Request failed'
+      logger.api.error('GET', '/api/admin/stats', new Error(reason), logContext)
+    }
+
+    return response
+  }
+
+  const timed = async <T>(
+    label: string,
+    operation: () => Promise<T>,
+    context: Record<string, any> = {}
+  ): Promise<T> => {
+    const start = performance.now()
+    try {
+      const result = await operation()
+      const duration = performance.now() - start
+      logger.db.query(label, { durationMs: Math.round(duration), ...context })
+      performanceMonitor.trackDatabaseQuery(label, duration)
+      return result
+    } catch (error) {
+      const duration = performance.now() - start
+      logger.db.query(label, { durationMs: Math.round(duration), status: 'error', ...context })
+      performanceMonitor.trackDatabaseQuery(label, duration)
+      throw error
+    }
+  }
+
   // Verify admin access
   const authResult = await verifyAdminAccess(request)
 
   if (authResult instanceof NextResponse) {
-    return authResult
+    return finish('failure', authResult, { reason: 'admin-auth-failed' })
   }
 
   const hasPermission = authResult.hasPermission('view_dashboard')
   if (!hasPermission) {
-    return NextResponse.json({ error: 'Permission denied' }, { status: 403 })
+    return finish(
+      'failure',
+      NextResponse.json({ error: 'Permission denied' }, { status: 403 }),
+      { reason: 'permission-denied', adminId: authResult.user.id }
+    )
   }
 
   try {
     const supabase = createRouteHandlerClient({ cookies })
 
     // Try to use the new calculate_dashboard_metrics function
-    const { data: metrics, error: metricsError } = await supabase
-      .rpc('calculate_dashboard_metrics')
+    const { data: metrics, error: metricsError } = await timed(
+      'rpc.calculate_dashboard_metrics',
+      () => supabase.rpc('calculate_dashboard_metrics'),
+      { adminId: authResult.user.id }
+    )
 
     if (!metricsError && metrics) {
       // Log admin activity
-      await supabase.rpc('log_admin_activity', {
-        p_admin_id: authResult.user.id,
-        p_action_type: 'view_stats',
-        p_details: { endpoint: '/api/admin/stats', method: 'function' }
-      })
+      await timed('rpc.log_admin_activity', () =>
+        supabase.rpc('log_admin_activity', {
+          p_admin_id: authResult.user.id,
+          p_action_type: 'view_stats',
+          p_details: { endpoint: '/api/admin/stats', method: 'function' }
+        }),
+        { adminId: authResult.user.id, method: 'function' }
+      )
 
-      return NextResponse.json({
+      return finish('success', NextResponse.json({
         totalUsers: metrics.total_users || 0,
         activeListings: metrics.active_listings || 0,
         pendingListings: metrics.pending_listings || 0,
@@ -44,6 +100,9 @@ export async function GET(request: NextRequest) {
         activeWantedRequests: metrics.active_wanted_requests || 0,
         pendingWantedRequests: metrics.pending_wanted_requests || 0,
         todayWantedRequests: metrics.new_wanted_requests || 0
+      }), {
+        adminId: authResult.user.id,
+        source: 'function'
       })
     }
 
@@ -61,61 +120,61 @@ export async function GET(request: NextRequest) {
       pendingWantedRequests,
       todayWantedRequests
     ] = await Promise.all([
-      supabase
+      timed('listings.count_pending', () => supabase
         .from('listings')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending'),
+        .eq('status', 'pending'), { status: 'pending' }),
 
-      supabase
+      timed('listings.count_active', () => supabase
         .from('listings')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'active'),
+        .eq('status', 'active'), { status: 'active' }),
 
-      supabase
+      timed('profiles.count_all', () => supabase
         .from('profiles')
-        .select('*', { count: 'exact', head: true }),
+        .select('*', { count: 'exact', head: true }), {}),
 
-      supabase
+      timed('reports.count_pending', () => supabase
         .from('reports')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending'),
+        .eq('status', 'pending'), { status: 'pending' }),
 
-      supabase
+      timed('listings.count_today', () => supabase
         .from('listings')
         .select('*', { count: 'exact', head: true })
-        .gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
+        .gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString()), {}),
 
-      supabase
+      timed('profiles.count_today', () => supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true })
-        .gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
+        .gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString()), {}),
 
-      supabase
+      timed('business_profiles.count_pending', () => supabase
         .from('business_profiles')
         .select('*', { count: 'exact', head: true })
         .eq('is_verified', false)
-        .eq('is_active', true),
+        .eq('is_active', true), {}),
 
-      supabase
+      timed('business_profiles.count_verified', () => supabase
         .from('business_profiles')
         .select('*', { count: 'exact', head: true })
-        .eq('is_verified', true),
+        .eq('is_verified', true), {}),
 
-      supabase
+      timed('wanted_requests.count_active', () => supabase
         .from('wanted_requests')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'active'),
+        .eq('status', 'active'), {}),
 
-      supabase
+      timed('wanted_requests.count_pending', () => supabase
         .from('wanted_requests')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'active')
-        .is('approved_at', null),
+        .is('approved_at', null), { type: 'pendingApproval' }),
 
-      supabase
+      timed('wanted_requests.count_today', () => supabase
         .from('wanted_requests')
         .select('*', { count: 'exact', head: true })
-        .gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString())
+        .gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString()), {})
     ])
 
     const stats = {
@@ -133,16 +192,26 @@ export async function GET(request: NextRequest) {
     }
 
     // Log admin activity
-    await supabase.rpc('log_admin_activity', {
-      p_admin_id: authResult.user.id,
-      p_action_type: 'view_stats',
-      p_details: { endpoint: '/api/admin/stats', method: 'fallback' }
-    })
+    await timed('rpc.log_admin_activity', () =>
+      supabase.rpc('log_admin_activity', {
+        p_admin_id: authResult.user.id,
+        p_action_type: 'view_stats',
+        p_details: { endpoint: '/api/admin/stats', method: 'fallback' }
+      }),
+      { adminId: authResult.user.id, method: 'fallback' }
+    )
 
-    return NextResponse.json(stats)
+    return finish('success', NextResponse.json(stats), {
+      adminId: authResult.user.id,
+      source: 'fallback'
+    })
 
   } catch (error) {
     logger.error('Get admin stats error', error as Error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return finish(
+      'failure',
+      NextResponse.json({ error: 'Internal server error' }, { status: 500 }),
+      { reason: (error as Error).message, adminId: authResult.user.id }
+    )
   }
 }

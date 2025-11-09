@@ -1,10 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { performance } from 'perf_hooks'
 import { logger } from '@/lib/utils/logger'
+import { performanceMonitor } from '@/lib/monitoring/metrics'
 
 export async function POST(request: NextRequest) {
   logger.debug('Send offer API - Starting request')
+  const requestStart = performance.now()
+  performanceMonitor.incrementCounter('messaging.send_offer.requests', 1, { method: 'POST' })
+  logger.api.request('POST', '/api/messaging/send-offer')
+
+  const finish = (
+    outcome: 'success' | 'failure',
+    response: NextResponse,
+    context: Record<string, any> = {}
+  ) => {
+    const durationMs = Math.round(performance.now() - requestStart)
+    const logContext = { ...context, durationMs }
+    performanceMonitor.trackApiResponseTime('/api/messaging/send-offer', durationMs)
+    performanceMonitor.incrementCounter(`messaging.send_offer.${outcome}`, 1, { method: 'POST' })
+
+    if (outcome === 'success') {
+      logger.api.success('POST', '/api/messaging/send-offer', durationMs, logContext)
+    } else {
+      const reason = context.reason || 'Request failed'
+      logger.api.error('POST', '/api/messaging/send-offer', new Error(reason), logContext)
+    }
+
+    return response
+  }
 
   try {
     const cookieStore = cookies()
@@ -12,11 +37,20 @@ export async function POST(request: NextRequest) {
 
     // Get the current user
     logger.debug('Send offer API - Getting user')
+    const authStart = performance.now()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const authDuration = performance.now() - authStart
+    logger.db.query('supabase.auth.getUser', {
+      durationMs: Math.round(authDuration),
+      endpoint: 'send-offer'
+    })
+    performanceMonitor.trackDatabaseQuery('supabase.auth.getUser', authDuration)
 
     if (authError || !user) {
       logger.error('Send offer API - Auth error', authError)
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return finish('failure', NextResponse.json({ error: 'Unauthorized' }, { status: 401 }), {
+        reason: authError?.message || 'unauthorized'
+      })
     }
 
     logger.debug('Send offer API - User authenticated', { userId: user.id, email: user.email })
@@ -28,19 +62,25 @@ export async function POST(request: NextRequest) {
 
     if (!listingId || !sellerId || !amount) {
       logger.warn('Send offer API - Missing required fields')
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+      return finish('failure', NextResponse.json({ error: 'Missing required fields' }, { status: 400 }), {
+        reason: 'missing-fields'
+      })
     }
 
     // Prevent users from making offers on their own listings
     if (user.id === sellerId) {
       logger.warn('Send offer API - User trying to offer on own listing', { userId: user.id, sellerId })
-      return NextResponse.json({ error: 'Cannot make offer on your own listing' }, { status: 400 })
+      return finish('failure', NextResponse.json({ error: 'Cannot make offer on your own listing' }, { status: 400 }), {
+        reason: 'self-offer',
+        userId: user.id
+      })
     }
 
     logger.debug('Send offer API - Validation passed, checking for existing conversation')
 
     // Check if a conversation already exists between these users for this listing
     let conversationId
+    const existingConvStart = performance.now()
     const { data: existingConversation, error: findConversationError } = await supabase
       .from('conversations')
       .select('id')
@@ -48,14 +88,21 @@ export async function POST(request: NextRequest) {
       .eq('buyer_id', user.id)
       .eq('seller_id', sellerId)
       .maybeSingle()
+    const existingConvDuration = performance.now() - existingConvStart
+    logger.db.query('conversations.find_for_offer', {
+      durationMs: Math.round(existingConvDuration),
+      listingId,
+      buyerId: user.id
+    })
+    performanceMonitor.trackDatabaseQuery('conversations.find_for_offer', existingConvDuration)
 
     if (findConversationError) {
       logger.error('Send offer API - Error finding conversation', findConversationError as Error)
-      return NextResponse.json({
+      return finish('failure', NextResponse.json({
         error: 'Database error finding conversation',
         details: findConversationError.message,
         code: findConversationError.code
-      }, { status: 500 })
+      }, { status: 500 }), { reason: 'conversation-query-error', code: findConversationError.code })
     }
 
     if (existingConversation) {
@@ -64,6 +111,7 @@ export async function POST(request: NextRequest) {
     } else {
       logger.debug('Send offer API - Creating new conversation')
       // Create a new conversation
+      const newConversationStart = performance.now()
       const { data: newConversation, error: conversationError } = await supabase
         .from('conversations')
         .insert({
@@ -79,15 +127,22 @@ export async function POST(request: NextRequest) {
         })
         .select()
         .single()
+      const newConversationDuration = performance.now() - newConversationStart
+      logger.db.query('conversations.insert_offer_conversation', {
+        durationMs: Math.round(newConversationDuration),
+        listingId,
+        buyerId: user.id
+      })
+      performanceMonitor.trackDatabaseQuery('conversations.insert_offer_conversation', newConversationDuration)
 
       if (conversationError) {
         logger.error('Send offer API - Error creating conversation', conversationError as Error)
-        return NextResponse.json({
+        return finish('failure', NextResponse.json({
           error: 'Failed to create conversation',
           details: conversationError.message,
           code: conversationError.code,
           hint: conversationError.hint
-        }, { status: 500 })
+        }, { status: 500 }), { reason: 'conversation-insert-failed', code: conversationError.code })
       }
 
       logger.debug('Send offer API - Created new conversation', { conversationId: newConversation.id })
@@ -97,6 +152,7 @@ export async function POST(request: NextRequest) {
     logger.debug('Send offer API - Creating offer record')
     
     // Create the offer record
+    const offerStart = performance.now()
     const { data: offer, error: offerError } = await supabase
       .from('offers')
       .insert({
@@ -109,10 +165,20 @@ export async function POST(request: NextRequest) {
       })
       .select()
       .single()
+    const offerDuration = performance.now() - offerStart
+    logger.db.query('offers.insert', {
+      durationMs: Math.round(offerDuration),
+      conversationId,
+      senderId: user.id
+    })
+    performanceMonitor.trackDatabaseQuery('offers.insert', offerDuration)
 
     if (offerError) {
       logger.error('Send offer API - Error creating offer', offerError as Error)
-      return NextResponse.json({ error: 'Failed to create offer' }, { status: 500 })
+      return finish('failure', NextResponse.json({ error: 'Failed to create offer' }, { status: 500 }), {
+        reason: 'offer-insert-failed',
+        code: offerError.code
+      })
     }
 
     logger.info('Send offer API - Created offer', { offerId: offer.id, amount, listingId })
@@ -128,6 +194,7 @@ export async function POST(request: NextRequest) {
       listingTitle
     }
 
+    const messageStart = performance.now()
     const { error: messageError } = await supabase
       .from('messages')
       .insert({
@@ -137,15 +204,26 @@ export async function POST(request: NextRequest) {
         message_type: 'offer',
         offer_data: offerMessageContent
       })
+    const messageDuration = performance.now() - messageStart
+    logger.db.query('messages.insert_offer_message', {
+      durationMs: Math.round(messageDuration),
+      conversationId,
+      senderId: user.id
+    })
+    performanceMonitor.trackDatabaseQuery('messages.insert_offer_message', messageDuration)
 
     if (messageError) {
       logger.error('Send offer API - Error sending offer message', messageError as Error)
-      return NextResponse.json({ error: 'Failed to send offer message' }, { status: 500 })
+      return finish('failure', NextResponse.json({ error: 'Failed to send offer message' }, { status: 500 }), {
+        reason: 'offer-message-failed',
+        code: messageError.code
+      })
     }
 
     logger.debug('Send offer API - Created offer message')
 
     // Update conversation last activity
+    const updateStart = performance.now()
     await supabase
       .from('conversations')
       .update({
@@ -153,13 +231,24 @@ export async function POST(request: NextRequest) {
         updated_at: new Date().toISOString()
       })
       .eq('id', conversationId)
+    const updateDuration = performance.now() - updateStart
+    logger.db.query('conversations.update_after_offer', {
+      durationMs: Math.round(updateDuration),
+      conversationId
+    })
+    performanceMonitor.trackDatabaseQuery('conversations.update_after_offer', updateDuration)
 
     logger.info('Send offer API - Success', { offerId: offer.id, conversationId })
+    performanceMonitor.incrementCounter('messaging.send_offer.offers_created', 1, { status: 'success' })
 
-    return NextResponse.json({
+    return finish('success', NextResponse.json({
       success: true,
       offerId: offer.id,
       conversationId
+    }), {
+      offerId: offer.id,
+      conversationId,
+      userId: user.id
     })
 
   } catch (error) {
@@ -170,11 +259,11 @@ export async function POST(request: NextRequest) {
     const errorDetails = error instanceof Error && 'details' in error ? (error as any).details : undefined
     const errorCode = error instanceof Error && 'code' in error ? (error as any).code : undefined
     
-    return NextResponse.json({ 
+    return finish('failure', NextResponse.json({ 
       error: 'Internal server error',
       message: errorMessage,
       details: errorDetails,
       code: errorCode
-    }, { status: 500 })
+    }, { status: 500 }), { reason: errorMessage || 'unexpected-error', code: errorCode })
   }
 }

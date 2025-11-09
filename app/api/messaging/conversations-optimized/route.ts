@@ -8,9 +8,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { performance } from 'perf_hooks'
 import { logger } from '@/lib/utils/logger'
+import { performanceMonitor } from '@/lib/monitoring/metrics'
 
 interface ConversationResponse {
   id: string
@@ -40,15 +42,46 @@ interface ConversationResponse {
  * - archived: Include archived conversations (default: false)
  */
 export async function GET(request: NextRequest) {
-  try {
-    const supabase = createServerComponentClient({ cookies })
+  const requestStart = performance.now()
+  performanceMonitor.incrementCounter('messaging.conversations_optimized.requests', 1, { method: 'GET' })
+  logger.api.request('GET', '/api/messaging/conversations-optimized')
 
+  const finish = (
+    outcome: 'success' | 'failure',
+    response: NextResponse,
+    context: Record<string, any> = {}
+  ) => {
+    const durationMs = Math.round(performance.now() - requestStart)
+    const logContext = { ...context, durationMs }
+    performanceMonitor.trackApiResponseTime('/api/messaging/conversations-optimized', durationMs)
+    performanceMonitor.incrementCounter(`messaging.conversations_optimized.${outcome}`, 1, { method: 'GET' })
+
+    if (outcome === 'success') {
+      logger.api.success('GET', '/api/messaging/conversations-optimized', durationMs, logContext)
+    } else {
+      const reason = context.reason || 'Request failed'
+      logger.api.error('GET', '/api/messaging/conversations-optimized', new Error(reason), logContext)
+    }
+
+    return response
+  }
+
+  try {
+    const supabase = createRouteHandlerClient({ cookies })
+
+    const authStart = performance.now()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const authDuration = performance.now() - authStart
+    logger.db.query('supabase.auth.getUser', {
+      durationMs: Math.round(authDuration),
+      endpoint: 'messaging-conversations-optimized'
+    })
+    performanceMonitor.trackDatabaseQuery('supabase.auth.getUser', authDuration)
     if (authError || !user) {
-      return NextResponse.json(
+      return finish('failure', NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
-      )
+      ), { reason: authError?.message || 'unauthorized' })
     }
 
     // Parse query parameters
@@ -59,22 +92,22 @@ export async function GET(request: NextRequest) {
 
     // Validate pagination params
     if (limit < 1 || limit > 100) {
-      return NextResponse.json(
+      return finish('failure', NextResponse.json(
         { error: 'Limit must be between 1 and 100' },
         { status: 400 }
-      )
+      ), { reason: 'invalid-limit', limit })
     }
 
     if (offset < 0) {
-      return NextResponse.json(
+      return finish('failure', NextResponse.json(
         { error: 'Offset must be >= 0' },
         { status: 400 }
-      )
+      ), { reason: 'invalid-offset', offset })
     }
 
-    // Fetch conversations
+    // Fetch conversations with profile data via view
     const query = supabase
-      .from('conversations')
+      .from('conversation_details')
       .select(`
         id,
         listing_id,
@@ -88,8 +121,12 @@ export async function GET(request: NextRequest) {
         buyer_unread_count,
         seller_unread_count,
         buyer_archived,
-        seller_archived
-      `)
+        seller_archived,
+        buyer_name,
+        buyer_avatar_url,
+        seller_name,
+        seller_avatar_url
+      `, { count: 'exact' })
       .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
       .eq('is_active', true)
 
@@ -98,33 +135,26 @@ export async function GET(request: NextRequest) {
       query.or(`buyer_archived.eq.false,seller_archived.eq.false`)
     }
 
+    const conversationsStart = performance.now()
     const { data: conversations, error, count } = await query
       .order('last_message_at', { ascending: false })
       .range(offset, offset + limit - 1)
+    const conversationsDuration = performance.now() - conversationsStart
+    logger.db.query('conversation_details.fetch_paginated', {
+      durationMs: Math.round(conversationsDuration),
+      userId: user.id,
+      limit,
+      offset
+    })
+    performanceMonitor.trackDatabaseQuery('conversation_details.fetch_paginated', conversationsDuration)
 
     if (error) {
       logger.error('Database error fetching conversations', error, { userId: user.id, limit, offset })
-      return NextResponse.json(
+      return finish('failure', NextResponse.json(
         { error: 'Failed to fetch conversations' },
         { status: 500 }
-      )
+      ), { reason: 'supabase-error', code: error.code, userId: user.id })
     }
-
-    // Fetch all unique user IDs
-    const userIds = new Set<string>()
-    conversations?.forEach(conv => {
-      userIds.add(conv.buyer_id)
-      userIds.add(conv.seller_id)
-    })
-
-    // Fetch profiles for all users in one query
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, name, avatar_url')
-      .in('id', Array.from(userIds))
-
-    // Create profile map for fast lookup
-    const profileMap = new Map(profiles?.map(p => [p.id, p]) || [])
 
     // Transform to flat structure with profile data
     const transformedConversations: ConversationResponse[] = (conversations || []).map(conv => ({
@@ -141,13 +171,14 @@ export async function GET(request: NextRequest) {
       seller_unread_count: conv.seller_unread_count || 0,
       buyer_archived: conv.buyer_archived || false,
       seller_archived: conv.seller_archived || false,
-      buyer_name: profileMap.get(conv.buyer_id)?.name || 'Unknown User',
-      buyer_avatar_url: profileMap.get(conv.buyer_id)?.avatar_url || null,
-      seller_name: profileMap.get(conv.seller_id)?.name || 'Unknown User',
-      seller_avatar_url: profileMap.get(conv.seller_id)?.avatar_url || null,
+      buyer_name: conv.buyer_name || 'Unknown User',
+      buyer_avatar_url: conv.buyer_avatar_url || null,
+      seller_name: conv.seller_name || 'Unknown User',
+      seller_avatar_url: conv.seller_avatar_url || null,
     }))
 
-    return NextResponse.json({
+    performanceMonitor.incrementCounter('messaging.conversations_optimized.results', transformedConversations.length, { type: 'conversations' })
+    return finish('success', NextResponse.json({
       conversations: transformedConversations,
       pagination: {
         limit,
@@ -155,13 +186,18 @@ export async function GET(request: NextRequest) {
         total: count,
         hasMore: count ? offset + limit < count : false
       }
+    }), {
+      userId: user.id,
+      returned: transformedConversations.length,
+      limit,
+      offset
     })
 
   } catch (error) {
     logger.error('GET /api/messaging/conversations-optimized error', error as Error)
-    return NextResponse.json(
+    return finish('failure', NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
-    )
+    ), { reason: (error as Error).message })
   }
 }

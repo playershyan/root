@@ -5,14 +5,13 @@ import { ArrowLeft } from 'lucide-react'
 import { useAuth } from '@/app/contexts/AuthContext'
 import { useSessionManager } from '@/app/hooks/useSessionManager'
 import SecurityTab from '@/app/components/security/SecurityTab'
-import { supabase } from '@/lib/supabase'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { logger } from '@/lib/utils/logger'
 
 export default function SecurityPage() {
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
   const sessions = useSessionManager()
 
   const [hasExistingPassword, setHasExistingPassword] = useState(false)
@@ -20,32 +19,23 @@ export default function SecurityPage() {
 
   // Detect authentication providers
   useEffect(() => {
-    const detectAuthProviders = async () => {
-      try {
-        const { data: { user: authUser } } = await supabase.auth.getUser()
-        if (authUser?.identities) {
-          const providers = authUser.identities.map(i => i.provider)
-          const hasEmailProvider = providers.includes('email')
-          setHasExistingPassword(hasEmailProvider)
-
-          if (providers.includes('google')) {
-            setAuthProvider('google')
-          } else if (providers.includes('phone')) {
-            setAuthProvider('phone')
-          } else {
-            setAuthProvider('email')
-          }
-        }
-      } catch (error) {
-        logger.error('Failed to detect auth providers', error as Error, {
-          component: 'SecurityPage',
-          action: 'detectAuthProviders'
-        })
-      }
+    if (!user) {
+      setHasExistingPassword(false)
+      setAuthProvider('email')
+      return
     }
 
-    if (user) {
-      detectAuthProviders()
+    const providers = user.identities?.map(identity => identity.provider) ?? []
+    const hasEmailProvider = providers.includes('email')
+
+    setHasExistingPassword(hasEmailProvider)
+
+    if (providers.includes('google')) {
+      setAuthProvider('google')
+    } else if (providers.includes('phone')) {
+      setAuthProvider('phone')
+    } else {
+      setAuthProvider('email')
     }
   }, [user])
 
@@ -117,7 +107,7 @@ export default function SecurityPage() {
 
   // Handle logout
   const handleLogout = async () => {
-    await supabase.auth.signOut()
+    await signOut()
     router.push('/browse')
   }
 

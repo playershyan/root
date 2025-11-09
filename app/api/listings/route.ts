@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { performance } from 'perf_hooks'
 import { cookies } from 'next/headers'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { validateListing, sanitizeListing, generateListingTitle } from '@/lib/validation/listing'
 import { formatPhoneForStorage } from '@/lib/utils/phoneFormatter'
 import { logger } from '@/lib/utils/logger'
+import { performanceMonitor } from '@/lib/monitoring/metrics'
 
 /**
  * POST /api/listings
@@ -12,17 +14,50 @@ import { logger } from '@/lib/utils/logger'
  * Clean rebuild - no overcomplicated logic, just solid basics
  */
 export async function POST(request: NextRequest) {
+  const requestStart = performance.now()
+  performanceMonitor.incrementCounter('api.listings.requests', 1, { method: 'POST' })
+  logger.api.request('POST', '/api/listings')
   logger.debug('CREATE LISTING - START')
+
+  const finish = (
+    outcome: 'success' | 'failure',
+    response: NextResponse,
+    context: Record<string, any> = {}
+  ) => {
+    const durationMs = Math.round(performance.now() - requestStart)
+    const logContext = { ...context, durationMs }
+    performanceMonitor.trackApiResponseTime('/api/listings', durationMs)
+    performanceMonitor.incrementCounter(`api.listings.${outcome}`, 1, { method: 'POST' })
+
+    if (outcome === 'success') {
+      logger.api.success('POST', '/api/listings', durationMs, logContext)
+    } else {
+      const errorReason = context.reason || 'Request failed'
+      logger.api.error('POST', '/api/listings', new Error(errorReason), logContext)
+    }
+
+    return response
+  }
 
   try {
     // 1. AUTH CHECK
     const cookieStore = await cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const authStart = performance.now()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const authDuration = performance.now() - authStart
+    logger.db.query('supabase.auth.getUser', {
+      durationMs: Math.round(authDuration),
+      context: 'create-listing'
+    })
+    performanceMonitor.trackDatabaseQuery('supabase.auth.getUser', authDuration)
 
     if (authError || !user) {
       logger.error('Auth failed in create listing', authError, { reason: authError?.message || 'No user' })
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return finish('failure',
+        NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+        { reason: authError?.message || 'Unauthorized' }
+      )
     }
 
     logger.debug('Auth OK - User authenticated', { userId: user.id })
@@ -34,7 +69,10 @@ export async function POST(request: NextRequest) {
       logger.debug('Request body received', { fields: Object.keys(body) })
     } catch (e) {
       logger.error('Invalid JSON in request body', e as Error)
-      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+      return finish('failure',
+        NextResponse.json({ error: 'Invalid request body' }, { status: 400 }),
+        { reason: 'invalid-json' }
+      )
     }
 
     // 3. SANITIZE INPUT
@@ -85,10 +123,13 @@ export async function POST(request: NextRequest) {
 
     if (!validation.isValid) {
       logger.warn('Listing validation failed', { errors: validation.errors })
-      return NextResponse.json({
+      return finish('failure',
+        NextResponse.json({
         error: 'Validation failed',
         errors: validation.errors
-      }, { status: 400 })
+      }, { status: 400 }),
+        { reason: 'validation-failed', validationErrors: validation.errors }
+      )
     }
 
     logger.debug('Validation passed')
@@ -217,6 +258,7 @@ export async function POST(request: NextRequest) {
     logger.debug('Checking for duplicate listings')
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
 
+    const duplicateCheckStart = performance.now()
     const { data: duplicates } = await supabase
       .from('listings')
       .select('id, title, created_at')
@@ -227,41 +269,62 @@ export async function POST(request: NextRequest) {
       .gte('created_at', oneDayAgo)
       .neq('status', 'deleted')
       .limit(1)
+    const duplicateCheckDuration = performance.now() - duplicateCheckStart
+    logger.db.query('listings.duplicate_check', {
+      durationMs: Math.round(duplicateCheckDuration),
+      userId: user.id
+    })
+    performanceMonitor.trackDatabaseQuery('listings.duplicate_check', duplicateCheckDuration)
 
     if (duplicates && duplicates.length > 0) {
       logger.warn('Duplicate listing detected', { duplicateId: duplicates[0].id, userId: user.id })
-      return NextResponse.json({
+      return finish('failure',
+        NextResponse.json({
         error: 'You already posted a similar listing in the last 24 hours',
         duplicateId: duplicates[0].id
-      }, { status: 409 })
+      }, { status: 409 }),
+        { reason: 'duplicate', duplicateId: duplicates[0].id, userId: user.id }
+      )
     }
 
     logger.debug('No duplicates found')
 
     // 7. INSERT INTO DATABASE
     logger.debug('Inserting listing to database')
+    const insertStart = performance.now()
     const { data: newListing, error: insertError } = await supabase
       .from('listings')
       .insert([dbPayload])
       .select()
       .single()
+    const insertDuration = performance.now() - insertStart
+    logger.db.query('listings.insert', {
+      durationMs: Math.round(insertDuration),
+      userId: user.id
+    })
+    performanceMonitor.trackDatabaseQuery('listings.insert', insertDuration)
 
     if (insertError) {
       logger.error('Database insert failed for listing', insertError as Error, { userId: user.id })
-      return NextResponse.json({
+      performanceMonitor.incrementCounter('api.listings.failures', 1, { reason: 'insert_failure' })
+      return finish('failure',
+        NextResponse.json({
         error: 'Failed to create listing',
         details: insertError.message
-      }, { status: 500 })
+      }, { status: 500 }),
+        { reason: 'insert_failure', userId: user.id }
+      )
     }
 
     logger.info('Listing created successfully', { listingId: newListing.id, userId: user.id })
+    performanceMonitor.incrementCounter('api.listings.creations', 1, { status: 'success' })
 
     // 8. RETURN SUCCESS
-    return NextResponse.json({
+    return finish('success', NextResponse.json({
       success: true,
       listing: newListing,
       message: 'Listing created successfully'
-    }, { status: 201 })
+    }, { status: 201 }), { listingId: newListing.id, userId: user.id })
 
   } catch (error: any) {
     logger.error('Create listing failed with unexpected error', error, {
@@ -269,9 +332,14 @@ export async function POST(request: NextRequest) {
       stack: error.stack
     })
 
-    return NextResponse.json({
+    performanceMonitor.incrementCounter('api.listings.failures', 1, { reason: 'exception' })
+    return finish('failure',
+      NextResponse.json({
       error: 'Internal server error',
       details: error.message
-    }, { status: 500 })
+    }, { status: 500 }),
+      { reason: error.message }
+    )
   }
 }
+

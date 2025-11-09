@@ -1,15 +1,14 @@
 import { NextResponse } from 'next/server'
 import { performance } from 'perf_hooks'
-import { TemplateProcessor, FormDataForTemplate } from '@/lib/services/templateProcessor'
 import { verifyRecaptcha, captchaGuardFailJson } from '@/lib/security/recaptcha'
 import { incr, incrTrend } from '@/lib/security/metrics'
 import { logger } from '@/lib/utils/logger'
+import { buildListingDescription } from '@/lib/services/descriptionBuilder'
 
 export async function POST(request: Request) {
   const totalStart = performance.now()
   const timings: Record<string, number> = {}
   let status: 'success' | 'captcha_fail' | 'validation_error' | 'error' = 'error'
-  let templateId: number | null = null
 
   const logTimings = (extra?: Record<string, unknown>) => {
     timings.totalMs = Number((performance.now() - totalStart).toFixed(2))
@@ -18,7 +17,7 @@ export async function POST(request: Request) {
       durations: Object.fromEntries(
         Object.entries(timings).map(([key, value]) => [key, Number(value.toFixed(2))])
       ),
-      templateId,
+      linesCount: (extra?.linesCount as number) ?? undefined,
       ...extra
     })
   }
@@ -79,8 +78,6 @@ export async function POST(request: Request) {
 
       // Additional
       title,
-      includingFinanceCompanies,
-      style,
       recaptchaToken
     } = body
 
@@ -105,9 +102,9 @@ export async function POST(request: Request) {
       )
     }
 
-    // Prepare form data for template processing
-    const formData: FormDataForTemplate = {
-      // Vehicle Identity
+    const buildStart = performance.now()
+    const { description, linesCount } = buildListingDescription({
+      title,
       vehicleType,
       make,
       customMake,
@@ -116,24 +113,16 @@ export async function POST(request: Request) {
       trim,
       year,
       registrationYear,
-
-      // Core Specifications
       condition,
       engineCapacity,
       fuelType,
       transmission,
       mileage,
-
-      // Visual & Details
       color,
       interiorColor,
-
-      // Ownership & History
       previousOwners,
       vehicleConditionDetails,
       serviceRecordsAvailable,
-
-      // Pricing
       pricingType,
       price,
       negotiable,
@@ -142,35 +131,17 @@ export async function POST(request: Request) {
       monthlyPayment,
       remainingTerm,
       askingPrice,
-
-      // Location
       district,
       city,
-
-      // Features
-      features,
-
-      // Additional
-      title,
-      includingFinanceCompanies
-    }
-
-    // Generate description using template system
-    const templateStart = performance.now()
-    const result = await TemplateProcessor.generateDescription(formData)
-    timings.templateMs = performance.now() - templateStart
-    templateId = result.id
+      features
+    })
+    timings.buildMs = performance.now() - buildStart
 
     incr('ai.description.request')
-    incr('template.usage.total')
 
     status = 'success'
-    logTimings()
-    return NextResponse.json({
-      description: result.content,
-      templateId: result.id,
-      usageCount: result.usageCount
-    })
+    logTimings({ linesCount })
+    return NextResponse.json({ description, linesCount })
   } catch (error) {
     logger.error('AI Description Error', error as Error)
     incr('ai.description.error')

@@ -11,7 +11,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
+import { performance } from 'perf_hooks'
 import { logger } from '@/lib/utils/logger'
+import { performanceMonitor } from '@/lib/monitoring/metrics'
 
 interface MessageResponse {
   id: string
@@ -37,15 +39,48 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { conversationId: string } }
 ) {
+  const requestStart = performance.now()
+  performanceMonitor.incrementCounter('messaging.messages_optimized.requests', 1, { method: 'GET' })
+  logger.api.request('GET', '/api/messaging/messages-optimized/[conversationId]', {
+    conversationId: params.conversationId
+  })
+
+  const finish = (
+    outcome: 'success' | 'failure',
+    response: NextResponse,
+    context: Record<string, any> = {}
+  ) => {
+    const durationMs = Math.round(performance.now() - requestStart)
+    const logContext = { ...context, durationMs }
+    performanceMonitor.trackApiResponseTime('/api/messaging/messages-optimized', durationMs)
+    performanceMonitor.incrementCounter(`messaging.messages_optimized.${outcome}`, 1, { method: 'GET' })
+
+    if (outcome === 'success') {
+      logger.api.success('GET', '/api/messaging/messages-optimized/[conversationId]', durationMs, logContext)
+    } else {
+      const reason = context.reason || 'Request failed'
+      logger.api.error('GET', '/api/messaging/messages-optimized/[conversationId]', new Error(reason), logContext)
+    }
+
+    return response
+  }
+
   try {
     const supabase = createServerComponentClient({ cookies })
 
+    const authStart = performance.now()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const authDuration = performance.now() - authStart
+    logger.db.query('supabase.auth.getUser', {
+      durationMs: Math.round(authDuration),
+      endpoint: 'messaging-messages-optimized'
+    })
+    performanceMonitor.trackDatabaseQuery('supabase.auth.getUser', authDuration)
     if (authError || !user) {
-      return NextResponse.json(
+      return finish('failure', NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
-      )
+      ), { reason: authError?.message || 'unauthorized' })
     }
 
     const conversationId = params.conversationId
@@ -56,36 +91,43 @@ export async function GET(
 
     // Validate limit
     if (limit < 1 || limit > 200) {
-      return NextResponse.json(
+      return finish('failure', NextResponse.json(
         { error: 'Limit must be between 1 and 200' },
         { status: 400 }
-      )
+      ), { reason: 'invalid-limit', limit })
     }
 
     // Verify user has access to this conversation
+    const conversationStart = performance.now()
     const { data: conversation, error: convError } = await supabase
       .from('conversations')
       .select('buyer_id, seller_id')
       .eq('id', conversationId)
       .single()
+    const conversationDuration = performance.now() - conversationStart
+    logger.db.query('conversations.fetch_single', {
+      durationMs: Math.round(conversationDuration),
+      conversationId
+    })
+    performanceMonitor.trackDatabaseQuery('conversations.fetch_single', conversationDuration)
 
     if (convError || !conversation) {
-      return NextResponse.json(
+      return finish('failure', NextResponse.json(
         { error: 'Conversation not found' },
         { status: 404 }
-      )
+      ), { reason: 'conversation-not-found', conversationId })
     }
 
     if (conversation.buyer_id !== user.id && conversation.seller_id !== user.id) {
-      return NextResponse.json(
+      return finish('failure', NextResponse.json(
         { error: 'Access denied' },
         { status: 403 }
-      )
+      ), { reason: 'access-denied', conversationId, userId: user.id })
     }
 
-    // Fetch messages
+    // Fetch messages (with sender profile data from view)
     let query = supabase
-      .from('messages')
+      .from('message_details')
       .select(`
         id,
         conversation_id,
@@ -94,7 +136,9 @@ export async function GET(
         is_read,
         created_at,
         message_type,
-        offer_data
+        offer_data,
+        sender_name,
+        sender_avatar_url
       `)
       .eq('conversation_id', conversationId)
       .eq('status', 'active')
@@ -106,27 +150,23 @@ export async function GET(
       query = query.lt('created_at', before)
     }
 
+    const messagesStart = performance.now()
     const { data: messages, error: msgError } = await query
+    const messagesDuration = performance.now() - messagesStart
+    logger.db.query('message_details.fetch_paginated', {
+      durationMs: Math.round(messagesDuration),
+      conversationId,
+      limit
+    })
+    performanceMonitor.trackDatabaseQuery('message_details.fetch_paginated', messagesDuration)
 
     if (msgError) {
       logger.error('Error fetching messages', msgError as Error)
-      return NextResponse.json(
+      return finish('failure', NextResponse.json(
         { error: 'Failed to fetch messages' },
         { status: 500 }
-      )
+      ), { reason: 'messages-query-error', code: msgError.code, conversationId })
     }
-
-    // Fetch sender profiles for all unique senders
-    const senderIds = new Set<string>()
-    messages?.forEach(msg => senderIds.add(msg.sender_id))
-
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, name, avatar_url')
-      .in('id', Array.from(senderIds))
-
-    // Create profile map for fast lookup
-    const profileMap = new Map(profiles?.map(p => [p.id, p]) || [])
 
     // Transform to flat structure - server-side is faster than client-side
     const transformedMessages: MessageResponse[] = (messages || []).map(msg => ({
@@ -138,8 +178,8 @@ export async function GET(
       created_at: msg.created_at,
       message_type: msg.message_type,
       offer_data: msg.offer_data,
-      sender_name: profileMap.get(msg.sender_id)?.name || 'Unknown User',
-      sender_avatar_url: profileMap.get(msg.sender_id)?.avatar_url || null,
+      sender_name: msg.sender_name || 'Unknown User',
+      sender_avatar_url: msg.sender_avatar_url || null,
     }))
 
     // Reverse to get chronological order (oldest first)
@@ -156,6 +196,7 @@ export async function GET(
       const isBuyer = conversation.buyer_id === user.id
 
       // Mark unread messages as read
+      const markStart = performance.now()
       supabaseAdmin
         .from('messages')
         .update({
@@ -177,19 +218,33 @@ export async function GET(
             .eq('id', conversationId)
         })
         .catch(err => logger.error('Error marking as read', err as Error))
+        .finally(() => {
+          const markDuration = performance.now() - markStart
+          logger.db.query('messages.mark_as_read_async', {
+            durationMs: Math.round(markDuration),
+            conversationId,
+            affected: transformedMessages.length
+          })
+        })
     }
 
-    return NextResponse.json({
+    performanceMonitor.incrementCounter('messaging.messages_optimized.results', transformedMessages.length, { type: 'messages' })
+    return finish('success', NextResponse.json({
       messages: transformedMessages,
       count: transformedMessages.length,
       hasMore: transformedMessages.length === limit
+    }), {
+      conversationId,
+      userId: user.id,
+      returned: transformedMessages.length,
+      limit
     })
 
   } catch (error) {
     logger.error('GET messages error', error as Error)
-    return NextResponse.json(
+    return finish('failure', NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
-    )
+    ), { reason: (error as Error).message })
   }
 }

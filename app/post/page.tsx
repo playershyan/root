@@ -24,7 +24,6 @@ import {
 } from '@/lib/constants/vehicleData'
 import { BaseVehicleFormData } from '@/app/components/vehicle-forms/types'
 import { useUserProfile } from '@/lib/hooks/useUserProfile'
-import { useRecaptcha } from '@/lib/hooks/useRecaptcha'
 import { useToast } from '@/app/components/notifications/useToast'
 import { ToastContainer } from '@/app/components/notifications/ToastContainer'
 import { Button } from '@/components/ui/button'
@@ -33,6 +32,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { compressImageFile } from '@/lib/utils/image-compression'
 import { logger } from '@/lib/utils/logger'
+import { buildListingDescription } from '@/lib/services/descriptionBuilder'
 
 // Lazy load form components (Phase 2 optimization)
 import type { DescriptionGeneratorRef } from '@/app/components/vehicle-forms/DescriptionGenerator'
@@ -122,7 +122,6 @@ export default function EnhancedPostVehiclePage() {
   const searchParams = useSearchParams()
   const { user, loading: authLoading } = useAuth()
   const { profile, loading: profileLoading, getPhoneNumber, getWhatsAppNumber } = useUserProfile()
-  const { getAIToken } = useRecaptcha()
   const { toasts, showError, showSuccess, showWarning, showInfo, removeToast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const vehicleDropdownRef = useRef<HTMLDivElement>(null)
@@ -550,23 +549,23 @@ export default function EnhancedPostVehiclePage() {
     setCurrentStep(prev => Math.max(prev - 1, 1))
   }
   
-  const getUploadUserId = async (): Promise<string> => {
-    if (user?.id) return user.id
-    try {
-      const { data } = await supabase.auth.getUser()
-      if (data?.user?.id) {
-        return data.user.id
-      }
-    } catch (error) {
-      logger.error('Failed to retrieve user for image upload', error as Error)
+const getUploadUserId = (): string => {
+  if (user?.id) return user.id
+  logger.warn(
+    'Image upload attempted without an authenticated user. Falling back to temporary identifier.',
+    new Error('Missing user context'),
+    {
+      scope: 'post-page',
+      action: 'getUploadUserId'
     }
-    return 'temp'
-  }
+  )
+  return 'temp'
+}
 
   const queueImageUploads = async (files: File[]) => {
     if (files.length === 0) return
 
-    const uploadUserId = await getUploadUserId()
+    const uploadUserId = getUploadUserId()
 
     for (const file of files) {
       if (!(file instanceof File)) continue
@@ -792,76 +791,69 @@ export default function EnhancedPostVehiclePage() {
       showWarning('Please fill in make, model, and year first', 3000)
       return
     }
-    
+
     const overallStart = performance.now()
-    let tokenDuration: number | null = null
-    let apiFetchDuration: number | null = null
-    let apiParseDuration: number | null = null
-    let totalDuration: number | null = null
-    let recaptchaToken: string | null = null
-    let apiStatus: 'success' | 'error' | 'skipped' = 'skipped'
-
     setAiLoading(true)
+
     try {
-      // Get reCAPTCHA token before making the request
-      const tokenStart = performance.now()
-      recaptchaToken = await getAIToken()
-      tokenDuration = performance.now() - tokenStart
-      
-      const apiFetchStart = performance.now()
-      const response = await fetch('/api/ai-description', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          make: formData.make === 'Other' ? formData.customMake : formData.make,
-          model: formData.model === 'Other' ? formData.customModel : formData.model,
-          year: formData.year,
-          mileage: formData.mileage,
-          trim: formData.trim,
-          registrationYear: formData.registrationYear,
-          previousOwners: formData.previousOwners,
-          interiorColor: formData.interiorColor,
-          vehicleConditionDetails: formData.vehicleConditionDetails,
-          serviceRecordsAvailable: formData.serviceRecordsAvailable,
-          style: formData.aiStyle,
-          recaptchaToken
-        }),
+      const { description: normalizedDescription, linesCount } = buildListingDescription({
+        title: formData.title,
+        vehicleType: formData.vehicleType,
+        make: formData.make,
+        customMake: formData.customMake,
+        model: formData.model,
+        customModel: formData.customModel,
+        trim: formData.trim,
+        year: formData.year,
+        registrationYear: formData.registrationYear,
+        mileage: formData.mileage,
+        condition: formData.condition,
+        vehicleConditionDetails: formData.vehicleConditionDetails,
+        engineCapacity: formData.engineCapacity,
+        fuelType: formData.fuelType,
+        transmission: formData.transmission,
+        color: formData.color,
+        interiorColor: formData.interiorColor,
+        previousOwners: formData.previousOwners,
+        serviceRecordsAvailable: formData.serviceRecordsAvailable,
+        pricingType: formData.pricingType,
+        price: formData.price,
+        negotiable: formData.negotiable,
+        financeType: formData.financeType,
+        outstandingBalance: formData.outstandingBalance,
+        monthlyPayment: formData.monthlyPayment,
+        remainingTerm: formData.remainingTerm,
+        askingPrice: formData.askingPrice,
+        city: formData.city,
+        district: formData.district,
+        features: formData.features,
+        phone: formData.phone,
+        whatsapp: formData.whatsappSameAsPhone ? formData.phone : formData.whatsapp,
+        email: formData.email,
+        preferredContact: formData.preferredContact,
+        bestTimeToCall: formData.bestTimeToCall
       })
 
-      apiFetchDuration = performance.now() - apiFetchStart
+      setFormData(prev => ({
+        ...prev,
+        description: normalizedDescription
+      }))
 
-      const apiParseStart = performance.now()
-      const data = await response.json()
-      apiParseDuration = performance.now() - apiParseStart
-      apiStatus = response.ok ? 'success' : 'error'
-
-      if (data.description) {
-        setFormData(prev => ({ ...prev, description: data.description }))
-        showSuccess('Description generated successfully!', 3000)
-      }
-    } catch (error) {
-      apiStatus = 'error'
-      showError('Failed to generate description. Please try again.', 4000)
-    } finally {
-      if (totalDuration === null) {
-        totalDuration = performance.now() - overallStart
-      }
-
-      logger.debug('AI description client timing', {
+      const totalDuration = performance.now() - overallStart
+      logger.debug('AI description inline generation', {
         scope: 'post-page',
-        status: apiStatus,
+        status: 'success',
         durations: {
-          totalMs: Number(totalDuration.toFixed(2)),
-          tokenMs: tokenDuration !== null ? Number(tokenDuration.toFixed(2)) : null,
-          apiFetchMs: apiFetchDuration !== null ? Number(apiFetchDuration.toFixed(2)) : null,
-          apiParseMs: apiParseDuration !== null ? Number(apiParseDuration.toFixed(2)) : null
+          totalMs: Number(totalDuration.toFixed(2))
         },
-        recaptcha: {
-          requested: recaptchaToken !== null,
-          provided: !!recaptchaToken
-        }
+        lineCount: linesCount
       })
 
+      showSuccess('Description generated successfully!', 2000)
+    } catch (error) {
+      logger.error('AI description inline generation failed', error as Error)
+      showError('Could not build the description. Please try again.', 4000)
+    } finally {
       setAiLoading(false)
     }
   }
@@ -872,10 +864,10 @@ export default function EnhancedPostVehiclePage() {
     setLoading(true)
     try {
       // Check if user is authenticated
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-      if (authError || !user) {
-        router.push('/')
+      if (!user) {
+        router.push('/?auth=true&redirect=/post')
+        showWarning('Please sign in to post a listing.', 5000)
+        setLoading(false)
         return
       }
 

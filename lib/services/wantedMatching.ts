@@ -233,17 +233,23 @@ export async function processWantedRequestMatching(listingId: string): Promise<{
     }
 
     // 4. Update wanted requests with new match count
-    const updatePromises = matchingRequests.map(request =>
-      supabase
-        .from('wanted_requests')
-        .update({
-          new_matches_count: (request.new_matches_count || 0) + 1,
-          last_match_notification: new Date().toISOString()
-        })
-        .eq('id', request.id)
-    );
+    if (wantedRequestIds.length > 0) {
+      const { error: updateError } = await supabase.rpc('increment_wanted_request_match_counts', {
+        ids: wantedRequestIds,
+      });
 
-    await Promise.all(updatePromises);
+      if (updateError) {
+        logger.error('Error updating wanted request match counters', updateError as Error, {
+          requestCount: wantedRequestIds.length,
+        });
+        return {
+          success: false,
+          matchCount: 0,
+          wantedRequestIds: [],
+          error: 'Failed to update match counters',
+        };
+      }
+    }
 
     return {
       success: true,

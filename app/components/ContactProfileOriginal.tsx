@@ -4,9 +4,9 @@ import Link from 'next/link'
 import { Phone, MessageSquare, MessageCircle, MapPin, Star, User } from 'lucide-react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { formatPhoneDisplay, formatPhoneForWhatsApp, formatPhoneForTel } from '@/lib/utils/phoneFormatter'
 import { logger } from '@/lib/utils/logger'
+import { useAuth } from '@/app/contexts/AuthContext'
 
 // Types
 type ContactProfileProps = {
@@ -150,7 +150,7 @@ function PrivateSellerProfile({ listing }: {
 function MessageButton({ listing }: { listing: ContactProfileProps['listing'] }) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const supabase = createClientComponentClient()
+  const { user } = useAuth()
 
   const handleMessage = async () => {
     if (!listing.id || !listing.user_id) {
@@ -161,11 +161,9 @@ function MessageButton({ listing }: { listing: ContactProfileProps['listing'] })
     setLoading(true)
     
     try {
-      // Check if user is logged in
-      const { data: { user } } = await supabase.auth.getUser()
-      
       if (!user) {
-        router.push('/')
+        setLoading(false)
+        router.push('/?auth=true')
         return
       }
 

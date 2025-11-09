@@ -4,10 +4,10 @@ import Link from 'next/link'
 import { Phone, MessageSquare, MessageCircle, User, Building2, CheckCircle } from 'lucide-react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { formatPhoneDisplay, formatPhoneForWhatsApp, formatPhoneForTel } from '@/lib/utils/phoneFormatter'
 import ContactModal from '@/app/components/modals/ContactModal'
 import { logger } from '@/lib/utils/logger'
+import { useAuth } from '@/app/contexts/AuthContext'
 
 // Types
 type Listing = {
@@ -212,7 +212,7 @@ function MessageButton({ listing, onMessageClick }: {
 
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const supabase = createClientComponentClient()
+  const { user } = useAuth()
 
   const handleMessage = async () => {
     // If onMessageClick prop is provided, use it instead of redirect
@@ -230,11 +230,9 @@ function MessageButton({ listing, onMessageClick }: {
     setLoading(true)
     
     try {
-      // Check if user is logged in
-      const { data: { user } } = await supabase.auth.getUser()
-      
       if (!user) {
-        router.push('/')
+        setLoading(false)
+        router.push('/?auth=true')
         return
       }
 

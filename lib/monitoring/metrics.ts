@@ -5,6 +5,7 @@ import { logger } from '@/lib/utils/logger'
 export class PerformanceMonitor {
   private static instance: PerformanceMonitor
   private metrics: Map<string, number[]> = new Map()
+  private counters: Map<string, number> = new Map()
 
   static getInstance(): PerformanceMonitor {
     if (!PerformanceMonitor.instance) {
@@ -66,6 +67,20 @@ export class PerformanceMonitor {
         tags: { action, authenticated: userId ? 'true' : 'false' }
       })
     }
+  }
+
+  // Increment numeric counters with optional tags
+  incrementCounter(metric: string, value: number = 1, tags: Record<string, string> = {}) {
+    const current = this.counters.get(metric) || 0
+    this.counters.set(metric, current + value)
+
+    if (typeof Sentry.metrics !== 'undefined') {
+      Sentry.metrics.increment(metric, value, { tags })
+    }
+  }
+
+  getCounter(metric: string): number {
+    return this.counters.get(metric) || 0
   }
 
   // Track errors
