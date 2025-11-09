@@ -6,6 +6,8 @@ import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
 import { logger } from '@/lib/utils/logger'
 import { performanceMonitor } from '@/lib/monitoring/metrics'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   const requestStart = performance.now()
   performanceMonitor.incrementCounter('admin.stats.requests', 1, { method: 'GET' })

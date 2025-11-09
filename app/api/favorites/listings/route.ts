@@ -6,6 +6,7 @@ import { logger } from '@/lib/utils/logger'
 import { performanceMonitor } from '@/lib/monitoring/metrics'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 // GET favorited listings with full details for profile page
 export async function GET(request: NextRequest) {

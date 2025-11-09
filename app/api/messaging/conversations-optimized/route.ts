@@ -14,6 +14,8 @@ import { performance } from 'perf_hooks'
 import { logger } from '@/lib/utils/logger'
 import { performanceMonitor } from '@/lib/monitoring/metrics'
 
+export const dynamic = 'force-dynamic'
+
 interface ConversationResponse {
   id: string
   listing_id: string
