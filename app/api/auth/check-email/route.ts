@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: Request) {
   try {
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
     const { data: authData, error: authError } = await supabase.auth.admin.listUsers()
 
     if (authError) {
-      console.error('Error checking auth users:', authError)
+      logger.error('Error checking auth users', authError)
       return NextResponse.json(
         { error: 'Failed to check email existence', exists: false },
         { status: 500 }
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
     })
 
   } catch (error) {
-    console.error('Email check error:', error)
+    logger.error('Email check error', error as Error)
     return NextResponse.json(
       { error: 'Internal server error', exists: false },
       { status: 500 }

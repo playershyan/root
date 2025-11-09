@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Error storing push token:', error)
+      logger.error('Error storing push token', error, { userId: user.id, platform })
       return NextResponse.json(
         { error: 'Failed to register push token' },
         { status: 500 }
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
       data: data
     })
   } catch (error) {
-    console.error('Push token registration error:', error)
+    logger.error('Push token registration error', error as Error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -11,6 +11,7 @@ import { AuthModal } from '@/app/components/auth'
 import { getContextualQuickReplies } from '@/lib/messaging/quickReplies'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { logger } from '@/lib/utils/logger'
 
 interface Message {
   id: string
@@ -135,13 +136,22 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
           setMessages([])
         }
       } else {
-        console.error('Failed to load conversations:', await response.text())
+        const errorText = await response.text()
+        logger.error('Failed to load conversations', new Error(errorText), {
+          component: 'ConversationModal',
+          action: 'loadConversation',
+          listingId: listing.id
+        })
         // Fallback to no conversation
         setConversationId(null)
         setMessages([])
       }
     } catch (error) {
-      console.error('Error loading conversation:', error)
+      logger.error('Error loading conversation', error as Error, {
+        component: 'ConversationModal',
+        action: 'loadConversation',
+        listingId: listing.id
+      })
     } finally {
       setLoading(false)
     }
@@ -152,14 +162,22 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
       const response = await fetch(`/api/messaging/conversations/${convId}`)
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Failed to load messages:', errorText)
+        logger.error('Failed to load messages', new Error(errorText), {
+          component: 'ConversationModal',
+          action: 'loadMessages',
+          conversationId: convId
+        })
         throw new Error('Failed to load messages')
       }
 
       const { messages } = await response.json()
       setMessages(messages || [])
     } catch (error) {
-      console.error('Error loading messages:', error)
+      logger.error('Error loading messages', error as Error, {
+        component: 'ConversationModal',
+        action: 'loadMessages',
+        conversationId: convId
+      })
     }
   }
 
@@ -188,9 +206,13 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
           }),
         })
 
-        if (!response.ok) {
-          const errorText = await response.text()
-          console.error('Failed to create conversation:', errorText)
+      if (!response.ok) {
+        const errorText = await response.text()
+        logger.error('Failed to create conversation', new Error(errorText), {
+          component: 'ConversationModal',
+          action: 'handleSendMessage',
+          listingId: listing.id
+        })
           throw new Error('Failed to create conversation')
         }
 
@@ -226,7 +248,11 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Failed to send message:', errorText)
+        logger.error('Failed to send message', new Error(errorText), {
+          component: 'ConversationModal',
+          action: 'handleSendMessage',
+          conversationId: currentConversationId
+        })
         throw new Error('Failed to send message')
       }
 
@@ -236,7 +262,11 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
       setMessages(prev => [...prev, { ...newMessage, status: 'sent' }])
 
     } catch (error) {
-      console.error('Error sending message:', error)
+      logger.error('Error sending message', error as Error, {
+        component: 'ConversationModal',
+        action: 'handleSendMessage',
+        conversationId
+      })
       // Restore message to input on error
       setNewMessage(messageContent)
       alert('Failed to send message. Please try again.')

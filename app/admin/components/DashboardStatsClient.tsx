@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Users, Car, Flag, Clock, Package, AlertTriangle, Search } from 'lucide-react'
 import type { DashboardStatsData } from './types'
+import { logger } from '@/lib/utils/logger'
 
 interface DashboardStatsClientProps {
   initialStats: DashboardStatsData
@@ -36,7 +37,7 @@ export default function DashboardStatsClient({
         }
       } catch (error) {
         if (process.env.NODE_ENV !== 'production') {
-          console.error('Failed to refresh admin stats', error)
+          logger.error('Failed to refresh admin stats', error as Error)
         }
       } finally {
         if (isMounted) {

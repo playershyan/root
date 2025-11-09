@@ -1,4 +1,5 @@
 import { Listing } from '@/lib/types'
+import { logger } from '@/lib/utils/logger'
 
 interface RotationConfig {
   rotationIntervalMinutes: number
@@ -114,7 +115,7 @@ export class FeaturedListingsRotationManager {
         )
       }
     } catch (error) {
-      console.warn('Failed to load rotation history:', error)
+      logger.warn('Failed to load rotation history', { error })
     }
   }
 
@@ -130,7 +131,7 @@ export class FeaturedListingsRotationManager {
       )
       localStorage.setItem('featuredRotationHistory', JSON.stringify(data))
     } catch (error) {
-      console.warn('Failed to save rotation history:', error)
+      logger.warn('Failed to save rotation history', { error })
     }
   }
 

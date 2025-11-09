@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (updateError) {
-      console.error('Error updating wanted request:', updateError)
+      logger.error('Error updating wanted request', updateError, { requestId, userId: user.id })
       return NextResponse.json(
         { error: 'Failed to update wanted request' },
         { status: 500 }
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Skip payment error:', error)
+    logger.error('Skip payment error', error as Error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

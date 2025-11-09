@@ -12,6 +12,7 @@ import SimpleForgotPassword from './SimpleForgotPassword'
 import StreamlinedSignup from './StreamlinedSignup'
 import type { AuthModalProps, AuthResult } from './types'
 import { Button } from '@/components/ui/button'
+import { logger } from '@/lib/utils/logger'
 
 type AuthView = 'main' | 'email' | 'phone' | 'otp-verify' | 'forgot-password' | 'streamlined-signup'
 
@@ -68,7 +69,10 @@ export default function AuthModal({
   }
 
   const handleAuthError = (error: string) => {
-    console.error('Auth error:', error)
+    logger.error('Auth error', new Error(error), {
+      component: 'AuthModal',
+      action: 'handleAuthError'
+    })
     // Error handling is managed by individual components
   }
 

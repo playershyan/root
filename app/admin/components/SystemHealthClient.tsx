@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Activity, Database, Server, Shield, CheckCircle, AlertTriangle, XCircle } from 'lucide-react'
 import type { SystemHealthData, HealthStatusLevel } from './types'
+import { logger } from '@/lib/utils/logger'
 
 interface SystemHealthClientProps {
   initialHealth: SystemHealthData
@@ -36,7 +37,7 @@ export default function SystemHealthClient({
         }
       } catch (error) {
         if (process.env.NODE_ENV !== 'production') {
-          console.error('Failed to refresh system health', error)
+          logger.error('Failed to refresh system health', error as Error)
         }
       } finally {
         if (isMounted) {

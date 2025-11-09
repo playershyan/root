@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { DollarSign, Clock, CheckCircle, XCircle } from 'lucide-react'
+import { logger } from '@/lib/utils/logger'
 
 interface OfferCardProps {
   offerId: string
@@ -43,7 +44,10 @@ export default function OfferCard({
     try {
       await onReaction(offerId, reactionType)
     } catch (error) {
-      console.error('Error reacting to offer:', error)
+      logger.error('Error reacting to offer', error as Error, {
+        component: 'OfferCard',
+        action: 'handleReaction'
+      })
     } finally {
       setReacting(null)
     }

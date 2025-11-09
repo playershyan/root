@@ -5,6 +5,7 @@ import { X, User, Bell, Building2, Shield, Trash2, LogOut, Menu } from 'lucide-r
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { logger } from '@/lib/utils/logger'
 
 interface ProfileMenuProps {
   currentPage?: string
@@ -48,7 +49,10 @@ export default function ProfileMenu({
       await supabase.auth.signOut()
       router.push('/')
     } catch (error) {
-      console.error('Error logging out:', error)
+      logger.error('Error logging out', error as Error, {
+        component: 'ProfileMenu',
+        action: 'handleLogout'
+      })
     }
   }
 

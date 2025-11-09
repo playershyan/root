@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { uptimeMonitor } from '@/lib/monitoring/uptime'
 import { performanceMonitor } from '@/lib/monitoring/metrics'
+import { logger } from '@/lib/utils/logger'
 
 export const runtime = 'nodejs'
 
@@ -48,7 +49,7 @@ export async function GET() {
 
     return NextResponse.json(response, { status: statusCode })
   } catch (error) {
-    console.error('Health check error:', error)
+    logger.error('Health check error', error as Error)
     performanceMonitor.trackError(error as Error, {
       tags: { context: 'health_check' }
     })

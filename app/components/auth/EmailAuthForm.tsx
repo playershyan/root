@@ -10,6 +10,7 @@ import type { EmailAuthProps, AuthResult } from './types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { logger } from '@/lib/utils/logger'
 
 interface EmailAuthFormProps extends EmailAuthProps {
   showToggle?: boolean;
@@ -55,7 +56,10 @@ export default function EmailAuthForm({
       const data = await response.json()
       return data.exists
     } catch (error) {
-      console.error('Email check failed:', error)
+      logger.error('Email check failed', error as Error, {
+        component: 'EmailAuthForm',
+        action: 'checkEmailExists'
+      })
       return false // Fail open - allow registration attempt
     }
   }
@@ -142,7 +146,11 @@ export default function EmailAuthForm({
       }
     } catch (error) {
       const errorMessage = 'An unexpected error occurred'
-      console.error(`Email ${type} error:`, error)
+      logger.error(`Email ${type} error`, error as Error, {
+        component: 'EmailAuthForm',
+        action: 'handleSubmit',
+        authType: type
+      })
       onError?.(errorMessage)
       setErrors({ general: errorMessage })
     } finally {

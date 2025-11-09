@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { logger } from '@/lib/utils/logger'
 
 interface AuthContextType {
   user: User | null
@@ -30,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data: { session } } = await supabase.auth.getSession()
         setUser(session?.user ?? null)
       } catch (error) {
-        console.error('Error checking session:', error)
+        logger.error('Error checking session', error as Error)
       } finally {
         setLoading(false)
       }
@@ -61,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null)
       window.location.href = '/'
     } catch (error) {
-      console.error('Error signing out:', error)
+      logger.error('Error signing out', error as Error)
     }
   }
 

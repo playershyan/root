@@ -11,6 +11,7 @@ import type { PhoneAuthProps, AuthResult } from './types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { logger } from '@/lib/utils/logger'
 
 interface PhoneAuthFormProps extends PhoneAuthProps {
   onVerificationRequired?: (phone: string) => void;
@@ -73,7 +74,10 @@ export default function PhoneAuthForm({
       }
     } catch (error) {
       const errorMessage = 'An unexpected error occurred'
-      console.error('Phone auth error:', error)
+      logger.error('Phone auth error', error as Error, {
+        component: 'PhoneAuthForm',
+        action: 'handleSubmit'
+      })
       setError(errorMessage)
       onError?.(errorMessage)
     } finally {

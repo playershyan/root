@@ -20,6 +20,7 @@ import {
   getSessionStatus,
   getDeviceIcon
 } from '@/lib/utils/securityUtils'
+import { logger } from '@/lib/utils/logger'
 
 interface SessionsCardProps {
   sessions: SecuritySession[]
@@ -58,7 +59,11 @@ export default function SessionsCard({
     try {
       await onUpdate({ action: 'revoke', sessionId })
     } catch (error) {
-      console.error('Failed to revoke session:', error)
+      logger.error('Failed to revoke session', error as Error, {
+        component: 'SessionsCard',
+        action: 'handleRevokeSession',
+        sessionId
+      })
     } finally {
       setRevoking(null)
     }
@@ -75,7 +80,10 @@ export default function SessionsCard({
     try {
       await onUpdate({ action: 'revokeAll' })
     } catch (error) {
-      console.error('Failed to revoke all sessions:', error)
+      logger.error('Failed to revoke all sessions', error as Error, {
+        component: 'SessionsCard',
+        action: 'handleRevokeAll'
+      })
     } finally {
       setRevokingAll(false)
     }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
       .eq('token', token)
 
     if (error) {
-      console.error('Error removing push token:', error)
+      logger.error('Error removing push token', error, { userId: user.id })
       return NextResponse.json(
         { error: 'Failed to unregister push token' },
         { status: 500 }
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
       success: true
     })
   } catch (error) {
-    console.error('Push token unregistration error:', error)
+    logger.error('Push token unregistration error', error as Error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { PromotionService } from '@/lib/services/promotionService'
+import { logger } from '@/lib/utils/logger'
 
 interface UsePromotedListingsOptions {
   vehicleType?: string
@@ -108,7 +109,7 @@ export function usePromotedListings(options: UsePromotedListingsOptions = {}): P
       setRegularListings(regular || [])
 
     } catch (err) {
-      console.error('Error fetching promoted listings:', err)
+      logger.error('Error fetching promoted listings', err as Error)
       setError(err)
     } finally {
       setLoading(false)

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { RefreshCw, AlertCircle, CheckCircle, Clock, Undo2 } from 'lucide-react'
+import { logger } from '@/lib/utils/logger'
 
 interface RecoveryInfo {
   canRecover: boolean
@@ -40,10 +41,16 @@ export default function BusinessProfileRecovery({
         const data = await response.json()
         setRecoveryInfo(data)
       } else {
-        console.error('Failed to check recovery status')
+        logger.error('Failed to check recovery status', new Error(`Status ${response.status}`), {
+          component: 'BusinessProfileRecovery',
+          action: 'checkRecoveryStatus'
+        })
       }
     } catch (err) {
-      console.error('Error checking recovery status:', err)
+      logger.error('Error checking recovery status', err as Error, {
+        component: 'BusinessProfileRecovery',
+        action: 'checkRecoveryStatus'
+      })
     } finally {
       setLoading(false)
     }
@@ -80,7 +87,10 @@ export default function BusinessProfileRecovery({
         setError(data.error || 'Failed to recover business profile')
       }
     } catch (err) {
-      console.error('Error recovering business profile:', err)
+      logger.error('Error recovering business profile', err as Error, {
+        component: 'BusinessProfileRecovery',
+        action: 'handleRecover'
+      })
       setError('An unexpected error occurred while recovering your business profile')
     } finally {
       setRecovering(false)

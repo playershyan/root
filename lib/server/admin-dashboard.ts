@@ -7,6 +7,7 @@ import type {
   SystemHealthData,
   AlertItem,
 } from '@/app/admin/components/types'
+import { logger } from '@/lib/utils/logger'
 
 export type AppSupabaseClient = SupabaseClient<any, 'public', any>
 
@@ -24,7 +25,7 @@ async function logAdminActivity(
     })
   } catch (error) {
     if (process.env.NODE_ENV !== 'production') {
-      console.warn('Failed to log admin activity', error)
+      logger.warn('Failed to log admin activity', { error })
     }
   }
 }
@@ -224,7 +225,7 @@ export async function getRecentActivity(
     }
   } catch (error) {
     if (process.env.NODE_ENV !== 'production') {
-      console.warn('Recent activity RPC failed, using fallback query', error)
+      logger.warn('Recent activity RPC failed, using fallback query', { error })
     }
   }
 
@@ -400,7 +401,7 @@ export async function getRecentAlerts(
 
   if (error || !data) {
     if (process.env.NODE_ENV !== 'production') {
-      console.warn('Failed to load admin alerts', error)
+      logger.warn('Failed to load admin alerts', { error })
     }
     return []
   }

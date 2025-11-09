@@ -6,6 +6,7 @@
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/utils/logger'
 
 // Initialize Redis client (use Upstash or Vercel KV)
 const redis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
@@ -215,7 +216,7 @@ export async function checkRateLimit(
         }
       }
     } catch (error) {
-      console.error('Redis rate limit error:', error)
+      logger.error('Redis rate limit error', error as Error)
       // Fall through to in-memory
     }
   }
@@ -266,7 +267,8 @@ export async function withRateLimit(
 
   if (!result.success) {
     // Log rate limit violation for monitoring
-    console.warn(`Rate limit exceeded: ${limiterType} for ${options?.identifier || getIdentifier(request)}`)
+    const identifier = options?.identifier || getIdentifier(request)
+    logger.warn('Rate limit exceeded', { limiterType, identifier })
     
     return NextResponse.json(
       {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { logger } from '@/lib/utils/logger'
 import { 
   Heart, AlertTriangle, CheckCircle, XCircle, 
   RefreshCw, Database, Settings
@@ -51,7 +52,10 @@ export default function SystemHealthWidget({ className = "" }: SystemHealthWidge
       const data = await response.json()
       setHealth(data)
     } catch (err) {
-      console.error('Error checking system health:', err)
+      logger.error('Error checking system health', err as Error, {
+        component: 'SystemHealthWidget',
+        action: 'checkSystemHealth'
+      })
       setError(err instanceof Error ? err.message : 'Failed to check system health')
     } finally {
       setLoading(false)

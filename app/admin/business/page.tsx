@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Search, Building, Star, MapPin, Phone, Mail, Globe, Calendar } from 'lucide-react'
+import { logger } from '@/lib/utils/logger'
 
 interface BusinessProfile {
   id: string
@@ -42,7 +43,7 @@ export default function BusinessPage() {
         setBusinesses(data.businesses || [])
       }
     } catch (error) {
-      console.error('Failed to fetch businesses:', error)
+      logger.error('Failed to fetch businesses', error as Error)
     } finally {
       setLoading(false)
     }

@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import ProfileSetup from '../../components/profile/ProfileSetup'
 import { Loader2 } from 'lucide-react'
+import { logger } from '@/lib/utils/logger'
 
 export default function ProfileSetupPage() {
   const { user, loading: authLoading } = useAuth()
@@ -25,7 +26,7 @@ export default function ProfileSetupPage() {
           .single()
 
         if (error && error.code !== 'PGRST116') {
-          console.error('Error checking profile:', error)
+          logger.error('Error checking profile', error as Error)
           return
         }
 
@@ -38,7 +39,7 @@ export default function ProfileSetupPage() {
 
         setHasProfile(false)
       } catch (error) {
-        console.error('Error in profile check:', error)
+        logger.error('Error in profile check', error as Error)
       } finally {
         setLoading(false)
       }

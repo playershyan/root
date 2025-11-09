@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { logger } from '@/lib/utils/logger'
 
 interface OfferModalProps {
   isOpen: boolean
@@ -62,7 +63,10 @@ export default function OfferModal({
       setMessage('')
       onClose()
     } catch (error) {
-      console.error('Error sending offer:', error)
+      logger.error('Error sending offer', error as Error, {
+        component: 'OfferModal',
+        action: 'handleSubmit'
+      })
     } finally {
       setSubmitting(false)
     }

@@ -9,6 +9,7 @@ import { useAuthWithRedirect } from '../hooks/useAuthWithRedirect'
 import { useToast } from '@/app/components/notifications/useToast'
 import { ToastContainer } from '@/app/components/notifications/ToastContainer'
 import { Button } from '@/components/ui/button'
+import { logger } from '@/lib/utils/logger'
 
 interface FavoriteButtonProps {
   listingId: string
@@ -63,7 +64,11 @@ export default function FavoriteButton({
             const newState = await toggleFavorite(listingId)
             onToggle?.(newState)
           } catch (error) {
-            console.error('Failed to add favorite after auth:', error)
+            logger.error('Failed to add favorite after auth', error as Error, {
+              component: 'FavoriteButton',
+              action: 'handleClick',
+              listingId
+            })
           } finally {
             setIsProcessing(false)
           }
@@ -87,7 +92,11 @@ export default function FavoriteButton({
         showSuccess('Removed from favorites', 2000)
       }
     } catch (error) {
-      console.error('Failed to toggle favorite:', error)
+      logger.error('Failed to toggle favorite', error as Error, {
+        component: 'FavoriteButton',
+        action: 'handleClick',
+        listingId
+      })
     } finally {
       setIsProcessing(false)
     }

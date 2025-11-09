@@ -6,6 +6,7 @@ import { X, AlertTriangle, Shield, Copy, Tag, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { logger } from '@/lib/utils/logger'
 
 interface ReportModalProps {
   isOpen: boolean
@@ -113,7 +114,13 @@ export default function ReportModal({
         setError(data.error || 'Failed to submit report')
       }
     } catch (error) {
-      console.error('Report submission error:', error)
+      logger.error('Report submission error', error as Error, {
+        component: 'ReportModal',
+        action: 'handleSubmit',
+        itemType,
+        listingId,
+        wantedRequestId
+      })
       setError('Network error. Please try again.')
     } finally {
       setLoading(false)

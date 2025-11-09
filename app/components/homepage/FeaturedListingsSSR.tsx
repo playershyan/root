@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { Star, Eye, MapPin, Calendar, ArrowRight } from 'lucide-react'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 interface Listing {
   id: string
@@ -39,7 +40,10 @@ async function getFeaturedListings(displayCount: number = 6): Promise<Listing[]>
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching featured listings:', error)
+      logger.error('Error fetching featured listings', error, {
+        component: 'FeaturedListingsSSR',
+        action: 'getFeaturedListings'
+      })
       return []
     }
 
@@ -59,7 +63,10 @@ async function getFeaturedListings(displayCount: number = 6): Promise<Listing[]>
 
     return rotatedListings.slice(0, displayCount)
   } catch (error) {
-    console.error('Error in getFeaturedListings:', error)
+    logger.error('Error in getFeaturedListings', error as Error, {
+      component: 'FeaturedListingsSSR',
+      action: 'getFeaturedListings'
+    })
     return []
   }
 }

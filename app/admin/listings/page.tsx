@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Car, Clock, CheckCircle, XCircle, Eye, Search, Filter } from 'lucide-react'
 import { useAdmin } from '../components/AdminProvider'
+import { logger } from '@/lib/utils/logger'
 
 interface Listing {
   id: string
@@ -54,7 +55,7 @@ export default function ListingsManagement() {
         setTotalPages(data.totalPages)
       }
     } catch (error) {
-      console.error('Failed to fetch listings:', error)
+      logger.error('Failed to fetch listings', error as Error)
     } finally {
       setLoading(false)
     }
@@ -75,7 +76,7 @@ export default function ListingsManagement() {
         // Show success notification
       }
     } catch (error) {
-      console.error('Failed to approve listing:', error)
+      logger.error('Failed to approve listing', error as Error)
     }
   }
 
@@ -95,7 +96,7 @@ export default function ListingsManagement() {
         // Show success notification
       }
     } catch (error) {
-      console.error('Failed to reject listing:', error)
+      logger.error('Failed to reject listing', error as Error)
     }
   }
 

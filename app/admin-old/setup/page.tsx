@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Shield, User, Settings, CheckCircle, AlertTriangle } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
+import { logger } from '@/lib/utils/logger'
 
 interface AdminStatus {
   current_user: {
@@ -51,7 +52,7 @@ export default function AdminSetup() {
         setError('Failed to check admin status')
       }
     } catch (err) {
-      console.error('Error checking admin status:', err)
+      logger.error('Error checking admin status', err as Error)
       setError('Failed to check admin status')
     } finally {
       setLoading(false)
@@ -91,7 +92,7 @@ export default function AdminSetup() {
         setError(data.error || 'Failed to bootstrap admin user')
       }
     } catch (err) {
-      console.error('Error bootstrapping admin:', err)
+      logger.error('Error bootstrapping admin', err as Error)
       setError('Failed to bootstrap admin user')
     } finally {
       setBootstrapping(false)

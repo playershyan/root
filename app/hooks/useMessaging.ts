@@ -6,6 +6,7 @@
 import { useState, useCallback } from 'react'
 import { api } from '@/lib/services/apiClient'
 import { ConversationData, MessageData } from '@/lib/utils/messageUtils'
+import { logger } from '@/lib/utils/logger'
 
 interface UseMessagingReturn {
   conversations: ConversationData[]
@@ -43,7 +44,7 @@ export function useMessaging(userId?: string): UseMessagingReturn {
         setConversations(response.data.conversations || [])
       }
     } catch (error) {
-      console.error('Error fetching conversations:', error)
+      logger.error('Error fetching conversations', error as Error)
     } finally {
       setLoading(false)
     }
@@ -72,7 +73,7 @@ export function useMessaging(userId?: string): UseMessagingReturn {
         }
       }
     } catch (error) {
-      console.error('Error fetching messages:', error)
+      logger.error('Error fetching messages', error as Error)
     } finally {
       setMessagesLoading(false)
     }

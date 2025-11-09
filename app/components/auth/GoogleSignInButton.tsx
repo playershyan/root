@@ -7,6 +7,7 @@ import { authConfig } from '@/lib/config/auth.config'
 import { signInWithGoogle } from '@/lib/auth'
 import type { AuthButtonProps, AuthResult } from './types'
 import { Button } from '@/components/ui/button'
+import { logger } from '@/lib/utils/logger'
 
 interface GoogleSignInButtonProps extends AuthButtonProps {
   showIcon?: boolean;
@@ -54,7 +55,10 @@ export default function GoogleSignInButton({
       }
     } catch (error) {
       const errorMessage = 'An unexpected error occurred'
-      console.error('Google sign-in error:', error)
+      logger.error('Google sign-in error', error as Error, {
+        component: 'GoogleSignInButton',
+        action: 'handleSignIn'
+      })
       onError?.(errorMessage)
     } finally {
       setLoading(false)

@@ -5,6 +5,7 @@ import { MessageSquare } from 'lucide-react'
 import { ConversationData, MessageData } from '@/lib/utils/messageUtils'
 import MessagesList from './MessagesList'
 import ConversationView from './ConversationView'
+import { logger } from '@/lib/utils/logger'
 
 interface MessagesTabProps {
   conversations: ConversationData[]
@@ -52,7 +53,10 @@ export default function MessagesTab({
       // Refresh conversations to update unread count in UI
       await onFetchConversations()
     } catch (error) {
-      console.error('Error fetching messages:', error)
+      logger.error('Error fetching messages', error as Error, {
+        component: 'MessagesTab',
+        action: 'loadMessages'
+      })
       setMessages([])
     } finally {
       setLoadingMessages(false)
@@ -70,7 +74,10 @@ export default function MessagesTab({
       // Refresh conversations to update last message
       await onFetchConversations()
     } catch (error) {
-      console.error('Error sending message:', error)
+      logger.error('Error sending message', error as Error, {
+        component: 'MessagesTab',
+        action: 'handleSendMessage'
+      })
     } finally {
       setSendingMessage(false)
     }

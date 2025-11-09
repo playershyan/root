@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(
   request: NextRequest,
@@ -25,17 +26,17 @@ export async function POST(
     })
     
     if (error) {
-      console.error('Error incrementing views:', error)
+      logger.error('Error incrementing views', error, { listingId: params.id })
       return NextResponse.json({ error: 'Failed to record view' }, { status: 500 })
     }
-    
-    return NextResponse.json({ 
-      success: true, 
+
+    return NextResponse.json({
+      success: true,
       view_recorded: result,
       message: result ? 'View recorded' : 'View not recorded (rate limited or owner)'
     })
   } catch (error) {
-    console.error('View increment error:', error)
+    logger.error('View increment error', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

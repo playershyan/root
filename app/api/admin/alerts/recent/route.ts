@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest) {
   const authResult = await verifyAdminAccess(request)
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
       .limit(limit)
 
     if (error) {
-      console.error('Error fetching alerts:', error)
+      logger.error('Error fetching alerts', error)
       return NextResponse.json({ alerts: [] })
     }
 
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ alerts: formattedAlerts })
 
   } catch (error) {
-    console.error('Get recent alerts error:', error)
+    logger.error('Get recent alerts error', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

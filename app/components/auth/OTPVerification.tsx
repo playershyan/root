@@ -9,6 +9,7 @@ import type { OTPVerificationProps, AuthResult } from './types'
 import { isNative, readFromClipboard } from '@/lib/capacitor-bridge'
 import { Capacitor } from '@capacitor/core'
 import { Button } from '@/components/ui/button'
+import { logger } from '@/lib/utils/logger'
 
 export default function OTPVerification({
   phone,
@@ -150,7 +151,10 @@ export default function OTPVerification({
       }
     } catch (error) {
       const errorMessage = 'Verification failed. Please try again.'
-      console.error('OTP verification error:', error)
+      logger.error('OTP verification error', error as Error, {
+        component: 'OTPVerification',
+        action: 'handleVerify'
+      })
       setError(errorMessage)
     } finally {
       setLoading(false)

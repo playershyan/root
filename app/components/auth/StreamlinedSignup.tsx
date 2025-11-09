@@ -10,6 +10,7 @@ import OTPInput from './OTPInput'
 import UsernameCreation from './UsernameCreation'
 import type { AuthResult } from './types'
 import { Button } from '@/components/ui/button'
+import { logger } from '@/lib/utils/logger'
 
 type SignupStep = 'main' | 'phone-input' | 'otp-verify' | 'username-create'
 
@@ -56,7 +57,10 @@ export default function StreamlinedSignup({
   }
 
   const handleGoogleError = (error: string) => {
-    console.error('Google auth error:', error)
+    logger.error('Google auth error', new Error(error), {
+      component: 'StreamlinedSignup',
+      action: 'handleGoogleError'
+    })
     // Error handling is managed by GoogleSignInButton
   }
 

@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { logger } from '../utils/logger';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -123,7 +124,7 @@ async function findMatchingWantedRequests(listing: ListingMatchData): Promise<Wa
       .eq('status', 'active');
 
     if (error) {
-      console.error('Error fetching wanted requests:', error);
+      logger.error('Error fetching wanted requests', error as Error);
       return [];
     }
 
@@ -164,7 +165,7 @@ async function findMatchingWantedRequests(listing: ListingMatchData): Promise<Wa
 
     return matchingRequests;
   } catch (error) {
-    console.error('Error in findMatchingWantedRequests:', error);
+    logger.error('Error in findMatchingWantedRequests', error as Error);
     return [];
   }
 }
@@ -222,7 +223,7 @@ export async function processWantedRequestMatching(listingId: string): Promise<{
       });
 
     if (insertError) {
-      console.error('Error inserting notification:', insertError);
+      logger.error('Error inserting notification', insertError as Error);
       return {
         success: false,
         matchCount: 0,
@@ -251,7 +252,7 @@ export async function processWantedRequestMatching(listingId: string): Promise<{
     };
 
   } catch (error) {
-    console.error('Error in processWantedRequestMatching:', error);
+    logger.error('Error in processWantedRequestMatching', error as Error);
     return {
       success: false,
       matchCount: 0,
@@ -274,13 +275,13 @@ export async function getActiveMatchNotifications(): Promise<MatchNotification[]
       .limit(10); // Limit to most recent 10 notifications
 
     if (error) {
-      console.error('Error fetching notifications:', error);
+      logger.error('Error fetching notifications', error as Error);
       return [];
     }
 
     return notifications || [];
   } catch (error) {
-    console.error('Error in getActiveMatchNotifications:', error);
+    logger.error('Error in getActiveMatchNotifications', error as Error);
     return [];
   }
 }
@@ -307,7 +308,7 @@ export async function dismissNotification(notificationId: string, userId?: strin
       .eq('id', notificationId);
 
     if (error) {
-      console.error('Error dismissing notification:', error);
+      logger.error('Error dismissing notification', error as Error);
       return {
         success: false,
         error: 'Failed to dismiss notification'
@@ -316,7 +317,7 @@ export async function dismissNotification(notificationId: string, userId?: strin
 
     return { success: true };
   } catch (error) {
-    console.error('Error in dismissNotification:', error);
+    logger.error('Error in dismissNotification', error as Error);
     return {
       success: false,
       error: 'Internal server error'
@@ -335,13 +336,13 @@ export async function getActiveNotificationCount(): Promise<number> {
       .is('dismissed_at', null);
 
     if (error) {
-      console.error('Error getting notification count:', error);
+      logger.error('Error getting notification count', error as Error);
       return 0;
     }
 
     return count || 0;
   } catch (error) {
-    console.error('Error in getActiveNotificationCount:', error);
+    logger.error('Error in getActiveNotificationCount', error as Error);
     return 0;
   }
 }
@@ -361,9 +362,9 @@ export async function cleanupOldNotifications(): Promise<void> {
       .lt('dismissed_at', thirtyDaysAgo.toISOString());
 
     if (error) {
-      console.error('Error cleaning up old notifications:', error);
+      logger.error('Error cleaning up old notifications', error as Error);
     }
   } catch (error) {
-    console.error('Error in cleanupOldNotifications:', error);
+    logger.error('Error in cleanupOldNotifications', error as Error);
   }
 }

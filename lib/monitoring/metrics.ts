@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/nextjs'
+import { logger } from '@/lib/utils/logger'
 
 // Performance metrics tracking
 export class PerformanceMonitor {
@@ -102,8 +103,8 @@ export class PerformanceMonitor {
   }
 
   private alertSlowResponse(endpoint: string, responseTime: number) {
-    console.warn(`Slow API response: ${endpoint} took ${responseTime}ms`)
-    
+    logger.warn(`Slow API response: ${endpoint} took ${responseTime}ms`)
+
     // Send to monitoring service
     if (process.env.NODE_ENV === 'production') {
       this.sendAlert('slow_api_response', {
@@ -115,8 +116,8 @@ export class PerformanceMonitor {
   }
 
   private alertSlowQuery(queryType: string, duration: number) {
-    console.warn(`Slow database query: ${queryType} took ${duration}ms`)
-    
+    logger.warn(`Slow database query: ${queryType} took ${duration}ms`)
+
     if (process.env.NODE_ENV === 'production') {
       this.sendAlert('slow_database_query', {
         queryType,
@@ -142,7 +143,7 @@ export class PerformanceMonitor {
         })
       }
     } catch (error) {
-      console.error('Failed to send alert:', error)
+      logger.error('Failed to send alert', error as Error)
     }
   }
 }

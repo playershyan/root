@@ -85,7 +85,10 @@ export default function AlertsWidget({ className = "" }: AlertsWidgetProps) {
       // Show success message (you might want to use a proper notification system)
       logger.info('Alert check completed', { message: result.message })
     } catch (err) {
-      console.error('Error triggering alert check:', err)
+      logger.error('Error triggering alert check', err as Error, {
+        component: 'AlertsWidget',
+        action: 'triggerAlertCheck'
+      })
       alert('Failed to trigger alert check: ' + (err instanceof Error ? err.message : 'Unknown error'))
     } finally {
       setCheckingAlerts(false)

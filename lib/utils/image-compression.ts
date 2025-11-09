@@ -5,6 +5,8 @@
  * Designed for browser environments – always guard usage behind client-side checks.
  */
 
+import { logger } from '@/lib/utils/logger'
+
 export interface ImageCompressionOptions {
   maxWidth?: number
   maxHeight?: number
@@ -249,7 +251,7 @@ export async function compressImagesBatch(
       const result = await compressImageFile(file, options)
       results.push(result)
     } catch (error) {
-      console.error('Image compression failed, using original file', error)
+      logger.error('Image compression failed, using original file', error as Error)
       results.push({
         file,
         originalFile: file,

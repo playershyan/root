@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { logger } from '@/lib/utils/logger'
 import { 
   Trash2, Database, Clock, AlertTriangle, CheckCircle, 
   TrendingUp, RefreshCw, Play, HardDrive, Activity, 
@@ -91,7 +92,10 @@ export default function CleanupMonitoringWidget({ className = "" }: CleanupMonit
       const data = await response.json()
       setStats(data)
     } catch (err) {
-      console.error('Error fetching cleanup stats:', err)
+      logger.error('Error fetching cleanup stats', err as Error, {
+        component: 'CleanupMonitoringWidget',
+        action: 'fetchStats'
+      })
       setError(err instanceof Error ? err.message : 'Failed to load statistics')
     } finally {
       setLoading(false)
@@ -128,7 +132,11 @@ export default function CleanupMonitoringWidget({ className = "" }: CleanupMonit
       
       await fetchStats()
     } catch (err) {
-      console.error(`Error triggering ${type} cleanup:`, err)
+      logger.error(`Error triggering ${type} cleanup`, err as Error, {
+        component: 'CleanupMonitoringWidget',
+        action: 'triggerManualCleanup',
+        cleanupType: type
+      })
       alert(`Failed to trigger ${type} cleanup: ` + (err instanceof Error ? err.message : 'Unknown error'))
     } finally {
       setLoading(false)

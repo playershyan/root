@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
+import { logger } from '@/lib/utils/logger'
 
 // GET - Check admin system health and database status
 export async function GET(request: NextRequest) {
@@ -148,8 +149,8 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Health check error:', error)
-    return NextResponse.json({ 
+    logger.error('Health check error', error as Error)
+    return NextResponse.json({
       success: false,
       error: 'Health check failed',
       details: error instanceof Error ? error.message : 'Unknown error'

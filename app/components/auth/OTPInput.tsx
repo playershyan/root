@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { logger } from '@/lib/utils/logger'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 
@@ -125,7 +126,10 @@ export default function OTPInput({
         inputRefs.current[0]?.focus()
       }
     } catch (error) {
-      console.error('OTP verification error:', error)
+      logger.error('OTP verification error', error as Error, {
+        component: 'OTPInput',
+        action: 'handleVerifyOTP'
+      })
       setError('Failed to verify code. Please try again.')
       setOtp(['', '', '', '', '', ''])
       inputRefs.current[0]?.focus()
@@ -163,7 +167,10 @@ export default function OTPInput({
         setError(result.error || 'Failed to resend code')
       }
     } catch (error) {
-      console.error('Resend OTP error:', error)
+      logger.error('Resend OTP error', error as Error, {
+        component: 'OTPInput',
+        action: 'handleResendOTP'
+      })
       setError('Failed to resend code. Please try again.')
     } finally {
       setLoading(false)

@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/lib/supabase-server'
+import { logger } from '@/lib/utils/logger'
 
 export interface SecurityMetrics {
   rateLimitViolations: number
@@ -231,8 +232,8 @@ class MetricsCollector {
     
     // Log critical alerts
     if (fullAlert.severity === 'critical' || fullAlert.severity === 'high') {
-      console.error('[SECURITY_ALERT]', JSON.stringify(fullAlert))
-      
+      logger.error('[SECURITY_ALERT]', new Error(fullAlert.message), fullAlert.metadata)
+
       // In production, send to external monitoring service
       this.sendToMonitoringService(fullAlert)
     }
@@ -261,7 +262,7 @@ class MetricsCollector {
       // - Slack for team notifications
       // - Email for admin notifications
     } catch (error) {
-      console.error('Failed to send alert to monitoring service:', error)
+      logger.error('Failed to send alert to monitoring service', error as Error)
     }
   }
 

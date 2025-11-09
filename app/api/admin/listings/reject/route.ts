@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest) {
   // Verify admin access
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (updateError) {
-      console.error('Error rejecting listing:', updateError)
+      logger.error('Error rejecting listing', updateError, { listingId })
       return NextResponse.json({ error: 'Failed to reject listing' }, { status: 500 })
     }
 
@@ -53,13 +54,13 @@ export async function POST(request: NextRequest) {
         listing_id: listingId
       })
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Listing rejected successfully' 
+    return NextResponse.json({
+      success: true,
+      message: 'Listing rejected successfully'
     })
 
   } catch (error) {
-    console.error('Reject listing error:', error)
+    logger.error('Reject listing error', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

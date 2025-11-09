@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Heart } from 'lucide-react'
 import { useToast } from '@/app/components/notifications/useToast'
 import { ToastContainer } from '@/app/components/notifications/ToastContainer'
+import { logger } from '@/lib/utils/logger'
 
 interface WantedRequestFavoriteButtonProps {
   requestId: string
@@ -95,7 +96,11 @@ export default function WantedRequestFavoriteButton({
         window.dispatchEvent(new Event('wanted-favorites-updated'))
       }
     } catch (error) {
-      console.error('Failed to toggle wanted request favorite:', error)
+      logger.error('Failed to toggle wanted request favorite', error as Error, {
+        component: 'WantedRequestFavoriteButton',
+        action: 'handleClick',
+        requestId
+      })
     } finally {
       setIsProcessing(false)
     }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Bell, User, Search, Moon, Sun } from 'lucide-react'
 import { useAdmin } from './AdminProvider'
+import { logger } from '@/lib/utils/logger'
 
 export default function AdminHeader() {
   const { user } = useAdmin()
@@ -21,7 +22,7 @@ export default function AdminHeader() {
         setUnreadAlerts(data.count)
       }
     } catch (error) {
-      console.error('Failed to fetch unread alerts:', error)
+      logger.error('Failed to fetch unread alerts', error as Error)
     }
   }
 

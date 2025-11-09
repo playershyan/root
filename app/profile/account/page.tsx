@@ -13,6 +13,7 @@ import { CreateBusinessProfileData } from '@/lib/types/businessProfile'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { logger } from '@/lib/utils/logger'
 
 interface ProfileData {
   id: string
@@ -80,7 +81,7 @@ export default function AccountPage() {
           })
         }
       } catch (error) {
-        console.error('Error loading profile:', error)
+        logger.error('Error loading profile', error as Error)
       }
     }
 
@@ -117,7 +118,7 @@ export default function AccountPage() {
         throw new Error(result.error || 'Failed to update profile')
       }
     } catch (error) {
-      console.error('Error updating profile:', error)
+      logger.error('Error updating profile', error as Error)
       alert(`Failed to update profile: ${error instanceof Error ? error.message : 'Please try again.'}`)
     } finally {
       setIsLoading(false)

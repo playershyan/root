@@ -7,6 +7,7 @@ import { useAuth } from '@/app/contexts/AuthContext'
 import { useToast } from '@/app/components/notifications/useToast'
 import { Toast } from '@/app/components/notifications/Toast'
 import Link from 'next/link'
+import { logger } from '@/lib/utils/logger'
 
 interface WantedRequest {
   id: string
@@ -54,7 +55,7 @@ export default function WantedPaymentPage() {
 
         setRequest(data)
       } catch (error) {
-        console.error('Error loading wanted request:', error)
+        logger.error('Error loading wanted request', error as Error)
         showError('Error loading request details. Redirecting...', 3000)
         setTimeout(() => router.push('/wanted'), 2000)
       } finally {
@@ -105,7 +106,7 @@ export default function WantedPaymentPage() {
       // Success - redirect to profile with success notification
       router.push('/profile?tab=wanted&payment=success&features=high-priority&type=wanted')
     } catch (error) {
-      console.error('Payment error:', error)
+      logger.error('Payment error', error as Error)
       // Redirect to profile with error notification
       router.push('/profile?tab=wanted&payment=failed')
     } finally {
@@ -137,7 +138,7 @@ export default function WantedPaymentPage() {
       showSuccess('Request published without High Priority. Pending admin approval.', 3000)
       setTimeout(() => router.push('/wanted?posted=success'), 1500)
     } catch (error) {
-      console.error('Skip payment error:', error)
+      logger.error('Skip payment error', error as Error)
       showError('Failed to publish request. Please try again.', 4000)
     } finally {
       setLoading(false)

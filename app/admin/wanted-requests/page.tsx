@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Search, Clock, CheckCircle, XCircle, Eye, Filter, MessageSquare, User, MapPin, Calendar, DollarSign, AlertTriangle, Trash2 } from 'lucide-react'
 import { useAdmin } from '../components/AdminProvider'
+import { logger } from '@/lib/utils/logger'
 
 interface WantedRequest {
   id: string
@@ -94,7 +95,7 @@ export default function WantedRequestsManagement() {
         setTotalCount(data.totalCount)
       }
     } catch (error) {
-      console.error('Failed to fetch wanted requests:', error)
+      logger.error('Failed to fetch wanted requests', error as Error)
     } finally {
       setLoading(false)
     }
@@ -118,7 +119,7 @@ export default function WantedRequestsManagement() {
         alert(`Failed to approve: ${data.error}`)
       }
     } catch (error) {
-      console.error('Failed to approve wanted request:', error)
+      logger.error('Failed to approve wanted request', error as Error)
       alert('Failed to approve wanted request')
     }
   }
@@ -142,7 +143,7 @@ export default function WantedRequestsManagement() {
         alert(`Failed to reject: ${data.error}`)
       }
     } catch (error) {
-      console.error('Failed to reject wanted request:', error)
+      logger.error('Failed to reject wanted request', error as Error)
       alert('Failed to reject wanted request')
     }
   }
@@ -169,7 +170,7 @@ export default function WantedRequestsManagement() {
         alert(`Failed to ${action}: ${data.error}`)
       }
     } catch (error) {
-      console.error(`Failed to ${action} wanted request:`, error)
+      logger.error(`Failed to ${action} wanted request`, error as Error)
       alert(`Failed to ${action} wanted request`)
     }
   }

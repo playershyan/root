@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { MapPin, Calendar, AlertTriangle, MessageCircle, TrendingUp } from 'lucide-react'
 import WantedRequestFavoriteButton from '@/app/components/WantedRequestFavoriteButton'
 import ContactModal from '@/app/components/modals/ContactModal'
+import { logger } from '@/lib/utils/logger'
 
 interface UrgentWantedCardProps {
   request: {
@@ -46,7 +47,11 @@ export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
         body: JSON.stringify({ requestId: request.id })
       })
     } catch (error) {
-      console.error('Failed to track click:', error)
+      logger.error('Failed to track wanted request click', error as Error, {
+        component: 'UrgentWantedCard',
+        action: 'handleRespondClick',
+        requestId: request.id
+      })
     }
 
     // Open modal

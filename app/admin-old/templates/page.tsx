@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Sparkles, RefreshCw, Eye, BarChart3, AlertCircle, CheckCircle } from 'lucide-react'
+import { logger } from '@/lib/utils/logger'
 
 interface Template {
   id: number
@@ -49,7 +50,7 @@ export default function TemplateManagementPage() {
       setTemplates(templatesData.templates || [])
       setStats(statsData)
     } catch (error) {
-      console.error('Failed to load data:', error)
+      logger.error('Failed to load data', error as Error)
       setMessage({ type: 'error', text: 'Failed to load template data' })
     } finally {
       setLoading(false)
@@ -74,7 +75,7 @@ export default function TemplateManagementPage() {
         setMessage({ type: 'error', text: result.message || 'Generation failed' })
       }
     } catch (error) {
-      console.error('Template generation failed:', error)
+      logger.error('Template generation failed', error as Error)
       setMessage({ type: 'error', text: 'Template generation failed' })
     } finally {
       setGenerating(false)

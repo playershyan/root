@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { TrendingUp, Users, Eye, Clock, Target, MousePointer, Smartphone, Monitor } from 'lucide-react'
+import { logger } from '@/lib/utils/logger'
 
 interface AnalyticsData {
   pageViews: {
@@ -56,7 +57,7 @@ export default function AnalyticsPage() {
         setAnalytics(generateMockData())
       }
     } catch (error) {
-      console.error('Failed to fetch analytics:', error)
+      logger.error('Failed to fetch analytics', error as Error)
       setAnalytics(generateMockData())
     } finally {
       setLoading(false)

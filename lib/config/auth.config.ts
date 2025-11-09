@@ -1,3 +1,5 @@
+import { logger } from '@/lib/utils/logger';
+
 /**
  * Authentication Configuration
  * Centralizes all authentication provider settings and configurations
@@ -63,7 +65,7 @@ export const validateAuthConfig = (): boolean => {
   }
 
   if (errors.length > 0) {
-    console.error('Auth Configuration Errors:', errors);
+    logger.error('Auth Configuration Errors', new Error(errors.join('; ')));
     return false;
   }
 

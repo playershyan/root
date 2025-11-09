@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { api } from '@/lib/services/apiClient'
 import { Listing } from '@/lib/types'
+import { logger } from '@/lib/utils/logger'
 
 export interface LocalListingStatus extends Partial<Listing> {
   id: string
@@ -65,7 +66,7 @@ export function useListingManagement(userId?: string): UseListingManagementRetur
         .order('created_at', { ascending: false })
 
       if (error) {
-        console.error('Error fetching user listings:', error)
+        logger.error('Error fetching user listings', error as Error)
         setListings([])
       } else {
         const transformedListings: LocalListingStatus[] = data?.map(listing => ({
@@ -91,7 +92,7 @@ export function useListingManagement(userId?: string): UseListingManagementRetur
         setListings(transformedListings)
       }
     } catch (error) {
-      console.error('Error loading listings:', error)
+      logger.error('Error loading listings', error as Error)
       setListings([])
     } finally {
       setLoading(false)

@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { logger } from '@/lib/utils/logger'
 
 type AppSupabaseClient = SupabaseClient<any, 'public', any>
 
@@ -34,7 +35,7 @@ async function resolveAdminRecord(supabase: AppSupabaseClient, userId: string) {
     }
   } catch (error: any) {
     if (process.env.NODE_ENV !== 'production') {
-      console.warn('Admin RPC check failed, attempting table fallback', error)
+      logger.warn('Admin RPC check failed, attempting table fallback', { error })
     }
   }
 

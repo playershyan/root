@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Mail, Briefcase, Users, MapPin, Clock } from 'lucide-react'
+import { logger } from '@/lib/utils/logger'
 
 export default function CareersPage() {
   const [email, setEmail] = useState('')
@@ -37,7 +38,7 @@ export default function CareersPage() {
       setIsSubmitted(true)
       setEmail('')
     } catch (error) {
-      console.error('Error submitting notification request:', error)
+      logger.error('Error submitting notification request', error as Error)
       setError('Failed to submit. Please try again.')
     } finally {
       setIsSubmitting(false)

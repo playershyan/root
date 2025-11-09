@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/lib/supabase'
+import { logger } from '@/lib/utils/logger'
 
 interface ApiClientOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
@@ -75,7 +76,7 @@ export async function apiClient<T = any>(
       data: responseData
     }
   } catch (error) {
-    console.error(`API Error [${method} ${endpoint}]:`, error)
+    logger.error(`API Error [${method} ${endpoint}]`, error as Error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Network error'

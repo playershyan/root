@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { useAuth } from '@/app/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
+import { logger } from '@/lib/utils/logger'
 
 interface AdminUser {
   id: string
@@ -59,7 +60,7 @@ export default function AdminProvider({ children }: { children: React.ReactNode 
         router.push('/')
       }
     } catch (error) {
-      console.error('Admin verification failed:', error)
+      logger.error('Admin verification failed', error as Error)
       router.push('/')
     } finally {
       setIsLoading(false)

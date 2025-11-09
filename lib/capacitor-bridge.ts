@@ -1,13 +1,14 @@
 /**
  * Capacitor Bridge - Native feature detection and wrapper
- * 
+ *
  * This module provides a unified interface for native features that work
  * in both native app (Capacitor) and web browser environments.
- * 
+ *
  * All native calls are wrapped with web fallbacks for graceful degradation.
  */
 
 import { Capacitor } from '@capacitor/core'
+import { logger } from '@/lib/utils/logger'
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera'
 import { Filesystem, Directory } from '@capacitor/filesystem'
 import { Clipboard } from '@capacitor/clipboard'
@@ -124,7 +125,7 @@ export async function takePhoto(options: CameraOptions = {}): Promise<CameraResu
       })
     }
   } catch (error) {
-    console.error('Camera error:', error)
+    logger.error('Camera error', error as Error)
     return null
   }
 }
@@ -152,7 +153,7 @@ export async function writeToClipboard(text: string): Promise<boolean> {
       return true
     }
   } catch (error) {
-    console.error('Clipboard write error:', error)
+    logger.error('Clipboard write error', error as Error)
     return false
   }
 }
@@ -168,7 +169,7 @@ export async function readFromClipboard(): Promise<string | null> {
       return text
     }
   } catch (error) {
-    console.error('Clipboard read error:', error)
+    logger.error('Clipboard read error', error as Error)
     return null
   }
 }
@@ -195,10 +196,10 @@ export async function saveFile(data: string, fileName: string, directory: Direct
       data: data,
       directory: directory
     })
-    
+
     return result.uri
   } catch (error) {
-    console.error('File save error:', error)
+    logger.error('File save error', error as Error)
     return null
   }
 }
@@ -211,10 +212,10 @@ export async function readFile(filePath: string, directory: Directory = Director
       path: filePath,
       directory: directory
     })
-    
+
     return typeof result.data === 'string' ? result.data : null
   } catch (error) {
-    console.error('File read error:', error)
+    logger.error('File read error', error as Error)
     return null
   }
 }
@@ -279,7 +280,7 @@ export async function getNetworkStatus(): Promise<NetworkStatus> {
       }
     }
   } catch (error) {
-    console.error('Network status error:', error)
+    logger.error('Network status error', error as Error)
     return {
       connected: navigator.onLine,
       connectionType: navigator.onLine ? 'unknown' : 'none'

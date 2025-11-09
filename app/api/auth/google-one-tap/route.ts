@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { OAuth2Client } from 'google-auth-library'
+import { logger } from '@/lib/utils/logger'
 
 const client = new OAuth2Client(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID)
 
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (error) {
-      console.error('Supabase signInWithIdToken error:', error)
+      logger.error('Supabase signInWithIdToken error', error)
       if (typeof error.message === 'string' && error.message.toLowerCase().includes('provider is not enabled')) {
         return NextResponse.json({
           success: false,
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
     // If successful, user is signed in
     return NextResponse.json({ success: true, user: data.user })
   } catch (error) {
-    console.error('Google One Tap error:', error)
+    logger.error('Google One Tap error', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

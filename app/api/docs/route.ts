@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET() {
   try {
@@ -83,7 +84,7 @@ export async function GET() {
       },
     })
   } catch (error) {
-    console.error('Error serving API docs:', error)
+    logger.error('Error serving API docs', error as Error)
     return NextResponse.json(
       { error: 'Failed to load API documentation' },
       { status: 500 }

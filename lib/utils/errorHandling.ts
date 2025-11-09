@@ -1,4 +1,5 @@
 import { PostgrestError } from '@supabase/supabase-js'
+import { logger } from '@/lib/utils/logger'
 
 export interface AppError {
   type: 'network' | 'database' | 'validation' | 'api' | 'unknown'
@@ -176,7 +177,7 @@ export const logError = (error: AppError, context?: string, extra?: Record<strin
     ...extra
   }
 
-  console.error('Application Error:', errorLog)
+  logger.error('Application Error', new Error(error.message), errorLog)
 
   // In production, send to error tracking service
   if (process.env.NODE_ENV === 'production') {
@@ -186,6 +187,6 @@ export const logError = (error: AppError, context?: string, extra?: Record<strin
         action: context,
         extra: errorLog
       })
-    }).catch(console.error)
+    }).catch((err) => logger.error('Failed to report error to Sentry', err as Error))
   }
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { X, Phone, MessageCircle, Copy, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { logger } from '@/lib/utils/logger'
 
 interface ContactModalProps {
   isOpen: boolean
@@ -47,7 +48,11 @@ export default function ContactModal({ isOpen, onClose, listing }: ContactModalP
       setCopiedField(field)
       setTimeout(() => setCopiedField(null), 2000)
     } catch (err) {
-      console.error('Failed to copy:', err)
+      logger.error('Failed to copy contact detail', err as Error, {
+        component: 'ContactModal',
+        action: 'handleCopy',
+        field
+      })
     }
   }
 

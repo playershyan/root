@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { APIError } from '../errorHandling'
+import { logger } from '@/lib/utils/logger'
 
 export interface APIErrorResponse {
   error: string
@@ -77,9 +78,8 @@ export function createErrorResponse(
 
   // Log error in development (not in production for security)
   if (process.env.NODE_ENV !== 'production') {
-    console.error(`[API Error] ${finalStatusCode} ${path}:`, {
-      error: errorType,
-      message,
+    logger.error(`[API Error] ${finalStatusCode} ${path}`, new Error(message), {
+      errorType,
       details,
       requestId,
     })

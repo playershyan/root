@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
+import { logger } from '@/lib/utils/logger'
 
 interface SessionInfo {
   id: string
@@ -78,7 +79,7 @@ export function useSessionManager(): UseSessionManagerReturn {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load sessions'
       setError(errorMessage)
-      console.error('Session refresh error:', err)
+      logger.error('Session refresh error', err as Error)
     } finally {
       setLoading(false)
     }
@@ -119,7 +120,7 @@ export function useSessionManager(): UseSessionManagerReturn {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create session'
       setError(errorMessage)
-      console.error('Session creation error:', err)
+      logger.error('Session creation error', err as Error)
       return false
     }
   }, [getAuthToken, refreshSessions])
@@ -140,7 +141,7 @@ export function useSessionManager(): UseSessionManagerReturn {
       })
 
       if (!response.ok) {
-        console.warn('Failed to update session activity')
+        logger.warn('Failed to update session activity')
         return false
       }
 
@@ -148,7 +149,7 @@ export function useSessionManager(): UseSessionManagerReturn {
       return data.success || false
 
     } catch (err) {
-      console.warn('Session activity update error:', err)
+      logger.warn('Session activity update error', { error: err })
       return false
     }
   }, [getAuthToken])
@@ -193,7 +194,7 @@ export function useSessionManager(): UseSessionManagerReturn {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to revoke session'
       setError(errorMessage)
-      console.error('Session revoke error:', err)
+      logger.error('Session revoke error', err as Error)
       return false
     }
   }, [getAuthToken, refreshSessions])
@@ -235,7 +236,7 @@ export function useSessionManager(): UseSessionManagerReturn {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to revoke other sessions'
       setError(errorMessage)
-      console.error('Other sessions revoke error:', err)
+      logger.error('Other sessions revoke error', err as Error)
       return false
     }
   }, [getAuthToken, refreshSessions])

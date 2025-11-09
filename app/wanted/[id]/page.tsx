@@ -8,6 +8,7 @@ import { useAuth } from '@/app/contexts/AuthContext'
 import { ArrowLeft, MapPin, Calendar, Eye, Edit, Share2, Flag, Zap, TrendingUp } from 'lucide-react'
 import ContactModal from '@/app/components/modals/ContactModal'
 import WantedRequestFavoriteButton from '@/app/components/WantedRequestFavoriteButton'
+import { logger } from '@/lib/utils/logger'
 
 interface WantedRequest {
   id: string
@@ -136,7 +137,7 @@ export default function WantedRequestDetailPage() {
         user_avatar: (profile?.name || data.user_name || 'U').slice(0, 2).toUpperCase()
       })
     } catch (error) {
-      console.error('Error fetching wanted request:', error)
+      logger.error('Error fetching wanted request', error as Error)
       setError('Failed to load wanted request')
     } finally {
       setLoading(false)
@@ -149,8 +150,10 @@ export default function WantedRequestDetailPage() {
         request_id: params.id
       })
     } catch (error) {
-      // Silently fail if function doesn't exist
-      console.debug('Views increment not available:', error)
+      logger.debug('Views increment not available', {
+        requestId: params.id,
+        error: error instanceof Error ? error.message : error
+      })
     }
   }
 
@@ -176,7 +179,10 @@ export default function WantedRequestDetailPage() {
         request_id: params.id
       })
     } catch (error) {
-      console.debug('Clicks increment not available:', error)
+      logger.debug('Clicks increment not available', {
+        requestId: params.id,
+        error: error instanceof Error ? error.message : error
+      })
     }
   }
 

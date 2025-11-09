@@ -7,6 +7,7 @@ import BinTab from '@/app/components/bin/BinTab'
 import { useState, useCallback, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
+import { logger } from '@/lib/utils/logger'
 
 export default function BinPage() {
   const router = useRouter()
@@ -34,7 +35,7 @@ export default function BinPage() {
       const data = await response.json()
       setBinItems(data.all_items || [])
     } catch (error) {
-      console.error('Error loading bin items:', error)
+      logger.error('Error loading bin items', error as Error)
       alert('Failed to load bin items')
     } finally {
       setLoading(false)
@@ -77,7 +78,7 @@ export default function BinPage() {
       // Reload bin items to reflect changes
       await loadBinItems()
     } catch (error) {
-      console.error('Error restoring item:', error)
+      logger.error('Error restoring item', error as Error)
       alert(error instanceof Error ? error.message : 'Failed to restore item')
     } finally {
       setRestoring(null)

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { textlkService } from '@/lib/services/textlkService'
+import { logger } from '@/lib/utils/logger'
 
 interface PhoneNumberInputProps {
   onSubmit: (phone: string) => void
@@ -77,7 +78,10 @@ export default function PhoneNumberInput({
         setError(result.error || 'Failed to send verification code')
       }
     } catch (error) {
-      console.error('Phone verification error:', error)
+      logger.error('Phone verification error', error as Error, {
+        component: 'PhoneNumberInput',
+        action: 'handleSubmit'
+      })
       setError('Failed to send verification code. Please try again.')
     } finally {
       setLoading(false)

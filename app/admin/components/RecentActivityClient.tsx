@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Clock, User, Car, Flag, CheckCircle, XCircle, Search, Trash2 } from 'lucide-react'
 import type { ActivityItem } from './types'
+import { logger } from '@/lib/utils/logger'
 
 interface RecentActivityClientProps {
   initialActivities: ActivityItem[]
@@ -36,7 +37,7 @@ export default function RecentActivityClient({
         }
       } catch (error) {
         if (process.env.NODE_ENV !== 'production') {
-          console.error('Failed to refresh recent admin activity', error)
+          logger.error('Failed to refresh recent admin activity', error as Error)
         }
       } finally {
         if (isMounted) {

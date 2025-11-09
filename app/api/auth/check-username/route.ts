@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: Request) {
   try {
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
 
     if (error && error.code !== 'PGRST116') {
       // PGRST116 is "no rows returned" which means username is available
-      console.error('Username check error:', error)
+      logger.error('Username check error', error, { username: username.toLowerCase() })
       return NextResponse.json({ error: 'Failed to check username availability' }, { status: 500 })
     }
 
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
     })
 
   } catch (error) {
-    console.error('Username check error:', error)
+    logger.error('Username check error', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

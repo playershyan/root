@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { api } from '@/lib/services/apiClient'
+import { logger } from '@/lib/utils/logger'
 
 export interface Favorite {
   id: string
@@ -65,7 +66,7 @@ export function useFavorites(userId?: string): UseFavoritesReturn {
       // TODO: Fetch favorited wanted requests when API is available
       setFavoritedWantedRequests([])
     } catch (error) {
-      console.error('Error loading favorites:', error)
+      logger.error('Error loading favorites', error as Error)
       setFavoritedAds([])
       setFavoritedWantedRequests([])
     } finally {

@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { formatPhoneDisplay, formatPhoneForWhatsApp, formatPhoneForTel } from '@/lib/utils/phoneFormatter'
 import ContactModal from '@/app/components/modals/ContactModal'
+import { logger } from '@/lib/utils/logger'
 
 // Types
 type Listing = {
@@ -259,7 +260,11 @@ function MessageButton({ listing, onMessageClick }: {
       const data = await response.json()
       router.push(`/profile?tab=messages&conversation=${data.conversation_id}`)
     } catch (error) {
-      console.error('Error starting conversation:', error)
+      logger.error('Error starting conversation', error as Error, {
+        component: 'ContactProfile',
+        action: 'handleMessage',
+        listingId: listing.id
+      })
       alert('Failed to start conversation. Please try again.')
     } finally {
       setLoading(false)

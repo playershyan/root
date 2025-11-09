@@ -1,3 +1,10 @@
+/* eslint-disable no-console */
+/**
+ * ESLint console exclusion justified:
+ * This is the logger implementation itself - it intentionally uses console.* methods
+ * to provide structured logging with environment-aware output.
+ */
+
 // Production-safe logging utility
 
 export interface LogContext {

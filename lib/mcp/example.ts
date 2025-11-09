@@ -1,3 +1,10 @@
+/* eslint-disable no-console */
+/**
+ * ESLint console exclusion justified:
+ * This is an example/demo file that demonstrates MCP usage patterns.
+ * Console.log statements are intentional for demonstration purposes.
+ */
+
 import { createSentryMCPTool } from './sentryIntegration'
 
 // Example usage of MCP with Sentry integration

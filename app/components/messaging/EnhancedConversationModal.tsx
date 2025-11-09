@@ -18,6 +18,7 @@ import { updateMessageStatus, markMessagesAsDelivered } from '@/lib/messaging/st
 import { getMessagingRealtime } from '@/lib/messaging/realtime'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { logger } from '@/lib/utils/logger'
 
 interface Message {
   id: string
@@ -286,7 +287,10 @@ export default function EnhancedConversationModal({ isOpen, onClose, listing }: 
       setTimeout(() => setShowQuickReplies(true), 1000)
 
     } catch (error) {
-      console.error('Error sending message:', error)
+      logger.error('Error sending message', error as Error, {
+        component: 'EnhancedConversationModal',
+        action: 'handleSendMessage'
+      })
 
       // Update optimistic message to failed status
       setMessages(prev => prev.map(m =>

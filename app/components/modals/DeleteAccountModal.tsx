@@ -5,6 +5,7 @@ import { X, AlertTriangle, Loader2, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { logger } from '@/lib/utils/logger'
 
 interface DeleteAccountModalProps {
   isOpen: boolean
@@ -62,7 +63,10 @@ export default function DeleteAccountModal({
       // Redirect to homepage after successful deletion
       window.location.href = '/'
     } catch (err) {
-      console.error('Error deleting account:', err)
+      logger.error('Error deleting account', err as Error, {
+        component: 'DeleteAccountModal',
+        action: 'handleDelete'
+      })
       setError(err instanceof Error ? err.message : 'An error occurred while deleting your account')
       setLoading(false)
     }

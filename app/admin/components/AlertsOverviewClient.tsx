@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Bell, AlertTriangle, XCircle, CheckCircle, Clock } from 'lucide-react'
 import type { AlertItem } from './types'
+import { logger } from '@/lib/utils/logger'
 
 interface AlertsOverviewClientProps {
   initialAlerts: AlertItem[]
@@ -36,7 +37,7 @@ export default function AlertsOverviewClient({
         }
       } catch (error) {
         if (process.env.NODE_ENV !== 'production') {
-          console.error('Failed to refresh admin alerts', error)
+          logger.error('Failed to refresh admin alerts', error as Error)
         }
       } finally {
         if (isMounted) {
@@ -73,7 +74,7 @@ export default function AlertsOverviewClient({
       )
     } catch (error) {
       if (process.env.NODE_ENV !== 'production') {
-        console.error('Failed to mark alert as read', error)
+        logger.error('Failed to mark alert as read', error as Error)
       }
     }
   }

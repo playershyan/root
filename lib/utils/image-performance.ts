@@ -5,6 +5,16 @@
 
 'use client'
 
+/* eslint-disable no-console */
+/**
+ * ESLint console exclusion justified:
+ * This file provides development-only performance monitoring with console.group/log
+ * for structured debugging output. All console usage is guarded by:
+ * - process.env.NODE_ENV !== 'production' checks
+ * - MONITORING_CONFIG.enableDetailedLogging feature flag
+ * Console statements will NEVER execute in production builds.
+ */
+
 import { MONITORING_CONFIG, FEATURE_FLAGS } from '@/lib/config/images'
 import { logger } from '@/lib/utils/logger'
 

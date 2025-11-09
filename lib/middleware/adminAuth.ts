@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 export async function verifyAdminAccess(request: NextRequest) {
   try {
@@ -50,7 +51,7 @@ export async function verifyAdminAccess(request: NextRequest) {
         }
       } catch (fallbackError) {
         if (process.env.NODE_ENV !== 'production') {
-          console.error('Admin check failed:', fallbackError)
+          logger.error('Admin check failed', fallbackError as Error)
         }
         adminError = fallbackError
       }
@@ -59,9 +60,9 @@ export async function verifyAdminAccess(request: NextRequest) {
     if (adminError) {
       // Log error only in development
       if (process.env.NODE_ENV !== 'production') {
-        console.error('Admin access check error:', adminError)
+        logger.error('Admin access check error', adminError as Error)
       }
-      
+
       // If it's a function/table not found error, return 403 instead of 500
       if (adminError.code === '42883' || adminError.code === 'PGRST116' || 
           adminError.message?.includes('function') || adminError.message?.includes('does not exist')) {
@@ -93,7 +94,7 @@ export async function verifyAdminAccess(request: NextRequest) {
     }
   } catch (error) {
     if (process.env.NODE_ENV !== 'production') {
-      console.error('Admin auth error:', error)
+      logger.error('Admin auth error', error as Error)
     }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

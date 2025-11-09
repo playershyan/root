@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 interface ConversationResponse {
   id: string
@@ -102,7 +103,7 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1)
 
     if (error) {
-      console.error('Database error:', error)
+      logger.error('Database error fetching conversations', error, { userId: user.id, limit, offset })
       return NextResponse.json(
         { error: 'Failed to fetch conversations' },
         { status: 500 }
@@ -157,7 +158,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('GET /api/messaging/conversations-optimized error:', error)
+    logger.error('GET /api/messaging/conversations-optimized error', error as Error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

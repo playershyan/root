@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 export const runtime = 'nodejs'
 
@@ -60,13 +61,13 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching business profiles:', error)
+      logger.error('Error fetching business profiles', error, { status })
       return NextResponse.json({ error: 'Failed to fetch business profiles' }, { status: 500 })
     }
 
     return NextResponse.json({ profiles })
   } catch (error) {
-    console.error('Unexpected error:', error)
+    logger.error('Unexpected error', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

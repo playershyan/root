@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { X } from 'lucide-react'
+import { logger } from '@/lib/utils/logger'
 
 export interface MatchNotification {
   id: string
@@ -33,7 +34,7 @@ export default function MatchNotificationBanner({
     try {
       await onDismiss(notification.id)
     } catch (error) {
-      console.error('Error dismissing notification:', error)
+      logger.error('Error dismissing notification', error as Error)
       setIsDismissing(false)
     }
   }
@@ -164,7 +165,7 @@ export function MultiMatchNotificationBanner({
     try {
       await onDismissAll()
     } catch (error) {
-      console.error('Error dismissing all notifications:', error)
+      logger.error('Error dismissing all notifications', error as Error)
       setIsDismissingAll(false)
     }
   }

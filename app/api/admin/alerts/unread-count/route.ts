@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest) {
   const authResult = await verifyAdminAccess(request)
@@ -23,14 +24,14 @@ export async function GET(request: NextRequest) {
       .eq('is_read', false)
 
     if (error) {
-      console.error('Error counting unread alerts:', error)
+      logger.error('Error counting unread alerts', error)
       return NextResponse.json({ count: 0 })
     }
 
     return NextResponse.json({ count: count || 0 })
 
   } catch (error) {
-    console.error('Get unread alerts count error:', error)
+    logger.error('Get unread alerts count error', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

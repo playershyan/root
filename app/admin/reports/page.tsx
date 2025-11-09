@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { BarChart3, TrendingUp, Users, Car, Calendar, Download, Filter } from 'lucide-react'
+import { logger } from '@/lib/utils/logger'
 
 interface ReportData {
   listings: {
@@ -55,7 +56,7 @@ export default function ReportsPage() {
         setReportData(generateMockData())
       }
     } catch (error) {
-      console.error('Failed to fetch report data:', error)
+      logger.error('Failed to fetch report data', error as Error)
       setReportData(generateMockData())
     } finally {
       setLoading(false)
@@ -126,7 +127,7 @@ export default function ReportsPage() {
         window.URL.revokeObjectURL(url)
       }
     } catch (error) {
-      console.error('Failed to export report:', error)
+      logger.error('Failed to export report', error as Error)
     }
   }
 

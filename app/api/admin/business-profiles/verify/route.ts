@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 // PATCH - Verify or reject business profile
 export async function PATCH(request: NextRequest) {
@@ -58,7 +59,7 @@ export async function PATCH(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Error updating business profile:', error)
+      logger.error('Error updating business profile', error, { profileId, action })
       return NextResponse.json({ error: 'Failed to update business profile' }, { status: 500 })
     }
 
@@ -66,7 +67,7 @@ export async function PATCH(request: NextRequest) {
     if (profile) {
       const notificationType = action === 'verify' ? 'business_profile_verified' : 'business_profile_rejected'
       const notificationTitle = action === 'verify' ? 'Business Profile Verified' : 'Business Profile Rejected'
-      const notificationMessage = action === 'verify' 
+      const notificationMessage = action === 'verify'
         ? 'Your business profile has been verified and is now visible to customers.'
         : `Your business profile was rejected${reason ? ': ' + reason : '.'}`
 
@@ -82,7 +83,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ success: true, profile })
   } catch (error) {
-    console.error('Unexpected error:', error)
+    logger.error('Unexpected error', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { recaptchaClient } from '@/lib/utils/recaptcha-client';
+import { logger } from '@/lib/utils/logger';
 
 /**
  * React hook for using reCAPTCHA v3
@@ -26,7 +27,7 @@ export function useRecaptcha() {
         setIsLoaded(true);
       } catch (err) {
         setError('Failed to load reCAPTCHA');
-        console.error('reCAPTCHA loading error:', err);
+        logger.error('reCAPTCHA loading error', err as Error);
       } finally {
         setIsLoading(false);
       }
@@ -46,7 +47,7 @@ export function useRecaptcha() {
     try {
       return await recaptchaClient.getToken(action);
     } catch (err) {
-      console.error(`reCAPTCHA token generation failed for action "${action}":`, err);
+      logger.error(`reCAPTCHA token generation failed for action "${action}"`, err as Error);
       return null;
     }
   };

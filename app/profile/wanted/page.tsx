@@ -10,6 +10,7 @@ import WantedRequestStatusBadge from '@/app/components/wantedRequests/WantedRequ
 import WantedRequestActions from '@/app/components/wantedRequests/WantedRequestActions'
 import WantedRequestStatusMessage from '@/app/components/wantedRequests/WantedRequestStatusMessage'
 import { Button } from '@/components/ui/button'
+import { logger } from '@/lib/utils/logger'
 
 interface WantedRequest {
   id: string
@@ -66,7 +67,7 @@ export default function WantedPage() {
         .order('created_at', { ascending: false })
 
       if (error) {
-        console.error('Error fetching wanted requests:', error)
+        logger.error('Error fetching wanted requests', error as Error)
         setWantedRequests([])
       } else {
         const formattedRequests = wantedRequests?.map(request => ({
@@ -85,7 +86,7 @@ export default function WantedPage() {
         setWantedRequests(formattedRequests)
       }
     } catch (error) {
-      console.error('Error loading wanted requests:', error)
+      logger.error('Error loading wanted requests', error as Error)
       setWantedRequests([])
     } finally {
       setWantedRequestsLoading(false)
@@ -127,7 +128,7 @@ export default function WantedPage() {
 
       alert(data.message || `Wanted request ${action}d successfully`)
     } catch (error: any) {
-      console.error(`Error ${action}ing wanted request:`, error)
+      logger.error(`Error ${action}ing wanted request`, error as Error)
       alert(error.message || `Failed to ${action} wanted request`)
     }
   }
@@ -164,7 +165,7 @@ export default function WantedPage() {
 
       alert(data.message || 'Wanted request closed successfully')
     } catch (error: any) {
-      console.error('Error closing wanted request:', error)
+      logger.error('Error closing wanted request', error as Error)
       alert(error.message || 'Failed to close wanted request')
     }
   }
@@ -197,7 +198,7 @@ export default function WantedPage() {
 
       alert(data.message || 'Wanted request renewed successfully')
     } catch (error: any) {
-      console.error('Error renewing wanted request:', error)
+      logger.error('Error renewing wanted request', error as Error)
       alert(error.message || 'Failed to renew wanted request')
     }
   }
@@ -226,7 +227,7 @@ export default function WantedPage() {
       setWantedRequests(prev => prev.filter(r => r.id !== requestId))
       alert('Wanted request moved to bin')
     } catch (error) {
-      console.error('Error deleting wanted request:', error)
+      logger.error('Error deleting wanted request', error as Error)
       alert('Failed to move wanted request to bin')
     }
   }

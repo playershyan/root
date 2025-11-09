@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 export const runtime = 'nodejs'
 
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching favorite listings:', error)
+      logger.error('Error fetching favorite listings', error, { userId: user.id })
       return NextResponse.json({ error: 'Failed to fetch favorite listings' }, { status: 500 })
     }
 
@@ -54,11 +55,11 @@ export async function GET(request: NextRequest) {
       ...f.listings,
       favorited_at: f.created_at
     })).filter(Boolean) || []
-    
+
     return NextResponse.json({ listings: favoritedListings })
 
   } catch (error) {
-    console.error('Favorite listings GET error:', error)
+    logger.error('Favorite listings GET error', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

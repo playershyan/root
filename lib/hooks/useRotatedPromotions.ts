@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { RotationService } from '@/lib/services/rotationService'
 import { supabase } from '@/lib/supabase'
+import { logger } from '@/lib/utils/logger'
 
 interface UseRotatedPromotionsOptions {
   vehicleType?: string
@@ -90,7 +91,7 @@ export function useRotatedPromotions(
       })
 
     } catch (err) {
-      console.error('Error fetching rotated listings:', err)
+      logger.error('Error fetching rotated listings', err as Error)
       setError(err)
     } finally {
       setLoading(false)

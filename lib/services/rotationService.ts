@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { supabase as supabaseClient } from '@/lib/supabase'
+import { logger } from '@/lib/utils/logger'
 
 export interface RotationConfig {
   featuredSlots: number // Number of featured slots (default: 2)
@@ -112,17 +113,17 @@ export class RotationService {
       const promotionIds = selectedAds.map(ad => ad.id)
       await this.updateImpressions(promotionIds)
 
-      return { 
+      return {
         data: selectedAds.map(p => ({
           ...p.listings,
           promotion_id: p.id,
           rotation_score: p.rotation_score,
           impressions: p.impressions
-        })), 
-        error: null 
+        })),
+        error: null
       }
     } catch (error) {
-      console.error('Error getting rotated top spot ads:', error)
+      logger.error('Error getting rotated top spot ads', error as Error)
       return { data: [], error }
     }
   }
@@ -202,7 +203,7 @@ export class RotationService {
 
       return { data: stats, error: null }
     } catch (error) {
-      console.error('Error getting rotation stats:', error)
+      logger.error('Error getting rotation stats', error as Error)
       return { data: null, error }
     }
   }
@@ -304,7 +305,7 @@ export class RotationService {
         error: null
       }
     } catch (error) {
-      console.error('Error getting fair share report:', error)
+      logger.error('Error getting fair share report', error as Error)
       return { data: null, error }
     }
   }
@@ -324,7 +325,7 @@ export class RotationService {
         })
         .in('id', promotionIds)
     } catch (error) {
-      console.error('Error updating impressions:', error)
+      logger.error('Error updating impressions', error as Error)
     }
   }
 }

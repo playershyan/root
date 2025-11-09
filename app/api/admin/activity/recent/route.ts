@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest) {
   const authResult = await verifyAdminAccess(request)
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ activities: formattedActivities })
 
   } catch (error) {
-    console.error('Get recent activity error:', error)
+    logger.error('Get recent activity error', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

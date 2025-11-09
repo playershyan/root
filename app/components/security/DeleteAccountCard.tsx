@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Trash2, AlertTriangle, Loader2 } from 'lucide-react'
 import DeleteAccountModal from '../modals/DeleteAccountModal'
+import { logger } from '@/lib/utils/logger'
 
 interface DeleteAccountCardProps {
   userEmail?: string
@@ -28,7 +29,10 @@ export default function DeleteAccountCard({
         setWarnings(data.warnings || [])
       }
     } catch (error) {
-      console.error('Error checking deletion status:', error)
+      logger.error('Error checking deletion status', error as Error, {
+        component: 'DeleteAccountCard',
+        action: 'checkDeletionStatus'
+      })
     } finally {
       setCheckingStatus(false)
     }

@@ -1,6 +1,7 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: Request) {
   const supabase = createRouteHandlerClient({ cookies })
@@ -87,7 +88,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Password created successfully' })
     }
   } catch (error: any) {
-    console.error('Error updating password:', error)
+    logger.error('Error updating password', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

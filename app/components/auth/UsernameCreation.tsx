@@ -6,6 +6,7 @@ import { debounce } from 'lodash'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { logger } from '@/lib/utils/logger'
 
 interface UsernameCreationProps {
   phoneNumber: string
@@ -95,7 +96,10 @@ export default function UsernameCreation({
           setError('Username is already taken')
         }
       } catch (error) {
-        console.error('Username check error:', error)
+        logger.error('Username check error', error as Error, {
+          component: 'UsernameCreation',
+          action: 'debouncedCheckAvailability'
+        })
         setUsernameStatus('invalid')
         setError('Failed to check username availability')
       }
@@ -153,7 +157,10 @@ export default function UsernameCreation({
         setError(result.error || 'Failed to create account')
       }
     } catch (error) {
-      console.error('Account creation error:', error)
+      logger.error('Account creation error', error as Error, {
+        component: 'UsernameCreation',
+        action: 'handleSubmit'
+      })
       setError('Failed to create account. Please try again.')
     } finally {
       setLoading(false)

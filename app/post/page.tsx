@@ -32,6 +32,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { compressImageFile } from '@/lib/utils/image-compression'
+import { logger } from '@/lib/utils/logger'
 
 // Lazy load form components (Phase 2 optimization)
 import type { DescriptionGeneratorRef } from '@/app/components/vehicle-forms/DescriptionGenerator'
@@ -557,7 +558,7 @@ export default function EnhancedPostVehiclePage() {
         return data.user.id
       }
     } catch (error) {
-      console.error('Failed to retrieve user for image upload', error)
+      logger.error('Failed to retrieve user for image upload', error as Error)
     }
     return 'temp'
   }
@@ -658,7 +659,7 @@ export default function EnhancedPostVehiclePage() {
           showError(`Failed to upload ${file.name}: ${errorMessage}`, 5000)
         }
       } catch (error: any) {
-        console.error('Image upload failed', error)
+        logger.error('Image upload failed', error as Error)
         setUploadStatus(prev => ({
           ...prev,
           [uploadId]: {

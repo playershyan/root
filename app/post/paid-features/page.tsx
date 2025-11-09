@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { logger } from '@/lib/utils/logger'
 
 export default function AdPaidFeatures() {
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([])
@@ -141,7 +142,7 @@ export default function AdPaidFeatures() {
       router.push(`/profile?tab=listings&payment=success&features=${featuresParam}&type=listing`)
 
     } catch (error) {
-      console.error('Payment error:', error)
+      logger.error('Payment error', error as Error)
       // Redirect to profile with error
       router.push(`/profile?tab=listings&payment=failed`)
     } finally {

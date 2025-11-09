@@ -11,6 +11,7 @@ import UrgentWantedCard from '@/app/components/wantedRequests/UrgentWantedCard'
 import RegularWantedCard from '@/app/components/wantedRequests/RegularWantedCard'
 import MatchNotificationBanner, { MultiMatchNotificationBanner } from './components/MatchNotificationBanner'
 import { useWantedNotifications } from '@/lib/hooks/useWantedNotifications'
+import { logger } from '@/lib/utils/logger'
 
 // Lazy load large components (Phase 2 optimization)
 const ContactModal = dynamic(() => import('@/app/components/modals/ContactModal'))
@@ -155,7 +156,7 @@ export default function WantedRequestsPage() {
     try {
       await Promise.all(notifications.map(n => dismissNotification(n.id)))
     } catch (error) {
-      console.error('Error dismissing all notifications:', error)
+      logger.error('Error dismissing all notifications', error as Error)
     }
   }
   const [filters, setFilters] = useState<FilterState>(() => {
@@ -165,7 +166,7 @@ export default function WantedRequestsPage() {
         try {
           return JSON.parse(saved)
         } catch (e) {
-          console.error('Failed to parse saved filters:', e)
+          logger.error('Failed to parse saved filters', e as Error)
         }
       }
     }
@@ -342,7 +343,7 @@ export default function WantedRequestsPage() {
       setRequests(enhancedRequests)
       setFilteredRequests(enhancedRequests.slice(0, displayCount))
     } catch (error) {
-      console.error('Error fetching requests:', error)
+      logger.error('Error fetching requests', error as Error)
     } finally {
       setLoading(false)
     }

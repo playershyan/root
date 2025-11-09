@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/app/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
+import { logger } from '@/lib/utils/logger'
 
 interface UserProfileData {
   id: string
@@ -109,7 +110,7 @@ export function useUserProfile() {
         })
       }
     } catch (err) {
-      console.error('Error loading profile:', err)
+      logger.error('Error loading profile', err as Error)
       setError(err instanceof Error ? err.message : 'Failed to load profile')
     } finally {
       setLoading(false)

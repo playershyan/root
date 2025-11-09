@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Search, Filter, User, Shield, Clock, Mail, Phone } from 'lucide-react'
+import { logger } from '@/lib/utils/logger'
 
 interface UserProfile {
   id: string
@@ -35,7 +36,7 @@ export default function UsersPage() {
         setUsers(data.users || [])
       }
     } catch (error) {
-      console.error('Failed to fetch users:', error)
+      logger.error('Failed to fetch users', error as Error)
     } finally {
       setLoading(false)
     }

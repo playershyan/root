@@ -1,4 +1,5 @@
 import OpenAI from 'openai'
+import { logger } from '@/lib/utils/logger'
 
 // Initialize OpenAI
 const openai = new OpenAI({
@@ -47,7 +48,7 @@ export async function generateVehicleDescription(
     const text = completion.choices[0]?.message?.content || 'Unable to generate description.'
     return text
   } catch (error: any) {
-    console.error('Error generating description:', error)
+    logger.error('Error generating description', error as Error)
 
     // More detailed error logging
     if (error.message?.includes('API key') || error.message?.includes('Unauthorized')) {
@@ -91,7 +92,7 @@ export async function generateVehicleSummary(
     const text = completion.choices[0]?.message?.content || title
     return text
   } catch (error: any) {
-    console.error('Error generating summary:', error)
+    logger.error('Error generating summary', error as Error)
     return title // Fallback to title if generation fails
   }
 }

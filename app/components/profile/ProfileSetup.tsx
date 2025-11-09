@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { User, MapPin, Phone, ArrowRight, Check } from 'lucide-react'
 import { formatPhoneForStorage } from '@/lib/utils/phoneFormatter'
+import { logger } from '@/lib/utils/logger'
 
 interface ProfileSetupProps {
   initialData?: {
@@ -109,7 +110,10 @@ export default function ProfileSetup({ initialData }: ProfileSetupProps) {
       await refreshUser()
       router.push('/profile')
     } catch (error) {
-      console.error('Profile setup error:', error)
+      logger.error('Profile setup error', error as Error, {
+        component: 'ProfileSetup',
+        action: 'handleSubmit'
+      })
       setErrors({ general: 'Failed to create profile. Please try again.' })
     } finally {
       setLoading(false)

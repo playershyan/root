@@ -75,7 +75,12 @@ export default function ImageUploadWithCompression({
     // Show errors for invalid files
     if (invalid.length > 0) {
       invalid.forEach(({ file, error }) => {
-        console.error(`Invalid file ${file.name}: ${error}`)
+        logger.warn('Invalid image file rejected', {
+          component: 'ImageUploadWithCompression',
+          action: 'processFiles',
+          fileName: file.name,
+          error
+        })
         alert(`${file.name}: ${error}`)
       })
     }
@@ -113,7 +118,10 @@ export default function ImageUploadWithCompression({
       onImagesChange([...images, ...compressedFiles])
 
     } catch (error) {
-      console.error('Compression error:', error)
+      logger.error('Compression error', error as Error, {
+        component: 'ImageUploadWithCompression',
+        action: 'processFiles'
+      })
       alert('Failed to compress images. Please try again.')
     } finally {
       setCompressing(false)
@@ -163,7 +171,10 @@ export default function ImageUploadWithCompression({
         await processFiles([file])
       }
     } catch (error) {
-      console.error('Camera error:', error)
+      logger.error('Camera error during image capture', error as Error, {
+        component: 'ImageUploadWithCompression',
+        action: 'handleTakePhoto'
+      })
       // Fallback to file input
       fileInputRef.current?.click()
     }
@@ -192,7 +203,10 @@ export default function ImageUploadWithCompression({
         await processFiles([file])
       }
     } catch (error) {
-      console.error('Gallery picker error:', error)
+      logger.error('Gallery picker error', error as Error, {
+        component: 'ImageUploadWithCompression',
+        action: 'handlePickFromGallery'
+      })
       // Fallback to file input
       fileInputRef.current?.click()
     }

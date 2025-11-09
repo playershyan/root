@@ -263,7 +263,7 @@ export default function AdminDashboard() {
         alert(data.error || 'Failed to approve listing')
       }
     } catch (error) {
-      console.error('Error approving listing:', error)
+      logger.error('Error approving listing', error as Error)
       alert('Network error')
     }
   }
@@ -288,7 +288,7 @@ export default function AdminDashboard() {
         alert(data.error || 'Failed to reject listing')
       }
     } catch (error) {
-      console.error('Error rejecting listing:', error)
+      logger.error('Error rejecting listing', error as Error)
       alert('Network error')
     }
   }
@@ -310,7 +310,7 @@ export default function AdminDashboard() {
         alert(data.error || 'Failed to verify business profile')
       }
     } catch (error) {
-      console.error('Error verifying business profile:', error)
+      logger.error('Error verifying business profile', error as Error)
       alert('Network error')
     }
   }
@@ -335,7 +335,7 @@ export default function AdminDashboard() {
         alert(data.error || 'Failed to reject business profile')
       }
     } catch (error) {
-      console.error('Error rejecting business profile:', error)
+      logger.error('Error rejecting business profile', error as Error)
       alert('Network error')
     }
   }

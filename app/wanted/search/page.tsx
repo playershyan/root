@@ -9,6 +9,7 @@ import LocationFilter from '@/app/components/LocationFilter'
 import ContactModal from '@/app/components/modals/ContactModal'
 import UrgentWantedCard from '@/app/components/wantedRequests/UrgentWantedCard'
 import RegularWantedCard from '@/app/components/wantedRequests/RegularWantedCard'
+import { logger } from '@/lib/utils/logger'
 
 interface WantedRequest {
   id: string
@@ -239,7 +240,7 @@ function WantedSearchPageContent() {
       setRequests(enhancedRequests)
       setFilteredRequests(enhancedRequests.slice(0, displayCount))
     } catch (error) {
-      console.error('Error fetching requests:', error)
+      logger.error('Error fetching requests', error as Error)
     } finally {
       setLoading(false)
     }
