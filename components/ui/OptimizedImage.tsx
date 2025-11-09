@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { getOptimizedUrl, generateBlurDataURL, getLQIPUrl } from '@/lib/utils/responsive-images'
 import { getResponsiveSizes } from '@/lib/config/images'
 
@@ -172,8 +172,22 @@ export default function OptimizedImage({
     )
   }
 
+  const wrapperStyle: CSSProperties = {}
+
+  if (fill) {
+    wrapperStyle.width = '100%'
+    wrapperStyle.height = '100%'
+  } else {
+    if (typeof width === 'number') {
+      wrapperStyle.width = `${width}px`
+    }
+    if (typeof height === 'number') {
+      wrapperStyle.height = `${height}px`
+    }
+  }
+
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative" style={wrapperStyle}>
       {(!shouldLoad || loading) && (
         <div
           className={`absolute inset-0 animate-pulse bg-gray-200 ${className}`}
