@@ -1,11 +1,11 @@
-/**
- * Client-side image compression utilities.
- *
- * Uses Canvas API to resize and compress images before uploading to Cloudinary.
- * Designed for browser environments – always guard usage behind client-side checks.
- */
+ 'use client'
 
 import { logger } from '@/lib/utils/logger'
+import {
+  UPLOAD_CONSTRAINTS,
+  needsCompression,
+  needsResize,
+} from '@/lib/config/images'
 
 export interface ImageCompressionOptions {
   maxWidth?: number
@@ -15,23 +15,70 @@ export interface ImageCompressionOptions {
   convertToWebP?: boolean
 }
 
-interface CompressionResult {
+export interface CompressionResult {
   file: File
-  originalFile: File
-  wasCompressed: boolean
   originalSize: number
   compressedSize: number
+  compressionRatio: number
+  width: number
+  height: number
+  wasCompressed: boolean
+  wasResized: boolean
+}
+
+export interface CompressionProgress {
+  fileName: string
+  progress: number // 0-100
+  status: 'pending' | 'processing' | 'completed' | 'error'
+  error?: string
 }
 
 const DEFAULT_OPTIONS: Required<ImageCompressionOptions> = {
-  maxWidth: 1920,
-  maxHeight: 1440,
-  quality: 0.85,
-  targetSize: 200 * 1024, // 200 KB
+  maxWidth: UPLOAD_CONSTRAINTS.targetDimensions.width,
+  maxHeight: UPLOAD_CONSTRAINTS.targetDimensions.height,
+  quality: UPLOAD_CONSTRAINTS.compressionQuality,
+  targetSize: UPLOAD_CONSTRAINTS.targetCompressedSize,
   convertToWebP: true,
 }
 
 const WEBP_SUPPORTED_CACHE: { value?: boolean } = {}
+
+type ImageSource = {
+  width: number
+  height: number
+  bitmap: ImageBitmap | null
+  image: HTMLImageElement | null
+}
+
+function createResult({
+  file,
+  originalSize,
+  compressedSize,
+  width,
+  height,
+  wasCompressed,
+  wasResized,
+}: {
+  file: File
+  originalSize: number
+  compressedSize: number
+  width: number
+  height: number
+  wasCompressed: boolean
+  wasResized: boolean
+}): CompressionResult {
+  const safeOriginalSize = originalSize > 0 ? originalSize : compressedSize || 1
+  return {
+    file,
+    originalSize,
+    compressedSize,
+    compressionRatio: compressedSize / safeOriginalSize,
+    width,
+    height,
+    wasCompressed,
+    wasResized,
+  }
+}
 
 async function detectWebPSupport(): Promise<boolean> {
   if (typeof window === 'undefined') return false
@@ -70,20 +117,43 @@ async function createImageBitmapSafe(file: File): Promise<ImageBitmap | null> {
   return null
 }
 
-async function loadImage(file: File): Promise<HTMLImageElement> {
+async function loadImageElement(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file)
     const image = new Image()
+
     image.onload = () => {
       URL.revokeObjectURL(url)
       resolve(image)
     }
+
     image.onerror = (error) => {
       URL.revokeObjectURL(url)
       reject(error)
     }
+
     image.src = url
   })
+}
+
+async function getImageSource(file: File): Promise<ImageSource> {
+  const bitmap = await createImageBitmapSafe(file)
+  if (bitmap) {
+    return {
+      width: bitmap.width,
+      height: bitmap.height,
+      bitmap,
+      image: null,
+    }
+  }
+
+  const image = await loadImageElement(file)
+  return {
+    width: image.naturalWidth || image.width,
+    height: image.naturalHeight || image.height,
+    bitmap: null,
+    image,
+  }
 }
 
 function getTargetDimensions(
@@ -92,18 +162,22 @@ function getTargetDimensions(
   maxWidth: number,
   maxHeight: number
 ): { width: number; height: number } {
-  let targetWidth = width
-  let targetHeight = height
-
-  if (width > maxWidth || height > maxHeight) {
-    const widthRatio = maxWidth / width
-    const heightRatio = maxHeight / height
-    const ratio = Math.min(widthRatio, heightRatio)
-    targetWidth = Math.round(width * ratio)
-    targetHeight = Math.round(height * ratio)
+  if (!width || !height) {
+    return { width, height }
   }
 
-  return { width: targetWidth, height: targetHeight }
+  if (width <= maxWidth && height <= maxHeight) {
+    return { width, height }
+  }
+
+  const widthRatio = maxWidth / width
+  const heightRatio = maxHeight / height
+  const ratio = Math.min(widthRatio, heightRatio)
+
+  return {
+    width: Math.round(width * ratio),
+    height: Math.round(height * ratio),
+  }
 }
 
 async function canvasToBlob(
@@ -146,84 +220,69 @@ async function compressWithQualityRamp(
   return { blob, quality }
 }
 
-export async function compressImageFile(
+async function compressUsingSource(
   file: File,
-  options: ImageCompressionOptions = {}
+  source: ImageSource,
+  options: Required<ImageCompressionOptions>
 ): Promise<CompressionResult> {
-  if (typeof window === 'undefined') {
-    return {
-      file,
-      originalFile: file,
-      wasCompressed: false,
-      originalSize: file.size,
-      compressedSize: file.size,
-    }
-  }
-
-  const { maxWidth, maxHeight, quality, targetSize, convertToWebP } = {
-    ...DEFAULT_OPTIONS,
-    ...options,
-  }
-
-  const originalSize = file.size
-
-  const useImageBitmap = await createImageBitmapSafe(file)
-  const imageElement = useImageBitmap ? null : await loadImage(file)
-
-  const width = useImageBitmap ? useImageBitmap.width : imageElement!.naturalWidth
-  const height = useImageBitmap ? useImageBitmap.height : imageElement!.naturalHeight
-
+  const { width, height } = source
   const { width: targetWidth, height: targetHeight } = getTargetDimensions(
     width,
     height,
-    maxWidth,
-    maxHeight
+    options.maxWidth,
+    options.maxHeight
   )
 
+  const canvasWidth = targetWidth || width
+  const canvasHeight = targetHeight || height
+
   const canvas = document.createElement('canvas')
-  canvas.width = targetWidth
-  canvas.height = targetHeight
+  canvas.width = canvasWidth
+  canvas.height = canvasHeight
 
   const context = canvas.getContext('2d')
   if (!context) {
     throw new Error('Unable to acquire 2D context for image compression')
   }
 
-  context.clearRect(0, 0, targetWidth, targetHeight)
+  context.clearRect(0, 0, canvasWidth, canvasHeight)
 
-  if (useImageBitmap) {
-    context.drawImage(useImageBitmap, 0, 0, targetWidth, targetHeight)
-    useImageBitmap.close()
-  } else if (imageElement) {
-    context.drawImage(imageElement, 0, 0, targetWidth, targetHeight)
+  if (source.bitmap) {
+    context.drawImage(source.bitmap, 0, 0, canvasWidth, canvasHeight)
+  } else if (source.image) {
+    context.drawImage(source.image, 0, 0, canvasWidth, canvasHeight)
   }
 
-  const shouldUseWebP = convertToWebP && (await detectWebPSupport())
+  const shouldUseWebP = options.convertToWebP && (await detectWebPSupport())
   const targetMime = shouldUseWebP ? 'image/webp' : file.type || 'image/jpeg'
 
-  let { blob, quality: finalQuality } = await compressWithQualityRamp(
+  const { blob } = await compressWithQualityRamp(
     canvas,
     targetMime,
-    quality,
-    targetSize
+    options.quality,
+    options.targetSize
   )
 
   if (!blob || blob.size === 0) {
     throw new Error('Failed to compress image')
   }
 
-  // If compression failed to shrink the file, fall back to original
-  if (blob.size >= originalSize) {
-    return {
+  const wasResized = canvasWidth !== width || canvasHeight !== height
+  const sizeReduced = blob.size < file.size
+
+  if (!sizeReduced && !wasResized) {
+    return createResult({
       file,
-      originalFile: file,
+      originalSize: file.size,
+      compressedSize: file.size,
+      width,
+      height,
       wasCompressed: false,
-      originalSize,
-      compressedSize: originalSize,
-    }
+      wasResized: false,
+    })
   }
 
-  const extension = shouldUseWebP ? 'webp' : file.name.split('.').pop() || 'jpg'
+  const extension = shouldUseWebP ? 'webp' : file.name.split('.').pop() ?? 'jpg'
   const fileNameWithoutExt = file.name.replace(/\.[^/.]+$/, '')
   const newFileName = `${fileNameWithoutExt}.${extension}`
 
@@ -232,12 +291,46 @@ export async function compressImageFile(
     lastModified: Date.now(),
   })
 
-  return {
+  return createResult({
     file: compressedFile,
-    originalFile: file,
-    wasCompressed: true,
-    originalSize,
+    originalSize: file.size,
     compressedSize: compressedFile.size,
+    width: canvasWidth,
+    height: canvasHeight,
+    wasCompressed: sizeReduced,
+    wasResized,
+  })
+}
+
+export async function compressImageFile(
+  file: File,
+  options: ImageCompressionOptions = {}
+): Promise<CompressionResult> {
+  if (typeof window === 'undefined') {
+    return createResult({
+      file,
+      originalSize: file.size,
+      compressedSize: file.size,
+      width: 0,
+      height: 0,
+      wasCompressed: false,
+      wasResized: false,
+    })
+  }
+
+  const resolvedOptions: Required<ImageCompressionOptions> = {
+    ...DEFAULT_OPTIONS,
+    ...options,
+  }
+
+  const source = await getImageSource(file)
+
+  try {
+    return await compressUsingSource(file, source, resolvedOptions)
+  } finally {
+    if (source.bitmap) {
+      source.bitmap.close()
+    }
   }
 }
 
@@ -246,244 +339,100 @@ export async function compressImagesBatch(
   options: ImageCompressionOptions = {}
 ): Promise<CompressionResult[]> {
   const results: CompressionResult[] = []
+
   for (const file of files) {
     try {
       const result = await compressImageFile(file, options)
       results.push(result)
     } catch (error) {
-      logger.error('Image compression failed, using original file', error as Error)
-      results.push({
-        file,
-        originalFile: file,
-        wasCompressed: false,
-        originalSize: file.size,
-        compressedSize: file.size,
+      logger.error('Image compression failed, using original file', error as Error, {
+        fileName: file.name,
       })
+      results.push(
+        createResult({
+          file,
+          originalSize: file.size,
+          compressedSize: file.size,
+          width: 0,
+          height: 0,
+          wasCompressed: false,
+          wasResized: false,
+        })
+      )
     }
   }
+
   return results
 }
-/**
- * Client-side image compression utilities
- * Reduces file size before upload to improve upload speed
- */
 
-'use client'
-
-import {
-  UPLOAD_CONSTRAINTS,
-  needsCompression,
-  needsResize,
-} from '@/lib/config/images'
-
-export interface CompressionResult {
-  file: File
-  originalSize: number
-  compressedSize: number
-  compressionRatio: number
-  width: number
-  height: number
-  wasCom pressed: boolean
-  wasResized: boolean
-}
-
-export interface CompressionProgress {
-  fileName: string
-  progress: number // 0-100
-  status: 'pending' | 'processing' | 'completed' | 'error'
-  error?: string
-}
-
-/**
- * Load image from File to HTMLImageElement
- */
-function loadImage(file: File): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    const url = URL.createObjectURL(file)
-
-    img.onload = () => {
-      URL.revokeObjectURL(url)
-      resolve(img)
-    }
-
-    img.onerror = () => {
-      URL.revokeObjectURL(url)
-      reject(new Error(`Failed to load image: ${file.name}`))
-    }
-
-    img.src = url
-  })
-}
-
-/**
- * Calculate dimensions to fit within max constraints while preserving aspect ratio
- */
-function calculateResizedDimensions(
-  originalWidth: number,
-  originalHeight: number,
-  maxWidth: number = UPLOAD_CONSTRAINTS.maxDimensions.width,
-  maxHeight: number = UPLOAD_CONSTRAINTS.maxDimensions.height
-): { width: number; height: number } {
-  let width = originalWidth
-  let height = originalHeight
-
-  // Calculate aspect ratio
-  const aspectRatio = width / height
-
-  // Check if resizing is needed
-  if (width > maxWidth || height > maxHeight) {
-    if (width / maxWidth > height / maxHeight) {
-      // Width is the limiting factor
-      width = maxWidth
-      height = Math.round(width / aspectRatio)
-    } else {
-      // Height is the limiting factor
-      height = maxHeight
-      width = Math.round(height * aspectRatio)
-    }
-  }
-
-  return { width, height }
-}
-
-/**
- * Compress image using Canvas API
- */
-async function compressImageToBlob(
-  img: HTMLImageElement,
-  quality: number = UPLOAD_CONSTRAINTS.compressionQuality,
-  targetDimensions?: { width: number; height: number }
-): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    try {
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
-
-      if (!ctx) {
-        reject(new Error('Failed to get canvas context'))
-        return
-      }
-
-      // Set canvas dimensions
-      const { width, height } = targetDimensions || {
-        width: img.width,
-        height: img.height,
-      }
-      canvas.width = width
-      canvas.height = height
-
-      // Enable image smoothing for better quality
-      ctx.imageSmoothingEnabled = true
-      ctx.imageSmoothingQuality = 'high'
-
-      // Draw image on canvas
-      ctx.drawImage(img, 0, 0, width, height)
-
-      // Convert to blob
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) {
-            reject(new Error('Failed to create blob from canvas'))
-            return
-          }
-          resolve(blob)
-        },
-        'image/jpeg', // Always convert to JPEG for best compression
-        quality
-      )
-    } catch (error) {
-      reject(error)
-    }
-  })
-}
-
-/**
- * Compress single image file
- */
 export async function compressImage(
   file: File,
   onProgress?: (progress: number) => void
 ): Promise<CompressionResult> {
   const originalSize = file.size
 
-  try {
-    onProgress?.(10)
+  onProgress?.(10)
 
-    // Load image
-    const img = await loadImage(file)
+  if (typeof window === 'undefined') {
+    onProgress?.(100)
+    return createResult({
+      file,
+      originalSize,
+      compressedSize: originalSize,
+      width: 0,
+      height: 0,
+      wasCompressed: false,
+      wasResized: false,
+    })
+  }
+
+  let source: ImageSource | null = null
+
+  try {
+    source = await getImageSource(file)
+    const { width, height } = source
+
     onProgress?.(30)
 
-    const originalWidth = img.width
-    const originalHeight = img.height
+    const shouldCompress = needsCompression(originalSize)
+    const shouldResize = needsResize(width, height)
 
-    // Determine if compression/resizing is needed
-    const shouldCompress = needsCompression(file.size)
-    const shouldResize = needsResize(originalWidth, originalHeight)
-
-    // If no optimization needed, return original
     if (!shouldCompress && !shouldResize) {
       onProgress?.(100)
-      return {
+      return createResult({
         file,
         originalSize,
         compressedSize: originalSize,
-        compressionRatio: 1.0,
-        width: originalWidth,
-        height: originalHeight,
+        width,
+        height,
         wasCompressed: false,
         wasResized: false,
-      }
+      })
     }
 
-    // Calculate target dimensions
-    const targetDimensions = shouldResize
-      ? calculateResizedDimensions(originalWidth, originalHeight)
-      : { width: originalWidth, height: originalHeight }
+    onProgress?.(60)
 
-    onProgress?.(50)
-
-    // Compress image
-    const blob = await compressImageToBlob(img, UPLOAD_CONSTRAINTS.compressionQuality, targetDimensions)
-    onProgress?.(80)
-
-    // Convert blob to File
-    const compressedFile = new File(
-      [blob],
-      file.name.replace(/\.[^.]+$/, '.jpg'), // Change extension to .jpg
-      {
-        type: 'image/jpeg',
-        lastModified: Date.now(),
-      }
-    )
+    const result = await compressUsingSource(file, source, DEFAULT_OPTIONS)
 
     onProgress?.(100)
-
-    return {
-      file: compressedFile,
-      originalSize,
-      compressedSize: compressedFile.size,
-      compressionRatio: compressedFile.size / originalSize,
-      width: targetDimensions.width,
-      height: targetDimensions.height,
-      wasCompressed: true,
-      wasResized: shouldResize,
-    }
+    return result
   } catch (error) {
-    throw new Error(`Failed to compress ${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    throw new Error(
+      `Failed to compress ${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`
+    )
+  } finally {
+    if (source?.bitmap) {
+      source.bitmap.close()
+    }
   }
 }
 
-/**
- * Compress multiple images with progress tracking
- */
 export async function compressImages(
   files: File[],
   onProgress?: (progressMap: Map<string, CompressionProgress>) => void
 ): Promise<CompressionResult[]> {
   const progressMap = new Map<string, CompressionProgress>()
 
-  // Initialize progress for all files
   files.forEach((file) => {
     progressMap.set(file.name, {
       fileName: file.name,
@@ -494,12 +443,10 @@ export async function compressImages(
 
   onProgress?.(progressMap)
 
-  // Process files sequentially to avoid overloading browser
   const results: CompressionResult[] = []
 
   for (const file of files) {
     try {
-      // Update status
       progressMap.set(file.name, {
         fileName: file.name,
         progress: 0,
@@ -507,7 +454,6 @@ export async function compressImages(
       })
       onProgress?.(progressMap)
 
-      // Compress
       const result = await compressImage(file, (progress) => {
         progressMap.set(file.name, {
           fileName: file.name,
@@ -519,7 +465,6 @@ export async function compressImages(
 
       results.push(result)
 
-      // Mark completed
       progressMap.set(file.name, {
         fileName: file.name,
         progress: 100,
@@ -527,7 +472,6 @@ export async function compressImages(
       })
       onProgress?.(progressMap)
     } catch (error) {
-      // Mark error
       progressMap.set(file.name, {
         fileName: file.name,
         progress: 0,
@@ -536,28 +480,28 @@ export async function compressImages(
       })
       onProgress?.(progressMap)
 
-      // Add original file as fallback
-      results.push({
-        file,
-        originalSize: file.size,
-        compressedSize: file.size,
-        compressionRatio: 1.0,
-        width: 0,
-        height: 0,
-        wasCompressed: false,
-        wasResized: false,
+      logger.error('Image compression failed, using original file', error as Error, {
+        fileName: file.name,
       })
+
+      results.push(
+        createResult({
+          file,
+          originalSize: file.size,
+          compressedSize: file.size,
+          width: 0,
+          height: 0,
+          wasCompressed: false,
+          wasResized: false,
+        })
+      )
     }
   }
 
   return results
 }
 
-/**
- * Validate image file before compression
- */
 export function validateImageFile(file: File): { valid: boolean; error?: string } {
-  // Check file type
   if (!UPLOAD_CONSTRAINTS.allowedTypes.includes(file.type)) {
     return {
       valid: false,
@@ -565,7 +509,6 @@ export function validateImageFile(file: File): { valid: boolean; error?: string 
     }
   }
 
-  // Check file size (even before compression, shouldn't exceed 10MB server limit)
   const maxServerSize = 10 * 1024 * 1024 // 10MB
   if (file.size > maxServerSize) {
     return {
@@ -577,9 +520,6 @@ export function validateImageFile(file: File): { valid: boolean; error?: string 
   return { valid: true }
 }
 
-/**
- * Validate multiple image files
- */
 export function validateImageFiles(files: File[]): {
   valid: File[]
   invalid: Array<{ file: File; error: string }>
@@ -587,7 +527,6 @@ export function validateImageFiles(files: File[]): {
   const valid: File[] = []
   const invalid: Array<{ file: File; error: string }> = []
 
-  // Check max files limit
   if (files.length > UPLOAD_CONSTRAINTS.maxFiles) {
     return {
       valid: [],
@@ -610,9 +549,6 @@ export function validateImageFiles(files: File[]): {
   return { valid, invalid }
 }
 
-/**
- * Format file size for display
- */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 B'
 
@@ -623,9 +559,6 @@ export function formatFileSize(bytes: number): string {
   return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`
 }
 
-/**
- * Calculate total compression savings
- */
 export function calculateCompressionSavings(results: CompressionResult[]): {
   totalOriginalSize: number
   totalCompressedSize: number
