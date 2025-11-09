@@ -3,8 +3,10 @@
  * Tracks anomalies, security events, and performance metrics
  */
 
-import { supabase } from '@/lib/supabase-server'
+import { createServiceSupabaseClient } from '@/lib/supabase-server'
 import { logger } from '@/lib/utils/logger'
+
+const serviceSupabase = createServiceSupabaseClient()
 
 export interface SecurityMetrics {
   rateLimitViolations: number
@@ -245,7 +247,7 @@ class MetricsCollector {
   private async sendToMonitoringService(alert: SecurityAlert): Promise<void> {
     try {
       // Store in Supabase for persistence
-      await supabase
+      await serviceSupabase
         .from('security_alerts')
         .insert({
           type: alert.type,
