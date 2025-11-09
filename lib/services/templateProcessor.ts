@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { logger } from '@/lib/utils/logger'
 
 export interface FormDataForTemplate {
   // Vehicle Identity (Tier 1)
@@ -57,39 +58,112 @@ export interface ProcessedTemplate {
 }
 
 export class TemplateProcessor {
+  private static readonly CACHE_TTL_MS = process.env.NODE_ENV === 'development' ? 30_000 : 5 * 60_000
+  private static templatesCache: { templates: any[]; fetchedAt: number } | null = null
+  private static cachePromise: Promise<any[]> | null = null
+
+  private static async getActiveTemplates(forceRefresh = false) {
+    const now = Date.now()
+    if (
+      !forceRefresh &&
+      this.templatesCache &&
+      now - this.templatesCache.fetchedAt < this.CACHE_TTL_MS &&
+      Array.isArray(this.templatesCache.templates) &&
+      this.templatesCache.templates.length > 0
+    ) {
+      return this.templatesCache.templates
+    }
+
+    if (!forceRefresh && this.cachePromise) {
+      return this.cachePromise
+    }
+
+    const loadPromise = (async () => {
+      const { data: templates, error } = await supabase
+        .from('description_templates')
+        .select('*')
+        .eq('is_active', true)
+
+      if (error || !templates || templates.length === 0) {
+        throw new Error('No templates available. Please contact administrator.')
+      }
+
+      const cloned = templates.map(template => ({ ...template }))
+      this.templatesCache = {
+        templates: cloned,
+        fetchedAt: now
+      }
+
+      return cloned
+    })()
+      .catch(error => {
+        if (forceRefresh) {
+          this.templatesCache = null
+        }
+        this.cachePromise = null
+        throw error
+      })
+      .finally(() => {
+        this.cachePromise = null
+      })
+
+    this.cachePromise = loadPromise
+    return loadPromise
+  }
+
+  private static scheduleUsageUpdate(templateId: number, usageCount: number) {
+    void supabase
+      .from('description_templates')
+      .update({ usage_count: usageCount })
+      .eq('id', templateId)
+      .then(({ error }) => {
+        if (error) {
+          logger.warn('Failed to update template usage count', { templateId, error: error.message })
+        }
+      })
+      .catch(err => {
+        logger.warn('Template usage update threw error', { templateId, error: err instanceof Error ? err.message : String(err) })
+      })
+  }
+
   /**
    * Get a random template and populate it with form data
    */
   static async generateDescription(
     formData: FormDataForTemplate
   ): Promise<ProcessedTemplate> {
-    // Get available templates
-    const { data: templates, error } = await supabase
-      .from('description_templates')
-      .select('*')
-      .eq('is_active', true)
-
-    if (error || !templates || templates.length === 0) {
-      throw new Error('No templates available. Please contact administrator.')
-    }
+    const templates = await this.getActiveTemplates()
 
     // Select random template
     const randomTemplate = templates[Math.floor(Math.random() * templates.length)]
+    if (!randomTemplate) {
+      // Force refresh cache and retry once
+      const freshTemplates = await this.getActiveTemplates(true)
+      const fallbackTemplate = freshTemplates[Math.floor(Math.random() * freshTemplates.length)]
+      if (!fallbackTemplate) {
+        throw new Error('No templates available. Please contact administrator.')
+      }
+      return this.handleTemplateProcessing(fallbackTemplate, formData)
+    }
+
+    return this.handleTemplateProcessing(randomTemplate, formData)
+  }
+
+  private static handleTemplateProcessing(template: any, formData: FormDataForTemplate): ProcessedTemplate {
+    const nextUsageCount = (template.usage_count || 0) + 1
 
     // Process template with form data
-    const processedContent = this.processTemplate(randomTemplate.template_content, formData)
+    const processedContent = this.processTemplate(template.template_content, formData)
 
-    // Update usage count
-    await supabase
-      .from('description_templates')
-      .update({ usage_count: (randomTemplate.usage_count || 0) + 1 })
-      .eq('id', randomTemplate.id)
+    // Update cached usage count and schedule async persistence
+    template.usage_count = nextUsageCount
+    this.scheduleUsageUpdate(template.id, nextUsageCount)
 
     return {
-      id: randomTemplate.id,
+      id: template.id,
       content: processedContent,
-      originalTemplate: randomTemplate.template_content,
-      usageCount: (randomTemplate.usage_count || 0) + 1
+      originalTemplate: template.template_content,
+      usageCount: nextUsageCount
     }
   }
 

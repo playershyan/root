@@ -25,6 +25,9 @@ export function useRecaptcha() {
       try {
         await recaptchaClient.loadScript();
         setIsLoaded(true);
+        recaptchaClient.preloadToken('ai_description').catch(err => {
+          logger.debug('Initial reCAPTCHA preload failed', { error: err instanceof Error ? err.message : String(err) });
+        });
       } catch (err) {
         setError('Failed to load reCAPTCHA');
         logger.error('reCAPTCHA loading error', err as Error);
@@ -56,7 +59,7 @@ export function useRecaptcha() {
    * Get token specifically for AI requests
    */
   const getAIToken = async (): Promise<string | null> => {
-    return getToken('ai');
+    return getToken('ai_description');
   };
 
   return {

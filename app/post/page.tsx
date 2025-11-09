@@ -793,11 +793,22 @@ export default function EnhancedPostVehiclePage() {
       return
     }
     
+    const overallStart = performance.now()
+    let tokenDuration: number | null = null
+    let apiFetchDuration: number | null = null
+    let apiParseDuration: number | null = null
+    let totalDuration: number | null = null
+    let recaptchaToken: string | null = null
+    let apiStatus: 'success' | 'error' | 'skipped' = 'skipped'
+
     setAiLoading(true)
     try {
       // Get reCAPTCHA token before making the request
-      const recaptchaToken = await getAIToken()
+      const tokenStart = performance.now()
+      recaptchaToken = await getAIToken()
+      tokenDuration = performance.now() - tokenStart
       
+      const apiFetchStart = performance.now()
       const response = await fetch('/api/ai-description', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -816,15 +827,41 @@ export default function EnhancedPostVehiclePage() {
           recaptchaToken
         }),
       })
-      
+
+      apiFetchDuration = performance.now() - apiFetchStart
+
+      const apiParseStart = performance.now()
       const data = await response.json()
+      apiParseDuration = performance.now() - apiParseStart
+      apiStatus = response.ok ? 'success' : 'error'
+
       if (data.description) {
         setFormData(prev => ({ ...prev, description: data.description }))
         showSuccess('Description generated successfully!', 3000)
       }
     } catch (error) {
+      apiStatus = 'error'
       showError('Failed to generate description. Please try again.', 4000)
     } finally {
+      if (totalDuration === null) {
+        totalDuration = performance.now() - overallStart
+      }
+
+      logger.debug('AI description client timing', {
+        scope: 'post-page',
+        status: apiStatus,
+        durations: {
+          totalMs: Number(totalDuration.toFixed(2)),
+          tokenMs: tokenDuration !== null ? Number(tokenDuration.toFixed(2)) : null,
+          apiFetchMs: apiFetchDuration !== null ? Number(apiFetchDuration.toFixed(2)) : null,
+          apiParseMs: apiParseDuration !== null ? Number(apiParseDuration.toFixed(2)) : null
+        },
+        recaptcha: {
+          requested: recaptchaToken !== null,
+          provided: !!recaptchaToken
+        }
+      })
+
       setAiLoading(false)
     }
   }
