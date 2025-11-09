@@ -393,3 +393,37 @@
     font-size: 16px !important;
   }
 }
+
+/* Hero AI heading shimmer */
+.hero-ai-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.hero-ai {
+  background-image: linear-gradient(
+    90deg,
+    #1e3a8a,
+    #2563eb,
+    #3b82f6,
+    #2563eb,
+    #1e3a8a
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+  animation: subtleShimmer 10s ease-in-out infinite;
+}
+
+@keyframes subtleShimmer {
+  0%,
+  100% {
+    background-position: 0% center;
+  }
+  50% {
+    background-position: 100% center;
+  }
+}
