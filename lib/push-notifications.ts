@@ -7,6 +7,7 @@
 
 import { Capacitor } from '@capacitor/core'
 import { PushNotifications, PushNotificationSchema, Token, ActionPerformed } from '@capacitor/push-notifications'
+import { logger } from '@/lib/utils/logger'
 
 export interface PushNotificationHandlers {
   onNotificationReceived?: (notification: PushNotificationSchema) => void
@@ -25,7 +26,7 @@ let handlers: PushNotificationHandlers = {}
  */
 export async function initializePushNotifications(callbacks: PushNotificationHandlers = {}): Promise<void> {
   if (isInitialized) {
-    console.warn('Push notifications already initialized')
+    logger.warn('Push notifications already initialized', new Error('Duplicate initialization'))
     return
   }
 
@@ -33,7 +34,7 @@ export async function initializePushNotifications(callbacks: PushNotificationHan
 
   // Only initialize in native app
   if (!Capacitor.isNativePlatform()) {
-    console.log('Push notifications: Web environment detected, using Web Push API')
+    logger.info('Push notifications: Web environment detected, using Web Push API')
     await initializeWebPush(callbacks)
     return
   }
@@ -41,30 +42,30 @@ export async function initializePushNotifications(callbacks: PushNotificationHan
   try {
     // Register push notification listeners
     PushNotifications.addListener('registration', (token: Token) => {
-      console.log('Push registration success, token: ' + token.value)
-      
+      logger.info('Push registration success', { token: token.value })
+
       // Register token with backend
       registerPushToken(token.value)
         .catch(err => {
-          console.error('Failed to register push token:', err)
+          logger.error('Failed to register push token', err as Error)
           handlers.onRegistrationError?.(new Error('Failed to register token with server'))
         })
-      
+
       handlers.onTokenRegistration?.(token)
     })
 
     PushNotifications.addListener('registrationError', (error) => {
-      console.error('Error on registration: ' + JSON.stringify(error))
+      logger.error('Error on registration', new Error(JSON.stringify(error)))
       handlers.onRegistrationError?.(new Error(error.toString()))
     })
 
     PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
-      console.log('Push notification received: ' + JSON.stringify(notification))
+      logger.info('Push notification received', { notification })
       handlers.onNotificationReceived?.(notification)
     })
 
     PushNotifications.addListener('pushNotificationActionPerformed', (notification: ActionPerformed) => {
-      console.log('Push notification action performed: ' + JSON.stringify(notification))
+      logger.info('Push notification action performed', { notification })
       handlers.onNotificationAction?.(notification)
     })
 
@@ -72,9 +73,9 @@ export async function initializePushNotifications(callbacks: PushNotificationHan
     await PushNotifications.register()
 
     isInitialized = true
-    console.log('Push notifications initialized successfully')
+    logger.info('Push notifications initialized successfully')
   } catch (error) {
-    console.error('Failed to initialize push notifications:', error)
+    logger.error('Failed to initialize push notifications', error as Error)
     handlers.onRegistrationError?.(error as Error)
   }
 }
@@ -96,7 +97,7 @@ export async function requestPushPermissions(): Promise<boolean> {
     const requestResult = await PushNotifications.requestPermissions()
     return requestResult.receive === 'granted'
   } catch (error) {
-    console.error('Error requesting push permissions:', error)
+    logger.error('Error requesting push permissions', error as Error)
     return false
   }
 }
@@ -137,9 +138,9 @@ async function registerPushToken(token: string): Promise<void> {
     }
 
     const data = await response.json()
-    console.log('Push token registered:', data)
+    logger.info('Push token registered', { data })
   } catch (error) {
-    console.error('Error registering push token:', error)
+    logger.error('Error registering push token', error as Error)
     throw error
   }
 }
@@ -162,14 +163,14 @@ async function getDeviceId(): Promise<string> {
  */
 async function initializeWebPush(callbacks: PushNotificationHandlers): Promise<void> {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-    console.warn('Web Push API not supported in this browser')
+    logger.warn('Web Push API not supported in this browser', new Error('API not available'))
     return
   }
 
   try {
     // Register service worker
     const registration = await navigator.serviceWorker.register('/sw.js')
-    console.log('Service Worker registered:', registration)
+    logger.info('Service Worker registered', { registration })
 
     // Listen for push events from service worker
     if (registration.active) {
@@ -183,7 +184,7 @@ async function initializeWebPush(callbacks: PushNotificationHandlers): Promise<v
 
     isInitialized = true
   } catch (error) {
-    console.error('Failed to initialize Web Push:', error)
+    logger.error('Failed to initialize Web Push', error as Error)
   }
 }
 
@@ -219,7 +220,7 @@ export async function unregisterPushNotifications(): Promise<void> {
         credentials: 'include'
       })
     } catch (error) {
-      console.error('Error unregistering push token:', error)
+      logger.error('Error unregistering push token', error as Error)
     }
   }
 }

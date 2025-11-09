@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
 import { performanceMonitor } from '@/lib/monitoring/metrics'
 import { uptimeMonitor } from '@/lib/monitoring/uptime'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest) {
   // Verify admin access
@@ -96,7 +97,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(monitoringData)
   } catch (error) {
-    console.error('Monitoring dashboard error:', error)
+    logger.error('Monitoring dashboard error', error as Error)
     return NextResponse.json(
       { error: 'Failed to load monitoring data' },
       { status: 500 }
@@ -157,7 +158,7 @@ export async function POST(request: NextRequest) {
         )
     }
   } catch (error) {
-    console.error('Monitoring action error:', error)
+    logger.error('Monitoring action error', error as Error)
     return NextResponse.json(
       { error: 'Failed to execute monitoring action' },
       { status: 500 }

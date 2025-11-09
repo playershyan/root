@@ -6,6 +6,7 @@ import { ConversationData, MessageData, formatMessageDate, formatPrice, getOther
 import OfferCard from '@/app/components/messaging/OfferCard'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { logger } from '@/lib/utils/logger'
 
 interface ConversationViewProps {
   conversation: ConversationData
@@ -181,7 +182,11 @@ export default function ConversationView({
                           isOwner={conversation.seller_id === currentUserId}
                           onReaction={async (action) => {
                             // TODO: Implement offer response
-                            console.log('Offer response:', action)
+                            logger.debug('Offer response action', {
+                              component: 'ConversationView',
+                              action,
+                              offerId: message.offer_data.offerId
+                            })
                           }}
                           listingTitle={message.offer_data.listingTitle}
                         />

@@ -3,6 +3,8 @@
  * Documentation: https://www.text.lk/
  */
 
+import { logger } from '@/lib/utils/logger'
+
 interface SMSOptions {
   to: string
   message: string
@@ -33,7 +35,7 @@ export class TextLKService {
     this.senderId = process.env.TEXTLK_SENDER_ID || 'vera.lk'
 
     if (!this.apiKey && process.env.NODE_ENV === 'production') {
-      console.warn('Text.lk API key not configured. SMS will not be sent.')
+      logger.warn('Text.lk API key not configured. SMS will not be sent.', new Error('Missing API key'))
     }
   }
 
@@ -59,10 +61,11 @@ export class TextLKService {
       if (!this.apiKey) {
         // In development, log the message
         if (process.env.NODE_ENV === 'development') {
-          console.log('📱 SMS (Dev Mode - Text.lk):')
-          console.log(`To: ${options.to}`)
-          console.log(`Message: ${options.message}`)
-          console.log(`Sender ID: ${options.senderId || this.senderId}`)
+          logger.debug('SMS (Dev Mode - Text.lk)', {
+            to: options.to,
+            message: options.message,
+            senderId: options.senderId || this.senderId
+          })
           return { success: true, messageId: 'dev-mode-' + Date.now() }
         }
 
@@ -98,7 +101,7 @@ export class TextLKService {
       const result: TextLKResponse = await response.json()
 
       if (result.status === 'success') {
-        console.log(`✅ SMS sent successfully to ${formattedPhone}`)
+        logger.info('SMS sent successfully', { phone: formattedPhone, messageId: result.data?.uid })
 
         // Extract message ID from response if available
         const messageId = result.data?.uid || result.data?.message_id || 'unknown'
@@ -109,14 +112,14 @@ export class TextLKService {
           data: result.data
         }
       } else {
-        console.error('❌ Text.lk SMS error:', result.message)
+        logger.error('Text.lk SMS error', new Error(result.message || 'SMS send failed'))
         return {
           success: false,
           error: result.message || 'Failed to send SMS'
         }
       }
     } catch (error) {
-      console.error('❌ Text.lk SMS error:', error)
+      logger.error('Text.lk SMS error', error as Error)
 
       if (error instanceof Error) {
         return {
@@ -203,7 +206,7 @@ export class TextLKService {
 
       return null
     } catch (error) {
-      console.error('Error fetching message status:', error)
+      logger.error('Error fetching message status', error as Error)
       return null
     }
   }
@@ -236,7 +239,7 @@ export class TextLKService {
 
       return null
     } catch (error) {
-      console.error('Error fetching balance:', error)
+      logger.error('Error fetching balance', error as Error)
       return null
     }
   }

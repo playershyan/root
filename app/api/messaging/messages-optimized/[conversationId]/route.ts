@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 interface MessageResponse {
   id: string
@@ -108,7 +109,7 @@ export async function GET(
     const { data: messages, error: msgError } = await query
 
     if (msgError) {
-      console.error('Error fetching messages:', msgError)
+      logger.error('Error fetching messages', msgError as Error)
       return NextResponse.json(
         { error: 'Failed to fetch messages' },
         { status: 500 }
@@ -175,7 +176,7 @@ export async function GET(
             })
             .eq('id', conversationId)
         })
-        .catch(err => console.error('Error marking as read:', err))
+        .catch(err => logger.error('Error marking as read', err as Error))
     }
 
     return NextResponse.json({
@@ -185,7 +186,7 @@ export async function GET(
     })
 
   } catch (error) {
-    console.error('GET messages error:', error)
+    logger.error('GET messages error', error as Error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import ListingDetailClient from './ListingDetailClient'
+import { logger } from '@/lib/utils/logger'
 
 export const revalidate = 60
 
@@ -51,16 +52,20 @@ export default async function ListingDetailPage({
     .eq('id', listing.user_id)
     .single()
 
-  console.log('Seller profile data:', sellerProfile)
-  console.log('Business profile exists:', sellerProfile?.business_profiles)
+  logger.debug('Seller profile data loaded', {
+    component: 'ListingDetailPage',
+    hasBusinessProfile: !!sellerProfile?.business_profiles,
+    sellerId: listing.user_id
+  })
 
   // Log finance fields for debugging
-  console.log('Listing finance data:', {
-    id: listing.id,
-    pricing_type: listing.pricing_type,
-    finance_type: listing.finance_type,
-    outstanding_balance: listing.outstanding_balance,
-    monthly_payment: listing.monthly_payment
+  logger.debug('Listing finance data', {
+    component: 'ListingDetailPage',
+    listingId: listing.id,
+    pricingType: listing.pricing_type,
+    financeType: listing.finance_type,
+    hasOutstandingBalance: !!listing.outstanding_balance,
+    hasMonthlyPayment: !!listing.monthly_payment
   })
 
 // TEMPORARY TEST - Remove this later
@@ -85,9 +90,13 @@ export default async function ListingDetailPage({
       })
     } catch (error) {
       // Fallback to simple increment if enhanced function fails
-      console.warn('Enhanced view tracking failed, using fallback:', error)
-      await supabase.rpc('increment_listing_views_simple', { 
-        listing_id: params.id 
+      logger.warn('Enhanced view tracking failed, using fallback', new Error('View tracking fallback'), {
+        component: 'ListingDetailPage',
+        listingId: params.id,
+        error: error instanceof Error ? error.message : String(error)
+      })
+      await supabase.rpc('increment_listing_views_simple', {
+        listing_id: params.id
       })
     }
   }
@@ -133,14 +142,14 @@ export default async function ListingDetailPage({
 
   // Prepare image array
   const images = listing.image_urls || (listing.image_url ? [listing.image_url] : [])
-  
+
   // Debug logging
-  console.log('Listing detail page - Image data:', {
-    listing_id: listing.id,
-    image_urls: listing.image_urls,
-    image_url: listing.image_url,
-    images_array: images,
-    images_length: images?.length || 0
+  logger.debug('Listing images prepared', {
+    component: 'ListingDetailPage',
+    listingId: listing.id,
+    hasImageUrls: !!listing.image_urls,
+    hasImageUrl: !!listing.image_url,
+    imageCount: images?.length || 0
   })
 
   // Prepare seller data based on profile type

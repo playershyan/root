@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 // This endpoint allows manual triggering of the cleanup process
 // It should be protected and only accessible by admins
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase.rpc('permanently_delete_old_records')
     
     if (error) {
-      console.error('Cleanup error:', error)
+      logger.error('Cleanup error', error as Error, { details: error.message })
       return NextResponse.json(
         { error: 'Cleanup failed', details: error.message },
         { status: 500 }
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Unexpected error in cleanup:', error)
+    logger.error('Unexpected error in cleanup', error as Error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -143,7 +144,7 @@ export async function GET(request: NextRequest) {
       .limit(50)
 
     if (logsError) {
-      console.error('Error fetching logs:', logsError)
+      logger.error('Error fetching logs', logsError as Error)
     }
 
     // Calculate statistics
@@ -162,7 +163,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Unexpected error:', error)
+    logger.error('Unexpected error in GET cleanup', error as Error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

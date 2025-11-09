@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
         .eq('id', otpRecord.id)
 
       if (updateError) {
-        console.error('Error updating OTP record:', updateError)
+        logger.error('Error updating OTP record', updateError as Error)
         return NextResponse.json({
           error: 'Verification failed'
         }, { status: 500 })
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (error) {
-      console.error('Error verifying OTP:', error)
+      logger.error('Error verifying OTP', error as Error)
       return NextResponse.json({ error: 'Verification failed' }, { status: 500 })
     }
 
@@ -103,7 +104,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Verify phone OTP error:', error)
+    logger.error('Verify phone OTP error', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

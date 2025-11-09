@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getActiveMatchNotifications, dismissNotification, getActiveNotificationCount } from '@/lib/services/wantedMatching';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
+import { logger } from '@/lib/utils/logger';
 
 // GET: Fetch active match notifications
 export async function GET(request: NextRequest) {
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ notifications });
 
   } catch (error) {
-    console.error('Error in GET /api/wanted-requests/match-notifications:', error);
+    logger.error('Error in GET /api/wanted-requests/match-notifications', error as Error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true });
 
   } catch (error) {
-    console.error('Error in POST /api/wanted-requests/match-notifications:', error);
+    logger.error('Error in POST /api/wanted-requests/match-notifications', error as Error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -113,7 +114,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ success: true });
 
   } catch (error) {
-    console.error('Error in DELETE /api/wanted-requests/match-notifications:', error);
+    logger.error('Error in DELETE /api/wanted-requests/match-notifications', error as Error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

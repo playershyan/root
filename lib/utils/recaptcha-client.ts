@@ -3,6 +3,8 @@
  * Loads Google reCAPTCHA v3 script and provides token generation functions
  */
 
+import { logger } from './logger'
+
 // Global interface for reCAPTCHA
 declare global {
   interface Window {
@@ -22,7 +24,7 @@ export class RecaptchaClient {
 
   private constructor() {
     this.siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '';
-    console.log('reCAPTCHA Site Key:', this.siteKey ? 'SET' : 'MISSING');
+    logger.debug('reCAPTCHA Site Key:', { configured: !!this.siteKey });
   }
 
   public static getInstance(): RecaptchaClient {
@@ -45,7 +47,7 @@ export class RecaptchaClient {
     }
 
     if (!this.siteKey) {
-      console.warn('reCAPTCHA site key not configured');
+      logger.warn('reCAPTCHA site key not configured', new Error('Missing site key'));
       return Promise.resolve();
     }
 
@@ -86,15 +88,15 @@ export class RecaptchaClient {
    */
   public async getToken(action: string): Promise<string | null> {
     if (!this.siteKey) {
-      console.warn('reCAPTCHA not configured, skipping token generation');
+      logger.warn('reCAPTCHA not configured, skipping token generation', new Error('Missing site key'));
       return null;
     }
 
     try {
       await this.loadScript();
-      
+
       if (!window.grecaptcha) {
-        console.warn('reCAPTCHA not available');
+        logger.warn('reCAPTCHA not available', new Error('grecaptcha not loaded'));
         return null;
       }
 
@@ -106,7 +108,7 @@ export class RecaptchaClient {
         });
       });
     } catch (error) {
-      console.error('reCAPTCHA token generation failed:', error);
+      logger.error('reCAPTCHA token generation failed', error as Error);
       return null;
     }
   }

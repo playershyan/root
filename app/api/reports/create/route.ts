@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { verifyRecaptcha, captchaGuardFailJson } from '@/lib/security/recaptcha'
+import { logger } from '@/lib/utils/logger'
 
 const VALID_REASONS = [
   'inappropriate_content',
@@ -110,7 +111,7 @@ export async function POST(request: NextRequest) {
       })
 
     if (insertError) {
-      console.error('Error creating report:', insertError)
+      logger.error('Error creating report', insertError as Error)
       return NextResponse.json({ error: 'Failed to create report' }, { status: 500 })
     }
 
@@ -120,7 +121,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Create report error:', error)
+    logger.error('Create report error', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

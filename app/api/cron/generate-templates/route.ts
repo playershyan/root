@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { TemplateGenerationService } from '@/lib/services/templateGenerationService'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: Request) {
   try {
@@ -18,7 +19,7 @@ export async function GET(request: Request) {
     const currentDate = new Date()
 
     if (currentDate < startDate) {
-      console.log(`Template generation not yet active. Start date: ${startDate.toISOString()}`)
+      logger.info('Template generation not yet active', { startDate: startDate.toISOString() })
       return NextResponse.json({
         message: 'Template generation not yet active',
         nextRunDate: startDate.toISOString()
@@ -29,27 +30,27 @@ export async function GET(request: Request) {
     const needsRegeneration = await TemplateGenerationService.needsRegeneration()
 
     if (!needsRegeneration) {
-      console.log('Templates are up to date, skipping generation')
+      logger.info('Templates are up to date, skipping generation')
       return NextResponse.json({
         message: 'Templates are up to date',
         skipped: true
       })
     }
 
-    console.log('Starting scheduled template generation...')
+    logger.info('Starting scheduled template generation')
 
     // Generate new template set
     const result = await TemplateGenerationService.generateTemplateSet()
 
     if (!result.success) {
-      console.error('Scheduled template generation failed:', result.error)
+      logger.error('Scheduled template generation failed', new Error(result.error || 'Unknown error'))
       return NextResponse.json({
         error: 'Template generation failed',
         details: result.error
       }, { status: 500 })
     }
 
-    console.log(`Successfully generated ${result.totalGenerated} templates`)
+    logger.info('Successfully generated templates', { totalGenerated: result.totalGenerated })
 
     return NextResponse.json({
       success: true,
@@ -60,7 +61,7 @@ export async function GET(request: Request) {
     })
 
   } catch (error) {
-    console.error('Cron template generation error:', error)
+    logger.error('Cron template generation error', error as Error)
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'

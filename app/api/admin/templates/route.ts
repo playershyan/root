@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { TemplateGenerationService } from '@/lib/services/templateGenerationService'
 import { TemplateProcessor } from '@/lib/services/templateProcessor'
 import { supabase } from '@/lib/supabase'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: Request) {
   try {
@@ -38,7 +39,7 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
     }
   } catch (error) {
-    console.error('Template admin error:', error)
+    logger.error('Template admin error', error as Error)
     return NextResponse.json(
       { error: 'Failed to fetch template data' },
       { status: 500 }
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
 
     switch (action) {
       case 'generate':
-        console.log('Starting template generation...')
+        logger.info('Starting template generation')
         const result = await TemplateGenerationService.generateTemplateSet()
 
         return NextResponse.json({
@@ -111,7 +112,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
     }
   } catch (error) {
-    console.error('Template generation error:', error)
+    logger.error('Template generation error', error as Error)
     return NextResponse.json(
       {
         success: false,
@@ -158,7 +159,7 @@ export async function PUT(request: Request) {
       template: data
     })
   } catch (error) {
-    console.error('Template update error:', error)
+    logger.error('Template update error', error as Error)
     return NextResponse.json(
       { error: 'Failed to update template' },
       { status: 500 }
@@ -193,7 +194,7 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Template deletion error:', error)
+    logger.error('Template deletion error', error as Error)
     return NextResponse.json(
       { error: 'Failed to delete template' },
       { status: 500 }

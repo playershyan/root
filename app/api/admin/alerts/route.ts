@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
+import { logger } from '@/lib/utils/logger'
 
 // GET - Get recent alerts and alert configuration
 export async function GET(request: NextRequest) {
@@ -28,8 +29,8 @@ export async function GET(request: NextRequest) {
 
     if (action === 'recent') {
       // Get recent alerts
-      console.log('Attempting to fetch recent alerts with days_back:', daysBack)
-      
+      logger.debug('Attempting to fetch recent alerts', { daysBack })
+
       // Try to use the function first, fallback to direct table query if function doesn't exist
       let recentAlerts = []
       let alertsError = null
@@ -37,11 +38,11 @@ export async function GET(request: NextRequest) {
       try {
         const { data, error } = await supabase
           .rpc('get_recent_alerts', { days_back: daysBack })
-        
+
         recentAlerts = data || []
         alertsError = error
       } catch (funcError) {
-        console.log('Function not available, trying direct table query:', funcError)
+        logger.debug('Function not available, trying direct table query', { error: funcError })
         
         // Fallback to direct table query
         const cutoffDate = new Date()
@@ -57,15 +58,14 @@ export async function GET(request: NextRequest) {
         alertsError = error
       }
 
-      console.log('Recent alerts query result:', { data: recentAlerts, error: alertsError })
+      logger.debug('Recent alerts query result', { resultCount: recentAlerts?.length, hasError: !!alertsError })
 
       if (alertsError) {
-        console.error('Error fetching recent alerts:', alertsError)
-        console.error('Error details:', JSON.stringify(alertsError, null, 2))
-        
+        logger.error('Error fetching recent alerts', alertsError as Error)
+
         // If table doesn't exist, return empty alerts instead of error
         if (alertsError.code === 'PGRST116' || alertsError.message?.includes('relation') || alertsError.message?.includes('does not exist')) {
-          console.log('Alert table/function not found, returning empty alerts')
+          logger.warn('Alert table/function not found, returning empty alerts')
           return NextResponse.json({
             success: true,
             alerts: [],
@@ -91,11 +91,11 @@ export async function GET(request: NextRequest) {
         .order('alert_type')
 
       if (configError) {
-        console.error('Error fetching alert config:', configError)
-        
+        logger.error('Error fetching alert config', configError as Error)
+
         // If table doesn't exist, return empty config
         if (configError.code === 'PGRST116' || configError.message?.includes('relation') || configError.message?.includes('does not exist')) {
-          console.log('Alert config table not found, returning empty config')
+          logger.warn('Alert config table not found, returning empty config')
           return NextResponse.json({
             success: true,
             config: [],
@@ -120,9 +120,9 @@ export async function GET(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Unexpected error in alerts API:', error)
-    return NextResponse.json({ 
-      error: 'Internal server error' 
+    logger.error('Unexpected error in alerts API', error as Error)
+    return NextResponse.json({
+      error: 'Internal server error'
     }, { status: 500 })
   }
 }
@@ -155,14 +155,14 @@ export async function POST(request: NextRequest) {
         .rpc('check_and_trigger_alerts')
 
       if (checkError) {
-        console.error('Error triggering alert check:', checkError)
-        return NextResponse.json({ 
-          error: 'Failed to trigger alert check' 
+        logger.error('Error triggering alert check', checkError as Error)
+        return NextResponse.json({
+          error: 'Failed to trigger alert check'
         }, { status: 500 })
       }
 
       // Log admin action
-      console.log(`Alert check triggered by admin ${authResult.user.email} at ${new Date().toISOString()}`)
+      logger.info('Alert check triggered by admin', { adminEmail: authResult.user.email })
 
       return NextResponse.json({
         success: true,
@@ -184,14 +184,14 @@ export async function POST(request: NextRequest) {
         .eq('alert_type', alertType)
 
       if (updateError) {
-        console.error('Error updating alert config:', updateError)
-        return NextResponse.json({ 
-          error: 'Failed to update alert configuration' 
+        logger.error('Error updating alert config', updateError as Error, { alertType })
+        return NextResponse.json({
+          error: 'Failed to update alert configuration'
         }, { status: 500 })
       }
 
       // Log admin action
-      console.log(`Alert config for ${alertType} updated by admin ${authResult.user.email} at ${new Date().toISOString()}`)
+      logger.info('Alert config updated by admin', { alertType, adminEmail: authResult.user.email })
 
       return NextResponse.json({
         success: true,
@@ -206,9 +206,9 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Unexpected error in alerts API POST:', error)
-    return NextResponse.json({ 
-      error: 'Internal server error' 
+    logger.error('Unexpected error in alerts API POST', error as Error)
+    return NextResponse.json({
+      error: 'Internal server error'
     }, { status: 500 })
   }
 }

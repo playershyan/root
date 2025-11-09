@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,7 +10,7 @@ export async function POST(request: NextRequest) {
     // Get the authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    console.log('[MARK-SOLD API] Auth user:', user?.id, 'Auth error:', authError)
+    logger.debug('Mark-sold API - Auth check', { userId: user?.id, hasError: !!authError })
 
     if (authError || !user) {
       return NextResponse.json(
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     // Get listing ID from request body
     const { listingId } = await request.json()
-    console.log('[MARK-SOLD API] Received listingId:', listingId, 'userId:', user.id)
+    logger.debug('Mark-sold API - Request received', { listingId, userId: user.id })
     
     if (!listingId) {
       return NextResponse.json(
@@ -36,10 +37,10 @@ export async function POST(request: NextRequest) {
       .eq('id', listingId)
       .single()
 
-    console.log('[MARK-SOLD API] Database query result:', { listing, fetchError })
+    logger.debug('Mark-sold API - Database query result', { hasListing: !!listing, hasError: !!fetchError })
 
     if (fetchError || !listing) {
-      console.log('[MARK-SOLD API] Listing not found. Error:', fetchError)
+      logger.warn('Mark-sold API - Listing not found', { listingId, error: fetchError })
       return NextResponse.json(
         { error: 'Listing not found' },
         { status: 404 }
@@ -47,9 +48,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify ownership
-    console.log('[MARK-SOLD API] Ownership check:', { listingUserId: listing.user_id, currentUserId: user.id })
+    logger.debug('Mark-sold API - Ownership check', { listingUserId: listing.user_id, currentUserId: user.id })
     if (listing.user_id !== user.id) {
-      console.log('[MARK-SOLD API] Ownership verification failed')
+      logger.warn('Mark-sold API - Ownership verification failed', { listingId, userId: user.id })
       return NextResponse.json(
         { error: 'You do not have permission to modify this listing' },
         { status: 403 }
@@ -81,9 +82,9 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .select()
       .single()
-    
+
     if (updateError) {
-      console.error('Error marking listing as sold:', updateError)
+      logger.error('Error marking listing as sold', updateError as Error, { listingId })
       return NextResponse.json(
         { error: 'Failed to mark listing as sold' },
         { status: 500 }
@@ -99,19 +100,21 @@ export async function POST(request: NextRequest) {
         action: 'marked_as_sold',
         created_at: now.toISOString()
       })
-    
+
     if (logError) {
-      console.error('Failed to log mark as sold action:', logError)
+      logger.error('Failed to log mark as sold action', logError as Error, { listingId })
     }
+
+    logger.info('Listing marked as sold successfully', { listingId, userId: user.id })
 
     return NextResponse.json({
       success: true,
       listing: updatedListing,
       message: 'Listing marked as sold successfully!'
     })
-    
+
   } catch (error) {
-    console.error('Error in mark as sold endpoint:', error)
+    logger.error('Error in mark as sold endpoint', error as Error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

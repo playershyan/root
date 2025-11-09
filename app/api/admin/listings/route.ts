@@ -2,32 +2,35 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest) {
-  console.log('Admin listings API - Starting request')
-  
+  logger.debug('Admin listings API - Starting request')
+
   // Verify admin access
   const authResult = await verifyAdminAccess(request)
-  console.log('Admin listings API - Auth result:', authResult instanceof NextResponse ? 'Error response' : 'Success')
-  
+  logger.debug('Admin listings API - Auth result', { isError: authResult instanceof NextResponse })
+
   if (authResult instanceof NextResponse) {
-    console.log('Admin listings API - Returning auth error response')
+    logger.warn('Admin listings API - Auth check failed')
     return authResult
   }
 
-  console.log('Admin listings API - User:', authResult.user.email)
-  console.log('Admin listings API - Admin user role:', authResult.adminUser.role)
-  console.log('Admin listings API - Admin permissions:', authResult.adminUser.permissions)
-  
+  logger.debug('Admin listings API - Admin authenticated', {
+    email: authResult.user.email,
+    role: authResult.adminUser.role,
+    permissions: authResult.adminUser.permissions
+  })
+
   const hasPermission = authResult.hasPermission('view_dashboard')
-  console.log('Admin listings API - Has view_dashboard permission:', hasPermission)
-  
+  logger.debug('Admin listings API - Permission check', { hasViewDashboard: hasPermission })
+
   if (!hasPermission) {
-    console.log('Admin listings API - Permission denied')
+    logger.warn('Admin listings API - Permission denied', { userId: authResult.user.id })
     return NextResponse.json({ error: 'Permission denied - view_dashboard required' }, { status: 403 })
   }
-  
-  console.log('Admin listings API - Permission check passed, proceeding with listings fetch')
+
+  logger.debug('Admin listings API - Permission check passed')
 
   try {
     const supabase = createRouteHandlerClient({ cookies })
@@ -47,7 +50,7 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1)
 
     if (listingsError) {
-      console.error('Error fetching listings:', listingsError)
+      logger.error('Error fetching admin listings', listingsError as Error, { status })
       return NextResponse.json({ error: 'Failed to fetch listings' }, { status: 500 })
     }
 
@@ -58,7 +61,7 @@ export async function GET(request: NextRequest) {
       .eq('status', status)
 
     if (countError) {
-      console.error('Error counting listings:', countError)
+      logger.error('Error counting admin listings', countError as Error, { status })
       return NextResponse.json({ error: 'Failed to count listings' }, { status: 500 })
     }
 
@@ -71,7 +74,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Get admin listings error:', error)
+    logger.error('Get admin listings unexpected error', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 // GET - Fetch user's business profile
 export async function GET(request: NextRequest) {
@@ -22,13 +23,13 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (error && error.code !== 'PGRST116') {
-      console.error('Error fetching business profile:', error)
+      logger.error('Error fetching business profile', error as Error)
       return NextResponse.json({ error: 'Failed to fetch business profile' }, { status: 500 })
     }
 
     return NextResponse.json({ profile: profile || null })
   } catch (error) {
-    console.error('Unexpected error:', error)
+    logger.error('Unexpected error in GET business profile', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -133,19 +134,20 @@ export async function POST(request: NextRequest) {
     }
 
     if (error) {
-      console.error('Error creating business profile:', error)
-      console.error('Error details:', JSON.stringify(error, null, 2))
-      console.error('Insert data:', JSON.stringify({
-        id: user.id,
-        user_id: user.id,
-        business_name,
-        description,
-        website,
-        address,
-        phone,
-        operating_hours,
-        logo_url
-      }, null, 2))
+      logger.error('Error creating business profile', error as Error, {
+        details: JSON.stringify(error, null, 2),
+        insertData: JSON.stringify({
+          id: user.id,
+          user_id: user.id,
+          business_name,
+          description,
+          website,
+          address,
+          phone,
+          operating_hours,
+          logo_url
+        }, null, 2)
+      })
       return NextResponse.json({ 
         error: 'Failed to create business profile', 
         details: error.message || error 
@@ -154,7 +156,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ profile })
   } catch (error) {
-    console.error('Unexpected error:', error)
+    logger.error('Unexpected error in POST business profile', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -204,13 +206,13 @@ export async function PATCH(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Error updating business profile:', error)
+      logger.error('Error updating business profile', error as Error)
       return NextResponse.json({ error: 'Failed to update business profile' }, { status: 500 })
     }
 
     return NextResponse.json({ profile })
   } catch (error) {
-    console.error('Unexpected error:', error)
+    logger.error('Unexpected error in PATCH business profile', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -237,13 +239,13 @@ export async function DELETE(request: NextRequest) {
       .eq('user_id', user.id)
 
     if (error) {
-      console.error('Error deleting business profile:', error)
+      logger.error('Error deleting business profile', error as Error)
       return NextResponse.json({ error: 'Failed to delete business profile' }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Unexpected error:', error)
+    logger.error('Unexpected error in DELETE business profile', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

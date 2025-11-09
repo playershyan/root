@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: Request) {
   try {
@@ -59,7 +60,7 @@ export async function POST(request: Request) {
         .eq('id', userId)
 
       if (updateError) {
-        console.error('Profile update error:', updateError)
+        logger.error('Profile update error', updateError as Error)
         return NextResponse.json({
           error: 'Failed to update profile'
         }, { status: 500 })
@@ -78,7 +79,7 @@ export async function POST(request: Request) {
         })
 
       if (insertError) {
-        console.error('Profile creation error:', insertError)
+        logger.error('Profile creation error', insertError as Error)
         return NextResponse.json({
           error: 'Failed to create profile'
         }, { status: 500 })
@@ -91,7 +92,7 @@ export async function POST(request: Request) {
     })
 
   } catch (error) {
-    console.error('Account creation error:', error)
+    logger.error('Account creation error', error as Error)
     return NextResponse.json({
       error: 'Internal server error'
     }, { status: 500 })

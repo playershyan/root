@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase-server'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (updateError) {
-      console.error('Error updating wanted request:', updateError)
+      logger.error('Error updating wanted request', updateError as Error)
       return NextResponse.json(
         { error: 'Failed to update wanted request' },
         { status: 500 }
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Payment completion error:', error)
+    logger.error('Payment completion error', error as Error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

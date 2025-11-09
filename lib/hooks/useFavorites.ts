@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/app/contexts/AuthContext'
+import { logger } from '@/lib/utils/logger'
 
 export function useFavorites() {
   const { user } = useAuth()
@@ -23,11 +24,11 @@ export function useFavorites() {
         const data = await response.json()
         setFavorites(data.favorites || [])
       } else {
-        console.error('Failed to fetch favorites:', response.status)
+        logger.error('Failed to fetch favorites', new Error(`HTTP ${response.status}`))
         setFavorites([])
       }
     } catch (error) {
-      console.error('Error fetching favorites:', error)
+      logger.error('Error fetching favorites', error as Error)
       setFavorites([])
     } finally {
       setLoading(false)
@@ -66,18 +67,18 @@ export function useFavorites() {
         // Revert on error
         setFavorites(previousFavorites)
         const errorData = await response.json().catch(() => ({}))
-        console.error('Failed to update favorite:', errorData)
+        logger.error('Failed to update favorite', new Error(errorData.error || 'Failed to update favorite'))
         throw new Error(errorData.error || 'Failed to update favorite')
       }
 
       // Verify the response
       const result = await response.json()
-      console.log('Favorite updated:', result)
+      logger.debug('Favorite updated', { result })
 
     } catch (error) {
       // Revert on error
       setFavorites(previousFavorites)
-      console.error('Error updating favorite:', error)
+      logger.error('Error updating favorite', error as Error)
       throw error
     }
 

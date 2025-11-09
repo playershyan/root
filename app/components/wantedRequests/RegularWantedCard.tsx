@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { MapPin, Calendar, MessageCircle, TrendingUp } from 'lucide-react'
 import WantedRequestFavoriteButton from '@/app/components/WantedRequestFavoriteButton'
 import ContactModal from '@/app/components/modals/ContactModal'
+import { logger } from '@/lib/utils/logger'
 
 interface RegularWantedCardProps {
   request: {
@@ -36,7 +37,11 @@ export default function RegularWantedCard({ request }: RegularWantedCardProps) {
     e.preventDefault()
     e.stopPropagation()
 
-    console.log('[WantedCard] Tracking click for request:', request.id)
+    logger.debug('Tracking click for wanted request', {
+      component: 'RegularWantedCard',
+      action: 'handleRespondClick',
+      requestId: request.id
+    })
 
     // Track click in database
     try {
@@ -47,13 +52,28 @@ export default function RegularWantedCard({ request }: RegularWantedCardProps) {
       })
 
       const result = await response.json()
-      console.log('[WantedCard] Track click response:', result)
+
+      logger.debug('Track click response received', {
+        component: 'RegularWantedCard',
+        action: 'handleRespondClick',
+        requestId: request.id,
+        success: response.ok
+      })
 
       if (!response.ok) {
-        console.error('[WantedCard] Track click failed:', result)
+        logger.error('Track click failed', new Error(result.error || 'Failed to track click'), {
+          component: 'RegularWantedCard',
+          action: 'handleRespondClick',
+          requestId: request.id,
+          status: response.status
+        })
       }
     } catch (error) {
-      console.error('[WantedCard] Failed to track click:', error)
+      logger.error('Failed to track click', error as Error, {
+        component: 'RegularWantedCard',
+        action: 'handleRespondClick',
+        requestId: request.id
+      })
     }
 
     // Open modal

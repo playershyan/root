@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest) {
   // Verify admin access
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
         })
 
       if (deletionLogError) {
-        console.error('Error logging deletion:', deletionLogError)
+        logger.error('Error logging deletion', deletionLogError as Error)
       }
 
       // Delete permanently
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
         .eq('id', requestId)
 
       if (deleteError) {
-        console.error('Error deleting wanted request:', deleteError)
+        logger.error('Error deleting wanted request', deleteError as Error)
         return NextResponse.json({ error: 'Failed to delete wanted request' }, { status: 500 })
       }
     } else {
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
         .eq('id', requestId)
 
       if (updateError) {
-        console.error('Error deleting wanted request:', updateError)
+        logger.error('Error deleting wanted request', updateError as Error)
         return NextResponse.json({ error: 'Failed to delete wanted request' }, { status: 500 })
       }
     }
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest) {
         })
 
       if (notificationError) {
-        console.error('Error creating notification:', notificationError)
+        logger.error('Error creating notification', notificationError as Error)
       }
     }
 
@@ -114,7 +115,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (logError) {
-      console.error('Error logging activity:', logError)
+      logger.error('Error logging activity', logError as Error)
     }
 
     return NextResponse.json({
@@ -123,7 +124,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Delete wanted request error:', error)
+    logger.error('Delete wanted request error', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 // POST - Pause business profile
 export async function POST(request: NextRequest) {
@@ -23,13 +24,13 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Error pausing business profile:', error)
+      logger.error('Error pausing business profile', error as Error)
       return NextResponse.json({ error: 'Failed to pause business profile' }, { status: 500 })
     }
 
     return NextResponse.json({ profile })
   } catch (error) {
-    console.error('Unexpected error:', error)
+    logger.error('Unexpected error in pause business profile', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

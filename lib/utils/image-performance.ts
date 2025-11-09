@@ -6,6 +6,7 @@
 'use client'
 
 import { MONITORING_CONFIG, FEATURE_FLAGS } from '@/lib/config/images'
+import { logger } from '@/lib/utils/logger'
 
 export interface ImagePerformanceMetric {
   url: string
@@ -222,10 +223,17 @@ export function exportMetrics(): string {
 
 /**
  * Log performance summary to console
+ * Note: Uses native console.group for structured reporting in development
  */
 export function logPerformanceSummary(): void {
+  // Only run in development when detailed logging is enabled
+  if (!MONITORING_CONFIG.enableDetailedLogging) return
+  if (process.env.NODE_ENV === 'production') return
+
   const report = getPerformanceReport()
 
+  // Keep console.group/console.groupEnd for development-only detailed performance reporting
+  // This is an intentional exception for structured debugging output
   console.group('📊 Image Performance Summary')
   console.log(`Total Images: ${report.totalImages}`)
   console.log(`Total Bytes: ${(report.totalBytes / (1024 * 1024)).toFixed(2)}MB`)
@@ -272,7 +280,7 @@ export function useImagePerformanceTracking(
 
   measureImageLoad(img, url).catch((error) => {
     if (MONITORING_CONFIG.enableDetailedLogging) {
-      console.error('Failed to track image performance:', error)
+      logger.error('Failed to track image performance', error)
     }
   })
 }
@@ -296,6 +304,6 @@ export function initImagePerformanceMonitoring(): void {
   }
 
   if (MONITORING_CONFIG.enableDetailedLogging) {
-    console.log('✅ Image performance monitoring initialized')
+    logger.debug('Image performance monitoring initialized')
   }
 }

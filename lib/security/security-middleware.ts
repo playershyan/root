@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withRateLimit, checkQuarantine, addViolation } from './redis-rate-limiter'
 import { verifyRecaptcha } from './recaptcha'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * Payload size limits per endpoint type
@@ -165,13 +166,16 @@ export async function securityMiddleware(
       const ip = forwarded?.split(',')[0].trim() || request.headers.get('x-real-ip')
       
       const captcha = await verifyRecaptcha(recaptchaToken, ip)
-      
+
       if (!captcha.success || (typeof captcha.score === 'number' && captcha.score < 0.3)) {
-        console.warn(`reCAPTCHA failed for ${endpoint} from ${ip}, score: ${captcha.score}`)
+        logger.warn(`reCAPTCHA failed for ${endpoint}`, new Error('Captcha verification failed'), {
+          ip,
+          score: captcha.score
+        })
         addViolation(request) // Track violation
-        
+
         return NextResponse.json(
-          { 
+          {
             error: 'Verification failed',
             message: 'Please complete the security check',
             minScore: 0.3,
@@ -182,7 +186,7 @@ export async function securityMiddleware(
       }
     } catch (error) {
       // Allow request if we can't parse body (might be multipart)
-      console.warn(`Could not verify reCAPTCHA for ${endpoint}:`, error)
+      logger.warn(`Could not verify reCAPTCHA for ${endpoint}`, error as Error)
     }
   }
 
@@ -222,9 +226,9 @@ export function logSecurityEvent(event: Omit<SecurityEvent, 'timestamp'>): void 
   if (securityEvents.length > MAX_EVENTS) {
     securityEvents.splice(0, securityEvents.length - MAX_EVENTS)
   }
-  
-  // Log to console for monitoring systems
-  console.log('[SECURITY]', JSON.stringify(event))
+
+  // Log to monitoring systems
+  logger.info('[SECURITY]', event)
 }
 
 export function getSecurityEvents(

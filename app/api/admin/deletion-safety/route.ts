@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 // Admin endpoint for managing deletion safety and approvals
 
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (statusError) {
-      console.error('Error fetching safety status:', statusError)
+      logger.error('Error fetching safety status', statusError as Error)
     }
 
     // Get pending approval requests
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
       .order('requested_at', { ascending: false })
 
     if (approvalsError) {
-      console.error('Error fetching approvals:', approvalsError)
+      logger.error('Error fetching approvals', approvalsError as Error)
     }
 
     // Get recent safety activity
@@ -67,7 +68,7 @@ export async function GET(request: NextRequest) {
       .limit(10)
 
     if (activityError) {
-      console.error('Error fetching activity:', activityError)
+      logger.error('Error fetching activity', activityError as Error)
     }
 
     // Get restorable backups
@@ -80,7 +81,7 @@ export async function GET(request: NextRequest) {
       .limit(20)
 
     if (backupsError) {
-      console.error('Error fetching backups:', backupsError)
+      logger.error('Error fetching backups', backupsError as Error)
     }
 
     return NextResponse.json({
@@ -92,7 +93,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Unexpected error:', error)
+    logger.error('Unexpected error in GET deletion safety', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -230,7 +231,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Unexpected error:', error)
+    logger.error('Unexpected error in POST deletion safety', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

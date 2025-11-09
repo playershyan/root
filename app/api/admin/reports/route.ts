@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest) {
   // Verify admin access
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1)
 
     if (reportsError) {
-      console.error('Error fetching reports:', reportsError)
+      logger.error('Error fetching reports', reportsError as Error)
       return NextResponse.json({ error: 'Failed to fetch reports' }, { status: 500 })
     }
 
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
       .eq('status', status)
 
     if (countError) {
-      console.error('Error counting reports:', countError)
+      logger.error('Error counting reports', countError as Error)
       return NextResponse.json({ error: 'Failed to count reports' }, { status: 500 })
     }
 
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Get admin reports error:', error)
+    logger.error('Get admin reports error', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

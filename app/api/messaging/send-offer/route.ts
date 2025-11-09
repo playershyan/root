@@ -1,42 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest) {
-  console.log('Send offer API - Starting request')
-  
+  logger.debug('Send offer API - Starting request')
+
   try {
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
-    
+
     // Get the current user
-    console.log('Send offer API - Getting user')
+    logger.debug('Send offer API - Getting user')
     const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
+
     if (authError || !user) {
-      console.log('Send offer API - Auth error:', authError)
+      logger.error('Send offer API - Auth error', authError)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    console.log('Send offer API - User authenticated:', user.email)
+    logger.debug('Send offer API - User authenticated', { userId: user.id, email: user.email })
 
     const body = await request.json()
-    console.log('Send offer API - Request body:', body)
+    logger.debug('Send offer API - Request body received', { hasListingId: !!body.listingId, hasSellerId: !!body.sellerId })
     
     const { listingId, sellerId, amount, message, listingTitle } = body
 
     if (!listingId || !sellerId || !amount) {
-      console.log('Send offer API - Missing required fields')
+      logger.warn('Send offer API - Missing required fields')
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
     // Prevent users from making offers on their own listings
     if (user.id === sellerId) {
-      console.log('Send offer API - User trying to offer on own listing')
+      logger.warn('Send offer API - User trying to offer on own listing', { userId: user.id, sellerId })
       return NextResponse.json({ error: 'Cannot make offer on your own listing' }, { status: 400 })
     }
 
-    console.log('Send offer API - Validation passed, checking for existing conversation')
+    logger.debug('Send offer API - Validation passed, checking for existing conversation')
 
     // Check if a conversation already exists between these users for this listing
     let conversationId
@@ -49,8 +50,8 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     if (findConversationError) {
-      console.error('Send offer API - Error finding conversation:', findConversationError)
-      return NextResponse.json({ 
+      logger.error('Send offer API - Error finding conversation', findConversationError as Error)
+      return NextResponse.json({
         error: 'Database error finding conversation',
         details: findConversationError.message,
         code: findConversationError.code
@@ -58,10 +59,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (existingConversation) {
-      console.log('Send offer API - Found existing conversation:', existingConversation.id)
+      logger.debug('Send offer API - Found existing conversation', { conversationId: existingConversation.id })
       conversationId = existingConversation.id
     } else {
-      console.log('Send offer API - Creating new conversation')
+      logger.debug('Send offer API - Creating new conversation')
       // Create a new conversation
       const { data: newConversation, error: conversationError } = await supabase
         .from('conversations')
@@ -80,8 +81,8 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (conversationError) {
-        console.error('Send offer API - Error creating conversation:', conversationError)
-        return NextResponse.json({ 
+        logger.error('Send offer API - Error creating conversation', conversationError as Error)
+        return NextResponse.json({
           error: 'Failed to create conversation',
           details: conversationError.message,
           code: conversationError.code,
@@ -89,11 +90,11 @@ export async function POST(request: NextRequest) {
         }, { status: 500 })
       }
 
-      console.log('Send offer API - Created new conversation:', newConversation.id)
+      logger.debug('Send offer API - Created new conversation', { conversationId: newConversation.id })
       conversationId = newConversation.id
     }
 
-    console.log('Send offer API - Creating offer record')
+    logger.debug('Send offer API - Creating offer record')
     
     // Create the offer record
     const { data: offer, error: offerError } = await supabase
@@ -110,14 +111,14 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (offerError) {
-      console.error('Send offer API - Error creating offer:', offerError)
+      logger.error('Send offer API - Error creating offer', offerError as Error)
       return NextResponse.json({ error: 'Failed to create offer' }, { status: 500 })
     }
 
-    console.log('Send offer API - Created offer:', offer.id)
+    logger.info('Send offer API - Created offer', { offerId: offer.id, amount, listingId })
 
     // Send a message in the conversation with the offer
-    console.log('Send offer API - Creating offer message')
+    logger.debug('Send offer API - Creating offer message')
     
     const offerMessageContent = {
       type: 'offer',
@@ -138,31 +139,31 @@ export async function POST(request: NextRequest) {
       })
 
     if (messageError) {
-      console.error('Send offer API - Error sending offer message:', messageError)
+      logger.error('Send offer API - Error sending offer message', messageError as Error)
       return NextResponse.json({ error: 'Failed to send offer message' }, { status: 500 })
     }
 
-    console.log('Send offer API - Created offer message')
+    logger.debug('Send offer API - Created offer message')
 
     // Update conversation last activity
     await supabase
       .from('conversations')
-      .update({ 
+      .update({
         last_message_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
       .eq('id', conversationId)
 
-    console.log('Send offer API - Success!')
+    logger.info('Send offer API - Success', { offerId: offer.id, conversationId })
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       offerId: offer.id,
-      conversationId 
+      conversationId
     })
 
   } catch (error) {
-    console.error('Send offer API - Unexpected error:', error)
+    logger.error('Send offer API - Unexpected error', error as Error)
     
     // More detailed error response for debugging
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'

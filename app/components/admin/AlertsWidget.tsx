@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { 
-  AlertTriangle, CheckCircle, XCircle, Clock, 
+import {
+  AlertTriangle, CheckCircle, XCircle, Clock,
   Bell, BellOff, RefreshCw, Settings
 } from 'lucide-react'
+import { logger } from '@/lib/utils/logger'
 
 interface Alert {
   alert_type: string
@@ -51,7 +52,10 @@ export default function AlertsWidget({ className = "" }: AlertsWidgetProps) {
       const data = await response.json()
       setAlerts(data.alerts || [])
     } catch (err) {
-      console.error('Error fetching alerts:', err)
+      logger.error('Failed to fetch alerts', err as Error, {
+        component: 'AlertsWidget',
+        action: 'fetchRecentAlerts'
+      })
       setError(err instanceof Error ? err.message : 'Failed to load alerts')
     } finally {
       setLoading(false)
@@ -79,7 +83,7 @@ export default function AlertsWidget({ className = "" }: AlertsWidgetProps) {
       await fetchRecentAlerts()
       
       // Show success message (you might want to use a proper notification system)
-      console.log('Alert check completed:', result.message)
+      logger.info('Alert check completed', { message: result.message })
     } catch (err) {
       console.error('Error triggering alert check:', err)
       alert('Failed to trigger alert check: ' + (err instanceof Error ? err.message : 'Unknown error'))

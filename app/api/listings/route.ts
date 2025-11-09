@@ -3,6 +3,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { validateListing, sanitizeListing, generateListingTitle } from '@/lib/validation/listing'
 import { formatPhoneForStorage } from '@/lib/utils/phoneFormatter'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * POST /api/listings
@@ -11,9 +12,7 @@ import { formatPhoneForStorage } from '@/lib/utils/phoneFormatter'
  * Clean rebuild - no overcomplicated logic, just solid basics
  */
 export async function POST(request: NextRequest) {
-  console.log('═══════════════════════════════════════════════════════')
-  console.log('📝 CREATE LISTING - START')
-  console.log('═══════════════════════════════════════════════════════')
+  logger.debug('CREATE LISTING - START')
 
   try {
     // 1. AUTH CHECK
@@ -22,24 +21,24 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      console.log('❌ AUTH FAILED:', authError?.message || 'No user')
+      logger.error('Auth failed in create listing', authError, { reason: authError?.message || 'No user' })
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    console.log('✅ AUTH OK - User:', user.id)
+    logger.debug('Auth OK - User authenticated', { userId: user.id })
 
     // 2. PARSE BODY
     let body: any
     try {
       body = await request.json()
-      console.log('📦 BODY RECEIVED:', Object.keys(body))
+      logger.debug('Request body received', { fields: Object.keys(body) })
     } catch (e) {
-      console.log('❌ INVALID JSON')
+      logger.error('Invalid JSON in request body', e as Error)
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
     }
 
     // 3. SANITIZE INPUT
-    console.log('🧹 SANITIZING INPUT...')
+    logger.debug('Sanitizing listing input')
     const sanitized = sanitizeListing({
       title: body.title,
       description: body.description,
@@ -78,24 +77,24 @@ export async function POST(request: NextRequest) {
       serviceRecordsAvailable: body.serviceRecordsAvailable
     })
 
-    console.log('✅ SANITIZED')
+    logger.debug('Input sanitized')
 
     // 4. VALIDATE
-    console.log('🔍 VALIDATING...')
+    logger.debug('Validating listing data')
     const validation = validateListing(sanitized)
 
     if (!validation.isValid) {
-      console.log('❌ VALIDATION FAILED:', validation.errors)
+      logger.warn('Listing validation failed', { errors: validation.errors })
       return NextResponse.json({
         error: 'Validation failed',
         errors: validation.errors
       }, { status: 400 })
     }
 
-    console.log('✅ VALIDATION PASSED')
+    logger.debug('Validation passed')
 
     // 5. PREPARE DATA FOR DATABASE
-    console.log('🔧 PREPARING DATABASE PAYLOAD...')
+    logger.debug('Preparing database payload')
 
     // Determine actual make/model (handle "Other" option)
     const actualMake = sanitized.make === 'Other' ? sanitized.customMake : sanitized.make
@@ -205,8 +204,7 @@ export async function POST(request: NextRequest) {
       is_urgent: false
     }
 
-    console.log('✅ PAYLOAD READY')
-    console.log('📊 PAYLOAD SUMMARY:', {
+    logger.debug('Database payload ready', {
       title: dbPayload.title,
       make: dbPayload.make,
       model: dbPayload.model,
@@ -216,7 +214,7 @@ export async function POST(request: NextRequest) {
     })
 
     // 6. CHECK FOR DUPLICATES (same user, same make/model/year in last 24 hours)
-    console.log('🔍 CHECKING FOR DUPLICATES...')
+    logger.debug('Checking for duplicate listings')
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
 
     const { data: duplicates } = await supabase
@@ -231,17 +229,17 @@ export async function POST(request: NextRequest) {
       .limit(1)
 
     if (duplicates && duplicates.length > 0) {
-      console.log('⚠️ DUPLICATE FOUND:', duplicates[0].id)
+      logger.warn('Duplicate listing detected', { duplicateId: duplicates[0].id, userId: user.id })
       return NextResponse.json({
         error: 'You already posted a similar listing in the last 24 hours',
         duplicateId: duplicates[0].id
       }, { status: 409 })
     }
 
-    console.log('✅ NO DUPLICATES')
+    logger.debug('No duplicates found')
 
     // 7. INSERT INTO DATABASE
-    console.log('💾 INSERTING TO DATABASE...')
+    logger.debug('Inserting listing to database')
     const { data: newListing, error: insertError } = await supabase
       .from('listings')
       .insert([dbPayload])
@@ -249,17 +247,14 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (insertError) {
-      console.log('❌ DATABASE ERROR:', insertError)
+      logger.error('Database insert failed for listing', insertError as Error, { userId: user.id })
       return NextResponse.json({
         error: 'Failed to create listing',
         details: insertError.message
       }, { status: 500 })
     }
 
-    console.log('✅ LISTING CREATED:', newListing.id)
-    console.log('═══════════════════════════════════════════════════════')
-    console.log('✅ CREATE LISTING - SUCCESS')
-    console.log('═══════════════════════════════════════════════════════')
+    logger.info('Listing created successfully', { listingId: newListing.id, userId: user.id })
 
     // 8. RETURN SUCCESS
     return NextResponse.json({
@@ -269,11 +264,10 @@ export async function POST(request: NextRequest) {
     }, { status: 201 })
 
   } catch (error: any) {
-    console.log('═══════════════════════════════════════════════════════')
-    console.log('❌ CREATE LISTING - ERROR')
-    console.log('Error:', error.message)
-    console.log('Stack:', error.stack)
-    console.log('═══════════════════════════════════════════════════════')
+    logger.error('Create listing failed with unexpected error', error, {
+      message: error.message,
+      stack: error.stack
+    })
 
     return NextResponse.json({
       error: 'Internal server error',

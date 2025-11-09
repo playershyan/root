@@ -8,6 +8,7 @@ import MessagesTab from '@/app/components/messages/MessagesTab'
 import { MessageData, ConversationData } from '@/lib/utils/messageUtils'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
+import { logger } from '@/lib/utils/logger'
 
 export default function MessagesPage() {
   const router = useRouter()
@@ -19,11 +20,11 @@ export default function MessagesPage() {
   const fetchConversations = useCallback(async () => {
     try {
       if (!user) {
-        console.warn('[fetchConversations] User not loaded yet')
+        logger.debug('fetchConversations - User not loaded yet')
         return
       }
 
-      console.log('[fetchConversations] Fetching for user:', user.id)
+      logger.debug('fetchConversations - Fetching for user', { userId: user.id })
 
       // Use optimized API endpoint - single query with JOINs
       const response = await fetch('/api/messaging/conversations-optimized?limit=50&offset=0')
@@ -33,7 +34,7 @@ export default function MessagesPage() {
       }
 
       const { conversations: conversationsData } = await response.json()
-      console.log('[fetchConversations] Received', conversationsData?.length || 0, 'conversations')
+      logger.debug('fetchConversations - Received conversations', { count: conversationsData?.length || 0 })
 
       // Transform to match ConversationData interface
       const transformedConversations = conversationsData?.map((conv: any) => ({
@@ -63,10 +64,10 @@ export default function MessagesPage() {
         }
       })) || []
 
-      console.log('[fetchConversations] Setting', transformedConversations.length, 'conversations')
+      logger.debug('fetchConversations - Setting conversations', { count: transformedConversations.length })
       setConversations(transformedConversations)
     } catch (error) {
-      console.error('[fetchConversations] Error:', error)
+      logger.error('fetchConversations error', error as Error)
       setConversations([])
     }
   }, [user])
@@ -107,7 +108,7 @@ export default function MessagesPage() {
 
       return transformedMessages
     } catch (error) {
-      console.error('Error fetching messages:', error)
+      logger.error('Error fetching messages', error as Error)
       return []
     }
   }
@@ -127,7 +128,7 @@ export default function MessagesPage() {
 
       if (error) throw error
     } catch (error) {
-      console.error('Error sending message:', error)
+      logger.error('Error sending message', error as Error)
       throw error
     }
   }, [user])
@@ -136,9 +137,9 @@ export default function MessagesPage() {
   const handleArchiveConversation = useCallback(async (conversationId: string) => {
     try {
       // TODO: Implement archive API endpoint
-      console.log('Archiving conversation:', conversationId)
+      logger.debug('Archiving conversation', { conversationId })
     } catch (error) {
-      console.error('Error archiving conversation:', error)
+      logger.error('Error archiving conversation', error as Error)
     }
   }, [])
 
@@ -146,9 +147,9 @@ export default function MessagesPage() {
   const handleMoveConversationToBin = useCallback(async (conversationId: string) => {
     try {
       // TODO: Implement bin API endpoint or use existing delete handler
-      console.log('Moving conversation to bin:', conversationId)
+      logger.debug('Moving conversation to bin', { conversationId })
     } catch (error) {
-      console.error('Error moving conversation to bin:', error)
+      logger.error('Error moving conversation to bin', error as Error)
     }
   }, [])
 
@@ -159,7 +160,7 @@ export default function MessagesPage() {
       // Just refresh conversations to update UI
       await fetchConversations()
     } catch (error) {
-      console.error('Error marking conversation as read:', error)
+      logger.error('Error marking conversation as read', error as Error)
     }
   }, [fetchConversations])
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PayHereService } from '@/lib/payments/payhereService'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,14 +13,14 @@ export async function POST(request: NextRequest) {
       notificationData[key] = value
     })
 
-    console.log('PayHere notification received:', notificationData)
+    logger.info('PayHere notification received', { hasData: !!notificationData })
 
     // Handle payment success
     await PayHereService.handlePaymentSuccess(notificationData)
 
     return NextResponse.json({ status: 'OK' })
   } catch (error: any) {
-    console.error('PayHere notification error:', error)
+    logger.error('PayHere notification error', error as Error)
     return NextResponse.json(
       { error: error.message },
       { status: 500 }

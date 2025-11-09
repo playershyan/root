@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 // Helper function to parse user agent
 function parseUserAgent(userAgent: string) {
@@ -121,7 +122,7 @@ export async function GET(request: NextRequest) {
       .rpc('get_user_sessions', { p_user_id: user.id })
 
     if (sessionsError) {
-      console.error('Error fetching sessions:', sessionsError)
+      logger.error('Error fetching sessions', sessionsError as Error)
       return NextResponse.json(
         { error: 'Failed to fetch sessions' },
         { status: 500 }
@@ -136,7 +137,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Unexpected error:', error)
+    logger.error('Unexpected error in GET sessions', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -198,7 +199,7 @@ export async function POST(request: NextRequest) {
         })
 
       if (createError) {
-        console.error('Error creating session:', createError)
+        logger.error('Error creating session', createError as Error)
         return NextResponse.json(
           { error: 'Failed to create session' },
           { status: 500 }
@@ -220,7 +221,7 @@ export async function POST(request: NextRequest) {
         })
 
       if (updateError) {
-        console.error('Error updating session:', updateError)
+        logger.error('Error updating session', updateError as Error)
         return NextResponse.json(
           { error: 'Failed to update session' },
           { status: 500 }
@@ -237,7 +238,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
 
   } catch (error) {
-    console.error('Unexpected error:', error)
+    logger.error('Unexpected error in POST sessions', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -284,7 +285,7 @@ export async function DELETE(request: NextRequest) {
         })
 
       if (revokeError) {
-        console.error('Error revoking session:', revokeError)
+        logger.error('Error revoking session', revokeError as Error)
         return NextResponse.json(
           { error: 'Failed to revoke session' },
           { status: 500 }
@@ -308,7 +309,7 @@ export async function DELETE(request: NextRequest) {
         })
 
       if (revokeError) {
-        console.error('Error revoking other sessions:', revokeError)
+        logger.error('Error revoking other sessions', revokeError as Error)
         return NextResponse.json(
           { error: 'Failed to revoke other sessions' },
           { status: 500 }
@@ -326,7 +327,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid action or missing session_id' }, { status: 400 })
 
   } catch (error) {
-    console.error('Unexpected error:', error)
+    logger.error('Unexpected error in DELETE sessions', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

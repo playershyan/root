@@ -1,5 +1,6 @@
 import OpenAI from 'openai'
 import { supabase } from '@/lib/supabase'
+import { logger } from '@/lib/utils/logger'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -50,7 +51,7 @@ export class TemplateGenerationService {
     let estimatedCost = 0
 
     try {
-      console.log(`Generating ${this.TOTAL_TEMPLATES} templates`)
+      logger.info(`Generating ${this.TOTAL_TEMPLATES} templates`)
 
       const allTemplates = await this.generateTemplates(this.TOTAL_TEMPLATES)
       estimatedCost = this.ESTIMATED_COST_PER_REQUEST
@@ -107,7 +108,7 @@ export class TemplateGenerationService {
       }
 
     } catch (error) {
-      console.error('Template generation failed:', error)
+      logger.error('Template generation failed', error as Error)
 
       // Update generation log with failure
       await supabase
@@ -191,11 +192,11 @@ Generate ${count} templates now:`
           vehicleType: undefined // Generic templates for all vehicle types
         }))
 
-      console.log(`Generated ${templates.length} templates`)
+      logger.info(`Generated ${templates.length} templates`)
       return templates
 
     } catch (error) {
-      console.error(`Failed to generate templates:`, error)
+      logger.error('Failed to generate templates', error as Error)
       throw new Error(`OpenAI template generation failed: ${error}`)
     }
   }

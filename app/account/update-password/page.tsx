@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import { logger } from '@/lib/utils/logger'
 
 export default function UpdatePasswordPage() {
   const [newPassword, setNewPassword] = useState('')
@@ -76,7 +77,10 @@ export default function UpdatePasswordPage() {
 
         // Redirect to home page with login modal trigger after 3 seconds
         setTimeout(() => {
-          console.log('Password reset: Setting showLogin flag and redirecting')
+          logger.debug('Password reset successful, redirecting to login', {
+            component: 'UpdatePasswordPage',
+            action: 'handleSubmit'
+          })
           localStorage.setItem('showLoginModal', 'true')
           router.push('/')
         }, 3000)

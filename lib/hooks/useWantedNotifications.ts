@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { logger } from '@/lib/utils/logger'
 
 export interface MatchNotification {
   id: string
@@ -50,7 +51,7 @@ export function useWantedNotifications(): UseWantedNotificationsReturn {
       setNotificationCount(data.notifications?.length || 0)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
-      console.error('Error fetching notifications:', err)
+      logger.error('Error fetching notifications', err as Error)
     } finally {
       setIsLoading(false)
     }
@@ -68,7 +69,7 @@ export function useWantedNotifications(): UseWantedNotificationsReturn {
       const data = await response.json()
       setNotificationCount(data.count || 0)
     } catch (err) {
-      console.error('Error fetching notification count:', err)
+      logger.error('Error fetching notification count', err as Error)
     }
   }, [])
 
@@ -92,7 +93,7 @@ export function useWantedNotifications(): UseWantedNotificationsReturn {
       setNotificationCount(prev => Math.max(0, prev - 1))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to dismiss notification')
-      console.error('Error dismissing notification:', err)
+      logger.error('Error dismissing notification', err as Error)
     }
   }, [])
 
@@ -118,7 +119,7 @@ export function useWantedNotifications(): UseWantedNotificationsReturn {
           table: 'listing_wanted_notifications',
         },
         (payload) => {
-          console.log('New notification received:', payload)
+          logger.debug('New notification received', { payload })
           // Add new notification to state
           const newNotification = payload.new as MatchNotification
           setNotifications(prev => [newNotification, ...prev])
@@ -133,7 +134,7 @@ export function useWantedNotifications(): UseWantedNotificationsReturn {
           table: 'listing_wanted_notifications',
         },
         (payload) => {
-          console.log('Notification updated:', payload)
+          logger.debug('Notification updated', { payload })
           const updatedNotification = payload.new as MatchNotification
 
           // If notification was dismissed, remove it from state
@@ -148,7 +149,11 @@ export function useWantedNotifications(): UseWantedNotificationsReturn {
           }
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          logger.debug('Subscribed to wanted notifications channel')
+        }
+      })
 
     return () => {
       supabase.removeChannel(channel)
@@ -197,7 +202,7 @@ export function useNotificationCount(): {
       const data = await response.json()
       setCount(data.count || 0)
     } catch (err) {
-      console.error('Error fetching notification count:', err)
+      logger.error('Error fetching notification count', err as Error)
     } finally {
       setIsLoading(false)
     }

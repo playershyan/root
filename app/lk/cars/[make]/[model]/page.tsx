@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
+import OptimizedImage from '@/components/ui/OptimizedImage'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { VEHICLE_DATA } from '@/lib/constants/vehicleData'
 
@@ -178,12 +179,16 @@ export default async function MakeModelListingsPage({ params }: PageParams) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {listings.map((item) => (
               <Link key={item.id} href={`/listings/${item.id}`} className="block group border rounded-lg overflow-hidden hover:shadow-lg transition">
-                <div className="h-44 bg-gray-100 overflow-hidden">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                <div className="relative h-44 bg-gray-100 overflow-hidden">
+                  <OptimizedImage
                     src={item.image_url || item.image_urls?.[0] || '/placeholder.png'}
                     alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    quality="thumbnail"
+                    watermark={true}
+                    priority={false}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   />
                 </div>
                 <div className="p-4">

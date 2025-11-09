@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,8 +26,11 @@ export async function POST(request: NextRequest) {
       
       if (!userError && user) {
         // Log the logout event (optional - for audit purposes)
-        console.log(`User ${user.email} logged out at ${new Date().toISOString()}`)
-        
+        logger.audit('User logged out', {
+          email: user.email,
+          timestamp: new Date().toISOString()
+        })
+
         // You could add additional cleanup here if needed
         // For example: clear user sessions, update last_seen, etc.
       }
@@ -40,7 +44,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Logout error:', error)
+    logger.error('Logout error', error as Error)
     
     return NextResponse.json(
       { 

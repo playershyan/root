@@ -4,6 +4,7 @@ import { useEffect, useCallback } from 'react'
 import { authConfig } from '@/lib/config/auth.config'
 import { useAuth } from '../contexts/AuthContext'
 import Script from 'next/script'
+import { logger } from '@/lib/utils/logger'
 
 declare global {
   interface Window {
@@ -17,8 +18,8 @@ export default function GoogleOneTap() {
 
   const handleCredentialResponse = useCallback(async (response: any) => {
     try {
-      console.log('Google credential received')
-      
+      logger.debug('Google credential received')
+
       const res = await fetch('/api/auth/google-one-tap', {
         method: 'POST',
         headers: {
@@ -28,9 +29,9 @@ export default function GoogleOneTap() {
       })
 
       const data = await res.json()
-      
+
       if (data.success) {
-        console.log('Google One Tap sign-in successful')
+        logger.info('Google One Tap sign-in successful')
         await refreshUser()
         // Check for pending redirect
         const redirectUrl = localStorage.getItem('pendingRedirect')
@@ -42,14 +43,14 @@ export default function GoogleOneTap() {
         }
       } else if (data.needsOAuth) {
         // One Tap detected user, but needs OAuth flow
-        console.log('Redirecting to OAuth flow...')
+        logger.debug('Redirecting to OAuth flow')
         const { signInWithGoogle } = await import('@/lib/auth')
         await signInWithGoogle()
       } else {
-        console.error('Google One Tap error:', data.error || data.message)
+        logger.error('Google One Tap error', new Error(data.error || data.message))
       }
     } catch (error) {
-      console.error('Error handling Google One Tap response:', error)
+      logger.error('Error handling Google One Tap response', error as Error)
     }
   }, [refreshUser])
 
@@ -71,7 +72,7 @@ export default function GoogleOneTap() {
 
     try {
       if (!authConfig.google?.clientId) {
-        console.warn('Google One Tap clientId missing (NEXT_PUBLIC_GOOGLE_CLIENT_ID). Skipping initialization.')
+        logger.warn('Google One Tap clientId missing (NEXT_PUBLIC_GOOGLE_CLIENT_ID). Skipping initialization.', new Error('Missing client ID'))
         return
       }
       window.google.accounts.id.initialize({
@@ -88,14 +89,14 @@ export default function GoogleOneTap() {
       if (!user) {
         window.google.accounts.id.prompt((notification: any) => {
           if (notification.isNotDisplayed()) {
-            console.log('One Tap not displayed:', notification.getNotDisplayedReason())
+            logger.debug('One Tap not displayed', { reason: notification.getNotDisplayedReason() })
           } else if (notification.isSkippedMoment()) {
-            console.log('One Tap skipped:', notification.getSkippedReason())
+            logger.debug('One Tap skipped', { reason: notification.getSkippedReason() })
           }
         })
       }
     } catch (error) {
-      console.error('Error initializing Google One Tap:', error)
+      logger.error('Error initializing Google One Tap', error as Error)
     }
   }, [user, handleCredentialResponse])
 

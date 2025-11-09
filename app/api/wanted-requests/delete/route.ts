@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
       .single()
     
     if (updateError) {
-      console.error('Error deleting wanted request:', updateError)
+      logger.error('Error deleting wanted request', updateError as Error)
       return NextResponse.json(
         { error: 'Failed to delete wanted request' },
         { status: 500 }
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest) {
       })
     
     if (logError) {
-      console.error('Failed to log deletion action:', logError)
+      logger.error('Failed to log deletion action', logError as Error)
     }
 
     return NextResponse.json({
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('Error in delete wanted request endpoint:', error)
+    logger.error('Error in delete wanted request endpoint', error as Error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

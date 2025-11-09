@@ -1,0 +1,1211 @@
+
+> vera-lk@0.1.0 lint
+> next lint
+
+
+./app/about/page.tsx
+32:17  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+42:15  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+46:103  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+46:286  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+49:35  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+67:100  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+88:57  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+116:19  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+168:24  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+196:104  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+213:170  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+213:198  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+233:43  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+250:15  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+250:65  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+279:24  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+279:154  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/account/update-password/page.tsx
+79:11  Error: Unexpected console statement.  no-console
+
+./app/admin/analytics/page.tsx
+47:6  Warning: React Hook useEffect has a missing dependency: 'fetchAnalytics'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+59:7  Error: Unexpected console statement.  no-console
+
+./app/admin/business/page.tsx
+45:7  Error: Unexpected console statement.  no-console
+
+./app/admin/components/AdminHeader.tsx
+24:7  Error: Unexpected console statement.  no-console
+
+./app/admin/components/AdminProvider.tsx
+62:7  Error: Unexpected console statement.  no-console
+73:6  Warning: React Hook useEffect has a missing dependency: 'checkAdminAccess'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/admin/components/AlertsOverviewClient.tsx
+39:11  Error: Unexpected console statement.  no-console
+76:9  Error: Unexpected console statement.  no-console
+
+./app/admin/components/DashboardStatsClient.tsx
+39:11  Error: Unexpected console statement.  no-console
+
+./app/admin/components/RecentActivityClient.tsx
+39:11  Error: Unexpected console statement.  no-console
+
+./app/admin/components/SystemHealthClient.tsx
+39:11  Error: Unexpected console statement.  no-console
+
+./app/admin/listings/page.tsx
+38:6  Warning: React Hook useEffect has missing dependencies: 'fetchListings' and 'hasPermission'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+57:7  Error: Unexpected console statement.  no-console
+78:7  Error: Unexpected console statement.  no-console
+98:7  Error: Unexpected console statement.  no-console
+105:45  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+201:27  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/admin/reports/page.tsx
+45:6  Warning: React Hook useEffect has a missing dependency: 'fetchReportData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+58:7  Error: Unexpected console statement.  no-console
+129:7  Error: Unexpected console statement.  no-console
+
+./app/admin/users/page.tsx
+38:7  Error: Unexpected console statement.  no-console
+
+./app/admin/wanted-requests/page.tsx
+76:6  Warning: React Hook useEffect has missing dependencies: 'fetchRequests' and 'hasPermission'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+97:7  Error: Unexpected console statement.  no-console
+121:7  Error: Unexpected console statement.  no-console
+145:7  Error: Unexpected console statement.  no-console
+172:7  Error: Unexpected console statement.  no-console
+241:47  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/admin-old/page.tsx
+125:6  Warning: React Hook useEffect has missing dependencies: 'checkAdminAccess', 'loadDashboardData', and 'router'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+266:7  Error: Unexpected console statement.  no-console
+291:7  Error: Unexpected console statement.  no-console
+313:7  Error: Unexpected console statement.  no-console
+338:7  Error: Unexpected console statement.  no-console
+
+./app/admin-old/setup/page.tsx
+40:6  Warning: React Hook useEffect has a missing dependency: 'router'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+54:7  Error: Unexpected console statement.  no-console
+94:7  Error: Unexpected console statement.  no-console
+
+./app/admin-old/templates/page.tsx
+52:7  Error: Unexpected console statement.  no-console
+77:7  Error: Unexpected console statement.  no-console
+
+./app/ai-features/page.tsx
+29:60  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+39:15  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+65:58  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+105:42  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+130:58  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+130:70  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+
+./app/api/admin/activity/recent/route.ts
+64:5  Error: Unexpected console statement.  no-console
+
+./app/api/admin/alerts/recent/route.ts
+30:7  Error: Unexpected console statement.  no-console
+47:5  Error: Unexpected console statement.  no-console
+
+./app/api/admin/alerts/unread-count/route.ts
+26:7  Error: Unexpected console statement.  no-console
+33:5  Error: Unexpected console statement.  no-console
+
+./app/api/admin/auth/verify/route.ts
+57:5  Error: Unexpected console statement.  no-console
+
+./app/api/admin/business-profiles/route.ts
+63:7  Error: Unexpected console statement.  no-console
+69:5  Error: Unexpected console statement.  no-console
+
+./app/api/admin/business-profiles/verify/route.ts
+61:7  Error: Unexpected console statement.  no-console
+85:5  Error: Unexpected console statement.  no-console
+
+./app/api/admin/cleanup/route.ts
+58:7  Error: Unexpected console statement.  no-console
+93:5  Error: Unexpected console statement.  no-console
+146:7  Error: Unexpected console statement.  no-console
+165:5  Error: Unexpected console statement.  no-console
+
+./app/api/admin/cleanup-stats/route.ts
+33:7  Error: Unexpected console statement.  no-console
+34:7  Error: Unexpected console statement.  no-console
+38:9  Error: Unexpected console statement.  no-console
+81:7  Error: Unexpected console statement.  no-console
+94:7  Error: Unexpected console statement.  no-console
+102:7  Error: Unexpected console statement.  no-console
+103:7  Error: Unexpected console statement.  no-console
+147:5  Error: Unexpected console statement.  no-console
+195:7  Error: Unexpected console statement.  no-console
+202:5  Error: Unexpected console statement.  no-console
+213:5  Error: Unexpected console statement.  no-console
+
+./app/api/admin/deletion-safety/route.ts
+47:7  Error: Unexpected console statement.  no-console
+58:7  Error: Unexpected console statement.  no-console
+70:7  Error: Unexpected console statement.  no-console
+83:7  Error: Unexpected console statement.  no-console
+95:5  Error: Unexpected console statement.  no-console
+233:5  Error: Unexpected console statement.  no-console
+
+./app/api/admin/health/route.ts
+151:5  Error: Unexpected console statement.  no-console
+
+./app/api/admin/listings/reject/route.ts
+41:7  Error: Unexpected console statement.  no-console
+62:5  Error: Unexpected console statement.  no-console
+
+./app/api/admin/monitoring/route.ts
+99:5  Error: Unexpected console statement.  no-console
+160:5  Error: Unexpected console statement.  no-console
+
+./app/api/admin/reports/route.ts
+38:7  Error: Unexpected console statement.  no-console
+49:7  Error: Unexpected console statement.  no-console
+62:5  Error: Unexpected console statement.  no-console
+
+./app/api/admin/security/route.ts
+49:5  Error: Unexpected console statement.  no-console
+98:5  Error: Unexpected console statement.  no-console
+
+./app/api/admin/setup/route.ts
+32:9  Error: Unexpected console statement.  no-console
+94:11  Error: Unexpected console statement.  no-console
+100:9  Error: Unexpected console statement.  no-console
+132:9  Error: Unexpected console statement.  no-console
+151:11  Error: Unexpected console statement.  no-console
+157:9  Error: Unexpected console statement.  no-console
+187:5  Error: Unexpected console statement.  no-console
+216:7  Error: Unexpected console statement.  no-console
+253:9  Error: Unexpected console statement.  no-console
+259:7  Error: Unexpected console statement.  no-console
+260:7  Error: Unexpected console statement.  no-console
+294:5  Error: Unexpected console statement.  no-console
+
+./app/api/admin/stats/route.ts
+144:5  Error: Unexpected console statement.  no-console
+
+./app/api/admin/templates/route.ts
+41:5  Error: Unexpected console statement.  no-console
+56:9  Error: Unexpected console statement.  no-console
+114:5  Error: Unexpected console statement.  no-console
+161:5  Error: Unexpected console statement.  no-console
+196:5  Error: Unexpected console statement.  no-console
+
+./app/api/admin/wanted-requests/approve/route.ts
+56:7  Error: Unexpected console statement.  no-console
+73:9  Error: Unexpected console statement.  no-console
+91:7  Error: Unexpected console statement.  no-console
+107:5  Error: Unexpected console statement.  no-console
+
+./app/api/admin/wanted-requests/delete/route.ts
+54:9  Error: Unexpected console statement.  no-console
+64:9  Error: Unexpected console statement.  no-console
+80:9  Error: Unexpected console statement.  no-console
+98:9  Error: Unexpected console statement.  no-console
+117:7  Error: Unexpected console statement.  no-console
+126:5  Error: Unexpected console statement.  no-console
+
+./app/api/admin/wanted-requests/reject/route.ts
+52:7  Error: Unexpected console statement.  no-console
+69:9  Error: Unexpected console statement.  no-console
+87:7  Error: Unexpected console statement.  no-console
+96:5  Error: Unexpected console statement.  no-console
+
+./app/api/admin/wanted-requests/route.ts
+69:7  Error: Unexpected console statement.  no-console
+90:7  Error: Unexpected console statement.  no-console
+101:5  Error: Unexpected console statement.  no-console
+
+./app/api/ai-description/route.ts
+143:5  Error: Unexpected console statement.  no-console
+
+./app/api/auth/check-email/route.ts
+38:7  Error: Unexpected console statement.  no-console
+56:5  Error: Unexpected console statement.  no-console
+
+./app/api/auth/check-username/route.ts
+38:7  Error: Unexpected console statement.  no-console
+50:5  Error: Unexpected console statement.  no-console
+
+./app/api/auth/create-account/route.ts
+62:9  Error: Unexpected console statement.  no-console
+81:9  Error: Unexpected console statement.  no-console
+94:5  Error: Unexpected console statement.  no-console
+
+./app/api/auth/google-one-tap/route.ts
+36:7  Error: Unexpected console statement.  no-console
+73:5  Error: Unexpected console statement.  no-console
+
+./app/api/auth/logout/route.ts
+28:9  Error: Unexpected console statement.  no-console
+43:5  Error: Unexpected console statement.  no-console
+
+./app/api/auth/send-phone-otp/route.ts
+18:5  Error: Unexpected console statement.  no-console
+47:7  Error: Unexpected console statement.  no-console
+50:9  Error: Unexpected console statement.  no-console
+85:7  Error: Unexpected console statement.  no-console
+128:7  Error: Unexpected console statement.  no-console
+143:9  Error: Unexpected console statement.  no-console
+152:7  Error: Unexpected console statement.  no-console
+162:7  Error: Unexpected console statement.  no-console
+172:5  Error: Unexpected console statement.  no-console
+
+./app/api/auth/sessions/route.ts
+124:7  Error: Unexpected console statement.  no-console
+139:5  Error: Unexpected console statement.  no-console
+201:9  Error: Unexpected console statement.  no-console
+223:9  Error: Unexpected console statement.  no-console
+240:5  Error: Unexpected console statement.  no-console
+287:9  Error: Unexpected console statement.  no-console
+311:9  Error: Unexpected console statement.  no-console
+329:5  Error: Unexpected console statement.  no-console
+
+./app/api/auth/verify-phone-otp/route.ts
+52:9  Error: Unexpected console statement.  no-console
+82:7  Error: Unexpected console statement.  no-console
+106:5  Error: Unexpected console statement.  no-console
+
+./app/api/business-profile/pause/route.ts
+26:7  Error: Unexpected console statement.  no-console
+32:5  Error: Unexpected console statement.  no-console
+
+./app/api/business-profile/recover/route.ts
+22:7  Error: Unexpected console statement.  no-console
+38:5  Error: Unexpected console statement.  no-console
+72:7  Error: Unexpected console statement.  no-console
+85:5  Error: Unexpected console statement.  no-console
+95:5  Error: Unexpected console statement.  no-console
+
+./app/api/business-profile/resume/route.ts
+26:7  Error: Unexpected console statement.  no-console
+32:5  Error: Unexpected console statement.  no-console
+
+./app/api/business-profile/route.ts
+25:7  Error: Unexpected console statement.  no-console
+31:5  Error: Unexpected console statement.  no-console
+136:7  Error: Unexpected console statement.  no-console
+137:7  Error: Unexpected console statement.  no-console
+138:7  Error: Unexpected console statement.  no-console
+157:5  Error: Unexpected console statement.  no-console
+207:7  Error: Unexpected console statement.  no-console
+213:5  Error: Unexpected console statement.  no-console
+240:7  Error: Unexpected console statement.  no-console
+246:5  Error: Unexpected console statement.  no-console
+
+./app/api/cron/generate-templates/route.ts
+21:7  Error: Unexpected console statement.  no-console
+32:7  Error: Unexpected console statement.  no-console
+39:5  Error: Unexpected console statement.  no-console
+45:7  Error: Unexpected console statement.  no-console
+52:5  Error: Unexpected console statement.  no-console
+63:5  Error: Unexpected console statement.  no-console
+
+./app/api/cron/promotions/route.ts
+61:5  Error: Unexpected console statement.  no-console
+
+./app/api/cron/regenerate-templates/route.ts
+14:5  Error: Unexpected console statement.  no-console
+31:7  Error: Unexpected console statement.  no-console
+39:7  Error: Unexpected console statement.  no-console
+49:5  Error: Unexpected console statement.  no-console
+
+./app/api/favorites/listings/route.ts
+48:7  Error: Unexpected console statement.  no-console
+61:5  Error: Unexpected console statement.  no-console
+
+./app/api/favorites/route.ts
+24:7  Error: Unexpected console statement.  no-console
+34:5  Error: Unexpected console statement.  no-console
+79:9  Error: Unexpected console statement.  no-console
+94:9  Error: Unexpected console statement.  no-console
+105:5  Error: Unexpected console statement.  no-console
+
+./app/api/generate-ai-guide/route-optimized.ts
+87:5  Error: Unexpected console statement.  no-console
+
+./app/api/generate-ai-guide/route.ts
+41:7  Error: Unexpected console statement.  no-console
+125:5  Error: Unexpected console statement.  no-console
+
+./app/api/health/route.ts
+51:5  Error: Unexpected console statement.  no-console
+
+./app/api/listings/delete/route.ts
+75:7  Error: Unexpected console statement.  no-console
+93:7  Error: Unexpected console statement.  no-console
+103:5  Error: Unexpected console statement.  no-console
+
+./app/api/listings/pause/route.ts
+12:5  Error: Unexpected console statement.  no-console
+23:5  Error: Unexpected console statement.  no-console
+39:5  Error: Unexpected console statement.  no-console
+42:7  Error: Unexpected console statement.  no-console
+110:7  Error: Unexpected console statement.  no-console
+128:7  Error: Unexpected console statement.  no-console
+140:5  Error: Unexpected console statement.  no-console
+
+./app/api/listings/renew/route.ts
+76:7  Error: Unexpected console statement.  no-console
+94:7  Error: Unexpected console statement.  no-console
+104:5  Error: Unexpected console statement.  no-console
+
+./app/api/listings/[id]/view/route.ts
+28:7  Error: Unexpected console statement.  no-console
+38:5  Error: Unexpected console statement.  no-console
+
+./app/api/messages/[id]/mark-read/route.ts
+74:7  Error: Unexpected console statement.  no-console
+92:7  Error: Unexpected console statement.  no-console
+105:5  Error: Unexpected console statement.  no-console
+
+./app/api/messaging/conversations/route.ts
+51:7  Error: Unexpected console statement.  no-console
+64:5  Error: Unexpected console statement.  no-console
+131:7  Error: Unexpected console statement.  no-console
+161:7  Error: Unexpected console statement.  no-console
+180:9  Error: Unexpected console statement.  no-console
+191:5  Error: Unexpected console statement.  no-console
+
+./app/api/messaging/conversations/[id]/route.ts
+74:7  Error: Unexpected console statement.  no-console
+86:5  Error: Unexpected console statement.  no-console
+174:7  Error: Unexpected console statement.  no-console
+200:7  Error: Unexpected console statement.  no-console
+209:5  Error: Unexpected console statement.  no-console
+
+./app/api/messaging/conversations-optimized/route.ts
+105:7  Error: Unexpected console statement.  no-console
+160:5  Error: Unexpected console statement.  no-console
+
+./app/api/messaging/messages-optimized/[conversationId]/route.ts
+111:7  Error: Unexpected console statement.  no-console
+178:23  Error: Unexpected console statement.  no-console
+188:5  Error: Unexpected console statement.  no-console
+
+./app/api/notifications/register/route.ts
+55:7  Error: Unexpected console statement.  no-console
+67:5  Error: Unexpected console statement.  no-console
+
+./app/api/notifications/unregister/route.ts
+34:7  Error: Unexpected console statement.  no-console
+45:5  Error: Unexpected console statement.  no-console
+
+./app/api/payments/payhere/notify/route.ts
+15:5  Error: Unexpected console statement.  no-console
+22:5  Error: Unexpected console statement.  no-console
+
+./app/api/profiles/route.ts
+29:5  Error: Unexpected console statement.  no-console
+45:5  Error: Unexpected console statement.  no-console
+65:7  Error: Unexpected console statement.  no-console
+69:5  Error: Unexpected console statement.  no-console
+72:5  Error: Unexpected console statement.  no-console
+
+./app/api/reports/create/route.ts
+113:7  Error: Unexpected console statement.  no-console
+123:5  Error: Unexpected console statement.  no-console
+
+./app/api/user/bin/route.ts
+40:7  Error: Unexpected console statement.  no-console
+72:5  Error: Unexpected console statement.  no-console
+131:7  Error: Unexpected console statement.  no-console
+159:5  Error: Unexpected console statement.  no-console
+
+./app/api/user/password/route.ts
+90:5  Error: Unexpected console statement.  no-console
+
+./app/api/wanted-requests/close/route.ts
+74:7  Error: Unexpected console statement.  no-console
+91:5  Error: Unexpected console statement.  no-console
+
+./app/api/wanted-requests/delete/route.ts
+75:7  Error: Unexpected console statement.  no-console
+93:7  Error: Unexpected console statement.  no-console
+103:5  Error: Unexpected console statement.  no-console
+
+./app/api/wanted-requests/match-notifications/route.ts
+21:5  Error: Unexpected console statement.  no-console
+69:5  Error: Unexpected console statement.  no-console
+116:5  Error: Unexpected console statement.  no-console
+
+./app/api/wanted-requests/pause/route.ts
+96:7  Error: Unexpected console statement.  no-console
+113:5  Error: Unexpected console statement.  no-console
+
+./app/api/wanted-requests/payment/complete/route.ts
+62:7  Error: Unexpected console statement.  no-console
+82:5  Error: Unexpected console statement.  no-console
+
+./app/api/wanted-requests/payment/skip/route.ts
+58:7  Error: Unexpected console statement.  no-console
+72:5  Error: Unexpected console statement.  no-console
+
+./app/api/wanted-requests/renew/route.ts
+86:7  Error: Unexpected console statement.  no-console
+104:7  Error: Unexpected console statement.  no-console
+114:5  Error: Unexpected console statement.  no-console
+
+./app/api/wanted-requests/route.ts
+130:7  Error: Unexpected console statement.  no-console
+147:5  Error: Unexpected console statement.  no-console
+241:7  Error: Unexpected console statement.  no-console
+256:5  Error: Unexpected console statement.  no-console
+
+./app/api/wanted-requests/track-click/route.ts
+7:5  Error: Unexpected console statement.  no-console
+10:7  Error: Unexpected console statement.  no-console
+20:5  Error: Unexpected console statement.  no-console
+26:7  Error: Unexpected console statement.  no-console
+33:5  Error: Unexpected console statement.  no-console
+36:5  Error: Unexpected console statement.  no-console
+
+./app/api/wanted-requests/update/route.ts
+75:7  Error: Unexpected console statement.  no-console
+94:7  Error: Unexpected console statement.  no-console
+106:5  Error: Unexpected console statement.  no-console
+
+./app/business/[id]/page.tsx
+77:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+105:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/careers/page.tsx
+40:7  Error: Unexpected console statement.  no-console
+68:19  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+83:34  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+125:47  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/components/AboutSection.tsx
+13:71  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/components/admin/AlertsWidget.tsx
+54:7  Error: Unexpected console statement.  no-console
+82:7  Error: Unexpected console statement.  no-console
+84:7  Error: Unexpected console statement.  no-console
+
+./app/components/admin/CleanupMonitoringWidget.tsx
+94:7  Error: Unexpected console statement.  no-console
+131:7  Error: Unexpected console statement.  no-console
+
+./app/components/admin/SecurityStatusWidget.tsx
+259:20  Error: 'Sparkline' is not defined.  react/jsx-no-undef
+267:20  Error: 'Sparkline' is not defined.  react/jsx-no-undef
+
+./app/components/admin/SystemHealthWidget.tsx
+54:7  Error: Unexpected console statement.  no-console
+
+./app/components/auth/AuthModal.tsx
+71:5  Error: Unexpected console statement.  no-console
+248:16  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/components/auth/EmailAuthForm.tsx
+58:7  Error: Unexpected console statement.  no-console
+145:7  Error: Unexpected console statement.  no-console
+
+./app/components/auth/ForgotPasswordFlow.tsx
+302:46  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+399:19  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/components/auth/GoogleOneTapProvider.tsx
+36:7  Error: Unexpected console statement.  no-console
+49:9  Error: Unexpected console statement.  no-console
+56:9  Error: Unexpected console statement.  no-console
+61:9  Error: Unexpected console statement.  no-console
+66:7  Error: Unexpected console statement.  no-console
+88:7  Error: Unexpected console statement.  no-console
+107:13  Error: Unexpected console statement.  no-console
+109:13  Error: Unexpected console statement.  no-console
+116:7  Error: Unexpected console statement.  no-console
+133:9  Error: Unexpected console statement.  no-console
+
+./app/components/auth/GoogleSignInButton.tsx
+57:7  Error: Unexpected console statement.  no-console
+
+./app/components/auth/OTPInput.tsx
+55:6  Warning: React Hook useEffect has a missing dependency: 'handleVerifyOTP'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+128:7  Error: Unexpected console statement.  no-console
+166:7  Error: Unexpected console statement.  no-console
+250:15  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/components/auth/OTPVerification.tsx
+53:6  Warning: React Hook useEffect has a missing dependency: 'setupSMSAutoFill'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+153:7  Error: Unexpected console statement.  no-console
+241:15  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/components/auth/PhoneAuthForm.tsx
+76:7  Error: Unexpected console statement.  no-console
+114:61  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/components/auth/PhoneNumberInput.tsx
+80:7  Error: Unexpected console statement.  no-console
+104:13  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/components/auth/SimpleForgotPassword.tsx
+79:15  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+119:42  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/components/auth/StreamlinedSignup.tsx
+59:5  Error: Unexpected console statement.  no-console
+
+./app/components/auth/UsernameCreation.tsx
+98:9  Error: Unexpected console statement.  no-console
+156:7  Error: Unexpected console statement.  no-console
+
+./app/components/AuthWrapper.tsx
+17:5  Error: Unexpected console statement.  no-console
+18:5  Error: Unexpected console statement.  no-console
+22:7  Error: Unexpected console statement.  no-console
+27:9  Error: Unexpected console statement.  no-console
+48:3  Error: Unexpected console statement.  no-console
+
+./app/components/CapacitorInitializer.tsx
+88:13  Error: Unexpected console statement.  no-console
+92:13  Error: Unexpected console statement.  no-console
+96:13  Error: Unexpected console statement.  no-console
+99:13  Error: Unexpected console statement.  no-console
+119:17  Error: Unexpected console statement.  no-console
+123:13  Error: Unexpected console statement.  no-console
+129:11  Error: Unexpected console statement.  no-console
+134:11  Error: Unexpected console statement.  no-console
+151:9  Error: Unexpected console statement.  no-console
+153:9  Error: Unexpected console statement.  no-console
+
+./app/components/CloudinaryTestUpload.tsx
+209:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/components/ContactProfile.tsx
+78:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+93:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+262:7  Error: Unexpected console statement.  no-console
+
+./app/components/ContactProfileOriginal.tsx
+193:7  Error: Unexpected console statement.  no-console
+
+./app/components/ErrorBoundary.tsx
+26:5  Error: Unexpected console statement.  no-console
+
+./app/components/FavoriteButton.tsx
+66:13  Error: Unexpected console statement.  no-console
+90:7  Error: Unexpected console statement.  no-console
+
+./app/components/favorites/FavoriteAdCard.tsx
+36:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/components/favorites/FavoritesTab.tsx
+125:56  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/components/filters/MobileFilterSheet.tsx
+426:41  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/components/GoogleOneTap.tsx
+20:7  Error: Unexpected console statement.  no-console
+33:9  Error: Unexpected console statement.  no-console
+45:9  Error: Unexpected console statement.  no-console
+49:9  Error: Unexpected console statement.  no-console
+52:7  Error: Unexpected console statement.  no-console
+74:9  Error: Unexpected console statement.  no-console
+91:13  Error: Unexpected console statement.  no-console
+93:13  Error: Unexpected console statement.  no-console
+98:7  Error: Unexpected console statement.  no-console
+
+./app/components/header.tsx
+68:6  Warning: React Hook useEffect has a missing dependency: 'checkForShowLogin'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+73:6  Warning: React Hook useEffect has a missing dependency: 'checkForShowLogin'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+86:6  Warning: React Hook useEffect has a missing dependency: 'checkForShowLogin'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/components/hero/SmartLocationSearch.tsx
+304:42  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+304:50  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+
+./app/components/homepage/FeaturedListingsSSR.tsx
+42:7  Error: Unexpected console statement.  no-console
+62:5  Error: Unexpected console statement.  no-console
+
+./app/components/ImageLightbox.tsx
+144:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+189:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/components/ImageUploadWithCompression.tsx
+77:9  Error: Unexpected console statement.  no-console
+100:7  Error: Unexpected console statement.  no-console
+113:7  Error: Unexpected console statement.  no-console
+163:7  Error: Unexpected console statement.  no-console
+192:7  Error: Unexpected console statement.  no-console
+334:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/components/listings/FairShareIndicator.tsx
+133:29  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/components/messages/ConversationView.tsx
+59:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+80:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+106:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+161:27  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+184:29  Error: Unexpected console statement.  no-console
+
+./app/components/messages/MessagePreview.tsx
+49:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/components/messages/MessagesTab.tsx
+42:6  Warning: React Hook useEffect has a missing dependency: 'loadMessages'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+55:7  Error: Unexpected console statement.  no-console
+73:7  Error: Unexpected console statement.  no-console
+
+./app/components/messaging/EnhancedConversationModal.tsx
+122:6  Warning: React Hook useCallback has a missing dependency: 'handleSendMessage'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+289:7  Error: Unexpected console statement.  no-console
+319:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+428:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/components/messaging/OfferCard.tsx
+46:7  Error: Unexpected console statement.  no-console
+
+./app/components/messaging/OfferModal.tsx
+65:7  Error: Unexpected console statement.  no-console
+
+./app/components/mobile/ProfileMenu.tsx
+51:7  Error: Unexpected console statement.  no-console
+
+./app/components/modals/ContactModal.tsx
+50:7  Error: Unexpected console statement.  no-console
+
+./app/components/modals/ConversationModal.tsx
+86:6  Warning: React Hook useEffect has a missing dependency: 'loadConversation'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+138:9  Error: Unexpected console statement.  no-console
+144:7  Error: Unexpected console statement.  no-console
+155:9  Error: Unexpected console statement.  no-console
+162:7  Error: Unexpected console statement.  no-console
+193:11  Error: Unexpected console statement.  no-console
+229:9  Error: Unexpected console statement.  no-console
+239:7  Error: Unexpected console statement.  no-console
+296:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+365:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/components/modals/DeleteAccountModal.tsx
+65:7  Error: Unexpected console statement.  no-console
+
+./app/components/notifications/NotificationCard.tsx
+176:20  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/components/notifications/NotificationsTab.tsx
+214:59  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/components/notifications/Toast.tsx
+61:6  Warning: React Hook useEffect has a missing dependency: 'handleClose'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/components/PhoneVerificationModal.tsx
+52:11  Error: Unexpected console statement.  no-console
+58:6  Warning: React Hook useEffect has a missing dependency: 'handleVerifyOtp'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+179:7  Error: Unexpected console statement.  no-console
+213:7  Error: Unexpected console statement.  no-console
+
+./app/components/profile/BusinessPageTab.tsx
+59:37  Error: React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+60:41  Error: React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+63:35  Error: React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+173:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+208:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/components/profile/BusinessProfileRecovery.tsx
+43:9  Error: Unexpected console statement.  no-console
+46:7  Error: Unexpected console statement.  no-console
+83:7  Error: Unexpected console statement.  no-console
+
+./app/components/profile/ProfileSetup.tsx
+112:7  Error: Unexpected console statement.  no-console
+132:47  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/components/ReportModal.tsx
+116:7  Error: Unexpected console statement.  no-console
+171:66  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/components/security/DeleteAccountCard.tsx
+31:7  Error: Unexpected console statement.  no-console
+
+./app/components/security/EmailSecurityCard.tsx
+192:20  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+192:88  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/components/security/PasswordSecurityCard.tsx
+322:50  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/components/security/SessionsCard.tsx
+61:7  Error: Unexpected console statement.  no-console
+78:7  Error: Unexpected console statement.  no-console
+
+./app/components/security/TwoFactorCard.tsx
+152:21  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/components/vehicle-forms/AdditionalInformationSection.tsx
+43:6  Warning: React Hook React.useEffect has missing dependencies: 'formData.previousOwners', 'formData.registrationYear', 'formData.serviceRecordsAvailable', 'formData.vehicleConditionDetails', and 'setFormData'. Either include them or remove the dependency array. If 'setFormData' changes too often, find the parent component that defines it and wrap that definition in useCallback.  react-hooks/exhaustive-deps
+
+./app/components/vehicle-forms/DescriptionGenerator.tsx
+52:6  Warning: React Hook useEffect has a missing dependency: 'isExpanded'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+61:6  Warning: React Hook useEffect has a missing dependency: 'formData.description'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/components/vehicle-forms/PricingSection.tsx
+226:27  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/components/vehicle-forms/VehicleFormFactory.tsx
+89:74  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/components/WantedRequestFavoriteButton.tsx
+30:6  Warning: React Hook useEffect has a missing dependency: 'checkIfSaved'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+42:6  Warning: React Hook useEffect has a missing dependency: 'checkIfSaved'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+98:7  Error: Unexpected console statement.  no-console
+
+./app/components/wantedRequests/RegularWantedCard.tsx
+39:5  Error: Unexpected console statement.  no-console
+50:7  Error: Unexpected console statement.  no-console
+53:9  Error: Unexpected console statement.  no-console
+56:7  Error: Unexpected console statement.  no-console
+
+./app/components/wantedRequests/UrgentWantedCard.tsx
+49:7  Error: Unexpected console statement.  no-console
+
+./app/contexts/AuthContext.tsx
+33:9  Error: Unexpected console statement.  no-console
+64:7  Error: Unexpected console statement.  no-console
+
+./app/disclaimer/page.tsx
+44:21  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/faq/FAQClient.tsx
+78:63  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/forgot-password/page.tsx
+47:17  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+67:36  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/hooks/useFavorites.ts
+68:7  Error: Unexpected console statement.  no-console
+96:6  Warning: React Hook useCallback has a missing dependency: 'isFavorited'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/hooks/useListingManagement.ts
+68:9  Error: Unexpected console statement.  no-console
+94:7  Error: Unexpected console statement.  no-console
+
+./app/hooks/useMessaging.ts
+46:7  Error: Unexpected console statement.  no-console
+75:7  Error: Unexpected console statement.  no-console
+
+./app/hooks/useSessionManager.ts
+81:7  Error: Unexpected console statement.  no-console
+122:7  Error: Unexpected console statement.  no-console
+143:9  Error: Unexpected console statement.  no-console
+151:7  Error: Unexpected console statement.  no-console
+196:7  Error: Unexpected console statement.  no-console
+238:7  Error: Unexpected console statement.  no-console
+
+./app/layout.tsx
+31:9  Error: Synchronous scripts should not be used. See: https://nextjs.org/docs/messages/no-sync-scripts  @next/next/no-sync-scripts
+
+./app/listings/page.tsx
+322:6  Warning: React Hook useEffect has a missing dependency: 'loadPromotedAds'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+327:6  Warning: React Hook useEffect has a missing dependency: 'applyFilters'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+380:6  Warning: React Hook useEffect has a missing dependency: 'generateAIGuide'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+1467:77  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+1467:90  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+
+./app/listings/[id]/ListingDetailClient.tsx
+166:9  Error: Unexpected console statement.  no-console
+172:7  Error: Unexpected console statement.  no-console
+175:7  Error: Unexpected console statement.  no-console
+206:9  Error: Unexpected console statement.  no-console
+247:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+312:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+410:25  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+754:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+819:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/listings/[id]/page.tsx
+54:3  Error: Unexpected console statement.  no-console
+55:3  Error: Unexpected console statement.  no-console
+58:3  Error: Unexpected console statement.  no-console
+88:7  Error: Unexpected console statement.  no-console
+138:3  Error: Unexpected console statement.  no-console
+
+./app/membership/page.tsx
+31:15  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/page.tsx
+40:22  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+112:18  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/post/boost/page.tsx
+134:5  Error: Unexpected console statement.  no-console
+151:19  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+151:71  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+285:86  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/post/page.tsx
+322:6  Warning: React Hook useEffect has missing dependencies: 'formData.phone' and 'formData.whatsapp'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+560:7  Error: Unexpected console statement.  no-console
+661:9  Error: Unexpected console statement.  no-console
+1472:27  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/post/paid-features/page.tsx
+144:7  Error: Unexpected console statement.  no-console
+178:61  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/profile/account/page.tsx
+83:9  Error: Unexpected console statement.  no-console
+120:7  Error: Unexpected console statement.  no-console
+
+./app/profile/bin/page.tsx
+37:7  Error: Unexpected console statement.  no-console
+80:7  Error: Unexpected console statement.  no-console
+
+./app/profile/business/page.tsx
+48:7  Error: Unexpected console statement.  no-console
+57:5  Error: Unexpected console statement.  no-console
+
+./app/profile/listings/page.tsx
+175:35  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+253:31  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/profile/messages/page.tsx
+22:9  Error: Unexpected console statement.  no-console
+26:7  Error: Unexpected console statement.  no-console
+36:7  Error: Unexpected console statement.  no-console
+66:7  Error: Unexpected console statement.  no-console
+69:7  Error: Unexpected console statement.  no-console
+110:7  Error: Unexpected console statement.  no-console
+130:7  Error: Unexpected console statement.  no-console
+139:7  Error: Unexpected console statement.  no-console
+141:7  Error: Unexpected console statement.  no-console
+149:7  Error: Unexpected console statement.  no-console
+151:7  Error: Unexpected console statement.  no-console
+162:7  Error: Unexpected console statement.  no-console
+
+./app/profile/notifications/page.tsx
+30:5  Error: Unexpected console statement.  no-console
+
+./app/profile/security/page.tsx
+39:9  Error: Unexpected console statement.  no-console
+51:5  Error: Unexpected console statement.  no-console
+82:7  Error: Unexpected console statement.  no-console
+89:5  Error: Unexpected console statement.  no-console
+
+./app/profile/setup/page.tsx
+28:11  Error: Unexpected console statement.  no-console
+41:9  Error: Unexpected console statement.  no-console
+
+./app/profile/wanted/page.tsx
+69:9  Error: Unexpected console statement.  no-console
+88:7  Error: Unexpected console statement.  no-console
+130:7  Error: Unexpected console statement.  no-console
+167:7  Error: Unexpected console statement.  no-console
+200:7  Error: Unexpected console statement.  no-console
+229:7  Error: Unexpected console statement.  no-console
+278:50  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/safety/page.tsx
+44:29  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+230:23  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+260:93  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+271:73  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+271:83  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+
+./app/terms/page.tsx
+30:58  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+30:67  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+30:138  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+30:144  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+101:78  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+109:56  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+116:42  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+116:48  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+116:54  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+116:68  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+123:21  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/test-auth/page.tsx
+12:7  Error: Unexpected console statement.  no-console
+15:7  Error: Unexpected console statement.  no-console
+16:7  Error: Unexpected console statement.  no-console
+19:7  Error: Unexpected console statement.  no-console
+
+./app/wanted/components/MatchNotificationBanner.tsx
+36:7  Error: Unexpected console statement.  no-console
+167:7  Error: Unexpected console statement.  no-console
+
+./app/wanted/page.tsx
+158:7  Error: Unexpected console statement.  no-console
+168:11  Error: Unexpected console statement.  no-console
+211:6  Warning: React Hook useEffect has a missing dependency: 'fetchRequests'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+219:6  Warning: React Hook useEffect has missing dependencies: 'filters.maxBudget', 'filters.minBudget', 'filters.yearFrom', and 'filters.yearTo'. Either include them or remove the dependency array. You can also replace multiple useState variables with useReducer if 'setTempMinBudget' needs the current value of 'filters.minBudget'.  react-hooks/exhaustive-deps
+241:6  Warning: React Hook useEffect has a missing dependency: 'applyFilters'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+345:7  Error: Unexpected console statement.  no-console
+
+./app/wanted/payment/[requestId]/page.tsx
+57:9  Error: Unexpected console statement.  no-console
+66:6  Warning: React Hook useEffect has a missing dependency: 'showError'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+108:7  Error: Unexpected console statement.  no-console
+140:7  Error: Unexpected console statement.  no-console
+
+./app/wanted/post/page.tsx
+77:7  Error: Unexpected console statement.  no-console
+89:13  Error: Unexpected console statement.  no-console
+96:13  Error: Unexpected console statement.  no-console
+147:11  Error: Unexpected console statement.  no-console
+155:6  Warning: React Hook useEffect has a missing dependency: 'showError'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+169:6  Warning: React Hook useEffect has a missing dependency: 'formData.phone'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+238:6  Warning: React Hook useEffect has missing dependencies: 'formData.model' and 'getModelOptions'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+537:7  Error: Unexpected console statement.  no-console
+598:25  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/wanted/search/page.tsx
+159:6  Warning: React Hook useEffect has a missing dependency: 'fetchRequests'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+164:6  Warning: React Hook useEffect has a missing dependency: 'applyFilters'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+242:7  Error: Unexpected console statement.  no-console
+
+./app/wanted/[id]/page.tsx
+55:6  Warning: React Hook useEffect has missing dependencies: 'fetchRequest' and 'incrementViews'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+139:7  Error: Unexpected console statement.  no-console
+153:7  Error: Unexpected console statement.  no-console
+179:7  Error: Unexpected console statement.  no-console
+229:69  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+229:90  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./components/ui/ResponsiveImage.tsx
+135:7  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+151:9  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./lib/capacitor-bridge.ts
+127:5  Error: Unexpected console statement.  no-console
+155:5  Error: Unexpected console statement.  no-console
+171:5  Error: Unexpected console statement.  no-console
+201:5  Error: Unexpected console statement.  no-console
+217:5  Error: Unexpected console statement.  no-console
+282:5  Error: Unexpected console statement.  no-console
+
+./lib/config/auth.config.ts
+66:5  Error: Unexpected console statement.  no-console
+
+./lib/contexts/FavoritesContext.tsx
+38:9  Error: Unexpected console statement.  no-console
+42:7  Error: Unexpected console statement.  no-console
+81:9  Error: Unexpected console statement.  no-console
+87:7  Error: Unexpected console statement.  no-console
+92:7  Error: Unexpected console statement.  no-console
+
+./lib/hooks/useFavorites.ts
+26:9  Error: Unexpected console statement.  no-console
+30:7  Error: Unexpected console statement.  no-console
+69:9  Error: Unexpected console statement.  no-console
+75:7  Error: Unexpected console statement.  no-console
+80:7  Error: Unexpected console statement.  no-console
+
+./lib/hooks/usePromotedListings.ts
+111:7  Error: Unexpected console statement.  no-console
+120:6  Warning: React Hook useEffect has a missing dependency: 'fetchListings'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./lib/hooks/useRecaptcha.ts
+29:9  Error: Unexpected console statement.  no-console
+49:7  Error: Unexpected console statement.  no-console
+
+./lib/hooks/useRotatedPromotions.ts
+93:7  Error: Unexpected console statement.  no-console
+103:6  Warning: React Hook useEffect has a missing dependency: 'fetchRotatedListings'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+113:6  Warning: React Hook useEffect has a missing dependency: 'fetchRotatedListings'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+134:6  Warning: React Hook useEffect has a missing dependency: 'fetchRotatedListings'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./lib/hooks/useUnreadMessages.ts
+18:7  Error: Unexpected console statement.  no-console
+34:9  Error: Unexpected console statement.  no-console
+80:6  Warning: React Hook useEffect has a missing dependency: 'supabase'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./lib/hooks/useUserProfile.ts
+112:7  Error: Unexpected console statement.  no-console
+121:6  Warning: React Hook useEffect has a missing dependency: 'fetchProfile'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./lib/hooks/useWantedNotifications.ts
+53:7  Error: Unexpected console statement.  no-console
+71:7  Error: Unexpected console statement.  no-console
+95:7  Error: Unexpected console statement.  no-console
+121:11  Error: Unexpected console statement.  no-console
+136:11  Error: Unexpected console statement.  no-console
+200:7  Error: Unexpected console statement.  no-console
+
+./lib/mcp/example.ts
+10:5  Error: Unexpected console statement.  no-console
+15:5  Error: Unexpected console statement.  no-console
+18:5  Error: Unexpected console statement.  no-console
+28:5  Error: Unexpected console statement.  no-console
+31:5  Error: Unexpected console statement.  no-console
+36:5  Error: Unexpected console statement.  no-console
+39:5  Error: Unexpected console statement.  no-console
+
+./lib/middleware/adminAuth.ts
+53:11  Error: Unexpected console statement.  no-console
+62:9  Error: Unexpected console statement.  no-console
+96:7  Error: Unexpected console statement.  no-console
+
+./lib/middleware/apiErrorHandler.ts
+80:5  Error: Unexpected console statement.  no-console
+
+./lib/monitoring/alerts.ts
+44:5  Error: Unexpected console statement.  no-console
+77:11  Error: Unexpected console statement.  no-console
+85:5  Error: Unexpected console statement.  no-console
+98:9  Error: Unexpected console statement.  no-console
+127:9  Error: Unexpected console statement.  no-console
+169:5  Error: Unexpected console statement.  no-console
+175:5  Error: Unexpected console statement.  no-console
+
+./lib/monitoring/metrics.ts
+105:5  Error: Unexpected console statement.  no-console
+118:5  Error: Unexpected console statement.  no-console
+145:7  Error: Unexpected console statement.  no-console
+
+./lib/monitoring/security-monitoring.ts
+76:5  Error: Unexpected console statement.  no-console
+234:7  Error: Unexpected console statement.  no-console
+264:7  Error: Unexpected console statement.  no-console
+
+./lib/monitoring/uptime.ts
+100:9  Error: Unexpected console statement.  no-console
+112:5  Error: Unexpected console statement.  no-console
+118:5  Error: Unexpected console statement.  no-console
+206:9  Error: Unexpected console statement.  no-console
+216:5  Error: Unexpected console statement.  no-console
+219:7  Error: Unexpected console statement.  no-console
+
+./lib/openai.ts
+50:5  Error: Unexpected console statement.  no-console
+94:5  Error: Unexpected console statement.  no-console
+
+./lib/payments/payhereService.tsx
+146:9  Error: Unexpected console statement.  no-console
+148:9  Error: Unexpected console statement.  no-console
+151:7  Error: Unexpected console statement.  no-console
+
+./lib/push-notifications.ts
+28:5  Error: Unexpected console statement.  no-console
+36:5  Error: Unexpected console statement.  no-console
+44:7  Error: Unexpected console statement.  no-console
+49:11  Error: Unexpected console statement.  no-console
+57:7  Error: Unexpected console statement.  no-console
+62:7  Error: Unexpected console statement.  no-console
+67:7  Error: Unexpected console statement.  no-console
+75:5  Error: Unexpected console statement.  no-console
+77:5  Error: Unexpected console statement.  no-console
+99:5  Error: Unexpected console statement.  no-console
+140:5  Error: Unexpected console statement.  no-console
+142:5  Error: Unexpected console statement.  no-console
+165:5  Error: Unexpected console statement.  no-console
+172:5  Error: Unexpected console statement.  no-console
+186:5  Error: Unexpected console statement.  no-console
+222:7  Error: Unexpected console statement.  no-console
+
+./lib/security/redis-rate-limiter.ts
+218:7  Error: Unexpected console statement.  no-console
+269:5  Error: Unexpected console statement.  no-console
+
+./lib/security/security-middleware.ts
+170:9  Error: Unexpected console statement.  no-console
+185:7  Error: Unexpected console statement.  no-console
+227:3  Error: Unexpected console statement.  no-console
+
+./lib/server/admin-auth.ts
+37:7  Error: Unexpected console statement.  no-console
+
+./lib/server/admin-dashboard.ts
+27:7  Error: Unexpected console statement.  no-console
+227:7  Error: Unexpected console statement.  no-console
+403:7  Error: Unexpected console statement.  no-console
+
+./lib/services/apiClient.ts
+78:5  Error: Unexpected console statement.  no-console
+
+./lib/services/rotationService.ts
+125:7  Error: Unexpected console statement.  no-console
+205:7  Error: Unexpected console statement.  no-console
+307:7  Error: Unexpected console statement.  no-console
+327:7  Error: Unexpected console statement.  no-console
+
+./lib/services/templateGenerationService.ts
+53:7  Error: Unexpected console statement.  no-console
+110:7  Error: Unexpected console statement.  no-console
+194:7  Error: Unexpected console statement.  no-console
+198:7  Error: Unexpected console statement.  no-console
+
+./lib/services/textlkService.ts
+36:7  Error: Unexpected console statement.  no-console
+62:11  Error: Unexpected console statement.  no-console
+63:11  Error: Unexpected console statement.  no-console
+64:11  Error: Unexpected console statement.  no-console
+65:11  Error: Unexpected console statement.  no-console
+101:9  Error: Unexpected console statement.  no-console
+112:9  Error: Unexpected console statement.  no-console
+119:7  Error: Unexpected console statement.  no-console
+206:7  Error: Unexpected console statement.  no-console
+239:7  Error: Unexpected console statement.  no-console
+
+./lib/services/wantedMatching.ts
+126:7  Error: Unexpected console statement.  no-console
+167:5  Error: Unexpected console statement.  no-console
+225:7  Error: Unexpected console statement.  no-console
+254:5  Error: Unexpected console statement.  no-console
+277:7  Error: Unexpected console statement.  no-console
+283:5  Error: Unexpected console statement.  no-console
+310:7  Error: Unexpected console statement.  no-console
+319:5  Error: Unexpected console statement.  no-console
+338:7  Error: Unexpected console statement.  no-console
+344:5  Error: Unexpected console statement.  no-console
+364:7  Error: Unexpected console statement.  no-console
+367:5  Error: Unexpected console statement.  no-console
+
+./lib/supabaseAdmin.ts
+8:3  Error: Unexpected console statement.  no-console
+
+./lib/utils/errorHandling.ts
+179:3  Error: Unexpected console statement.  no-console
+189:14  Error: Unexpected console statement.  no-console
+
+./lib/utils/featuredRotation.ts
+117:7  Error: Unexpected console statement.  no-console
+133:7  Error: Unexpected console statement.  no-console
+
+./lib/utils/fetch-with-retry.ts
+289:5  Error: Unexpected console statement.  no-console
+
+./lib/utils/image-compression.ts
+284:2  Error: Parsing error: Property or signature expected.
+
+./lib/utils/image-performance.ts
+235:3  Error: Unexpected console statement.  no-console
+236:3  Error: Unexpected console statement.  no-console
+237:3  Error: Unexpected console statement.  no-console
+238:3  Error: Unexpected console statement.  no-console
+239:3  Error: Unexpected console statement.  no-console
+242:5  Error: Unexpected console statement.  no-console
+243:5  Error: Unexpected console statement.  no-console
+244:5  Error: Unexpected console statement.  no-console
+245:5  Error: Unexpected console statement.  no-console
+249:5  Error: Unexpected console statement.  no-console
+251:7  Error: Unexpected console statement.  no-console
+253:5  Error: Unexpected console statement.  no-console
+257:5  Error: Unexpected console statement.  no-console
+259:7  Error: Unexpected console statement.  no-console
+261:5  Error: Unexpected console statement.  no-console
+264:3  Error: Unexpected console statement.  no-console
+
+./lib/utils/logger.ts
+31:7  Error: Unexpected console statement.  no-console
+38:9  Error: Unexpected console statement.  no-console
+48:9  Error: Unexpected console statement.  no-console
+66:9  Error: Unexpected console statement.  no-console
+68:11  Error: Unexpected console statement.  no-console
+
+./lib/utils/recaptcha-client.ts
+25:5  Error: Unexpected console statement.  no-console
+48:7  Error: Unexpected console statement.  no-console
+89:7  Error: Unexpected console statement.  no-console
+97:9  Error: Unexpected console statement.  no-console
+109:7  Error: Unexpected console statement.  no-console
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules

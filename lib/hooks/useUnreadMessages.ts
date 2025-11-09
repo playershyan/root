@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { logger } from '@/lib/utils/logger'
 
 export function useUnreadMessages() {
   const [unreadCount, setUnreadCount] = useState(0)
@@ -15,7 +16,7 @@ export function useUnreadMessages() {
         return
       }
 
-      console.log('[useUnreadMessages] Fetching unread count for user:', user.id)
+      logger.debug('[useUnreadMessages] Fetching unread count for user', { userId: user.id })
 
       // Fetch unread count from conversations
       const { data: conversations } = await supabase
@@ -31,7 +32,10 @@ export function useUnreadMessages() {
             : conv.seller_unread_count
           return sum + (count || 0)
         }, 0)
-        console.log('[useUnreadMessages] Total unread:', total, 'from', conversations.length, 'conversations')
+        logger.debug('[useUnreadMessages] Total unread', {
+          total,
+          conversationCount: conversations.length
+        })
         setUnreadCount(total)
       }
     }

@@ -72,12 +72,12 @@ class MetricsCollector {
     // Check for anomalies
     this.checkAnomalies(currentMetrics)
     
-    // Log to console for external monitoring
-    console.log('[SECURITY_METRIC]', JSON.stringify({
+    // Log to structured logger for external monitoring
+    logger.info('SECURITY_METRIC', {
       type,
       metadata,
       timestamp: now.toISOString()
-    }))
+    })
   }
 
   /**

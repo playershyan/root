@@ -6,6 +6,7 @@ import NotificationsTab from '@/app/components/notifications/NotificationsTab'
 import { useState } from 'react'
 import { NotificationPreferences } from '@/lib/utils/notificationsUtils'
 import { Button } from '@/components/ui/button'
+import { logger } from '@/lib/utils/logger'
 
 export default function NotificationsPage() {
   const router = useRouter()
@@ -27,7 +28,7 @@ export default function NotificationsPage() {
     setPreferences(newPreferences)
     // TODO: Save to backend API
     // For now, just log (matches original implementation)
-    console.log('Saving notification preferences:', newPreferences)
+    logger.debug('Saving notification preferences', { preferences: newPreferences })
   }
 
   return (

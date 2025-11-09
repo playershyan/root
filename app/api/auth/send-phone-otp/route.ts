@@ -3,6 +3,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { verifyRecaptcha, captchaGuardFailJson } from '@/lib/security/recaptcha'
 import { textlkService } from '@/lib/services/textlkService'
+import { logger } from '@/lib/utils/logger'
 
 // Simple OTP generation function
 function generateOTP(): string {
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     const { phoneNumber, recaptchaToken, isRegistration } = await request.json()
 
-    console.log('Send OTP request:', { phoneNumber, isRegistration, hasRecaptchaToken: !!recaptchaToken })
+    logger.debug('Send OTP request', { isRegistration, hasRecaptchaToken: !!recaptchaToken })
 
     // For registration flow, create a temporary user record if needed
     let userId: string
@@ -44,10 +45,10 @@ export async function POST(request: NextRequest) {
       const ipHeader = forwarded ? forwarded.split(',')[0].trim() : request.headers.get('x-real-ip') || undefined
       const captcha = await verifyRecaptcha(recaptchaToken, ipHeader)
 
-      console.log('reCAPTCHA result:', captcha)
+      logger.debug('reCAPTCHA result', { success: captcha.success, score: captcha.score })
 
       if (!captcha.success || (typeof captcha.score === 'number' && captcha.score < 0.3)) {
-        console.log('reCAPTCHA failed, returning error')
+        logger.warn('reCAPTCHA failed', { score: captcha.score })
         return captchaGuardFailJson(0.3)
       }
     } else if (!isRegistration) {
@@ -80,9 +81,9 @@ export async function POST(request: NextRequest) {
     }
 
     const { data: recentOtps, error: countError } = await rateLimitQuery
-    
+
     if (countError) {
-      console.error('Error checking OTP rate limit:', countError)
+      logger.error('Error checking OTP rate limit', countError as Error)
       return NextResponse.json({ error: 'Database error' }, { status: 500 })
     }
 
@@ -125,7 +126,7 @@ export async function POST(request: NextRequest) {
       })
 
     if (insertError) {
-      console.error('Error storing OTP:', insertError)
+      logger.error('Error storing OTP', insertError as Error)
       return NextResponse.json({ error: 'Failed to generate OTP' }, { status: 500 })
     }
 
@@ -140,7 +141,7 @@ export async function POST(request: NextRequest) {
         .eq('id', userId)
 
       if (profileError) {
-        console.error('Error updating profile:', profileError)
+        logger.error('Error updating profile', profileError as Error)
       }
     }
 
@@ -149,7 +150,7 @@ export async function POST(request: NextRequest) {
 
     if (!smsResult.success) {
       // Log error but still return success in development mode
-      console.error('SMS sending failed:', smsResult.error)
+      logger.error('SMS sending failed', new Error(smsResult.error || 'Unknown SMS error'))
 
       // In production, return error
       if (process.env.NODE_ENV === 'production') {
@@ -159,7 +160,7 @@ export async function POST(request: NextRequest) {
       }
 
       // In development, continue (OTP is still stored in DB)
-      console.log(`📱 Development Mode - OTP: ${otp}`)
+      logger.debug('Development Mode - OTP generated', { otp })
     }
 
     return NextResponse.json({ 
@@ -169,7 +170,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Send phone OTP error:', error)
+    logger.error('Send phone OTP error', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

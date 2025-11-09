@@ -19,6 +19,7 @@ import {
 import { useUserProfile } from '@/lib/hooks/useUserProfile'
 import { useToast } from '@/app/components/notifications/useToast'
 import { Toast } from '@/app/components/notifications/Toast'
+import { logger } from '@/lib/utils/logger'
 
 interface FormData {
   description: string
@@ -74,7 +75,11 @@ export default function PostWantedPage() {
   // Load existing wanted request data for edit mode
   useEffect(() => {
     if (isEditMode && editId && user) {
-      console.log('[WANTED POST] Loading existing request for edit:', editId)
+      logger.debug('Loading existing wanted request for edit', {
+        component: 'PostWantedPage',
+        action: 'loadWantedRequest',
+        requestId: editId
+      })
 
       const loadWantedRequest = async () => {
         try {
@@ -86,14 +91,22 @@ export default function PostWantedPage() {
             .single()
 
           if (error) {
-            console.error('[WANTED POST] Error loading wanted request:', error)
+            logger.error('Failed to load wanted request', error as Error, {
+              component: 'PostWantedPage',
+              action: 'loadWantedRequest',
+              requestId: editId
+            })
             showError('Error loading wanted request. Please try again.', 4000)
             router.push('/wanted')
             return
           }
 
           if (data) {
-            console.log('[WANTED POST] Loaded wanted request data:', data)
+            logger.debug('Loaded wanted request data', {
+              component: 'PostWantedPage',
+              action: 'loadWantedRequest',
+              requestId: editId
+            })
 
             // Parse location if it contains district
             let district = ''
@@ -144,7 +157,11 @@ export default function PostWantedPage() {
             }
           }
         } catch (error) {
-          console.error('[WANTED POST] Error in loadWantedRequest:', error)
+          logger.error('Error in loadWantedRequest', error as Error, {
+            component: 'PostWantedPage',
+            action: 'loadWantedRequest',
+            requestId: editId
+          })
           alert('Error loading wanted request. Please try again.')
           router.push('/wanted')
         }
@@ -534,7 +551,11 @@ export default function PostWantedPage() {
         }, 1000)
       }
     } catch (error) {
-      console.error('[WANTED POST] Error:', error)
+      logger.error('Error posting wanted request', error as Error, {
+        component: 'PostWantedPage',
+        action: 'handleSubmit',
+        isEditMode
+      })
       showError('Error posting request. Please try again.', 4000)
     } finally {
       setLoading(false)

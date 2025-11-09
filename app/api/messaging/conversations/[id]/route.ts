@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * GET /api/messaging/conversations/[id]
@@ -71,7 +72,7 @@ export async function GET(
       .order('created_at', { ascending: true })
 
     if (msgError) {
-      console.error('Error fetching messages:', msgError)
+      logger.error('Error fetching messages', msgError as Error)
       return NextResponse.json(
         { error: 'Failed to fetch messages' },
         { status: 500 }
@@ -83,7 +84,7 @@ export async function GET(
     })
 
   } catch (error) {
-    console.error('GET conversation error:', error)
+    logger.error('GET conversation error', error as Error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -171,8 +172,7 @@ export async function POST(
       .single()
 
     if (msgError) {
-      console.error('Detailed message error:', {
-        error: msgError,
+      logger.error('Detailed message error', msgError as Error, {
         code: msgError.code,
         details: msgError.details,
         hint: msgError.hint,
@@ -197,7 +197,7 @@ export async function POST(
       .eq('id', conversationId)
 
     if (updateError) {
-      console.error('Error updating conversation:', updateError)
+      logger.error('Error updating conversation', updateError as Error)
       // Don't fail the message creation if conversation update fails
     }
 
@@ -206,7 +206,7 @@ export async function POST(
     })
 
   } catch (error) {
-    console.error('POST conversation error:', error)
+    logger.error('POST conversation error', error as Error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

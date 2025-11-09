@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 // API endpoints for user bin management (restore deleted items)
 
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
       .rpc('get_user_bin_items', { p_user_id: user.id })
 
     if (binError) {
-      console.error('Error fetching bin items:', binError)
+      logger.error('Error fetching bin items', binError as Error, { details: binError.message })
       return NextResponse.json(
         { error: 'Failed to fetch bin items', details: binError.message },
         { status: 500 }
@@ -54,7 +55,7 @@ export async function GET(request: NextRequest) {
     const summary = {
       total_items: binItems?.length || 0,
       restorable_items: binItems?.filter(item => item.can_restore).length || 0,
-      items_expiring_soon: binItems?.filter(item => 
+      items_expiring_soon: binItems?.filter(item =>
         item.can_restore && item.days_until_permanent_deletion <= 7
       ).length || 0
     }
@@ -69,7 +70,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Unexpected error:', error)
+    logger.error('Unexpected error in GET bin items', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest) {
       })
 
     if (restoreError) {
-      console.error('Error restoring item:', restoreError)
+      logger.error('Error restoring item', restoreError as Error, { details: restoreError.message })
       return NextResponse.json(
         { error: 'Failed to restore item', details: restoreError.message },
         { status: 500 }
@@ -156,7 +157,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Unexpected error:', error)
+    logger.error('Unexpected error in POST bin restore', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -15,18 +15,27 @@ This directory contains all test files for the application.
 ## Running Tests
 
 ```bash
-npm run test          # Run all tests
+# Jest tests (unit + integration)
+npm run test          # Run all Jest tests
 npm run test:watch    # Run tests in watch mode
 npm run test:coverage # Run tests with coverage report
 npm run test:unit     # Run unit tests only
 npm run test:integration # Run integration tests only
+
+# Playwright E2E tests
+npm run test:e2e         # Run E2E tests (headless)
+npm run test:e2e:ui      # Run E2E tests with UI mode
+npm run test:e2e:headed  # Run E2E tests in headed mode
+
+# CI
+npm run test:ci       # Run all tests (Jest + Playwright)
 ```
 
 ## Test Files
 
-- Unit tests: `*.test.{ts,tsx}` or `*.spec.{ts,tsx}`
-- Integration tests: `*.integration.test.{ts,tsx}`
-- E2E tests: `*.e2e.test.{ts,tsx}`
+- Unit tests: `*.test.{ts,tsx}` or `*.spec.{ts,tsx}` (Jest)
+- Integration tests: `*.integration.test.{ts,tsx}` (Jest)
+- E2E tests: `*.e2e.test.{ts,tsx}` (Playwright)
 
 ## Coverage
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { logger } from '@/lib/utils/logger'
 
 export default function TestAuthPage() {
   const { user, loading } = useAuth()
@@ -9,14 +10,23 @@ export default function TestAuthPage() {
   
   const testAdminAPI = async () => {
     try {
-      console.log('Testing admin API...')
+      logger.debug('Testing admin API', {
+        component: 'TestAuthPage',
+        action: 'testAdminAPI'
+      })
       const response = await fetch('/api/admin/listings?limit=1')
       const data = await response.text()
-      console.log('API Response Status:', response.status)
-      console.log('API Response Body:', data)
+      logger.debug('API response received', {
+        component: 'TestAuthPage',
+        action: 'testAdminAPI',
+        status: response.status
+      })
       setApiResult(`Status: ${response.status}\n\nBody: ${data}`)
     } catch (error) {
-      console.error('API Test Error:', error)
+      logger.error('API test failed', error as Error, {
+        component: 'TestAuthPage',
+        action: 'testAdminAPI'
+      })
       setApiResult(`Error: ${error}`)
     }
   }

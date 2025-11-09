@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { 
-  Users, Car, AlertTriangle, CheckCircle, XCircle, 
+import {
+  Users, Car, AlertTriangle, CheckCircle, XCircle,
   Eye, MessageSquare, Clock, TrendingUp, Shield,
   FileText, Flag, Settings, LogOut, Building2, Database
 } from 'lucide-react'
@@ -12,6 +12,7 @@ import CleanupMonitoringWidget from '../components/admin/CleanupMonitoringWidget
 import AlertsWidget from '../components/admin/AlertsWidget'
 import SystemHealthWidget from '../components/admin/SystemHealthWidget'
 import SecurityStatusWidget from '../components/admin/SecurityStatusWidget'
+import { logger } from '@/lib/utils/logger'
 
 interface AdminStats {
   pendingListings: number
@@ -79,8 +80,8 @@ interface BusinessProfile {
 }
 
 export default function AdminDashboard() {
-  console.log('Admin dashboard - Component initializing...')
-  
+  logger.debug('Admin dashboard - Component initializing')
+
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('overview')
@@ -103,69 +104,67 @@ export default function AdminDashboard() {
   const [businessProfilesPage, setBusinessProfilesPage] = useState(1)
 
   useEffect(() => {
-    console.log('Admin dashboard - useEffect triggered, user:', user?.email, 'authLoading:', authLoading)
-    
+    logger.debug('Admin dashboard - useEffect triggered', { userEmail: user?.email, authLoading })
+
     // Don't do anything while auth is still loading
     if (authLoading) {
-      console.log('Admin dashboard - Auth still loading, waiting...')
+      logger.debug('Admin dashboard - Auth still loading, waiting')
       return
     }
-    
+
     // After auth loading is complete, check if user exists
     if (!user) {
-      console.log('Admin dashboard - Auth loaded but no user found, redirecting to /')
+      logger.debug('Admin dashboard - Auth loaded but no user found, redirecting')
       router.push('/')
       return
     }
-    
-    console.log('Admin dashboard - User found, calling checkAdminAccess and loadDashboardData')
+
+    logger.debug('Admin dashboard - User found, loading dashboard')
     checkAdminAccess()
     loadDashboardData()
   }, [user, authLoading])
 
   const checkAdminAccess = async () => {
     try {
-      console.log('Admin access check - Making request to /api/admin/listings')
+      logger.debug('Admin access check - Making request')
       const response = await fetch('/api/admin/listings?limit=1')
-      console.log('Admin access check - Response status:', response.status)
-      
+      logger.debug('Admin access check - Response received', { status: response.status })
+
       if (response.status === 403 || response.status === 401) {
-        console.log('Admin access check - Access denied, redirecting to /')
-        const responseText = await response.text()
-        console.log('Admin access check - Response body:', responseText)
+        logger.warn('Admin access check - Access denied', { status: response.status })
         router.push('/')
         return
       }
-      
-      console.log('Admin access check - Success!')
+
+      logger.debug('Admin access check - Success')
     } catch (error) {
-      console.error('Admin access check failed:', error)
+      logger.error('Admin access check failed', error as Error)
       router.push('/')
     }
   }
 
   const loadDashboardData = async () => {
     try {
-      console.log('Admin dashboard - Loading dashboard data...')
+      logger.debug('Admin dashboard - Loading dashboard data')
       setLoading(true)
-      
+
       // Load stats, listings, and reports in parallel
-      console.log('Admin dashboard - Starting parallel data load')
+      logger.debug('Admin dashboard - Starting parallel data load')
       const [statsRes, listingsRes, reportsRes] = await Promise.all([
         loadStats(),
         loadListings('pending'),
         loadReports('pending')
       ])
-      
-      console.log('Admin dashboard - Data loaded successfully')
+
+      logger.debug('Admin dashboard - Data loaded successfully')
 
     } catch (error) {
-      console.error('Error loading dashboard data:', error)
-      console.log('Admin dashboard - Error occurred, redirecting to /')
+      logger.error('Error loading dashboard data', error as Error)
+      logger.debug('Admin dashboard - Error occurred, redirecting')
       router.push('/')
     } finally {
       setLoading(false)
-      console.log('Admin dashboard - Loading complete, setLoading(false)')
+      logger.debug('Admin dashboard - Loading complete')
     }
   }
 
@@ -175,12 +174,12 @@ export default function AdminDashboard() {
       if (response.ok) {
         const data = await response.json()
         setStats(data)
-        console.log('Admin stats loaded:', data)
+        logger.debug('Admin stats loaded', { statsCount: Object.keys(data).length })
       } else {
-        console.error('Failed to load stats:', response.status)
+        logger.error('Failed to load stats', new Error(`Status: ${response.status}`))
       }
     } catch (error) {
-      console.error('Error loading stats:', error)
+      logger.error('Error loading stats', error as Error)
     }
   }
 
@@ -197,7 +196,7 @@ export default function AdminDashboard() {
         }
       }
     } catch (error) {
-      console.error('Error loading listings:', error)
+      logger.error('Error loading listings', error as Error)
     }
   }
 
@@ -216,32 +215,32 @@ export default function AdminDashboard() {
         }
       }
     } catch (error) {
-      console.error('Error loading business profiles:', error)
+      logger.error('Error loading business profiles', error as Error)
     }
   }
 
   const loadReports = async (status: string = 'pending', page: number = 1) => {
     try {
-      console.log('Admin dashboard - Loading reports...')
+      logger.debug('Admin dashboard - Loading reports')
       const response = await fetch(`/api/admin/reports?status=${status}&page=${page}`)
-      console.log('Admin dashboard - Reports API response status:', response.status)
-      
+      logger.debug('Admin dashboard - Reports API response', { status: response.status })
+
       if (response.ok) {
         const data = await response.json()
-        console.log('Admin dashboard - Reports data loaded:', data)
+        logger.debug('Admin dashboard - Reports data loaded', { count: data.reports?.length })
         setReports(data.reports || [])
-        
+
         // Update stats
         if (status === 'pending') {
           setStats(prev => ({ ...prev, pendingReports: data.totalCount || 0 }))
         }
       } else {
-        console.log('Admin dashboard - Reports API failed with status:', response.status)
+        logger.warn('Admin dashboard - Reports API failed', { status: response.status })
         // Don't throw error for reports, just continue
         setReports([])
       }
     } catch (error) {
-      console.error('Error loading reports:', error)
+      logger.error('Error loading reports', error as Error)
       // Don't throw error for reports, just continue
       setReports([])
     }

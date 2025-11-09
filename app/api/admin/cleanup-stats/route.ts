@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
+import { logger } from '@/lib/utils/logger'
 
 // GET - Admin cleanup statistics
 export async function GET(request: NextRequest) {
@@ -30,12 +31,13 @@ export async function GET(request: NextRequest) {
       .order('cleanup_date', { ascending: false })
 
     if (cleanupError) {
-      console.error('Error fetching cleanup stats:', cleanupError)
-      console.error('Cleanup stats error details:', JSON.stringify(cleanupError, null, 2))
-      
+      logger.error('Error fetching cleanup stats', cleanupError as Error, {
+        details: JSON.stringify(cleanupError, null, 2)
+      })
+
       // If table doesn't exist, return empty stats
       if (cleanupError.code === 'PGRST116' || cleanupError.message?.includes('relation') || cleanupError.message?.includes('does not exist')) {
-        console.log('Cleanup stats table not found, using empty stats')
+        logger.info('Cleanup stats table not found, using empty stats')
         return NextResponse.json({ 
           summary: {
             totalCleanups: 0,
@@ -78,9 +80,9 @@ export async function GET(request: NextRequest) {
       .select('*')
 
     if (recoveryError) {
-      console.error('Error fetching recovery stats:', recoveryError)
-      return NextResponse.json({ 
-        error: 'Failed to fetch recovery statistics' 
+      logger.error('Error fetching recovery stats', recoveryError as Error)
+      return NextResponse.json({
+        error: 'Failed to fetch recovery statistics'
       }, { status: 500 })
     }
 
@@ -91,7 +93,7 @@ export async function GET(request: NextRequest) {
       .limit(10)
 
     if (eligibleError) {
-      console.error('Error fetching eligible recoveries:', eligibleError)
+      logger.error('Error fetching eligible recoveries', eligibleError as Error)
     }
 
     // Get bin statistics
@@ -99,8 +101,9 @@ export async function GET(request: NextRequest) {
       .rpc('get_admin_bin_statistics', { days_back: 30 })
 
     if (binError) {
-      console.error('Error fetching bin stats:', binError)
-      console.error('Bin stats error details:', JSON.stringify(binError, null, 2))
+      logger.error('Error fetching bin stats', binError as Error, {
+        details: JSON.stringify(binError, null, 2)
+      })
       // Continue execution even if bin stats fail - we'll use default values
     }
 
@@ -144,9 +147,9 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Unexpected error:', error)
-    return NextResponse.json({ 
-      error: 'Internal server error' 
+    logger.error('Unexpected error in cleanup stats GET', error as Error)
+    return NextResponse.json({
+      error: 'Internal server error'
     }, { status: 500 })
   }
 }
@@ -192,14 +195,17 @@ export async function POST(request: NextRequest) {
     }
 
     if (error) {
-      console.error(`Error running ${actionDesc}:`, error)
-      return NextResponse.json({ 
-        error: `Failed to run ${actionDesc}` 
+      logger.error(`Error running ${actionDesc}`, error as Error)
+      return NextResponse.json({
+        error: `Failed to run ${actionDesc}`
       }, { status: 500 })
     }
 
     // Log admin action
-    console.log(`Manual ${actionDesc} triggered by admin ${authResult.user.email} at ${new Date().toISOString()}`)
+    logger.audit(`Manual ${actionDesc} triggered`, {
+      adminEmail: authResult.user.email,
+      triggeredAt: new Date().toISOString()
+    })
 
     return NextResponse.json({
       success: true,
@@ -210,9 +216,9 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Unexpected error during manual cleanup:', error)
-    return NextResponse.json({ 
-      error: 'Internal server error' 
+    logger.error('Unexpected error during manual cleanup', error as Error)
+    return NextResponse.json({
+      error: 'Internal server error'
     }, { status: 500 })
   }
 }

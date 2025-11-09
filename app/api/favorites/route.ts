@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 // GET favorites for current user
 export async function GET(request: NextRequest) {
@@ -21,17 +22,17 @@ export async function GET(request: NextRequest) {
       .eq('user_id', user.id)
 
     if (error) {
-      console.error('Error fetching favorites:', error)
+      logger.error('Error fetching favorites', error as Error)
       return NextResponse.json({ error: 'Failed to fetch favorites' }, { status: 500 })
     }
 
     // Return array of listing IDs
     const favoriteIds = favorites?.map(f => f.listing_id) || []
-    
+
     return NextResponse.json({ favorites: favoriteIds })
 
   } catch (error) {
-    console.error('Favorites GET error:', error)
+    logger.error('Favorites GET error', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest) {
         })
 
       if (insertError) {
-        console.error('Error adding favorite:', insertError)
+        logger.error('Error adding favorite', insertError as Error)
         return NextResponse.json({ error: 'Failed to add favorite' }, { status: 500 })
       }
 
@@ -91,7 +92,7 @@ export async function POST(request: NextRequest) {
         .eq('listing_id', listingId)
 
       if (deleteError) {
-        console.error('Error removing favorite:', deleteError)
+        logger.error('Error removing favorite', deleteError as Error)
         return NextResponse.json({ error: 'Failed to remove favorite' }, { status: 500 })
       }
 
@@ -102,7 +103,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Favorites POST error:', error)
+    logger.error('Favorites POST error', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -14,6 +14,7 @@ import { App } from '@capacitor/app'
 import { SplashScreen } from '@capacitor/splash-screen'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import SafeArea from '@capacitor-community/safe-area'
+import { logger } from '@/lib/utils/logger'
 
 export default function CapacitorInitializer() {
   useEffect(() => {
@@ -85,18 +86,18 @@ export default function CapacitorInitializer() {
         // Initialize push notifications
         await initializePushNotifications({
           onNotificationReceived: (notification) => {
-            console.log('Push notification received:', notification)
+            logger.debug('Push notification received', { notification })
             // Handle notification display/action here
           },
           onNotificationAction: (action) => {
-            console.log('Notification action performed:', action)
+            logger.debug('Notification action performed', { action })
             // Handle notification tap/action
           },
           onTokenRegistration: (token) => {
-            console.log('Push token registered:', token.value)
+            logger.info('Push token registered', { token: token.value })
           },
           onRegistrationError: (error) => {
-            console.error('Push registration error:', error)
+            logger.error('Push registration error', error as Error)
           }
         })
 
@@ -116,22 +117,22 @@ export default function CapacitorInitializer() {
               try {
                 await StatusBar.setOverlaysWebView({ overlay: false })
               } catch (error) {
-                console.warn('Post-splash status bar configuration failed:', error)
+                logger.warn('Post-splash status bar configuration failed', error as Error)
               }
             }, 100)
           } catch (error) {
-            console.warn('Splash screen hide failed:', error)
+            logger.warn('Splash screen hide failed', error as Error)
           }
         }, 2000)
 
         // Handle app state changes
         App.addListener('appStateChange', ({ isActive }) => {
-          console.log('App state changed. Is active?', isActive)
+          logger.debug('App state changed', { isActive })
         })
 
         // Handle app URL open (deep links)
         App.addListener('appUrlOpen', (data) => {
-          console.log('App opened with URL:', data.url)
+          logger.info('App opened with URL', { url: data.url })
           // Handle deep linking here
         })
 
@@ -148,9 +149,9 @@ export default function CapacitorInitializer() {
           }
         })
 
-        console.log('Capacitor initialized successfully')
+        logger.info('Capacitor initialized successfully')
       } catch (error) {
-        console.error('Capacitor initialization error:', error)
+        logger.error('Capacitor initialization error', error as Error)
       }
     }
 

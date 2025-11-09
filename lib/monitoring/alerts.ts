@@ -1,4 +1,5 @@
 import { performanceMonitor } from './metrics'
+import { logger } from '@/lib/utils/logger'
 
 // Alert configuration
 export interface AlertConfig {
@@ -32,16 +33,16 @@ export class AlertManager {
   // Start monitoring with predefined alerts
   startMonitoring() {
     if (this.isMonitoring) return
-    
+
     this.isMonitoring = true
-    
+
     // Register default alerts
     this.registerDefaultAlerts()
-    
+
     // Start monitoring loop
     this.monitoringLoop()
-    
-    console.log('🔍 Alert monitoring started')
+
+    logger.info('Alert monitoring started')
   }
 
   // Register a new alert
@@ -74,7 +75,7 @@ export class AlertManager {
             }
           }
         } catch (error) {
-          console.error(`Error checking alert ${name}:`, error)
+          logger.error(`Error checking alert ${name}`, error as Error)
         }
       }
     }, checkInterval)
@@ -82,8 +83,11 @@ export class AlertManager {
 
   // Trigger an alert
   private async triggerAlert(config: AlertConfig) {
-    console.warn(`🚨 ALERT [${config.severity.toUpperCase()}]: ${config.message}`)
-    
+    logger.warn(`ALERT [${config.severity.toUpperCase()}]: ${config.message}`, new Error('Alert triggered'), {
+      name: config.name,
+      severity: config.severity
+    })
+
     // Track alert in monitoring
     performanceMonitor.trackBusinessMetric('alerts.triggered', 1, {
       name: config.name,
@@ -95,7 +99,7 @@ export class AlertManager {
       try {
         await this.executeAction(action, config)
       } catch (error) {
-        console.error(`Failed to execute alert action ${action.type}:`, error)
+        logger.error(`Failed to execute alert action ${action.type}`, error as Error)
       }
     }
   }
@@ -122,9 +126,10 @@ export class AlertManager {
       case 'email':
         await this.sendEmailAlert(action.target, alertData)
         break
-      
+
+
       default:
-        console.warn(`Unknown alert action type: ${action.type}`)
+        logger.warn(`Unknown alert action type: ${action.type}`, new Error('Unknown action type'))
     }
   }
 
@@ -166,13 +171,13 @@ export class AlertManager {
 
   private async sendEmailAlert(recipient: string, data: any) {
     // Implement email sending logic using your email service
-    console.log(`Would send email alert to ${recipient}:`, data)
+    logger.info('Would send email alert', { recipient, data })
   }
 
   // Stop monitoring
   stopMonitoring() {
     this.isMonitoring = false
-    console.log('⏹️ Alert monitoring stopped')
+    logger.info('Alert monitoring stopped')
   }
 
   // Register default system alerts

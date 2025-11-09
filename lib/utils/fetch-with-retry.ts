@@ -282,10 +282,12 @@ export class APIClient {
 /**
  * Example usage in components
  */
+import { logger } from './logger'
+
 export const apiClient = new APIClient('/api', {
   maxRetries: 3,
   timeout: 15000,
   onRetry: (attempt, error, response) => {
-    console.log(`Retry attempt ${attempt}`, { error, status: response?.status })
+    logger.debug(`Retry attempt ${attempt}`, { error, status: response?.status })
   },
 })

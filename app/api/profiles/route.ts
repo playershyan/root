@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 export const runtime = 'nodejs'
 
@@ -26,7 +27,7 @@ export async function GET() {
 
     return NextResponse.json({ data: profile, success: true })
   } catch (error) {
-    console.error('Error in GET /api/profiles:', error)
+    logger.error('Error in GET /api/profiles', error as Error)
     return NextResponse.json({ error: 'Internal server error', success: false }, { status: 500 })
   }
 }
@@ -42,8 +43,8 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    console.log('PUT /api/profiles - Received data:', body)
-    
+    logger.debug('PUT /api/profiles - Received data', { hasData: !!body })
+
     const { name, phone, location, bio, avatar_url, language } = body
 
     const { data: profile, error } = await supabase
@@ -62,14 +63,14 @@ export async function PUT(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Database error:', error)
+      logger.error('Database error in profile update', error as Error)
       return NextResponse.json({ error: 'Failed to update profile', success: false, details: error }, { status: 500 })
     }
 
-    console.log('Profile updated successfully:', profile)
+    logger.info('Profile updated successfully', { userId: user.id })
     return NextResponse.json({ data: profile, success: true })
   } catch (error) {
-    console.error('Error in PUT /api/profiles:', error)
+    logger.error('Error in PUT /api/profiles', error as Error)
     return NextResponse.json({ error: 'Internal server error', success: false }, { status: 500 })
   }
 }

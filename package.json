@@ -17,8 +17,10 @@
         "test:coverage": "jest --coverage",
         "test:unit": "jest tests/unit",
         "test:integration": "jest tests/integration",
-        "test:e2e": "jest tests/e2e",
-        "test:ci": "jest --ci --coverage --watchAll=false",
+        "test:e2e": "playwright test",
+        "test:e2e:ui": "playwright test --ui",
+        "test:e2e:headed": "playwright test --headed",
+        "test:ci": "jest --ci --coverage --watchAll=false && playwright test",
         "capacitor:sync": "npx cap sync",
         "capacitor:copy": "npx cap copy",
         "capacitor:update": "npx cap update",
@@ -77,6 +79,7 @@
         "tailwindcss-animate": "^1.0.7"
     },
     "devDependencies": {
+        "@playwright/test": "^1.56.1",
         "@testing-library/jest-dom": "^6.8.0",
         "@testing-library/react": "^16.3.0",
         "@testing-library/user-event": "^14.6.1",

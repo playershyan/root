@@ -8,6 +8,7 @@ import SecurityTab from '@/app/components/security/SecurityTab'
 import { supabase } from '@/lib/supabase'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
+import { logger } from '@/lib/utils/logger'
 
 export default function SecurityPage() {
   const router = useRouter()
@@ -36,7 +37,10 @@ export default function SecurityPage() {
           }
         }
       } catch (error) {
-        console.error('Error detecting auth providers:', error)
+        logger.error('Failed to detect auth providers', error as Error, {
+          component: 'SecurityPage',
+          action: 'detectAuthProviders'
+        })
       }
     }
 
@@ -48,7 +52,10 @@ export default function SecurityPage() {
   // Handle email update
   const handleEmailUpdate = async () => {
     // TODO: Implement email update functionality
-    console.log('Email update requested')
+    logger.debug('Email update requested', {
+      component: 'SecurityPage',
+      action: 'handleEmailUpdate'
+    })
   }
 
   // Handle password update
@@ -79,14 +86,21 @@ export default function SecurityPage() {
 
       return response.json()
     } catch (error) {
-      console.error('Error updating password:', error)
+      logger.error('Failed to update password', error as Error, {
+        component: 'SecurityPage',
+        action: 'handlePasswordUpdate'
+      })
       throw error
     }
   }
 
   // Handle 2FA update
   const handleTwoFactorUpdate = async (data: any) => {
-    console.log('2FA update:', data)
+    logger.debug('2FA update requested', {
+      component: 'SecurityPage',
+      action: 'handleTwoFactorUpdate',
+      data
+    })
     // TODO: Implement 2FA functionality
   }
 

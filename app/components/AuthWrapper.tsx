@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { AuthModal } from './auth'
+import { logger } from '@/lib/utils/logger'
 
 export default function AuthWrapper({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams()
@@ -13,18 +14,27 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
   useEffect(() => {
     const authParam = searchParams.get('auth')
     const redirectParam = searchParams.get('redirect')
-    
-    console.log('AuthWrapper - Auth param:', authParam)
-    console.log('AuthWrapper - Redirect param:', redirectParam)
-    
+
+    logger.debug('AuthWrapper parameters', {
+      component: 'AuthWrapper',
+      authParam,
+      redirectParam
+    })
+
     if (authParam === 'true') {
       const redirectUrl = redirectParam || ''
-      console.log('AuthWrapper - Setting returnUrl to:', redirectUrl)
-      
+      logger.debug('Setting return URL for auth modal', {
+        component: 'AuthWrapper',
+        returnUrl: redirectUrl
+      })
+
       // Store in sessionStorage as backup
       if (redirectUrl) {
         sessionStorage.setItem('pendingRedirect', redirectUrl)
-        console.log('AuthWrapper - Stored in sessionStorage:', redirectUrl)
+        logger.debug('Stored redirect in sessionStorage', {
+          component: 'AuthWrapper',
+          redirectUrl
+        })
       }
       
       setShowAuthModal(true)
@@ -45,8 +55,12 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
     setReturnUrl('')
   }
 
-  console.log('AuthWrapper - Current returnUrl state:', returnUrl)
-  
+  logger.debug('AuthWrapper current state', {
+    component: 'AuthWrapper',
+    returnUrl,
+    showAuthModal
+  })
+
   return (
     <>
       {children}

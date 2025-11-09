@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { authConfig } from '@/lib/config/auth.config'
 import Script from 'next/script'
 import type { AuthResult } from './types'
+import { logger } from '@/lib/utils/logger'
 
 declare global {
   interface Window {
@@ -33,8 +34,8 @@ export default function GoogleOneTapProvider({
 
   const handleCredentialResponse = useCallback(async (response: any) => {
     try {
-      console.log('Google One Tap credential received')
-      
+      logger.debug('Google One Tap credential received')
+
       const res = await fetch('/api/auth/google-one-tap', {
         method: 'POST',
         headers: {
@@ -44,26 +45,26 @@ export default function GoogleOneTapProvider({
       })
 
       const data = await res.json()
-      
+
       if (data.success) {
-        console.log('Google One Tap sign-in successful')
+        logger.info('Google One Tap sign-in successful')
         await refreshUser()
         const authResult: AuthResult = { success: true, user: data.user }
         onSuccess?.(authResult)
         router.push(authConfig.redirectUrls.afterLogin)
       } else if (data.needsOAuth) {
         // Seamlessly redirect to OAuth flow
-        console.log('Redirecting to OAuth flow...')
+        logger.debug('Redirecting to OAuth flow')
         const { signInWithGoogle } = await import('@/lib/auth')
         await signInWithGoogle()
       } else {
         const errorMessage = data.error || data.message || 'Google One Tap authentication failed'
-        console.error('Google One Tap error:', errorMessage)
+        logger.error('Google One Tap error', new Error(errorMessage))
         onError?.(errorMessage)
       }
     } catch (error) {
       const errorMessage = 'Failed to process Google One Tap authentication'
-      console.error('Error handling Google One Tap response:', error)
+      logger.error('Error handling Google One Tap response', error as Error)
       onError?.(errorMessage)
     }
   }, [refreshUser, onSuccess, onError, router])
@@ -85,7 +86,7 @@ export default function GoogleOneTapProvider({
     if (!window.google || user || initialized) return
     if (!authConfig.google.enabled || !authConfig.features.oneClickSignIn) return
     if (!authConfig.google.clientId) {
-      console.warn('Google One Tap clientId missing (NEXT_PUBLIC_GOOGLE_CLIENT_ID). Skipping initialization.')
+      logger.warn('Google One Tap clientId missing (NEXT_PUBLIC_GOOGLE_CLIENT_ID). Skipping initialization.', new Error('Missing client ID'))
       return
     }
 
@@ -104,16 +105,16 @@ export default function GoogleOneTapProvider({
       if (!user) {
         window.google.accounts.id.prompt((notification: any) => {
           if (notification.isNotDisplayed()) {
-            console.log('Google One Tap not displayed:', notification.getNotDisplayedReason())
+            logger.debug('Google One Tap not displayed', { reason: notification.getNotDisplayedReason() })
           } else if (notification.isSkippedMoment()) {
-            console.log('Google One Tap skipped:', notification.getSkippedReason())
+            logger.debug('Google One Tap skipped', { reason: notification.getSkippedReason() })
           }
         })
       }
 
       setInitialized(true)
     } catch (error) {
-      console.error('Error initializing Google One Tap:', error)
+      logger.error('Error initializing Google One Tap', error as Error)
       const errorMessage = 'Failed to initialize Google One Tap'
       onError?.(errorMessage)
     }
@@ -125,12 +126,12 @@ export default function GoogleOneTapProvider({
   }
 
   return (
-    <Script 
-      src="https://accounts.google.com/gsi/client" 
+    <Script
+      src="https://accounts.google.com/gsi/client"
       strategy="afterInteractive"
       onLoad={initializeGoogleOneTap}
       onError={() => {
-        console.error('Failed to load Google One Tap script')
+        logger.error('Failed to load Google One Tap script', new Error('Script load failed'))
         onError?.('Failed to load Google One Tap')
       }}
     />

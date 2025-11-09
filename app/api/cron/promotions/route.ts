@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { PromotionService } from '@/lib/services/promotionService'
 import { RotationService } from '@/lib/services/rotationService'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { logger } from '@/lib/utils/logger'
 
 // This endpoint should be called by a cron job service (like Vercel Cron, Railway Cron, or external service)
 // Schedule: Every hour for expiring promotions, every day at midnight for daily boost
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest) {
       })
     }
   } catch (error) {
-    console.error('Cron job error:', error)
+    logger.error('Cron job error', error as Error)
     return NextResponse.json(
       { error: 'Failed to process promotions', details: error },
       { status: 500 }

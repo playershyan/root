@@ -8,6 +8,7 @@ import PriceDisplay from '@/app/components/PriceDisplay'
 import PromotionBadges from './PromotionBadges'
 import FavoriteButton from '@/app/components/FavoriteButton'
 import { Button } from '@/components/ui/button'
+import OptimizedImage from '@/components/ui/OptimizedImage'
 
 // Lazy load modals (Phase 2 optimization)
 const ContactModal = dynamic(() => import('@/app/components/modals/ContactModal'))
@@ -98,17 +99,22 @@ export default function RegularAdCard({
         {/* Image Display */}
         {images.length > 0 ? (
           <>
-            <img
+            <OptimizedImage
               src={images[activeImageIndex]}
               alt={listing.title}
-              className="w-full h-full object-cover transition-transform group-hover:scale-105"
-              loading="lazy"
+              fill
+              className="object-cover transition-transform group-hover:scale-105"
+              priority={false}
+              quality="thumbnail"
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              watermark={true}
               onLoad={onImageLoad}
-              onError={onImageError}
-              style={{ display: imageLoading || imageError ? 'none' : 'block' }}
+              onError={() => {
+                onImageError?.()
+              }}
             />
             {imageLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100/80">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
             )}
@@ -118,7 +124,7 @@ export default function RegularAdCard({
                 <p>Image unavailable</p>
               </div>
             )}
-            
+
             {/* Image Navigation */}
             {images.length > 1 && onImageNavigate && (
               <>

@@ -18,6 +18,7 @@ import {
 import { UPLOAD_CONSTRAINTS } from '@/lib/config/images'
 import { takePhoto, pickFromGallery, isNative } from '@/lib/capacitor-bridge'
 import { Button } from '@/components/ui/button'
+import { logger } from '@/lib/utils/logger'
 
 export interface ImageUploadWithCompressionProps {
   images: File[]
@@ -97,11 +98,13 @@ export default function ImageUploadWithCompression({
       const savings = calculateCompressionSavings(results)
 
       // Log compression results
-      console.log('📊 Compression Results:', {
-        originalSize: formatFileSize(savings.totalOriginalSize),
-        compressedSize: formatFileSize(savings.totalCompressedSize),
-        savings: formatFileSize(savings.totalSavings),
-        savingsPercent: `${savings.savingsPercent.toFixed(1)}%`,
+      logger.debug('Image compression completed', {
+        component: 'ImageUploadWithCompression',
+        action: 'processFiles',
+        originalSize: savings.totalOriginalSize,
+        compressedSize: savings.totalCompressedSize,
+        savings: savings.totalSavings,
+        savingsPercent: savings.savingsPercent
       })
 
       setCompressionResults(results)

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { TemplateGenerationService } from '@/lib/services/templateGenerationService'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: Request) {
   try {
@@ -11,7 +12,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    console.log('Starting monthly template regeneration...')
+    logger.info('Starting monthly template regeneration')
 
     // Check if regeneration is needed
     const needsRegeneration = await TemplateGenerationService.needsRegeneration()
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
     const result = await TemplateGenerationService.generateTemplateSet()
 
     if (result.success) {
-      console.log(`Template regeneration completed: ${result.totalGenerated} templates generated`)
+      logger.info('Template regeneration completed', { totalGenerated: result.totalGenerated })
       return NextResponse.json({
         success: true,
         message: `Successfully regenerated ${result.totalGenerated} templates`,
@@ -36,7 +37,7 @@ export async function GET(request: Request) {
         data: result
       })
     } else {
-      console.error('Template regeneration failed:', result.error)
+      logger.error('Template regeneration failed', new Error(result.error || 'Unknown error'))
       return NextResponse.json({
         success: false,
         message: `Template regeneration failed: ${result.error}`,
@@ -46,7 +47,7 @@ export async function GET(request: Request) {
     }
 
   } catch (error) {
-    console.error('Cron job error:', error)
+    logger.error('Cron job error', error as Error)
     return NextResponse.json({
       success: false,
       message: 'Template regeneration cron job failed',

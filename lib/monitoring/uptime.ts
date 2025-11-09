@@ -1,3 +1,5 @@
+import { logger } from '@/lib/utils/logger'
+
 // Uptime monitoring and health checks
 export class UptimeMonitor {
   private static instance: UptimeMonitor
@@ -97,8 +99,10 @@ export class UptimeMonitor {
       const unhealthyChecks = results.filter(r => r.status === 'unhealthy')
 
       if (unhealthyChecks.length > 0) {
-        console.warn('🔴 Unhealthy services detected:', unhealthyChecks.map(c => c.name))
-        
+        logger.warn('Unhealthy services detected', new Error('Service health degraded'), {
+          services: unhealthyChecks.map(c => c.name)
+        })
+
         // Send alerts for unhealthy services
         for (const check of unhealthyChecks) {
           await this.sendUptimeAlert(check)
@@ -109,13 +113,13 @@ export class UptimeMonitor {
       this.logUptimeStats(results)
     }, intervalMs)
 
-    console.log('📊 Uptime monitoring started')
+    logger.info('Uptime monitoring started')
   }
 
   // Stop monitoring
   stopMonitoring() {
     this.isMonitoring = false
-    console.log('⏹️ Uptime monitoring stopped')
+    logger.info('Uptime monitoring stopped')
   }
 
   // Register default health checks
@@ -203,7 +207,7 @@ export class UptimeMonitor {
           body: JSON.stringify(alertData)
         })
       } catch (error) {
-        console.error('Failed to send uptime alert:', error)
+        logger.error('Failed to send uptime alert', error as Error)
       }
     }
   }
@@ -213,10 +217,12 @@ export class UptimeMonitor {
     const totalCount = results.length
     const healthPercentage = totalCount > 0 ? (healthyCount / totalCount) * 100 : 100
 
-    console.log(`📊 System Health: ${healthyCount}/${totalCount} services healthy (${healthPercentage.toFixed(1)}%)`)
-    
+    logger.info(`System Health: ${healthyCount}/${totalCount} services healthy (${healthPercentage.toFixed(1)}%)`)
+
     if (healthPercentage < 100) {
-      console.log('🔴 Unhealthy services:', results.filter(r => r.status === 'unhealthy').map(r => r.name))
+      logger.warn('Unhealthy services detected', new Error('Service degradation'), {
+        services: results.filter(r => r.status === 'unhealthy').map(r => r.name)
+      })
     }
   }
 }

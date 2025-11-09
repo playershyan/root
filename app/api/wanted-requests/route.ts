@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { withRateLimit, rateLimiters } from '@/lib/middleware/rateLimiter'
 import { validateWantedRequest, sanitizeWantedRequest, formatPhoneNumber, generateWantedRequestTitle } from '@/lib/validation/wantedRequest'
 import { incr } from '@/lib/security/metrics'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -127,7 +128,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (insertError) {
-      console.error('Error creating wanted request:', insertError)
+      logger.error('Error creating wanted request', insertError as Error)
       incr('wanted.request.create.error')
       return NextResponse.json({
         error: 'Failed to create wanted request',
@@ -136,7 +137,7 @@ export async function POST(request: NextRequest) {
     }
 
     incr('wanted.request.created')
-    
+
     return NextResponse.json({
       success: true,
       request: newRequest,
@@ -144,7 +145,7 @@ export async function POST(request: NextRequest) {
     }, { status: 201 })
 
   } catch (error: any) {
-    console.error('Wanted request creation error:', error)
+    logger.error('Wanted request creation error', error as Error)
     incr('wanted.request.create.error')
     return NextResponse.json({
       error: 'Internal server error',
@@ -238,7 +239,7 @@ export async function GET(request: NextRequest) {
     const { data: requests, count, error } = await query
 
     if (error) {
-      console.error('Error fetching wanted requests:', error)
+      logger.error('Error fetching wanted requests', error as Error)
       return NextResponse.json({ error: 'Failed to fetch wanted requests' }, { status: 500 })
     }
 
@@ -253,7 +254,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Get wanted requests error:', error)
+    logger.error('Get wanted requests error', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

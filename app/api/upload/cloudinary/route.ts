@@ -97,9 +97,15 @@ export async function POST(request: NextRequest) {
       folder,
       {
         tags: ['vera-lk', 'vehicle-listing', user.id, listingId || 'temp'].filter(Boolean),
-        quality: 'auto:good'
-        // No format option - format optimization happens on delivery URLs
-        // No custom transformation - let CloudinaryService use its defaults
+        transformation: [
+          {
+            width: 1920,
+            height: 1440,
+            crop: 'limit',
+            quality: 'auto:eco',
+            fetch_format: 'auto',
+          },
+        ],
       }
     )
 

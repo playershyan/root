@@ -1,6 +1,7 @@
 import React from 'react'
 // import crypto from 'crypto' // Disabled for now - crypto not available in browser
 import { PromotionService, PromotionType } from '@/lib/services/promotionService'
+import { logger } from '@/lib/utils/logger'
 
 export interface PayHerePaymentData {
   listingId: string
@@ -143,12 +144,12 @@ export class PayHereService {
         )
 
         // Log successful payment
-        console.log(`PayHere payment successful: ${order_id} for listing ${listingId}`)
+        logger.info('PayHere payment successful', { orderId: order_id, listingId })
       } else {
-        console.log(`PayHere payment failed with status: ${status_code}`)
+        logger.warn('PayHere payment failed', new Error(`Status ${status_code}`), { statusCode: status_code })
       }
     } catch (error) {
-      console.error('Error handling PayHere payment success:', error)
+      logger.error('Error handling PayHere payment success', error as Error)
       throw error
     }
   }

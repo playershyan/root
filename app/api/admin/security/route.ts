@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { securityMiddleware } from '@/lib/security/security-middleware'
 import { securityMonitor } from '@/lib/monitoring/security-monitoring'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest) {
   // Apply comprehensive security checks
@@ -46,8 +47,8 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Security monitoring error:', error)
-    
+    logger.error('Security monitoring error', error as Error)
+
     return NextResponse.json(
       { error: 'Failed to retrieve security data' },
       { status: 500 }
@@ -95,8 +96,8 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Security action error:', error)
-    
+    logger.error('Security action error', error as Error)
+
     return NextResponse.json(
       { error: 'Failed to process security action' },
       { status: 500 }

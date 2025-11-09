@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * PATCH /api/messages/[id]/mark-read
@@ -71,7 +72,7 @@ export async function PATCH(
       .eq('is_read', false)
 
     if (updateMessagesError) {
-      console.error('Error marking messages as read:', updateMessagesError)
+      logger.error('Error marking messages as read', updateMessagesError as Error)
       return NextResponse.json(
         { error: 'Failed to mark messages as read' },
         { status: 500 }
@@ -89,7 +90,7 @@ export async function PATCH(
       .eq('id', conversationId)
 
     if (updateConvError) {
-      console.error('Error updating conversation unread count:', updateConvError)
+      logger.error('Error updating conversation unread count', updateConvError as Error)
       return NextResponse.json(
         { error: 'Failed to update conversation' },
         { status: 500 }
@@ -102,7 +103,7 @@ export async function PATCH(
     })
 
   } catch (error) {
-    console.error('PATCH mark-read error:', error)
+    logger.error('PATCH mark-read error', error as Error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

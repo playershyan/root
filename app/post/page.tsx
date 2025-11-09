@@ -10,7 +10,7 @@ import {
   AlertCircle, Upload, X, Sparkles, ChevronRight,
   FileText, User, Image as ImageIcon, Star
 } from 'lucide-react'
-import { formatPhoneForStorage, formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
+import { formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
 import {
   DISTRICTS,
   getCitiesByDistrictId,
@@ -31,6 +31,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { compressImageFile } from '@/lib/utils/image-compression'
 
 // Lazy load form components (Phase 2 optimization)
 import type { DescriptionGeneratorRef } from '@/app/components/vehicle-forms/DescriptionGenerator'
@@ -47,6 +48,12 @@ const VehicleFormFactory = dynamic(() => import('@/app/components/vehicle-forms/
 // VehicleType is now imported from vehicleData.ts
 type PricingType = 'cash' | 'finance'
 type AIStyle = 'professional' | 'personal' | 'detailed' | 'urgent'
+
+type UploadStatusState = {
+  progress: number
+  status: 'pending' | 'compressing' | 'uploading' | 'success' | 'error'
+  message?: string
+}
 
 interface FormData extends BaseVehicleFormData {
   vehicleType: VehicleType | ''
@@ -132,8 +139,11 @@ export default function EnhancedPostVehiclePage() {
   const [aiLoading, setAiLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [dragActive, setDragActive] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({})
-  const [imagePreviews, setImagePreviews] = useState<string[]>([])
+  const [uploadStatus, setUploadStatus] = useState<Record<string, UploadStatusState>>({})
+  const uploadIdMapRef = useRef<Map<File, string>>(new Map())
+  const activeUploadsRef = useRef(0)
+  const [imagesUploading, setImagesUploading] = useState(false)
+  const [imagePreviews, setImagePreviews] = useState<Array<{ url: string; type: 'local' | 'remote'; file?: File }>>([])
   const [mounted, setMounted] = useState(false)
   
   // Check authentication status and redirect if not logged in
@@ -393,35 +403,30 @@ export default function EnhancedPostVehiclePage() {
   
   // Generate image preview URLs (prefer newly selected files; fallback to existing URLs when editing)
   useEffect(() => {
-    // Only run on client side after component is mounted
     if (!mounted) return
 
-    // If there are newly selected files, build previews from them
-    if (formData.images && formData.images.length > 0) {
-      try {
-        const previews = formData.images
-          .map(file => (file instanceof File ? URL.createObjectURL(file) : ''))
-          .filter(url => url !== '')
+    const cleanupUrls: string[] = []
+    const localPreviews: Array<{ url: string; type: 'local'; file: File }> = []
 
-        setImagePreviews(previews)
-
-        // Cleanup function to revoke URLs
-        return () => {
-          previews.forEach(url => {
-            if (url) URL.revokeObjectURL(url)
-          })
+    if (Array.isArray(formData.images) && formData.images.length > 0) {
+      formData.images.forEach(file => {
+        if (file instanceof File) {
+          const previewUrl = URL.createObjectURL(file)
+          cleanupUrls.push(previewUrl)
+          localPreviews.push({ url: previewUrl, type: 'local', file })
         }
-      } catch (error) {
-        setImagePreviews([])
-      }
-      return
+      })
     }
 
-    // No new files selected: show existing image URLs (edit mode)
-    if (Array.isArray(formData.imageUrls) && formData.imageUrls.length > 0) {
-      setImagePreviews(formData.imageUrls)
-    } else {
-      setImagePreviews([])
+    const remotePreviews: Array<{ url: string; type: 'remote'; file?: File }> =
+      Array.isArray(formData.imageUrls)
+        ? formData.imageUrls.map(url => ({ url, type: 'remote' as const }))
+        : []
+
+    setImagePreviews([...localPreviews, ...remotePreviews])
+
+    return () => {
+      cleanupUrls.forEach(url => URL.revokeObjectURL(url))
     }
   }, [formData.images, formData.imageUrls, mounted])
 
@@ -544,6 +549,138 @@ export default function EnhancedPostVehiclePage() {
     setCurrentStep(prev => Math.max(prev - 1, 1))
   }
   
+  const getUploadUserId = async (): Promise<string> => {
+    if (user?.id) return user.id
+    try {
+      const { data } = await supabase.auth.getUser()
+      if (data?.user?.id) {
+        return data.user.id
+      }
+    } catch (error) {
+      console.error('Failed to retrieve user for image upload', error)
+    }
+    return 'temp'
+  }
+
+  const queueImageUploads = async (files: File[]) => {
+    if (files.length === 0) return
+
+    const uploadUserId = await getUploadUserId()
+
+    for (const file of files) {
+      if (!(file instanceof File)) continue
+
+      const existingId = uploadIdMapRef.current.get(file)
+      if (existingId && uploadStatus[existingId]?.status !== 'error') {
+        // Already uploading or completed
+        continue
+      }
+
+      if (existingId) {
+        uploadIdMapRef.current.delete(file)
+        setUploadStatus(prev => {
+          const next = { ...prev }
+          delete next[existingId]
+          return next
+        })
+      }
+
+      const uploadId = `${file.name}-${file.lastModified}-${Math.random().toString(36).slice(2)}`
+      uploadIdMapRef.current.set(file, uploadId)
+      setUploadStatus(prev => ({
+        ...prev,
+        [uploadId]: { progress: 5, status: 'compressing' }
+      }))
+
+      activeUploadsRef.current += 1
+      setImagesUploading(true)
+
+      try {
+        const compression = await compressImageFile(file, {
+          maxWidth: 1920,
+          maxHeight: 1440,
+          targetSize: 200 * 1024,
+          quality: 0.85,
+          convertToWebP: true
+        })
+
+        setUploadStatus(prev => ({
+          ...prev,
+          [uploadId]: { progress: 40, status: 'uploading' }
+        }))
+
+        const payload = new FormData()
+        payload.append('images', compression.file, compression.file.name)
+        payload.append('listingId', uploadUserId)
+
+        const response = await fetch('/api/upload/cloudinary', {
+          method: 'POST',
+          body: payload
+        })
+
+        const result = await response.json()
+
+        if (response.ok && result.success && Array.isArray(result.images) && result.images.length > 0) {
+          const uploadedImage = result.images[0]
+          const preferredUrl =
+            uploadedImage.mobile ||
+            uploadedImage.thumbnail ||
+            uploadedImage.secure_url ||
+            uploadedImage.url
+
+          if (!preferredUrl) {
+            throw new Error('Upload response missing image URL')
+          }
+
+          uploadIdMapRef.current.delete(file)
+          setUploadStatus(prev => {
+            const next = { ...prev }
+            delete next[uploadId]
+            return next
+          })
+
+          setFormData(prev => {
+            if (!prev.images.includes(file)) {
+              return prev
+            }
+            return {
+              ...prev,
+              imageUrls: [...prev.imageUrls, preferredUrl],
+              images: prev.images.filter(img => img !== file)
+            }
+          })
+        } else {
+          const errorMessage = result.error || 'Upload failed'
+          setUploadStatus(prev => ({
+            ...prev,
+            [uploadId]: { progress: 100, status: 'error', message: errorMessage }
+          }))
+          showError(`Failed to upload ${file.name}: ${errorMessage}`, 5000)
+        }
+      } catch (error: any) {
+        console.error('Image upload failed', error)
+        setUploadStatus(prev => ({
+          ...prev,
+          [uploadId]: {
+            progress: 100,
+            status: 'error',
+            message: error?.message || 'Upload failed'
+          }
+        }))
+        showError(`Failed to upload ${file.name}: ${error?.message || 'Unknown error'}`, 5000)
+      } finally {
+        activeUploadsRef.current = Math.max(0, activeUploadsRef.current - 1)
+        if (activeUploadsRef.current === 0) {
+          setImagesUploading(false)
+        }
+      }
+    }
+  }
+
+  const retryImageUpload = (file: File) => {
+    void queueImageUploads([file])
+  }
+
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -575,12 +712,13 @@ export default function EnhancedPostVehiclePage() {
 
     const files = validFiles
     
-    if (files.length + formData.images.length > 15) {
+    if (files.length + formData.images.length + formData.imageUrls.length > 15) {
       showError('Maximum 15 images allowed', 3000)
       return
     }
     
     setFormData(prev => ({ ...prev, images: [...prev.images, ...files] }))
+    void queueImageUploads(files)
   }
   
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -606,27 +744,44 @@ export default function EnhancedPostVehiclePage() {
 
     const files = validFiles
     
-    if (files.length + formData.images.length > 15) {
+    if (files.length + formData.images.length + formData.imageUrls.length > 15) {
       showError('Maximum 15 images allowed', 3000)
       return
     }
     
     setFormData(prev => ({ ...prev, images: [...prev.images, ...files] }))
+    void queueImageUploads(files)
   }
   
   const removeImage = (index: number) => {
-    // In edit mode, images are URLs; in create mode, images are File objects
-    if (formData.imageUrls && formData.imageUrls.length > 0) {
-      // Edit mode: remove from imageUrls
-      setFormData(prev => ({
-        ...prev,
-        imageUrls: prev.imageUrls?.filter((_, i) => i !== index) || []
-      }))
-    } else {
-      // Create mode: remove from images (File objects)
+    const localCount = formData.images.length
+
+    if (index < localCount) {
+      const fileToRemove = formData.images[index]
+      if (fileToRemove instanceof File) {
+        const uploadId = uploadIdMapRef.current.get(fileToRemove)
+        if (uploadId) {
+          setUploadStatus(prev => {
+            const next = { ...prev }
+            delete next[uploadId]
+            return next
+          })
+          uploadIdMapRef.current.delete(fileToRemove)
+        }
+      }
+
       setFormData(prev => ({
         ...prev,
         images: prev.images.filter((_, i) => i !== index)
+      }))
+      return
+    }
+
+    const remoteIndex = index - localCount
+    if (remoteIndex >= 0 && remoteIndex < formData.imageUrls.length) {
+      setFormData(prev => ({
+        ...prev,
+        imageUrls: prev.imageUrls.filter((_, i) => i !== remoteIndex)
       }))
     }
   }
@@ -673,53 +828,6 @@ export default function EnhancedPostVehiclePage() {
     }
   }
   
-  const uploadImages = async (images: File[], userId: string): Promise<string[]> => {
-    try {
-      // Validate images are actual File objects with type
-      const validImages = images.filter(img => {
-        if (!(img instanceof File)) {
-          return false
-        }
-        if (!img.type) {
-          return false
-        }
-        return true
-      })
-
-      if (validImages.length === 0) {
-        showError('No valid image files to upload')
-        return []
-      }
-
-
-      // Create FormData with all images
-      const formData = new FormData()
-      validImages.forEach((image, index) => {
-        formData.append('images', image, image.name)
-      })
-      formData.append('listingId', userId)
-
-      // Upload to Cloudinary
-      const response = await fetch('/api/upload/cloudinary', {
-        method: 'POST',
-        body: formData
-      })
-
-      const result = await response.json()
-
-      if (result.success && result.images) {
-        const urls = result.images.map((img: any) => img.url)
-        return urls
-      } else {
-        showError(`Upload failed: ${result.error || 'Unknown error'}`)
-        return []
-      }
-    } catch (error) {
-      showError('Error uploading images')
-      return []
-    }
-  }
-  
   const handleSubmit = async () => {
     if (!validateStep(3)) return
     
@@ -733,15 +841,23 @@ export default function EnhancedPostVehiclePage() {
         return
       }
 
-      // Upload images first if any exist
-      let imageUrls: string[] = []
-      if (formData.images.length > 0) {
-        showInfo('Uploading images...', 2000)
-        imageUrls = await uploadImages(formData.images, user.id)
-        if (imageUrls.length > 0) {
-          showSuccess(`${imageUrls.length} image(s) uploaded successfully`, 3000)
-        }
+      const hasActiveUploads = Object.values(uploadStatus).some(status =>
+        ['pending', 'compressing', 'uploading'].includes(status.status)
+      )
+
+      if (hasActiveUploads || formData.images.length > 0) {
+        showWarning('Please wait for all image uploads to finish or retry failed uploads before submitting.', 5000)
+        setLoading(false)
+        return
       }
+
+      if (formData.imageUrls.length === 0) {
+        showError('Please upload at least one image before publishing your listing.', 5000)
+        setLoading(false)
+        return
+      }
+
+      const imageUrls = [...formData.imageUrls]
 
       // Prepare the listing data according to the database schema
       const listingData: any = {
@@ -1002,6 +1118,13 @@ export default function EnhancedPostVehiclePage() {
                   <div className={`w-20 h-1 mx-2 ${
                     currentStep > step ? 'bg-blue-600' : 'bg-gray-300'
                   }`} />
+                )}
+
+                {imagesUploading && (
+                  <div className="mt-3 text-sm text-gray-600 flex items-center gap-2">
+                    <span className="inline-block w-2 h-2 rounded-full bg-gray-400 animate-pulse"></span>
+                    <span>Uploading images in the background…</span>
+                  </div>
                 )}
               </div>
             ))}
@@ -1335,27 +1458,61 @@ export default function EnhancedPostVehiclePage() {
                 {/* Image Preview Grid */}
                 {imagePreviews.length > 0 && (
                   <div className="mt-4 grid grid-cols-3 md:grid-cols-5 gap-4">
-                    {imagePreviews.map((url, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={url}
-                          alt={`Preview ${index + 1}`}
-                          className="w-full h-24 object-cover rounded-lg"
-                        />
-                        {index === 0 && (
-                          <span className="absolute top-1 left-1 bg-gray-900 text-white text-xs px-2 py-1 rounded">
-                            Main
-                          </span>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => removeImage(index)}
-                          className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
+                    {imagePreviews.map((preview, index) => {
+                      const isLocal = preview.type === 'local' && preview.file instanceof File
+                      const uploadId = isLocal && preview.file ? uploadIdMapRef.current.get(preview.file) : undefined
+                      const uploadInfo = uploadId ? uploadStatus[uploadId] : undefined
+                      const previewKey =
+                        preview.type === 'local' && preview.file
+                          ? `${preview.file.name}-${preview.file.lastModified}-${index}`
+                          : `${preview.url}-${index}`
+
+                      return (
+                        <div key={previewKey} className="relative group overflow-hidden rounded-lg border border-gray-200">
+                          <img
+                            src={preview.url}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-24 object-cover"
+                          />
+                          {index === 0 && (
+                            <span className="absolute top-1 left-1 bg-gray-900 text-white text-xs px-2 py-1 rounded">
+                              Main
+                            </span>
+                          )}
+
+                          {isLocal && uploadInfo && (
+                            <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm flex flex-col items-center justify-center gap-2 text-white text-xs p-2">
+                              {uploadInfo.status === 'compressing' && <span>Compressing…</span>}
+                              {uploadInfo.status === 'uploading' && <span>Uploading…</span>}
+                              {uploadInfo.status === 'error' && (
+                                <>
+                                  <span className="text-center">
+                                    {uploadInfo.message || 'Upload failed'}
+                                  </span>
+                                  {preview.file && (
+                                    <button
+                                      type="button"
+                                      onClick={() => retryImageUpload(preview.file as File)}
+                                      className="px-2 py-1 bg-white text-gray-900 rounded shadow"
+                                    >
+                                      Retry
+                                    </button>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
                 

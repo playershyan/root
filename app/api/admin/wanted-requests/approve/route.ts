@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
 import { withRateLimit, rateLimiters } from '@/lib/middleware/rateLimiter'
 import { incr } from '@/lib/security/metrics'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
       .eq('id', requestId)
 
     if (updateError) {
-      console.error('Error approving wanted request:', updateError)
+      logger.error('Error approving wanted request', updateError as Error)
       return NextResponse.json({ error: 'Failed to approve wanted request' }, { status: 500 })
     }
 
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
         })
 
       if (notificationError) {
-        console.error('Error creating notification:', notificationError)
+        logger.error('Error creating notification', notificationError as Error)
       }
     }
 
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (logError) {
-      console.error('Error logging activity:', logError)
+      logger.error('Error logging activity', logError as Error)
     }
 
     incr('admin.wanted_request.approved')
@@ -104,7 +105,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Approve wanted request error:', error)
+    logger.error('Approve wanted request error', error as Error)
     incr('admin.wanted_request.approve.error')
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

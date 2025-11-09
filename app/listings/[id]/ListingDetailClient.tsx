@@ -15,6 +15,7 @@ import { useToast } from '@/app/components/notifications/useToast'
 import { ToastContainer } from '@/app/components/notifications/ToastContainer'
 import AuthModal from '@/app/components/auth/AuthModal'
 import { useAuthWithRedirect } from '@/app/hooks/useAuthWithRedirect'
+import { logger } from '@/lib/utils/logger'
 
 type Listing = {
   id: string
@@ -163,16 +164,30 @@ export default function ListingDetailClient({
       const result = await response.json()
 
       if (!response.ok) {
-        console.error('API Error Response:', result)
+        logger.error('Failed to send offer', new Error(result.message || result.error), {
+          component: 'ListingDetailClient',
+          action: 'handleSendOffer',
+          listingId: listing.id,
+          status: response.status
+        })
         const errorMessage = result.message || result.error || 'Failed to send offer'
         showError(errorMessage)
         throw new Error(errorMessage)
       }
 
-      console.log('Offer sent successfully:', result)
+      logger.debug('Offer sent successfully', {
+        component: 'ListingDetailClient',
+        action: 'handleSendOffer',
+        listingId: listing.id,
+        amount
+      })
       showSuccess('Offer sent successfully! The seller will be notified.')
     } catch (error) {
-      console.error('Error sending offer:', error)
+      logger.error('Error sending offer', error as Error, {
+        component: 'ListingDetailClient',
+        action: 'handleSendOffer',
+        listingId: listing.id
+      })
       if (error instanceof Error && !error.message.includes('Failed to send offer')) {
         showError('An unexpected error occurred. Please try again.')
       }
@@ -203,7 +218,7 @@ export default function ListingDetailClient({
           url: window.location.href,
         })
       } catch (err) {
-        console.log('Error sharing:', err)
+        logger.debug('Error sharing', { error: err })
       }
     } else {
       // Fallback - copy to clipboard

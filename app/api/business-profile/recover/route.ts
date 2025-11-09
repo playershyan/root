@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 // GET - Check if business profile can be recovered
 export async function GET(request: NextRequest) {
@@ -19,9 +20,9 @@ export async function GET(request: NextRequest) {
       .rpc('check_business_profile_recovery', { p_user_id: user.id })
 
     if (error) {
-      console.error('Error checking business profile recovery:', error)
-      return NextResponse.json({ 
-        error: 'Failed to check recovery status' 
+      logger.error('Error checking business profile recovery', error as Error)
+      return NextResponse.json({
+        error: 'Failed to check recovery status'
       }, { status: 500 })
     }
 
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Unexpected error:', error)
+    logger.error('Unexpected error in business profile recovery check', error as Error)
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 })
@@ -69,20 +70,23 @@ export async function POST(request: NextRequest) {
       .rpc('recover_business_profile', { p_user_id: user.id })
 
     if (error) {
-      console.error('Error recovering business profile:', error)
-      return NextResponse.json({ 
-        error: 'Failed to recover business profile' 
+      logger.error('Error recovering business profile', error as Error)
+      return NextResponse.json({
+        error: 'Failed to recover business profile'
       }, { status: 500 })
     }
 
     if (!result?.success) {
-      return NextResponse.json({ 
-        error: result?.error || 'Recovery failed' 
+      return NextResponse.json({
+        error: result?.error || 'Recovery failed'
       }, { status: 400 })
     }
 
     // Log the recovery for audit purposes
-    console.log(`Business profile recovered for user ${user.id}: ${result.business_name}`)
+    logger.audit('Business profile recovered', {
+      userId: user.id,
+      businessName: result.business_name
+    })
 
     return NextResponse.json({
       success: true,
@@ -92,9 +96,9 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Unexpected error during recovery:', error)
-    return NextResponse.json({ 
-      error: 'Internal server error' 
+    logger.error('Unexpected error during recovery', error as Error)
+    return NextResponse.json({
+      error: 'Internal server error'
     }, { status: 500 })
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { verifyRecaptcha, captchaGuardFailJson } from '@/lib/security/recaptcha'
 import { incr, incrTrend } from '@/lib/security/metrics'
+import { logger } from '@/lib/utils/logger'
 
 // Initialize OpenAI with API key
 const openai = new OpenAI({
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
     const cacheKey = searchContext.toLowerCase().trim()
     const cached = cache.get(cacheKey)
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      console.log('Returning cached AI guide for:', cacheKey)
+      logger.debug('Returning cached AI guide', { cacheKey })
       return NextResponse.json(cached.data)
     }
 
@@ -120,9 +121,9 @@ Structure:
     }
 
     return NextResponse.json(responseData)
-    
+
   } catch (error) {
-    console.error('AI Guide generation failed:', error)
+    logger.error('AI Guide generation failed', error as Error)
     incr('ai.guide.error')
     await incrTrend('ai.guide.error')
     

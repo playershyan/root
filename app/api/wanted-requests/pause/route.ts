@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest) {
       .single()
     
     if (updateError) {
-      console.error(`Error ${action}ing wanted request:`, updateError)
+      logger.error(`Error ${action}ing wanted request`, updateError as Error)
       return NextResponse.json(
         { error: `Failed to ${action} wanted request` },
         { status: 500 }
@@ -110,7 +111,7 @@ export async function POST(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('Error in pause/resume wanted request endpoint:', error)
+    logger.error('Error in pause/resume wanted request endpoint', error as Error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

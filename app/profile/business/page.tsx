@@ -7,6 +7,7 @@ import BusinessPageTab from '@/app/components/profile/BusinessPageTab'
 import BusinessProfileRecovery from '@/app/components/profile/BusinessProfileRecovery'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { logger } from '@/lib/utils/logger'
 
 interface UpdateBusinessProfileData {
   business_name?: string
@@ -45,7 +46,10 @@ export default function BusinessPage() {
       alert('Business profile updated successfully')
       return result
     } catch (error) {
-      console.error('Error updating business profile:', error)
+      logger.error('Failed to update business profile', error as Error, {
+        component: 'BusinessPage',
+        action: 'updateBusinessProfile'
+      })
       throw error
     } finally {
       setBusinessLoading(false)
@@ -54,7 +58,11 @@ export default function BusinessPage() {
 
   // Handle recovery callback
   const handleRecovered = async (businessName: string) => {
-    console.log(`Business profile "${businessName}" recovered`)
+    logger.debug('Business profile recovered', {
+      component: 'BusinessPage',
+      action: 'handleRecovered',
+      businessName
+    })
     // Refresh business profile data
     await fetchBusinessProfile()
   }

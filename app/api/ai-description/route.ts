@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { TemplateProcessor, FormDataForTemplate } from '@/lib/services/templateProcessor'
 import { verifyRecaptcha, captchaGuardFailJson } from '@/lib/security/recaptcha'
 import { incr, incrTrend } from '@/lib/security/metrics'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: Request) {
   try {
@@ -140,7 +141,7 @@ export async function POST(request: Request) {
       usageCount: result.usageCount
     })
   } catch (error) {
-    console.error('AI Description Error:', error)
+    logger.error('AI Description Error', error as Error)
     incr('ai.description.error')
     await incrTrend('ai.description.error')
     return NextResponse.json(

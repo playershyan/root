@@ -3,6 +3,7 @@
 // Fixed: Resolved Sentry syntax error - file structure verified
 import { useState } from 'react'
 import { Upload, Image as ImageIcon, Trash2, Eye } from 'lucide-react'
+import { logger } from '@/lib/utils/logger'
 
 interface UploadedImage {
   url: string
@@ -17,61 +18,60 @@ export default function CloudinaryTestUpload() {
   const [success, setSuccess] = useState('')
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('🎯 File input changed')
-    
+    logger.debug('File input changed')
+
     const files = event.target.files
-    console.log('📁 Files from input:', files)
-    console.log('📁 Files length:', files?.length)
-    
+    logger.debug('Files from input', { filesCount: files?.length })
+
     if (files && files.length > 0) {
-      console.log('📁 Files details:', Array.from(files).map(f => ({ 
-        name: f.name, 
-        size: f.size, 
-        type: f.type 
-      })))
+      logger.debug('Files details', { files: Array.from(files).map(f => ({
+        name: f.name,
+        size: f.size,
+        type: f.type
+      })) })
     }
-    
+
     if (!files || files.length === 0) {
-      console.log('❌ No files selected or files is null')
+      logger.debug('No files selected or files is null')
       return
     }
 
-    console.log('🚀 Starting upload process...')
+    logger.debug('Starting upload process')
     setUploading(true)
     setError('')
     setSuccess('')
 
     try {
       const formData = new FormData()
-      
+
       // Add all selected files
-      console.log('📦 Adding files to FormData...')
+      logger.debug('Adding files to FormData', { count: files.length })
       Array.from(files).forEach((file, index) => {
-        console.log(`  Adding file ${index + 1}: ${file.name}`)
+        logger.debug(`Adding file ${index + 1}`, { name: file.name })
         formData.append('images', file)
       })
-      
+
       // Optional: Add listing ID for organization
       formData.append('listingId', 'test-upload')
-      console.log('✅ FormData prepared')
+      logger.debug('FormData prepared')
 
-      console.log('🌐 Sending request to /api/upload/cloudinary...')
+      logger.debug('Sending request to /api/upload/cloudinary')
       const response = await fetch('/api/upload/cloudinary', {
         method: 'POST',
         body: formData,
       })
 
-      console.log('📡 Response received:', {
+      logger.debug('Response received', {
         status: response.status,
         statusText: response.statusText,
         ok: response.ok
       })
 
       const result = await response.json()
-      console.log('📄 Response data:', result)
+      logger.debug('Response data received', { success: result.success })
 
       if (!response.ok) {
-        console.error('❌ Upload failed with status:', response.status)
+        logger.error('Upload failed', new Error(result.error || 'Upload failed'), { status: response.status })
         throw new Error(result.error || 'Upload failed')
       }
 
@@ -86,7 +86,7 @@ export default function CloudinaryTestUpload() {
         throw new Error(result.error || 'Upload failed')
       }
     } catch (error: any) {
-      console.error('Upload error:', error)
+      logger.error('Upload error', error)
       setError(error.message || 'Upload failed')
     } finally {
       setUploading(false)
@@ -112,7 +112,7 @@ export default function CloudinaryTestUpload() {
         setError('Failed to delete image')
       }
     } catch (error: any) {
-      console.error('Delete error:', error)
+      logger.error('Delete error', error)
       setError('Failed to delete image')
     }
   }

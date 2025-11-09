@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest) {
   // Verify admin access
@@ -66,7 +67,7 @@ export async function GET(request: NextRequest) {
     const { data: requests, count, error } = await query
 
     if (error) {
-      console.error('Error fetching wanted requests:', error)
+      logger.error('Error fetching wanted requests', error as Error)
       return NextResponse.json({ error: 'Failed to fetch wanted requests' }, { status: 500 })
     }
 
@@ -87,7 +88,7 @@ export async function GET(request: NextRequest) {
     })
 
     if (logError) {
-      console.error('Error logging activity:', logError)
+      logger.error('Error logging activity', logError as Error)
     }
 
     return NextResponse.json({
@@ -98,7 +99,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Get wanted requests error:', error)
+    logger.error('Get wanted requests error', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

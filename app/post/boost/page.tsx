@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { 
-  CheckCircle, Clock, Star, Zap, TrendingUp, 
+import {
+  CheckCircle, Clock, Star, Zap, TrendingUp,
   AlertCircle, Crown, Rocket, Eye, Users,
   Calendar, ChevronRight, Shield
 } from 'lucide-react'
+import { logger } from '@/lib/utils/logger'
 
 interface BoostOption {
   id: string
@@ -131,7 +132,12 @@ export default function BoostAdPage() {
 
   const handlePayment = () => {
     // Process payment
-    console.log('Processing payment for:', selectedOptions)
+    logger.debug('Processing boost payment', {
+      component: 'BoostAdPage',
+      action: 'handlePayment',
+      adId,
+      selectedOptions
+    })
     router.push(`/post/success?id=${adId}&boosted=true`)
   }
 

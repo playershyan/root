@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { logger } from '@/lib/utils/logger'
 
 // Initialize OpenAI
 const openai = new OpenAI({
@@ -84,8 +85,8 @@ Example format:
     return NextResponse.json(responseData)
     
   } catch (error) {
-    console.error('AI Guide generation failed:', error)
-    
+    logger.error('AI Guide generation failed', error as Error)
+
     // Return cached fallback instantly
     const fallback = {
       compact: `

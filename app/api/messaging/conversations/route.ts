@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * GET /api/messaging/conversations
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
       .order('last_message_at', { ascending: false })
 
     if (error) {
-      console.error('Database error:', error)
+      logger.error('Database error fetching conversations', error as Error)
       return NextResponse.json(
         { error: 'Failed to fetch conversations' },
         { status: 500 }
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('GET /api/messaging/conversations error:', error)
+    logger.error('GET /api/messaging/conversations error', error as Error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (existingError && existingError.code !== 'PGRST116') {
-      console.error('Database error checking existing conversation:', existingError)
+      logger.error('Database error checking existing conversation', existingError as Error)
       return NextResponse.json(
         { error: 'Database error' },
         { status: 500 }
@@ -158,7 +159,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (convError) {
-      console.error('Database error creating conversation:', convError)
+      logger.error('Database error creating conversation', convError as Error)
       return NextResponse.json(
         { error: 'Failed to create conversation' },
         { status: 500 }
@@ -177,7 +178,7 @@ export async function POST(request: NextRequest) {
         })
 
       if (messageError) {
-        console.error('Error creating initial message:', messageError)
+        logger.error('Error creating initial message', messageError as Error)
         // Don't fail the conversation creation if message creation fails
       }
     }
@@ -188,7 +189,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('POST /api/messaging/conversations error:', error)
+    logger.error('POST /api/messaging/conversations error', error as Error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

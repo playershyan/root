@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { logger } from '@/lib/utils/logger'
 
 interface PhoneVerificationModalProps {
   isOpen: boolean
@@ -49,7 +50,10 @@ export default function PhoneVerificationModal({
         }
       }).catch((err: any) => {
         if (err.name !== 'AbortError') {
-          console.log('WebOTP not supported or failed:', err)
+          logger.debug('WebOTP not supported or failed', {
+            component: 'PhoneVerificationModal',
+            error: err.message
+          })
         }
       })
 
@@ -176,7 +180,10 @@ export default function PhoneVerificationModal({
         setError(data.error || 'Verification failed')
       }
     } catch (error) {
-      console.error('Verification error:', error)
+      logger.error('Phone verification failed', error as Error, {
+        component: 'PhoneVerificationModal',
+        action: 'handleVerifyOtp'
+      })
       setError('Network error. Please try again.')
     } finally {
       setLoading(false)
@@ -210,7 +217,10 @@ export default function PhoneVerificationModal({
         setError(data.error || 'Failed to send OTP')
       }
     } catch (error) {
-      console.error('Resend OTP error:', error)
+      logger.error('Resend OTP failed', error as Error, {
+        component: 'PhoneVerificationModal',
+        action: 'handleResendOtp'
+      })
       setError('Network error. Please try again.')
     } finally {
       setLoading(false)

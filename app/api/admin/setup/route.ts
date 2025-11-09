@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 // POST - Bootstrap admin user (only works if no admins exist)
 export async function POST(request: NextRequest) {
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
         result = response.data
         bootstrapError = response.error
       } catch (funcError) {
-        console.log('bootstrap_admin_user function not available, using direct insertion')
+        logger.debug('bootstrap_admin_user function not available, using direct insertion')
         
         // Fallback: directly insert into admin_users table
         try {
@@ -91,13 +92,13 @@ export async function POST(request: NextRequest) {
             }]
           }
         } catch (fallbackError) {
-          console.error('Fallback bootstrap failed:', fallbackError)
+          logger.error('Fallback bootstrap failed', fallbackError as Error)
           bootstrapError = fallbackError
         }
       }
 
       if (bootstrapError) {
-        console.error('Error bootstrapping admin user:', bootstrapError)
+        logger.error('Error bootstrapping admin user', bootstrapError as Error)
         return NextResponse.json({ 
           error: 'Failed to bootstrap admin user',
           details: bootstrapError.message || bootstrapError
@@ -129,7 +130,7 @@ export async function POST(request: NextRequest) {
         permissions = result.data || []
         checkError = result.error
       } catch (funcError) {
-        console.log('check_admin_permissions function not available for check action, using fallback')
+        logger.debug('check_admin_permissions function not available for check action, using fallback')
         // Use same fallback as GET method
         try {
           const { data: adminUsers, error: adminError } = await supabase
@@ -148,13 +149,13 @@ export async function POST(request: NextRequest) {
             permissions = adminUsers || []
           }
         } catch (tableError) {
-          console.error('Fallback check failed:', tableError)
+          logger.error('Fallback check failed', tableError as Error)
           permissions = []
         }
       }
 
       if (checkError) {
-        console.error('Error checking admin permissions:', checkError)
+        logger.error('Error checking admin permissions', checkError as Error)
         if (checkError.code === '42883' || checkError.code === 'PGRST116' || 
             checkError.message?.includes('function') || checkError.message?.includes('does not exist')) {
           permissions = []
@@ -184,9 +185,9 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Unexpected error in admin setup:', error)
-    return NextResponse.json({ 
-      error: 'Internal server error' 
+    logger.error('Unexpected error in admin setup', error as Error)
+    return NextResponse.json({
+      error: 'Internal server error'
     }, { status: 500 })
   }
 }
@@ -213,7 +214,7 @@ export async function GET(request: NextRequest) {
       permissions = result.data || []
       checkError = result.error
     } catch (funcError) {
-      console.log('check_admin_permissions function not available, using fallback')
+      logger.debug('check_admin_permissions function not available, using fallback')
       fallbackMode = true
       
       // Fallback: directly query admin_users table
@@ -250,14 +251,15 @@ export async function GET(request: NextRequest) {
           })) || []
         }
       } catch (tableError) {
-        console.error('Fallback admin check failed:', tableError)
+        logger.error('Fallback admin check failed', tableError as Error)
         permissions = []
       }
     }
 
     if (checkError && !fallbackMode) {
-      console.error('Error checking admin permissions:', checkError)
-      console.error('Check error details:', JSON.stringify(checkError, null, 2))
+      logger.error('Error checking admin permissions', checkError as Error, {
+        details: JSON.stringify(checkError, null, 2)
+      })
       
       // If it's a function/table not found error, treat as empty system
       if (checkError.code === '42883' || checkError.code === 'PGRST116' || 
@@ -291,9 +293,9 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Unexpected error in admin setup GET:', error)
-    return NextResponse.json({ 
-      error: 'Internal server error' 
+    logger.error('Unexpected error in admin setup GET', error as Error)
+    return NextResponse.json({
+      error: 'Internal server error'
     }, { status: 500 })
   }
 }

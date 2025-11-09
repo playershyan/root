@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getOptimizedUrl, generateBlurDataURL, getLQIPUrl } from '@/lib/utils/responsive-images'
 import { getResponsiveSizes } from '@/lib/config/images'
 
@@ -18,6 +18,7 @@ interface OptimizedImageProps {
   placeholder?: 'blur' | 'empty'
   blurDataURL?: string
   onError?: () => void
+  onLoad?: () => void
   watermark?: boolean
 }
 
@@ -48,10 +49,13 @@ export default function OptimizedImage({
   placeholder = 'empty',
   blurDataURL,
   onError,
+  onLoad,
   watermark = true,
 }: OptimizedImageProps) {
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [shouldLoad, setShouldLoad] = useState(priority)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   // Enhanced CDN optimization with new utilities
   const optimizeCDNUrl = (
@@ -105,7 +109,41 @@ export default function OptimizedImage({
 
   const handleLoad = () => {
     setLoading(false)
+    onLoad?.()
   }
+
+  useEffect(() => {
+    if (priority) {
+      setShouldLoad(true)
+      return
+    }
+
+    if (typeof IntersectionObserver === 'undefined') {
+      setShouldLoad(true)
+      return
+    }
+
+    const node = containerRef.current
+    if (!node) return
+
+    const observer = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            setShouldLoad(true)
+            observer.disconnect()
+          }
+        })
+      },
+      { rootMargin: '200px 0px' }
+    )
+
+    observer.observe(node)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [priority])
 
   if (error) {
     return (
@@ -135,28 +173,30 @@ export default function OptimizedImage({
   }
 
   return (
-    <div className="relative">
-      {loading && (
+    <div ref={containerRef} className="relative">
+      {(!shouldLoad || loading) && (
         <div
           className={`absolute inset-0 animate-pulse bg-gray-200 ${className}`}
         />
       )}
-      <Image
-        src={optimizedSrc}
-        alt={alt}
-        width={width}
-        height={height}
-        fill={fill}
-        priority={priority}
-        sizes={responsiveSizes}
-        quality={typeof quality === 'number' ? quality : 75}
-        placeholder={defaultBlurDataURL ? 'blur' : placeholder}
-        blurDataURL={defaultBlurDataURL}
-        className={`${className} ${loading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
-        onError={handleError}
-        onLoad={handleLoad}
-        loading={priority ? 'eager' : 'lazy'}
-      />
+      {shouldLoad && (
+        <Image
+          src={optimizedSrc}
+          alt={alt}
+          width={width}
+          height={height}
+          fill={fill}
+          priority={priority}
+          sizes={responsiveSizes}
+          quality={typeof quality === 'number' ? quality : 75}
+          placeholder={defaultBlurDataURL ? 'blur' : placeholder}
+          blurDataURL={defaultBlurDataURL}
+          className={`${className} ${loading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+          onError={handleError}
+          onLoad={handleLoad}
+          loading={priority ? 'eager' : 'lazy'}
+        />
+      )}
     </div>
   )
 }

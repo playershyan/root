@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,7 +10,7 @@ export async function POST(request: NextRequest) {
     // Get the authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    console.log('[PAUSE API] Auth user:', user?.id, 'Auth error:', authError)
+    logger.debug('Pause API - Auth check', { userId: user?.id, hasError: !!authError })
 
     if (authError || !user) {
       return NextResponse.json(
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     // Get listing ID and action from request body
     const { listingId, action } = await request.json()
-    console.log('[PAUSE API] Received:', { listingId, action, userId: user.id })
+    logger.debug('Pause API - Request received', { listingId, action, userId: user.id })
     
     if (!listingId || !action || !['pause', 'resume'].includes(action)) {
       return NextResponse.json(
@@ -36,10 +37,10 @@ export async function POST(request: NextRequest) {
       .eq('id', listingId)
       .single()
 
-    console.log('[PAUSE API] Database query result:', { listing, fetchError })
+    logger.debug('Pause API - Database query result', { hasListing: !!listing, hasError: !!fetchError })
 
     if (fetchError || !listing) {
-      console.log('[PAUSE API] Listing not found. Error:', fetchError)
+      logger.warn('Pause API - Listing not found', { listingId, error: fetchError })
       return NextResponse.json(
         { error: 'Listing not found' },
         { status: 404 }
@@ -105,9 +106,9 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .select()
       .single()
-    
+
     if (updateError) {
-      console.error(`Error ${action}ing listing:`, updateError)
+      logger.error(`Error ${action}ing listing`, updateError as Error, { listingId, action })
       return NextResponse.json(
         { error: `Failed to ${action} listing` },
         { status: 500 }
@@ -123,21 +124,23 @@ export async function POST(request: NextRequest) {
         action: action === 'pause' ? 'paused' : 'resumed',
         created_at: now.toISOString()
       })
-    
+
     if (logError) {
-      console.error(`Failed to log ${action} action:`, logError)
+      logger.error(`Failed to log ${action} action`, logError as Error, { listingId })
     }
+
+    logger.info(`Listing ${action}d successfully`, { listingId, userId: user.id })
 
     return NextResponse.json({
       success: true,
       listing: updatedListing,
-      message: action === 'pause' 
+      message: action === 'pause'
         ? 'Ad paused successfully. It will not appear in search results.'
         : 'Ad resumed successfully! It is now visible to buyers again.'
     })
-    
+
   } catch (error) {
-    console.error('Error in pause/resume listing endpoint:', error)
+    logger.error('Error in pause/resume listing endpoint', error as Error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
