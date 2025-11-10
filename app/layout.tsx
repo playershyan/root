@@ -11,6 +11,7 @@ import { GoogleOneTapProvider } from './components/auth'
 import AuthWrapper from './components/AuthWrapper'
 import { FavoritesProvider } from '@/lib/contexts/FavoritesContext'
 import CapacitorInitializer from './components/CapacitorInitializer'
+import { Analytics } from '@vercel/analytics/next'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -45,28 +46,29 @@ export default function RootLayout({
             }),
           }}
         />
-      </head>
-      <body className={inter.className}>
-        <CapacitorInitializer />
-        <ErrorBoundary>
-          <AuthProvider>
-            <FavoritesProvider>
-              <NotificationProvider>
-                <GoogleOneTapProvider />
-                <Suspense fallback={<div className="min-h-screen" />}>
-                  <AuthWrapper>
-                    <Header />
-                    <main className="min-h-screen safe-top safe-bottom">
-                      {children}
-                    </main>
-                    <Footer />
-                  </AuthWrapper>
-                </Suspense>
-              </NotificationProvider>
-            </FavoritesProvider>
-          </AuthProvider>
-        </ErrorBoundary>
-      </body>
-    </html>
+        </head>
+        <body className={inter.className}>
+          <CapacitorInitializer />
+          <ErrorBoundary>
+            <AuthProvider>
+              <FavoritesProvider>
+                <NotificationProvider>
+                  <GoogleOneTapProvider />
+                  <Suspense fallback={<div className="min-h-screen" />}>
+                    <AuthWrapper>
+                      <Header />
+                      <main className="min-h-screen safe-top safe-bottom">
+                        {children}
+                      </main>
+                      <Footer />
+                      <Analytics />
+                    </AuthWrapper>
+                  </Suspense>
+                </NotificationProvider>
+              </FavoritesProvider>
+            </AuthProvider>
+          </ErrorBoundary>
+        </body>
+      </html>
   )
 }
