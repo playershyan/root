@@ -47,7 +47,8 @@ export async function getAuthenticatedSupabase(
 ): Promise<AuthHelperResult> {
   const { request, traceId, allowUnauthenticated = false } = options
 
-  const supabase = createRouteHandlerClient<any>({ cookies }) as AppSupabaseClient
+  const cookieStore = cookies()
+  const supabase = createRouteHandlerClient<any>({ cookies: () => cookieStore }) as AppSupabaseClient
 
   const token = options.token ?? extractBearerToken(request)
 

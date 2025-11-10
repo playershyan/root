@@ -74,7 +74,8 @@ export async function GET() {
   const makeModelUrls: string[] = []
   if (carCategory) {
     try {
-      const supabase = createRouteHandlerClient({ cookies })
+      const cookieStore = cookies()
+      const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
       const { data: pairs, error } = await supabase
         .from('listings')
         .select('make,model')

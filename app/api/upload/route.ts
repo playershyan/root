@@ -2,16 +2,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { APIError } from '@/lib/errorHandling'
 import { verifyRecaptcha } from '@/lib/security/recaptcha'
+import { logger } from '@/lib/utils/logger'
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 
 export async function POST(request: NextRequest) {
   try {
+    logger.api.request('POST', '/api/upload')
     const supabase = createClient()
-    
+
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     if (userError || !user) {
+      logger.error('Upload auth failed', userError || new Error('No user'))
       throw new APIError('Authentication required', 401)
     }
 
@@ -19,7 +22,14 @@ export async function POST(request: NextRequest) {
     const forwarded = request.headers.get('x-forwarded-for')
     const ipHeader = forwarded ? forwarded.split(',')[0].trim() : request.headers.get('x-real-ip') || undefined
     const headerToken = request.headers.get('x-recaptcha-token')
-    const formData = await request.formData()
+
+    let formData: FormData
+    try {
+      formData = await request.formData()
+    } catch (formError) {
+      logger.error('FormData parsing failed', formError as Error)
+      throw new APIError('Invalid form data', 400)
+    }
     const formToken = formData.get('recaptchaToken') as string | null
     const uploadCaptchaRequired = (process.env.RECAPTCHA_UPLOAD_REQUIRED || '').toLowerCase() === 'true'
     const candidateToken = headerToken || formToken || undefined
@@ -43,19 +53,40 @@ export async function POST(request: NextRequest) {
     const bucket = formData.get('bucket') as string || 'listings'
 
     if (!file) {
+      logger.error('No file in upload request', null, { userId: user.id })
       throw new APIError('No file provided', 400)
     }
 
+    logger.info('Upload file received', {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      bucket,
+      userId: user.id
+    })
+
     if (file.size > MAX_FILE_SIZE) {
+      logger.error('File size exceeds limit', null, {
+        userId: user.id,
+        fileSize: file.size,
+        maxSize: MAX_FILE_SIZE
+      })
       throw new APIError('File size exceeds 5MB limit', 400)
     }
 
     if (!ALLOWED_TYPES.includes(file.type)) {
+      logger.error('Invalid file type', null, {
+        userId: user.id,
+        fileType: file.type,
+        allowedTypes: ALLOWED_TYPES
+      })
       throw new APIError('Invalid file type. Only JPEG, PNG, and WebP are allowed', 400)
     }
 
     const fileExt = file.name.split('.').pop()
     const fileName = `${user.id}/${Date.now()}.${fileExt}`
+
+    logger.info('Uploading to storage', { bucket, fileName, userId: user.id })
 
     const { data, error } = await supabase.storage
       .from(bucket)
@@ -65,6 +96,7 @@ export async function POST(request: NextRequest) {
       })
 
     if (error) {
+      logger.error('Storage upload failed', error, { userId: user.id, fileName, bucket })
       throw new APIError('Failed to upload file', 500, error)
     }
 
@@ -72,7 +104,8 @@ export async function POST(request: NextRequest) {
       .from(bucket)
       .getPublicUrl(fileName)
 
-    return Response.json({
+    logger.api.success('POST', '/api/upload', 0, { userId: user.id, bucket, fileName })
+    return NextResponse.json({
       data: {
         url: publicUrl,
         path: data.path
@@ -80,13 +113,18 @@ export async function POST(request: NextRequest) {
       success: true
     })
   } catch (error) {
+    logger.error('Upload POST error', error as Error, {
+      userId: (error as any)?.userId,
+      isAPIError: error instanceof APIError
+    })
+
     if (error instanceof APIError) {
-      return Response.json(
+      return NextResponse.json(
         { error: error.message, success: false },
         { status: error.status }
       )
     }
-    return Response.json(
+    return NextResponse.json(
       { error: 'Internal server error', success: false },
       { status: 500 }
     )
@@ -119,18 +157,25 @@ export async function DELETE(request: NextRequest) {
       .remove([filePath])
 
     if (error) {
+      logger.error('Storage delete failed', error, { userId: user.id, filePath, bucket })
       throw new APIError('Failed to delete file', 500, error)
     }
 
-    return Response.json({ success: true })
+    logger.api.success('DELETE', '/api/upload', 0, { userId: user.id, bucket, filePath })
+    return NextResponse.json({ success: true })
   } catch (error) {
+    logger.error('Upload DELETE error', error as Error, {
+      userId: (error as any)?.userId,
+      isAPIError: error instanceof APIError
+    })
+
     if (error instanceof APIError) {
-      return Response.json(
+      return NextResponse.json(
         { error: error.message, success: false },
         { status: error.status }
       )
     }
-    return Response.json(
+    return NextResponse.json(
       { error: 'Internal server error', success: false },
       { status: 500 }
     )

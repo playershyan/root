@@ -8,7 +8,8 @@ export async function GET(request: Request) {
   const type = requestUrl.searchParams.get('type')
 
   if (code) {
-    const supabase = createRouteHandlerClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     
     // Handle email change confirmation
     if (type === 'email_change') {
