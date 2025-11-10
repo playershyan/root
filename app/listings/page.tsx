@@ -99,10 +99,11 @@ function parseFilters(searchParams: Record<string, RawParam>) {
 }
 
 interface ListingsPageProps {
-  searchParams: Record<string, RawParam>
+  searchParams: Promise<Record<string, RawParam>>
 }
 
-export default async function ListingsPage({ searchParams }: ListingsPageProps) {
+export default async function ListingsPage(props: ListingsPageProps) {
+  const searchParams = await props.searchParams
   const { dbFilters, clientFilters } = parseFilters(searchParams)
 
   const [initialFeed, promoted] = await Promise.all([
