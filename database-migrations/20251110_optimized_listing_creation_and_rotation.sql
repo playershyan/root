@@ -23,9 +23,10 @@ ON public.listings (created_at DESC)
 WHERE status = 'active' AND is_sold = FALSE;
 
 -- Composite index for promotion rotation queries (ORDER BY columns)
+-- Note: Removed expires_at > NOW() from WHERE clause (NOW() is not IMMUTABLE)
 CREATE INDEX IF NOT EXISTS idx_promotions_rotation_performance
 ON public.promotions (promotion_type, is_active, expires_at, last_shown_at NULLS FIRST, impressions, created_at)
-WHERE is_active = TRUE AND expires_at > NOW();
+WHERE is_active = TRUE;
 
 -- Index for listings JOIN in rotation functions
 CREATE INDEX IF NOT EXISTS idx_listings_status_sold_vehicle_type
