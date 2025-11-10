@@ -227,6 +227,11 @@ COMMENT ON FUNCTION public.create_listing_v2(JSONB) IS 'Atomically validates, de
 -- FUNCTION 2: Optimized Rotation Functions (Return Full Listing Data)
 -- ============================================================================
 
+-- Drop existing rotation functions (return signatures have changed)
+DROP FUNCTION IF EXISTS public.get_rotated_featured_ads(TEXT, INTEGER);
+DROP FUNCTION IF EXISTS public.get_rotated_top_spot_ads(TEXT, INTEGER);
+DROP FUNCTION IF EXISTS public.get_rotated_boost_ads(TEXT, INTEGER);
+
 -- Featured ads rotation - returns full listing data to avoid double JOIN
 CREATE OR REPLACE FUNCTION public.get_rotated_featured_ads(
   p_vehicle_type TEXT DEFAULT NULL,
@@ -240,7 +245,7 @@ RETURNS TABLE (
   model TEXT,
   year INTEGER,
   vehicle_type TEXT,
-  mileage NUMERIC,
+  mileage INTEGER,
   fuel_type TEXT,
   transmission TEXT,
   location TEXT,
@@ -257,7 +262,7 @@ RETURNS TABLE (
   phone TEXT,
   whatsapp TEXT,
   email TEXT,
-  boost_score NUMERIC,
+  boost_score INTEGER,
   is_featured BOOLEAN,
   is_top_spot BOOLEAN,
   is_boosted BOOLEAN,
@@ -375,7 +380,7 @@ RETURNS TABLE (
   model TEXT,
   year INTEGER,
   vehicle_type TEXT,
-  mileage NUMERIC,
+  mileage INTEGER,
   fuel_type TEXT,
   transmission TEXT,
   location TEXT,
@@ -392,7 +397,7 @@ RETURNS TABLE (
   phone TEXT,
   whatsapp TEXT,
   email TEXT,
-  boost_score NUMERIC,
+  boost_score INTEGER,
   is_featured BOOLEAN,
   is_top_spot BOOLEAN,
   is_boosted BOOLEAN,
@@ -510,7 +515,7 @@ RETURNS TABLE (
   model TEXT,
   year INTEGER,
   vehicle_type TEXT,
-  mileage NUMERIC,
+  mileage INTEGER,
   fuel_type TEXT,
   transmission TEXT,
   location TEXT,
@@ -527,7 +532,7 @@ RETURNS TABLE (
   phone TEXT,
   whatsapp TEXT,
   email TEXT,
-  boost_score NUMERIC,
+  boost_score INTEGER,
   is_featured BOOLEAN,
   is_top_spot BOOLEAN,
   is_boosted BOOLEAN,

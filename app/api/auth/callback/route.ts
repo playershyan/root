@@ -14,7 +14,8 @@ export async function GET(request: NextRequest) {
   // Handle legacy code flow (for OAuth and password recovery)
   const code = requestUrl.searchParams.get('code')
 
-  const supabase = createRouteHandlerClient({ cookies })
+  const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
   // New token_hash flow for email verification
   if (token_hash && type) {

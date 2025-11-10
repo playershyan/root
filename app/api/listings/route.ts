@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
 
   try {
     // 1. AUTH CHECK
-    const cookieStore = await cookies()
+    const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     const authStart = performance.now()
     const { data: { user }, error: authError } = await supabase.auth.getUser()

@@ -4,7 +4,8 @@ import { NextResponse } from 'next/server'
 import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: Request) {
-  const supabase = createRouteHandlerClient({ cookies })
+  const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
   try {
     const { currentPassword, newPassword } = await request.json()

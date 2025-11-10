@@ -14,7 +14,8 @@ export async function POST(request: NextRequest) {
       return rateLimitResponse
     }
 
-    const supabase = createRouteHandlerClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -156,7 +157,8 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     const { searchParams } = new URL(request.url)
 
     const page = parseInt(searchParams.get('page') || '1')

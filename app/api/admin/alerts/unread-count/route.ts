@@ -16,7 +16,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
     const { count, error } = await supabase
       .from('system_alerts')

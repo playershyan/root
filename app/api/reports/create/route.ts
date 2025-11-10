@@ -14,7 +14,8 @@ const VALID_REASONS = [
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     
     // Get the current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()

@@ -69,7 +69,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
     const authStart = performance.now()
     const { data: { user }, error: authError } = await supabase.auth.getUser()

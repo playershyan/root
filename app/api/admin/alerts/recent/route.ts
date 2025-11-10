@@ -16,7 +16,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '10')
 

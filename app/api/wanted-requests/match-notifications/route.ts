@@ -30,7 +30,8 @@ export async function GET(request: NextRequest) {
 // POST: Dismiss a notification
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
 
     // Get the authenticated user
     const {
@@ -78,7 +79,8 @@ export async function POST(request: NextRequest) {
 // DELETE: Clean up old notifications (for maintenance)
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
 
     // Get the authenticated user
     const {

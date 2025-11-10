@@ -12,7 +12,8 @@ function generateOTP(): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
     const { phoneNumber, recaptchaToken, isRegistration } = await request.json()
 

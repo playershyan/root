@@ -5,7 +5,8 @@ import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
     const { phoneNumber, otpCode, isRegistration } = await request.json()
 

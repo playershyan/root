@@ -14,7 +14,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No credential provided' }, { status: 400 })
     }
 
-    const supabase = createRouteHandlerClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     
     // Use the same flow as Google One Tap for consistency
     const { data, error } = await supabase.auth.signInWithIdToken({

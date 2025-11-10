@@ -12,7 +12,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status') || 'pending'
     const page = parseInt(searchParams.get('page') || '1')

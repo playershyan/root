@@ -16,7 +16,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     const { requestId, reason } = await request.json()
 
     if (!requestId) {

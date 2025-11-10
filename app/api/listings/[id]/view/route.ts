@@ -8,7 +8,8 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     
     // Get current user
     const { data: { user } } = await supabase.auth.getUser()

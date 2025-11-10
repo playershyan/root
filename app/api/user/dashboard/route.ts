@@ -9,7 +9,8 @@ interface DashboardRequestContext {
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
     const {
       data: { user },

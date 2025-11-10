@@ -25,7 +25,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid token payload' }, { status: 400 })
     }
 
-    const supabase = createRouteHandlerClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     
     // Try to use signInWithIdToken
     const { data, error } = await supabase.auth.signInWithIdToken({

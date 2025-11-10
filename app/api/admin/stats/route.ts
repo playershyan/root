@@ -70,7 +70,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
     // Try to use the new calculate_dashboard_metrics function
     const { data: metrics, error: metricsError } = await timed(

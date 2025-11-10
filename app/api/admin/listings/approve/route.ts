@@ -25,7 +25,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Permission denied' }, { status: 403 })
     }
 
-    const supabase = createRouteHandlerClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     const { listingId, approvalNotes } = await request.json()
 
     if (!listingId) {

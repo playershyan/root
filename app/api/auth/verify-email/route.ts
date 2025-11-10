@@ -8,7 +8,8 @@ export async function GET(request: NextRequest) {
   const type = requestUrl.searchParams.get('type')
 
   if (token && type) {
-    const supabase = createRouteHandlerClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     
     // Verify the email change token
     const { error } = await supabase.auth.verifyOtp({
