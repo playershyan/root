@@ -567,6 +567,32 @@ const getUploadUserId = (): string => {
 
     const uploadUserId = getUploadUserId()
 
+    const parseUploadResponse = async (response: Response) => {
+      try {
+        return await response.clone().json()
+      } catch (jsonError) {
+        const rawBody = await response.text().catch(() => '')
+        const trimmed = rawBody.trim()
+        const statusLabel = response.status
+          ? `${response.status}${response.statusText ? ` ${response.statusText}` : ''}`
+          : 'status unknown'
+        const looksLikeHtml = /<\s*?[a-z!\/][\s\S]*?>/i.test(trimmed)
+        const displayMessage = trimmed.length === 0
+          ? `Upload failed: server returned an empty response (${statusLabel}).`
+          : (!looksLikeHtml && trimmed.length <= 200
+              ? trimmed
+              : `Upload failed: server returned an unreadable response (${statusLabel}).`)
+        const error = new Error(displayMessage)
+        ;(error as any).details = {
+          status: response.status,
+          statusText: response.statusText,
+          rawBody: trimmed.slice(0, 500),
+          parseError: jsonError instanceof Error ? jsonError.message : String(jsonError)
+        }
+        throw error
+      }
+    }
+
     for (const file of files) {
       if (!(file instanceof File)) continue
 
@@ -618,7 +644,14 @@ const getUploadUserId = (): string => {
           body: payload
         })
 
-        const result = await response.json()
+        const result: any = await parseUploadResponse(response)
+
+        if (!result || typeof result !== 'object') {
+          const statusLabel = response.status
+            ? `${response.status}${response.statusText ? ` ${response.statusText}` : ''}`
+            : 'status unknown'
+          throw new Error(`Upload failed: server returned a malformed payload (${statusLabel}).`)
+        }
 
         if (response.ok && result.success && Array.isArray(result.images) && result.images.length > 0) {
           const uploadedImage = result.images[0]
