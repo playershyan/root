@@ -120,6 +120,34 @@ class Logger {
   securityAlert(event: string, context?: LogContext): void {
     this.error(`Security Alert: ${event}`, undefined, context)
   }
+
+  // Convenience properties (for backward compatibility)
+  api = {
+    request: (method: string, path: string, context?: LogContext) =>
+      this.apiRequest(method, path, context),
+    error: (method: string, path: string, error: Error, context?: LogContext) =>
+      this.apiError(method, path, error, context),
+    success: (method: string, path: string, duration?: number, context?: LogContext) =>
+      this.apiSuccess(method, path, duration, context),
+  }
+
+  db = {
+    query: (query: string, context?: LogContext) => this.dbQuery(query, context),
+    error: (operation: string, error: Error, context?: LogContext) =>
+      this.dbError(operation, error, context),
+  }
+
+  auth = {
+    event: (event: string, userId?: string, context?: LogContext) =>
+      this.authEvent(event, userId, context),
+    error: (event: string, error: Error, context?: LogContext) =>
+      this.authError(event, error, context),
+  }
+
+  security = {
+    event: (event: string, context?: LogContext) => this.securityEvent(event, context),
+    alert: (event: string, context?: LogContext) => this.securityAlert(event, context),
+  }
 }
 
 // Create singleton logger instance
