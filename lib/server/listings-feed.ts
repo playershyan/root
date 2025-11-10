@@ -1,7 +1,7 @@
 import 'server-only'
 
 import { unstable_cache } from 'next/cache'
-import { createServiceSupabaseClient } from '@/lib/supabase-server'
+import { createPublicSupabaseClient } from '@/lib/supabase-server'
 import { logger } from '@/lib/utils/logger'
 import type {
   ListingsFeedFilters,
@@ -14,7 +14,7 @@ const DEFAULT_PAGE_SIZE = 24
 const MAX_PAGE_SIZE = 60
 
 async function fetchListingsFeed(filters: ListingsFeedFilters): Promise<ListingsFeedResult> {
-  const supabase = createServiceSupabaseClient()
+  const supabase = createPublicSupabaseClient()
   const page = Math.max(filters.page ?? 1, 1)
   const pageSize = Math.min(Math.max(filters.pageSize ?? DEFAULT_PAGE_SIZE, 1), MAX_PAGE_SIZE)
   const from = (page - 1) * pageSize
@@ -147,7 +147,7 @@ async function fetchListingsFeed(filters: ListingsFeedFilters): Promise<Listings
 }
 
 async function fetchPromotedSlots(filters: Pick<ListingsFeedFilters, 'vehicleType'>): Promise<PromotedSlots> {
-  const supabase = createServiceSupabaseClient()
+  const supabase = createPublicSupabaseClient()
   const { data, error } = await supabase.rpc('get_promoted_slots_bundle', {
     p_vehicle_type: filters.vehicleType ?? null
   })
