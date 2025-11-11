@@ -1267,8 +1267,7 @@ const getUploadUserId = (): string => {
                 {errors.vehicleType && (
                   <p className="text-red-600 text-sm mt-3">{errors.vehicleType}</p>
                 )}
-              </div>
-              
+
               {/* Vehicle Form Factory */}
               <VehicleFormFactory
                 vehicleType={formData.vehicleType}
