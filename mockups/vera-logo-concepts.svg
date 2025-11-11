@@ -1,0 +1,38 @@
+<svg width="900" height="600" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">VERA Delta Logo Concepts</title>
+  <desc id="desc">Four triangle-based logo explorations for the VERA brand</desc>
+  <style>
+    .label { font-family: 'Inter', 'Segoe UI', sans-serif; font-size: 20px; fill: #1f2937; }
+  </style>
+  <rect width="900" height="600" fill="#f8fafc"/>
+
+  <!-- Concept 1: Equilateral Delta -->
+  <g transform="translate(150,180)">
+    <path d="M0 200 L173.2 0 L346.4 200 Z" fill="#2563eb" />
+    <text class="label" x="173.2" y="250" text-anchor="middle">Equilateral Delta</text>
+    <text class="label" x="173.2" y="280" text-anchor="middle" font-size="16">Minimal, stable triangle</text>
+  </g>
+
+  <!-- Concept 2: Equilateral with V knock-out -->
+  <g transform="translate(450,180)">
+    <path d="M0 200 L173.2 0 L346.4 200 Z" fill="#1d4ed8" />
+    <path d="M173.2 70 L110 200 L236.4 200 Z" fill="#f8fafc" />
+    <text class="label" x="173.2" y="250" text-anchor="middle">Equilateral + V</text>
+    <text class="label" x="173.2" y="280" text-anchor="middle" font-size="16">Negative space monogram</text>
+  </g>
+
+  <!-- Concept 3: Rounded Isosceles -->
+  <g transform="translate(150,420)">
+    <path d="M173.2 0 C179 0 184.5 3.6 187 9.1 L288 200 C292.4 208.7 286.1 218.8 276.4 218.8 H70 C60.3 218.8 54 208.7 58.4 200 L159.4 9.1 C161.9 3.6 167.4 0 173.2 0 Z" fill="#3b82f6" />
+    <text class="label" x="173.2" y="260" text-anchor="middle">Rounded Isosceles</text>
+    <text class="label" x="173.2" y="290" text-anchor="middle" font-size="16">Soft, friendly silhouette</text>
+  </g>
+
+  <!-- Concept 4: Rounded Isosceles with V Inner Stroke -->
+  <g transform="translate(450,420)">
+    <path d="M173.2 0 C179 0 184.5 3.6 187 9.1 L288 200 C292.4 208.7 286.1 218.8 276.4 218.8 H70 C60.3 218.8 54 208.7 58.4 200 L159.4 9.1 C161.9 3.6 167.4 0 173.2 0 Z" fill="#1e40af" />
+    <path d="M173.2 60 L120 180 C117 186.7 121.9 194.3 129.2 194.3 H217.2 C224.5 194.3 229.4 186.7 226.4 180 Z" fill="#f8fafc" />
+    <text class="label" x="173.2" y="260" text-anchor="middle">Rounded Isosceles + V</text>
+    <text class="label" x="173.2" y="290" text-anchor="middle" font-size="16">Expanded monogram feel</text>
+  </g>
+</svg>

@@ -260,30 +260,39 @@ export default function ListingsPageClient({
             </div>
 
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-              <div className="flex w-full items-center gap-2 lg:w-96">
-                <input
-                  type="text"
-                  value={localFilters.search}
-                  onChange={(event) => handleFilterChange({ search: event.target.value })}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter') {
-                      event.preventDefault()
-                      applyFilters({ ...localFilters, search: event.currentTarget.value }, 1)
-                    }
-                  }}
-                  placeholder="Search make, model, location..."
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-                <Button onClick={handleApply} variant="default" className="shrink-0 hidden lg:flex">
-                  Search
-                </Button>
-                <Button
+              <div className="flex w-full items-center gap-2 lg:w-auto lg:flex-1">
+                {/* Mobile Filter Button */}
+                <button
                   onClick={() => setMobileFilterOpen(true)}
-                  variant="default"
-                  className="shrink-0 lg:hidden"
+                  className="lg:hidden px-3 py-3 bg-white border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50 flex items-center justify-center"
+                  aria-label="Open filters"
                 >
-                  Filters
-                </Button>
+                  <i className="fas fa-filter"></i>
+                </button>
+
+                {/* Search Input */}
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={localFilters.search}
+                    onChange={(event) => handleFilterChange({ search: event.target.value })}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault()
+                        applyFilters({ ...localFilters, search: event.currentTarget.value }, 1)
+                      }
+                    }}
+                    placeholder="Search make, model, location..."
+                    className="w-full px-6 py-3 pr-12 border border-gray-300 rounded-full focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
+                  />
+                  <button
+                    onClick={handleApply}
+                    className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors focus:outline-none"
+                    aria-label="Search"
+                  >
+                    <i className="fas fa-search text-base"></i>
+                  </button>
+                </div>
               </div>
               <Button variant="ghost" onClick={handleClearFilters} className="text-xs text-gray-500">
                 Clear filters

@@ -148,8 +148,15 @@ export default function Header() {
             </Button>
             
             {/* Logo */}
-            <Link href="/" className="flex items-center">
-              <span className="text-xl sm:text-2xl font-bold text-blue-600">VERA</span>
+            <Link href="/" className="flex items-center" aria-label="VERA home">
+              <Image
+                src="/vera-logo.png"
+                alt="VERA logo"
+                width={140}
+                height={56}
+                priority
+                className="h-8 w-auto"
+              />
             </Link>
           </div>
           
@@ -483,8 +490,14 @@ export default function Header() {
                   </div>
                 </div>
               ) : (
-                <Link href="/" className="text-xl font-bold text-blue-600">
-                  VERA
+                <Link href="/" className="flex items-center" onClick={() => setMobileMenuOpen(false)} aria-label="VERA home">
+                  <Image
+                    src="/vera-logo.png"
+                    alt="VERA logo"
+                    width={120}
+                    height={48}
+                    className="h-7 w-auto"
+                  />
                 </Link>
               )}
               <Button
