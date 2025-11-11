@@ -1349,7 +1349,7 @@ const getUploadUserId = (): string => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Pricing and features now handled by VehicleFormFactory */}
             </div>
 
