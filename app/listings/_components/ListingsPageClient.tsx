@@ -2,11 +2,13 @@
 
 import { useEffect, useMemo, useState, useTransition } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import FeaturedAdCard from '@/app/components/listings/FeaturedAdCard'
 import TopSpotCard from '@/app/components/listings/TopSpotCard'
 import BoostedCard from '@/app/components/listings/BoostedCard'
 import UrgentListingCard from '@/app/components/listings/UrgentListingCard'
 import RegularAdCard from '@/app/components/listings/RegularAdCard'
+import LocationFilter from '@/app/components/LocationFilter'
 import { Button } from '@/components/ui/button'
 import { getVehicleCategories, getMakesByCategory } from '@/lib/constants/vehicleData'
 import type { ListingSummary, PromotedSlots } from '@/lib/types/listings-feed'
@@ -15,6 +17,11 @@ import type {
   ListingsPagePaginationState,
   SortOption
 } from '@/app/listings/types'
+
+// Lazy load MobileFilterSheet for mobile view
+const MobileFilterSheet = dynamic(() => import('@/app/components/filters/MobileFilterSheet'), {
+  ssr: false
+})
 
 const fuelOptions = ['Petrol', 'Diesel', 'Hybrid', 'Electric', 'CNG', 'LPG']
 const transmissionOptions = ['Automatic', 'Manual', 'CVT', 'Tiptronic']
@@ -71,6 +78,8 @@ export default function ListingsPageClient({
   const pathname = usePathname()
   const [isPending, startTransition] = useTransition()
   const [localFilters, setLocalFilters] = useState<ListingsPageFilterState>(filters)
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
+  const [locationExpanded, setLocationExpanded] = useState(false)
 
   useEffect(() => {
     setLocalFilters(filters)
@@ -265,8 +274,15 @@ export default function ListingsPageClient({
                   placeholder="Search make, model, location..."
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
-                <Button onClick={handleApply} variant="default" className="shrink-0">
+                <Button onClick={handleApply} variant="default" className="shrink-0 hidden lg:flex">
                   Search
+                </Button>
+                <Button
+                  onClick={() => setMobileFilterOpen(true)}
+                  variant="default"
+                  className="shrink-0 lg:hidden"
+                >
+                  Filters
                 </Button>
               </div>
               <Button variant="ghost" onClick={handleClearFilters} className="text-xs text-gray-500">
@@ -276,7 +292,7 @@ export default function ListingsPageClient({
           </div>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-[320px_1fr]">
-            <aside className="rounded-xl border border-gray-200 bg-gray-50 p-4 lg:p-5">
+            <aside className="hidden lg:block rounded-xl border border-gray-200 bg-gray-50 p-4 lg:p-5">
               <div className="space-y-5 text-sm text-gray-700">
                 <div>
                   <label className="mb-2 block font-semibold text-gray-900">Vehicle type</label>
@@ -301,12 +317,12 @@ export default function ListingsPageClient({
                 </div>
 
                 <div>
-                  <label className="mb-2 block font-semibold text-gray-900">Location</label>
-                  <input
-                    value={localFilters.location}
-                    onChange={(event) => handleFilterChange({ location: event.target.value })}
-                    placeholder="District or city"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  <LocationFilter
+                    selectedLocation={localFilters.location || null}
+                    onLocationChange={(location) => handleFilterChange({ location: location || '' })}
+                    expanded={locationExpanded}
+                    onToggleExpand={() => setLocationExpanded(!locationExpanded)}
+                    variant="listings"
                   />
                 </div>
 
@@ -655,6 +671,36 @@ export default function ListingsPageClient({
           </div>
         </div>
       </div>
+
+      {/* Mobile Filter Sheet */}
+      <MobileFilterSheet
+        isOpen={mobileFilterOpen}
+        onClose={() => setMobileFilterOpen(false)}
+        category={localFilters.vehicleType}
+        onCategoryChange={(category) => handleFilterChange({ vehicleType: category, make: '', model: '' })}
+        selectedLocation={localFilters.location || null}
+        onLocationChange={(location) => handleFilterChange({ location: location || '' })}
+        make={localFilters.make || 'All Makes'}
+        onMakeChange={(make) => handleFilterChange({ make: make === 'All Makes' ? '' : make, model: '' })}
+        model={localFilters.model || 'All Models'}
+        onModelChange={(model) => handleFilterChange({ model: model === 'All Models' ? '' : model })}
+        minYear={localFilters.minYear}
+        onMinYearChange={(year) => handleFilterChange({ minYear: year })}
+        maxYear={localFilters.maxYear}
+        onMaxYearChange={(year) => handleFilterChange({ maxYear: year })}
+        minPrice={localFilters.minPrice}
+        onMinPriceChange={(price) => handleFilterChange({ minPrice: price })}
+        maxPrice={localFilters.maxPrice}
+        onMaxPriceChange={(price) => handleFilterChange({ maxPrice: price })}
+        fuelTypes={localFilters.fuelTypes}
+        onFuelTypesChange={(fuels) => handleFilterChange({ fuelTypes: fuels })}
+        transmissionTypes={localFilters.transmissionTypes}
+        onTransmissionTypesChange={(transmissions) => handleFilterChange({ transmissionTypes: transmissions })}
+        urgentOnly={localFilters.urgentOnly}
+        onUrgentOnlyChange={(urgent) => handleFilterChange({ urgentOnly: urgent })}
+        sortBy={toSortParam(localFilters.sort)}
+        onSortByChange={(sort) => handleFilterChange({ sort: fromSortParam(sort) })}
+      />
     </div>
   )
 }
