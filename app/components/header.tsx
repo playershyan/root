@@ -133,20 +133,20 @@ export default function Header() {
 
   return (
     <header className="bg-white shadow-sm border-b sticky top-0 z-50 safe-top">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left side - Mobile menu button + Logo */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
             {/* Mobile menu button */}
             <Button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               variant="ghost"
               size="icon"
-              className="md:hidden"
+              className="md:hidden -ml-2"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
-            
+
             {/* Logo */}
             <Link href="/" className="flex items-center" aria-label="VERA home">
               <Image

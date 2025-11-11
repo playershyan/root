@@ -208,23 +208,24 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             {/* Logo and Copyright */}
             <div className="flex items-center space-x-4 mb-4 md:mb-0">
-              <div className="flex items-center space-x-2">
-                <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
-                  </svg>
-                </div>
-                <span className="text-lg font-bold text-gray-900">VERA</span>
-              </div>
+              <Link href="/" className="flex items-center" aria-label="VERA home">
+                <Image
+                  src="/vera-logo.png"
+                  alt="VERA logo"
+                  width={270}
+                  height={68}
+                  className="h-[72px] w-auto"
+                />
+              </Link>
               <div className="hidden md:block text-gray-500 text-xs">
-                © {new Date().getFullYear()} VERA. All rights reserved.
+                © {new Date().getFullYear()} Capitalist One (Pvt) Ltd. All rights reserved.
               </div>
             </div>
 
             {/* Additional Info */}
             <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6 text-xs text-gray-500">
               <div className="md:hidden">
-                © {new Date().getFullYear()} VERA. All rights reserved.
+                © {new Date().getFullYear()} Capitalist One (Pvt) Ltd. All rights reserved.
               </div>
               <div className="flex items-center space-x-1">
                 <Image src="/sri-lanka-flag.svg" alt="Sri Lanka" width={20} height={12} />
@@ -235,6 +236,13 @@ export default function Footer() {
                   <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1M10 17L6 13L7.41 11.59L10 14.17L16.59 7.58L18 9L10 17Z"/>
                 </svg>
                 <span>Secure & Trusted</span>
+              </div>
+              <div className="flex items-center space-x-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                </span>
+                <span className="text-blue-600">All systems normal</span>
               </div>
             </div>
           </div>
