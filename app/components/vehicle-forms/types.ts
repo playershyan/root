@@ -11,7 +11,6 @@ export interface BaseVehicleFormData {
   engineCapacity?: string
   fuelType?: string
   transmission?: string
-  color?: string
   trim?: string
   grade?: string
   district: string
@@ -31,12 +30,6 @@ export interface BaseVehicleFormData {
   phone: string
   whatsapp: string
   email: string
-  // Additional Information fields
-  interiorColor?: string
-  registrationYear?: string
-  vehicleConditionDetails?: string
-  previousOwners?: string
-  serviceRecordsAvailable?: boolean
 }
 
 export interface VehicleFormProps {

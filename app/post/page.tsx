@@ -63,12 +63,6 @@ interface FormData extends BaseVehicleFormData {
   whatsappSameAsPhone: boolean
   preferredContact: 'phone' | 'whatsapp' | 'email'
   bestTimeToCall: string
-  // Additional Information fields
-  interiorColor?: string
-  registrationYear?: string
-  vehicleConditionDetails?: string
-  previousOwners?: string
-  serviceRecordsAvailable?: boolean
 }
 
 const initialFormData: FormData = {
@@ -84,7 +78,6 @@ const initialFormData: FormData = {
   engineCapacity: '',
   fuelType: '',
   transmission: '',
-  color: 'White',
   trim: '',
   district: '',
   city: '',
@@ -101,12 +94,6 @@ const initialFormData: FormData = {
   imageUrls: [],
   description: '',
   aiStyle: 'professional',
-  // Additional Information fields
-  interiorColor: '',
-  registrationYear: '',
-  vehicleConditionDetails: '',
-  previousOwners: '',
-  serviceRecordsAvailable: false,
   phone: '',
   whatsapp: '',
   whatsappSameAsPhone: true,
@@ -130,7 +117,6 @@ export default function EnhancedPostVehiclePage() {
   // Detect edit mode
   const isEditMode = searchParams.get('edit') !== null
 
-  const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<FormData>(initialFormData)
   const [selectedDistrict, setSelectedDistrict] = useState<string>('')
   const [availableCities, setAvailableCities] = useState<string[]>([])
@@ -200,14 +186,8 @@ export default function EnhancedPostVehiclePage() {
             fuelType: listing.fuel_type || '',
             transmission: listing.transmission || '',
             engineCapacity: listing.engine_capacity?.toString() || '',
-            color: listing.color || '',
 
             // Additional details
-            interiorColor: listing.interior_color || '',
-            registrationYear: listing.registration_year?.toString() || '',
-            vehicleConditionDetails: listing.vehicle_condition_details || '',
-            previousOwners: listing.previous_owners?.toString() || '',
-            serviceRecordsAvailable: listing.service_records_available || false,
             trim: gradeValue,  // Use grade value for trim field (DB only has grade column)
             grade: gradeValue,
 
@@ -443,61 +423,69 @@ export default function EnhancedPostVehiclePage() {
     }
   }, [selectedDistrict])
   
-  const validateStep = (step: number): boolean => {
+  const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}
 
-    if (step === 1) {
-      if (!formData.vehicleType) newErrors.vehicleType = 'Please select vehicle type'
-      if (!formData.title) newErrors.title = 'Title is required'
-      if (!formData.make) {
-        newErrors.make = 'Make is required'
-      } else if (formData.make === 'Other' && !formData.customMake) {
-        newErrors.make = 'Please enter custom make name'
-      }
-      if (!formData.model) {
-        newErrors.model = 'Model is required'
-      } else if (formData.model === 'Other' && !formData.customModel) {
-        newErrors.model = 'Please enter custom model name'
-      }
-      if (!formData.year) newErrors.year = 'Year is required'
-      
-      // Mileage is not applicable for bicycles
-      if (formData.vehicleType !== 'bicycle' && !formData.mileage) {
-        newErrors.mileage = 'Mileage is required'
-      }
-      
-      if (!formData.condition) newErrors.condition = 'Vehicle condition is required'
-      
-      // Trim/grade is mainly for cars and some vans
-      if (['car'].includes(formData.vehicleType) && !formData.trim) {
-        newErrors.trim = 'Trim/grade is required'
-      }
-      
-      if (!formData.district) newErrors.district = 'District is required'
-      if (!formData.city) newErrors.city = 'City is required'
-      if (!formData.price) newErrors.price = 'Price is required'
-      
-      if (formData.pricingType === 'finance') {
-        if (!formData.financeType) newErrors.financeType = 'Finance type is required'
-        if (!formData.outstandingBalance) newErrors.outstandingBalance = 'Outstanding balance is required'
-        if (!formData.askingPrice) newErrors.askingPrice = 'Asking price is required'
-        if (!formData.monthlyPayment) newErrors.monthlyPayment = 'Monthly payment is required'
-        if (!formData.remainingTerm) newErrors.remainingTerm = 'Remaining term is required'
-      }
-    } else if (step === 2) {
-      if (formData.images.length === 0 && formData.imageUrls.length === 0) {
-        newErrors.images = 'At least one image is required'
-      }
-      if (!formData.description) newErrors.description = 'Description is required'
-    } else if (step === 3) {
-      if (!formData.phone) newErrors.phone = 'Phone number is required'
-      if (!formData.whatsapp && !formData.whatsappSameAsPhone) {
-        newErrors.whatsapp = 'WhatsApp number is required'
-      }
+    // Vehicle type and title
+    if (!formData.vehicleType) newErrors.vehicleType = 'Please select vehicle type'
+    if (!formData.title) newErrors.title = 'Title is required'
+
+    // Make and model
+    if (!formData.make) {
+      newErrors.make = 'Make is required'
+    } else if (formData.make === 'Other' && !formData.customMake) {
+      newErrors.make = 'Please enter custom make name'
     }
-    
+    if (!formData.model) {
+      newErrors.model = 'Model is required'
+    } else if (formData.model === 'Other' && !formData.customModel) {
+      newErrors.model = 'Please enter custom model name'
+    }
+
+    // Year
+    if (!formData.year) newErrors.year = 'Year is required'
+
+    // Mileage (not applicable for bicycles)
+    if (formData.vehicleType !== 'bicycle' && !formData.mileage) {
+      newErrors.mileage = 'Mileage is required'
+    }
+
+    // Condition
+    if (!formData.condition) newErrors.condition = 'Vehicle condition is required'
+
+    // Trim/grade (optional for all vehicles now)
+
+    // Location
+    if (!formData.district) newErrors.district = 'District is required'
+    if (!formData.city) newErrors.city = 'City is required'
+
+    // Pricing
+    if (!formData.price) newErrors.price = 'Price is required'
+
+    if (formData.pricingType === 'finance') {
+      if (!formData.financeType) newErrors.financeType = 'Finance type is required'
+      if (!formData.outstandingBalance) newErrors.outstandingBalance = 'Outstanding balance is required'
+      if (!formData.askingPrice) newErrors.askingPrice = 'Asking price is required'
+      if (!formData.monthlyPayment) newErrors.monthlyPayment = 'Monthly payment is required'
+      if (!formData.remainingTerm) newErrors.remainingTerm = 'Remaining term is required'
+    }
+
+    // Images
+    if (formData.images.length === 0 && formData.imageUrls.length === 0) {
+      newErrors.images = 'At least one image is required'
+    }
+
+    // Description
+    if (!formData.description) newErrors.description = 'Description is required'
+
+    // Contact info
+    if (!formData.phone) newErrors.phone = 'Phone number is required'
+    if (!formData.whatsapp && !formData.whatsappSameAsPhone) {
+      newErrors.whatsapp = 'WhatsApp number is required'
+    }
+
     setErrors(newErrors)
-    
+
     // Auto-scroll to first error field
     if (Object.keys(newErrors).length > 0) {
       const firstErrorField = Object.keys(newErrors)[0]
@@ -529,24 +517,8 @@ export default function EnhancedPostVehiclePage() {
         }, 100)
       }
     }
-    
-    return Object.keys(newErrors).length === 0
-  }
-  
-  const handleNext = () => {
-    // Don't allow navigation if edit data is still loading
-    if (editDataLoading) {
-      showWarning('Please wait while we load your listing data...')
-      return
-    }
 
-    if (validateStep(currentStep)) {
-      setCurrentStep(prev => Math.min(prev + 1, 3))
-    }
-  }
-  
-  const handlePrevious = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 1))
+    return Object.keys(newErrors).length === 0
   }
   
 const getUploadUserId = (): string => {
@@ -838,17 +810,11 @@ const getUploadUserId = (): string => {
         customModel: formData.customModel,
         trim: formData.trim,
         year: formData.year,
-        registrationYear: formData.registrationYear,
         mileage: formData.mileage,
         condition: formData.condition,
-        vehicleConditionDetails: formData.vehicleConditionDetails,
         engineCapacity: formData.engineCapacity,
         fuelType: formData.fuelType,
         transmission: formData.transmission,
-        color: formData.color,
-        interiorColor: formData.interiorColor,
-        previousOwners: formData.previousOwners,
-        serviceRecordsAvailable: formData.serviceRecordsAvailable,
         pricingType: formData.pricingType,
         price: formData.price,
         negotiable: formData.negotiable,
@@ -892,7 +858,7 @@ const getUploadUserId = (): string => {
   }
   
   const handleSubmit = async () => {
-    if (!validateStep(3)) return
+    if (!validateForm()) return
     
     setLoading(true)
     try {
@@ -940,7 +906,6 @@ const getUploadUserId = (): string => {
         transmission: formData.transmission || null,
         body_type: formData.vehicleType || null,
         vehicle_type: formData.vehicleType || null,
-        color: formData.color || null,
         engine_capacity: formData.engineCapacity ? parseInt(formData.engineCapacity) : null,
         grade: formData.trim || formData.grade || null, // Database uses 'grade' column
         location: `${formData.city}, ${formData.district}`,
@@ -956,19 +921,13 @@ const getUploadUserId = (): string => {
         // Finance information
         pricing_type: formData.pricingType,
         finance_type: formData.pricingType === 'finance' ? formData.financeType : null,
-        outstanding_balance: formData.pricingType === 'finance' && formData.outstandingBalance 
+        outstanding_balance: formData.pricingType === 'finance' && formData.outstandingBalance
           ? parseFloat(formData.outstandingBalance) : null,
-        monthly_payment: formData.pricingType === 'finance' && formData.monthlyPayment 
+        monthly_payment: formData.pricingType === 'finance' && formData.monthlyPayment
           ? parseFloat(formData.monthlyPayment) : null,
         remaining_term: formData.pricingType === 'finance' ? formData.remainingTerm : null,
         asking_price: formData.pricingType === 'finance' && formData.askingPrice
           ? parseFloat(formData.askingPrice) : null,
-        // Additional information
-        interior_color: formData.interiorColor || null,
-        registration_year: formData.registrationYear ? parseInt(formData.registrationYear) : null,
-        vehicle_condition_details: formData.vehicleConditionDetails || null,
-        previous_owners: formData.previousOwners ? parseInt(formData.previousOwners) : null,
-        service_records_available: formData.serviceRecordsAvailable || false,
         // Promotion flags
         is_featured: false,
         is_top_spot: false,
@@ -1045,7 +1004,6 @@ const getUploadUserId = (): string => {
             fuelType: listingData.fuel_type,
             transmission: listingData.transmission,
             bodyType: listingData.body_type,
-            color: listingData.color,
             engineCapacity: listingData.engine_capacity,
             trim: listingData.grade,
             grade: listingData.grade,
@@ -1063,12 +1021,7 @@ const getUploadUserId = (): string => {
             phone: formData.phone, // Send raw phone, API will format
             whatsapp: formData.whatsapp, // Send raw whatsapp, API will format
             email: listingData.email,
-            imageUrls: listingData.image_urls || [],
-            interiorColor: listingData.interior_color,
-            registrationYear: listingData.registration_year,
-            vehicleConditionDetails: listingData.vehicle_condition_details,
-            previousOwners: listingData.previous_owners,
-            serviceRecordsAvailable: listingData.service_records_available
+            imageUrls: listingData.image_urls || []
           })
         })
 
@@ -1165,89 +1118,22 @@ const getUploadUserId = (): string => {
           <p className="text-sm lg:text-base text-gray-600">Reach thousands of potential buyers across Sri Lanka</p>
         </div>
 
-        {/* Progress Steps */}
-        <div className="mb-4 lg:mb-8 py-4 lg:py-0 bg-white lg:bg-transparent -mx-4 px-4 lg:mx-0 border-b lg:border-0">
-          <div className="flex items-center justify-center">
-            {[1, 2, 3].map((step) => (
-              <div key={step} className="flex items-center">
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
-                  currentStep >= step 
-                    ? 'bg-blue-600 border-blue-600 text-white' 
-                    : 'border-gray-300 text-gray-400'
-                }`}>
-                  {currentStep > step ? <CheckCircle className="w-5 h-5" /> : step}
-                </div>
-                {step < 3 && (
-                  <div className={`w-20 h-1 mx-2 ${
-                    currentStep > step ? 'bg-blue-600' : 'bg-gray-300'
-                  }`} />
-                )}
+        {/* Upload status indicator */}
+        {imagesUploading && (
+          <div className="mb-4 p-3 bg-white border border-gray-300 rounded-lg flex items-center gap-2">
+            <span className="inline-block w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+            <span className="text-sm text-gray-700">Uploading images in the background...</span>
+          </div>
+        )}
 
-                {imagesUploading && (
-                  <div className="mt-3 text-sm text-gray-600 flex items-center gap-2">
-                    <span className="inline-block w-2 h-2 rounded-full bg-gray-400 animate-pulse"></span>
-                    <span>Uploading images in the background…</span>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-          {/* Desktop view - horizontal labels */}
-          <div className="hidden md:flex justify-between mt-2 text-sm">
-            <span className={currentStep >= 1 ? 'text-gray-900 font-medium' : 'text-gray-400'}>
-              Vehicle Details
-            </span>
-            <span className={currentStep >= 2 ? 'text-gray-900 font-medium' : 'text-gray-400'}>
-              Photos & Description
-            </span>
-            <span className={currentStep >= 3 ? 'text-gray-900 font-medium' : 'text-gray-400'}>
-              {isEditMode ? 'Contact & Update' : 'Contact & Publish'}
-            </span>
-          </div>
-          
-          {/* Mobile view - show only current step */}
-          <div className="block md:hidden mt-3 text-center">
-            <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-              Step {currentStep} of 3
-            </div>
-            <div className="text-base font-semibold text-gray-900">
-              {currentStep === 1 && 'Vehicle Details'}
-              {currentStep === 2 && 'Photos & Description'}
-              {currentStep === 3 && (isEditMode ? 'Contact & Update' : 'Contact & Publish')}
-            </div>
-          </div>
-        </div>
-        
-        {/* AI Badge */}
-        <div className="relative overflow-hidden lg:rounded-lg p-4 mb-4 lg:mb-6 flex items-center gap-3 bg-gradient-to-r from-blue-50 via-purple-50 to-blue-50 -mx-4 lg:mx-0 border-b lg:border border-purple-200">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 via-purple-400/10 to-blue-400/10 animate-pulse"></div>
-          <div className="relative flex items-center gap-3">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-lg opacity-50"></div>
-              <Star className="relative w-5 h-5 text-purple-600" />
-            </div>
-            <span className="text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              AI-assisted form • Verify all details before publishing
-            </span>
-          </div>
-        </div>
-        
-        {/* Form Content */}
+        {/* Form Content - Single Scrolling Page */}
         <div className="lg:bg-white lg:rounded-xl lg:shadow-sm lg:p-8">
-          {/* Step 1: Vehicle Details */}
-          {currentStep === 1 && (
-            <div className="space-y-4 lg:space-y-8">
-              {/* Vehicle Type Section */}
-              <div className="vehicle-type-section bg-white lg:bg-transparent -mx-4 px-4 lg:mx-0 lg:px-0 py-6 lg:py-0 border-b lg:border-0">
-                <div className="lg:pb-6 mb-4 lg:mb-8">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-2 flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-center">
-                      <Car className="w-5 h-5 text-blue-600" />
-                    </div>
-                    What type of vehicle are you selling?
-                  </h2>
-                  <p className="text-gray-500 text-sm">Select the category that best describes your vehicle</p>
-                </div>
+          <div className="space-y-4 lg:space-y-8">
+            {/* Vehicle Type Section */}
+            <div className="vehicle-type-section bg-white lg:bg-transparent -mx-4 px-4 lg:mx-0 lg:px-0 py-6 lg:py-0 border-b lg:border-0">
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Vehicle Type</h2>
+              </div>
                 
                 {/* Dropdown Menu */}
                 <div ref={vehicleDropdownRef} className="relative mb-6">
@@ -1466,57 +1352,39 @@ const getUploadUserId = (): string => {
               
               {/* Pricing and features now handled by VehicleFormFactory */}
             </div>
-          )}
-          
-          {/* Step 2: Photos & Description */}
-          {currentStep === 2 && (
-            <div className="space-y-8">
-              <div className="border-b border-gray-200 pb-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-2 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <Camera className="w-5 h-5 text-blue-600" />
-                  </div>
-                  Photos <span className="text-red-500">*</span>
-                </h2>
-                <p className="text-gray-500 text-sm">Upload high-quality images of your vehicle (at least 1 photo required)</p>
+
+            {/* Photos Section */}
+            <div className="border-t border-gray-200 pt-8">
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Photos <span className="text-red-500">*</span></h2>
               </div>
               
               <div>
                 {/* Image Upload Area */}
-                <div
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                    dragActive ? 'border-gray-400 bg-gray-50' : 'border-gray-300'
-                  } ${errors.images ? 'border-red-300' : ''}`}
-                >
+                <div className="mb-4">
                   <input
                     ref={fileInputRef}
                     type="file"
                     multiple
-                    accept="image/jpeg,image/jpg,image/png,image/tiff,image/webp"
+                    accept="image/*"
                     onChange={handleFileSelect}
                     className="hidden"
                   />
-
-                  <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                  <p className="text-lg font-medium mb-2 text-gray-700">
-                    Drag and drop photos here, or{' '}
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="text-gray-900 hover:underline"
-                    >
-                      browse
-                    </button>
-                  </p>
-                  <p className="text-sm text-gray-500">
+                  <Button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    variant="outline"
+                    size="default"
+                    className={`w-full ${errors.images ? 'border-red-300' : ''}`}
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Choose Photos
+                  </Button>
+                  <p className="text-xs text-gray-500 mt-2">
                     At least 1 photo required. Maximum 15 photos, up to 10MB each. Formats: JPEG, JPG, PNG, TIFF, WebP.
                   </p>
+                  {errors.images && <p className="text-red-600 text-sm mt-1">{errors.images}</p>}
                 </div>
-                {errors.images && <p className="text-red-600 text-sm mt-1">{errors.images}</p>}
                 
                 {/* Image Preview Grid */}
                 {imagePreviews.length > 0 && (
@@ -1581,7 +1449,7 @@ const getUploadUserId = (): string => {
                 
               </div>
 
-              {/* Description Generator with breathing effect */}
+              {/* Description Generator */}
               <DescriptionGenerator
                 ref={descriptionGeneratorRef}
                 formData={formData}
@@ -1591,19 +1459,11 @@ const getUploadUserId = (): string => {
                 errors={errors}
               />
             </div>
-          )}
-          
-          {/* Step 3: Contact & Publish/Update */}
-          {currentStep === 3 && (
-            <div className="space-y-8">
-              <div className="border-b border-gray-200 pb-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-2 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <User className="w-5 h-5 text-blue-600" />
-                  </div>
-                  Contact Information
-                </h2>
-                <p className="text-gray-500 text-sm">How should buyers contact you?</p>
+
+            {/* Contact Information Section */}
+            <div className="border-t border-gray-200 pt-8">
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Contact Information</h2>
               </div>
               
               <div>
@@ -1667,130 +1527,30 @@ const getUploadUserId = (): string => {
                 </div>
               </div>
               
-              {/* Preview Summary */}
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-                <h3 className="font-medium text-gray-900 mb-4">Listing Preview</h3>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <p><strong className="text-gray-900">Title:</strong> {formData.title || 'Not set'}</p>
-                  <p><strong className="text-gray-900">Vehicle:</strong> {formData.year} {formData.make === 'Other' ? formData.customMake : formData.make} {formData.model === 'Other' ? formData.customModel : formData.model}</p>
-                  <p><strong className="text-gray-900">
-                    {formData.pricingType === 'finance' ? 'Asking Price:' : 'Price:'}
-                  </strong> Rs. {
-                    formData.pricingType === 'finance' 
-                      ? (formData.askingPrice ? parseFloat(formData.askingPrice).toLocaleString() : '0')
-                      : (formData.price ? parseFloat(formData.price).toLocaleString() : '0')
-                  }</p>
-                  <p><strong className="text-gray-900">Location:</strong> {formData.city}, {formData.district}</p>
-                  <p><strong className="text-gray-900">Photos:</strong> {formData.images.length + formData.imageUrls.length} uploaded</p>
-                  {formData.previousOwners && (
-                    <p><strong className="text-gray-900">Previous Owners:</strong> {formData.previousOwners}</p>
-                  )}
-                  {formData.serviceRecordsAvailable && (
-                    <p><strong className="text-gray-900">Service Records:</strong> Available</p>
-                  )}
-                </div>
-              </div>
             </div>
-          )}
-          
-          {/* Navigation Buttons */}
-          <div className="pt-6 border-t border-gray-200 mt-8">
-            {/* Mobile Layout */}
-            <div className="block md:hidden space-y-3">
-              {currentStep < 3 ? (
+
+            {/* Submit Button */}
+            <div className="pt-8 border-t border-gray-200 mt-8">
+              <div className="flex flex-col sm:flex-row gap-3 justify-end">
                 <Button
                   type="button"
-                  onClick={handleNext}
-                  variant="primary"
+                  onClick={() => router.push('/listings')}
+                  variant="outline"
                   size="default"
-                  className="w-full gap-2"
+                  className="order-2 sm:order-1"
                 >
-                  Next
-                  <ChevronRight className="w-4 h-4" />
+                  Cancel
                 </Button>
-              ) : (
                 <Button
                   type="button"
                   onClick={handleSubmit}
                   disabled={loading}
                   variant="primary"
                   size="default"
-                  className="w-full"
+                  className="order-1 sm:order-2"
                 >
                   {loading ? (isEditMode ? 'Updating...' : 'Publishing...') : (isEditMode ? 'Update Listing' : 'Publish Listing')}
                 </Button>
-              )}
-
-              <div className="flex gap-2">
-                {currentStep > 1 && (
-                  <Button
-                    type="button"
-                    onClick={handlePrevious}
-                    variant="outline"
-                    size="default"
-                    className="flex-1"
-                  >
-                    <span className="text-lg">‹‹</span>
-                  </Button>
-                )}
-                <Button
-                  type="button"
-                  onClick={() => router.push('/listings')}
-                  variant="outline"
-                  size="default"
-                  className="flex-1 border-blue-600 text-blue-600 hover:bg-blue-50"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-            
-            {/* Desktop Layout */}
-            <div className="hidden md:flex justify-between">
-              {currentStep > 1 && (
-                <Button
-                  type="button"
-                  onClick={handlePrevious}
-                  variant="outline"
-                  size="default"
-                >
-                  Previous
-                </Button>
-              )}
-
-              <div className="ml-auto flex gap-3">
-                <Button
-                  type="button"
-                  onClick={() => router.push('/listings')}
-                  variant="outline"
-                  size="default"
-                  className="border-blue-600 text-blue-600 hover:bg-blue-50"
-                >
-                  Cancel
-                </Button>
-
-              {currentStep < 3 ? (
-                <Button
-                  type="button"
-                  onClick={handleNext}
-                  variant="primary"
-                  size="default"
-                  className="gap-2"
-                >
-                  Next
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={loading}
-                  variant="primary"
-                  size="default"
-                >
-                  {loading ? (isEditMode ? 'Updating...' : 'Publishing...') : (isEditMode ? 'Update Listing' : 'Publish Listing')}
-                </Button>
-              )}
               </div>
             </div>
           </div>

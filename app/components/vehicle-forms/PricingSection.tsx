@@ -15,54 +15,21 @@ export default function PricingSection({ formData, setFormData, errors, showPric
   return (
     <div className="border-t border-gray-200 pt-8">
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-2 flex items-center gap-3">
-          <div className="w-8 h-8 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-center">
-            <CreditCard className="w-5 h-5 text-blue-600" />
-          </div>
-          Pricing
-        </h2>
-        <p className="text-gray-500 text-sm">Set your price or finance details</p>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Pricing</h2>
       </div>
 
       {showPricingType && (
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-3">Sale Type</label>
-          <div className="bg-gradient-to-r from-green-50 to-blue-50 p-1 rounded-lg flex border border-green-200">
-            <button
-              type="button"
-              onClick={() => setFormData(prev => ({ ...prev, pricingType: 'cash' }))}
-              className={`flex-1 py-4 px-4 rounded-md font-medium text-sm transition-all flex items-center justify-center gap-2 min-h-touch active:scale-95 ${
-                formData.pricingType === 'cash'
-                  ? 'bg-white shadow-md text-green-700 border border-green-300'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
-              }`}
-            >
-              <span className="text-base">💵</span>
-              Regular Sale
-            </button>
-            <button
-              type="button"
-              onClick={() => setFormData(prev => ({ ...prev, pricingType: 'finance' }))}
-              className={`flex-1 py-4 px-4 rounded-md font-medium text-sm transition-all flex items-center justify-center gap-2 min-h-touch active:scale-95 ${
-                formData.pricingType === 'finance'
-                  ? 'bg-white shadow-md text-blue-700 border border-blue-300'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
-              }`}
-            >
-              <span className="text-base">🏦</span>
-              Finance Transfer
-            </button>
-          </div>
-          {formData.pricingType && (
-            <p className={`text-xs mt-2 font-medium ${
-              formData.pricingType === 'cash' ? 'text-green-600' : 'text-blue-600'
-            }`}>
-              {formData.pricingType === 'cash' 
-                ? '✓ Selling for cash payment - set your asking price' 
-                : '✓ Transferring finance agreement - buyer takes over payments'
-              }
-            </p>
-          )}
+          <label className="block text-sm font-medium text-gray-700 mb-2">Sale Type <span className="text-red-500">*</span></label>
+          <select
+            name="pricingType"
+            value={formData.pricingType || 'cash'}
+            onChange={(e) => setFormData(prev => ({ ...prev, pricingType: e.target.value as 'cash' | 'finance' }))}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+          >
+            <option value="cash">Regular Sale</option>
+            <option value="finance">Finance Transfer</option>
+          </select>
         </div>
       )}
 
@@ -98,13 +65,8 @@ export default function PricingSection({ formData, setFormData, errors, showPric
         // Finance section (keeping the existing finance form)
         <div className="space-y-6">
           {/* Finance Provider Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-5">
-            <h4 className="text-base font-medium text-gray-900 mb-4 flex items-center gap-2">
-              <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-xs font-bold">1</span>
-              </div>
-              Finance Information
-            </h4>
+          <div className="bg-white border border-gray-300 rounded-lg p-5">
+            <h4 className="text-base font-medium text-gray-900 mb-4">Finance Information</h4>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Finance Type <span className="text-red-500">*</span></label>
               <select
@@ -125,13 +87,8 @@ export default function PricingSection({ formData, setFormData, errors, showPric
           </div>
 
           {/* Current Payment Terms */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-5">
-            <h4 className="text-base font-medium text-gray-900 mb-4 flex items-center gap-2">
-              <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-xs font-bold">2</span>
-              </div>
-              Current Payment Terms
-            </h4>
+          <div className="bg-white border border-gray-300 rounded-lg p-5">
+            <h4 className="text-base font-medium text-gray-900 mb-4">Current Payment Terms</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Monthly Payment <span className="text-red-500">*</span></label>
@@ -172,13 +129,8 @@ export default function PricingSection({ formData, setFormData, errors, showPric
           </div>
 
           {/* Financial Details */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-5">
-            <h4 className="text-base font-medium text-gray-900 mb-4 flex items-center gap-2">
-              <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-xs font-bold">3</span>
-              </div>
-              Financial Details
-            </h4>
+          <div className="bg-white border border-gray-300 rounded-lg p-5">
+            <h4 className="text-base font-medium text-gray-900 mb-4">Financial Details</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Outstanding Balance <span className="text-red-500">*</span></label>

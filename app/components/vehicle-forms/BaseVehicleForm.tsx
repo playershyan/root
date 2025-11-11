@@ -440,23 +440,6 @@ export default function BaseVehicleForm({
             {errors.transmission && <p className="text-red-600 text-sm mt-1">{errors.transmission}</p>}
           </div>
         )}
-
-        {/* Color */}
-        {config.showColor !== false && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Color</label>
-            <select
-              name="color"
-              value={formData.color || 'White'}
-              onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-            >
-              {COLORS.map(color => (
-                <option key={color} value={color}>{color}</option>
-              ))}
-            </select>
-          </div>
-        )}
       </div>
     </>
   )

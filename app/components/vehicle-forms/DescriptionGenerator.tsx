@@ -69,67 +69,20 @@ const DescriptionGenerator = forwardRef<DescriptionGeneratorRef, DescriptionGene
 
   return (
     <div className="border-t border-gray-200 pt-8">
-      {/* Header with breathing effect */}
-      <div
-        className={`relative overflow-hidden rounded-lg border transition-all duration-500 ${
-          isExpanded
-            ? 'bg-white border-gray-200'
-            : 'bg-gradient-to-r from-purple-50 via-blue-50 to-purple-50 border-purple-200 cursor-pointer hover:border-purple-300'
-        }`}
-        onClick={() => !isExpanded && setIsExpanded(true)}
-      >
-        {/* Animated background for breathing effect when collapsed */}
-        {!isExpanded && (
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-400/10 via-blue-400/10 to-purple-400/10 animate-pulse"></div>
-        )}
-
+      {/* Header */}
+      <div className="bg-white border border-gray-300 rounded-lg">
         {/* Header Section */}
-        <div className="relative p-4">
+        <div className="p-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                {!isExpanded && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-lg opacity-50 animate-pulse"></div>
-                )}
-                <div className={`relative w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-                  isExpanded ? 'bg-blue-50 border border-blue-200' : 'bg-white/80'
-                }`}>
-                  <FileText className={`w-5 h-5 ${isExpanded ? 'text-blue-600' : 'text-purple-600'}`} />
-                </div>
-              </div>
-              <div>
-                <h2 className={`text-xl font-semibold transition-colors ${
-                  isExpanded ? 'text-gray-900' : 'bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent'
-                }`}>
-                  Description
-                </h2>
-                {!isExpanded && (
-                  <p className="text-sm text-gray-600 mt-0.5">Click to write or generate description</p>
-                )}
-              </div>
-            </div>
-
-            {/* Generate Button */}
-            {!isExpanded ? (
+            <h2 className="text-lg font-semibold text-gray-900">Description</h2>
+            {!isExpanded && (
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleGenerate()
-                }}
-                disabled={aiLoading}
-                className="relative px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 transition-all flex items-center gap-2 shadow-sm hover:shadow-md"
+                onClick={() => setIsExpanded(true)}
+                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all flex items-center gap-2"
               >
                 <Sparkles className="w-4 h-4" />
-                {aiLoading ? 'Generating...' : 'Generate'}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setIsExpanded(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                Write/Generate
               </button>
             )}
           </div>
@@ -150,18 +103,15 @@ const DescriptionGenerator = forwardRef<DescriptionGeneratorRef, DescriptionGene
                 type="button"
                 onClick={handleGenerate}
                 disabled={aiLoading}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 transition-all shadow-sm hover:shadow-md"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all"
               >
                 <Sparkles className="w-4 h-4" />
                 {aiLoading ? 'Generating...' : 'Generate Description'}
               </button>
             </div>
 
-            {/* Description Textarea with animation */}
+            {/* Description Textarea */}
             <div className="relative">
-              {isGenerating && (
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-purple-50 to-blue-50 rounded-lg animate-pulse pointer-events-none z-10 opacity-50"></div>
-              )}
               <textarea
                 ref={textareaRef}
                 rows={6}
@@ -169,7 +119,7 @@ const DescriptionGenerator = forwardRef<DescriptionGeneratorRef, DescriptionGene
                 value={formData.description}
                 onChange={(e) => setFormData((prev: any) => ({ ...prev, description: e.target.value }))}
                 placeholder="Describe your vehicle in detail... Include key features, condition, maintenance history, and why it's a great purchase."
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all resize-y ${
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-all resize-y ${
                   errors?.description ? 'border-red-300' : 'border-gray-300'
                 } ${isGenerating ? 'bg-gray-50' : 'bg-white'}`}
                 disabled={isGenerating}
@@ -232,8 +182,8 @@ const DescriptionGenerator = forwardRef<DescriptionGeneratorRef, DescriptionGene
                   </span>
                 )}
                 {isGenerating && (
-                  <span className="text-sm text-purple-600 flex items-center gap-1">
-                    <Sparkles className="w-4 h-4 animate-spin" />
+                  <span className="text-sm text-blue-600 flex items-center gap-1">
+                    <Sparkles className="w-4 h-4" />
                     Generating...
                   </span>
                 )}
@@ -246,13 +196,6 @@ const DescriptionGenerator = forwardRef<DescriptionGeneratorRef, DescriptionGene
           </div>
         </div>
       </div>
-
-      {/* Helper text below the container */}
-      {!isExpanded && (
-        <p className="text-gray-500 text-sm mt-3">
-          Create an attractive description for your listing using AI or write your own
-        </p>
-      )}
     </div>
   )
 })
