@@ -152,10 +152,10 @@ export default function Header() {
               <Image
                 src="/vera-logo.png"
                 alt="VERA logo"
-                width={120}
-                height={32}
+                width={400}
+                height={100}
                 priority
-                className="h-9 w-auto"
+                className="h-20 sm:h-28 w-auto"
               />
             </Link>
           </div>
@@ -494,9 +494,9 @@ export default function Header() {
                   <Image
                     src="/vera-logo.png"
                     alt="VERA logo"
-                    width={100}
-                    height={28}
-                    className="h-8 w-auto"
+                    width={360}
+                    height={90}
+                    className="h-24 w-auto"
                   />
                 </Link>
               )}
