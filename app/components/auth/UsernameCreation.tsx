@@ -66,46 +66,46 @@ export default function UsernameCreation({
       return (value: string) => {
         clearTimeout(timeout)
         timeout = setTimeout(async () => {
-      if (!value.trim()) {
-        setUsernameStatus('idle')
-        return
-      }
+          if (!value.trim()) {
+            setUsernameStatus('idle')
+            return
+          }
 
-      const validation = validateUsername(value)
-      if (!validation.isValid) {
-        setUsernameStatus('invalid')
-        setError(validation.message || 'Invalid username')
-        return
-      }
+          const validation = validateUsername(value)
+          if (!validation.isValid) {
+            setUsernameStatus('invalid')
+            setError(validation.message || 'Invalid username')
+            return
+          }
 
-      setUsernameStatus('checking')
-      setError('')
+          setUsernameStatus('checking')
+          setError('')
 
-      try {
-        const response = await fetch('/api/auth/check-username', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ username: value }),
-        })
+          try {
+            const response = await fetch('/api/auth/check-username', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ username: value }),
+            })
 
-        const result = await response.json()
+            const result = await response.json()
 
-        if (result.available) {
-          setUsernameStatus('available')
-        } else {
-          setUsernameStatus('taken')
-          setError('Username is already taken')
-        }
-      } catch (error) {
-        logger.error('Username check error', error as Error, {
-          component: 'UsernameCreation',
-          action: 'debouncedCheckAvailability'
-        })
-        setUsernameStatus('invalid')
-        setError('Failed to check username availability')
-      }
+            if (result.available) {
+              setUsernameStatus('available')
+            } else {
+              setUsernameStatus('taken')
+              setError('Username is already taken')
+            }
+          } catch (error) {
+            logger.error('Username check error', error as Error, {
+              component: 'UsernameCreation',
+              action: 'debouncedCheckAvailability'
+            })
+            setUsernameStatus('invalid')
+            setError('Failed to check username availability')
+          }
         }, 500)
       }
     },
