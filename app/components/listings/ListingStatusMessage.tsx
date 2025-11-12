@@ -1,5 +1,3 @@
-'use client'
-
 import Link from 'next/link'
 import { AlertCircle, Info, Edit } from 'lucide-react'
 import { ListingData, getListingStatus } from '@/lib/utils/listingStatus'

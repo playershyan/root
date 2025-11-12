@@ -1,5 +1,3 @@
-'use client'
-
 import { Star, TrendingUp, AlertTriangle, Crown } from 'lucide-react'
 
 interface PromotionBadgesProps {

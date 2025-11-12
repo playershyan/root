@@ -1,5 +1,3 @@
-'use client'
-
 import { WantedRequestData, getWantedRequestStatusInfo } from '@/lib/utils/wantedRequestStatus'
 
 interface WantedRequestStatusBadgeProps {
