@@ -63,7 +63,11 @@ export default function ListingCard({ listing }: ListingCardProps) {
   return (
     <div className="bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-300 overflow-hidden group relative">
       {/* Clickable Link Area */}
-      <Link href={`/listings/${listing.id}`} className="block">
+      <Link
+        href={`/listings/${listing.id}`}
+        prefetch={true}
+        className="block"
+      >
         {/* Image Section */}
         <div className="relative h-52 bg-slate-100 overflow-hidden">
         {!imageError && primaryImage ? (

@@ -100,7 +100,11 @@ export default function TopSpotCard({ listing }: TopSpotCardProps) {
         )}
       </div>
 
-      <Link href={`/listings/${listing.id}`} className="block">
+      <Link
+        href={`/listings/${listing.id}`}
+        prefetch={true}
+        className="block"
+      >
         {/* Image Section */}
         <div className="relative h-52 bg-gradient-to-br from-purple-100 to-violet-100">
           {!imageError && primaryImage ? (

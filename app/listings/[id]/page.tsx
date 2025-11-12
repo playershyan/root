@@ -1,3 +1,5 @@
+import { cache } from 'react'
+import { unstable_cache } from 'next/cache'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -6,13 +8,92 @@ import { logger } from '@/lib/utils/logger'
 
 export const revalidate = 60
 
+const LISTING_SELECT_FIELDS = `
+  id,
+  title,
+  make,
+  model,
+  year,
+  price,
+  description,
+  ai_generated_description,
+  location,
+  user_id,
+  image_url,
+  image_urls,
+  primary_image_url,
+  mileage,
+  fuel_type,
+  transmission,
+  body_type,
+  engine_capacity,
+  color,
+  condition,
+  negotiable,
+  pricing_type,
+  finance_type,
+  outstanding_balance,
+  monthly_payment,
+  is_featured,
+  is_top_spot,
+  is_boosted,
+  is_urgent,
+  features,
+  is_sold,
+  is_paused,
+  status,
+  phone,
+  whatsapp,
+  email,
+  created_at
+`
+
+const getCachedListing = cache(async (id: string) => {
+  const { data, error } = await supabase
+    .from('listings')
+    .select(LISTING_SELECT_FIELDS)
+    .eq('id', id)
+    .single()
+
+  if (error) {
+    logger.error('Failed to fetch listing for detail page', new Error(error.message), {
+      component: 'ListingDetailPage',
+      listingId: id,
+    })
+  }
+
+  return data
+})
+
+const getSimilarListingsCached = unstable_cache(
+  async (listingId: string, make: string, model: string, year: number, price: number) => {
+    const { data, error } = await supabase.rpc('get_similar_listings', {
+      p_listing_id: listingId,
+      p_make: make,
+      p_model: model,
+      p_year: year,
+      p_price: price,
+      p_limit: 6,
+    })
+
+    if (error) {
+      logger.warn('Failed to fetch similar listings via RPC', new Error(error.message), {
+        component: 'ListingDetailPage',
+        listingId,
+        error: error.message,
+      })
+      return []
+    }
+
+    return data ?? []
+  },
+  ['similar-listings'],
+  { revalidate: 300, tags: ['similar-listings'] }
+)
+
 // Generate metadata for SEO
 export async function generateMetadata({ params }: { params: { id: string } }) {
-  const { data: listing } = await supabase
-    .from('listings')
-    .select('*')
-    .eq('id', params.id)
-    .single()
+  const listing = await getCachedListing(params.id)
 
   if (!listing) {
     return {
@@ -20,8 +101,12 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
     }
   }
 
+  const formattedPrice = typeof listing.price === 'number'
+    ? listing.price.toLocaleString()
+    : 'N/A'
+
   return {
-    title: `${listing.title} - Rs. ${listing.price.toLocaleString()} | VERA`,
+    title: `${listing.title} - Rs. ${formattedPrice} | VERA`,
     description: listing.description || listing.ai_generated_description || `${listing.make} ${listing.model} ${listing.year} for sale in ${listing.location}`,
   }
 }
@@ -31,26 +116,47 @@ export default async function ListingDetailPage({
 }: {
   params: { id: string }
 }) {
-  // Fetch main listing
-  const { data: listing } = await supabase
-    .from('listings')
-    .select('*')
-    .eq('id', params.id)
-    .single()
+  const listing = await getCachedListing(params.id)
 
   if (!listing) {
     notFound()
   }
 
-  // Fetch seller's profile information
-  const { data: sellerProfile } = await supabase
-    .from('profiles')
-    .select(`
-      *,
-      business_profiles (*)
-    `)
-    .eq('id', listing.user_id)
-    .single()
+  const currentListingPrice = (() => {
+    if (listing.pricing_type === 'finance' && listing.finance_type === 'transfer') {
+      return (listing.price || 0) + (listing.outstanding_balance || 0)
+    }
+    return listing.price || 0
+  })()
+
+  const [
+    authResponse,
+    sellerProfileResponse,
+    similarListings,
+  ] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase
+      .from('profiles')
+      .select(`
+        *,
+        business_profiles (*)
+      `)
+      .eq('id', listing.user_id)
+      .single(),
+    getSimilarListingsCached(
+      params.id,
+      listing.make,
+      listing.model,
+      listing.year,
+      currentListingPrice
+    ),
+  ])
+
+  const {
+    data: { user },
+  } = authResponse
+
+  const sellerProfile = sellerProfileResponse.data
 
   logger.debug('Seller profile data loaded', {
     component: 'ListingDetailPage',
@@ -78,67 +184,19 @@ export default async function ListingDetailPage({
 }*/
 
   // Increment view count (server-side with rate limiting)
-  const { data: { user } } = await supabase.auth.getUser()
-  
   if (user?.id !== listing.user_id) {
-    try {
-      // Use the enhanced function with rate limiting
-      await supabase.rpc('increment_listing_views_enhanced', { 
+    supabase.rpc('increment_listing_views_enhanced', {
+      listing_id: params.id,
+      viewer_ip: null,
+      viewer_user_id: user?.id || null,
+    }).catch(() => {
+      supabase.rpc('increment_listing_views_simple', {
         listing_id: params.id,
-        viewer_ip: null, // IP tracking handled by API route if needed
-        viewer_user_id: user?.id || null
+      }).catch(() => {
+        // Swallow fallback failures to avoid blocking render
       })
-    } catch (error) {
-      // Fallback to simple increment if enhanced function fails
-      logger.warn('Enhanced view tracking failed, using fallback', new Error('View tracking fallback'), {
-        component: 'ListingDetailPage',
-        listingId: params.id,
-        error: error instanceof Error ? error.message : String(error)
-      })
-      await supabase.rpc('increment_listing_views_simple', {
-        listing_id: params.id
-      })
-    }
+    })
   }
-
-  // Calculate effective price for comparison (includes outstanding balance for finance transfers)
-  const getEffectivePrice = (listing: any) => {
-    if (listing.pricing_type === 'finance' && listing.finance_type === 'transfer') {
-      return (listing.price || 0) + (listing.outstanding_balance || 0)
-    }
-    return listing.price || 0
-  }
-
-  const currentListingPrice = getEffectivePrice(listing)
-  const priceRangeMin = currentListingPrice * 0.9 // -10%
-  const priceRangeMax = currentListingPrice * 1.1 // +10%
-  const yearRangeMin = (listing.year || 0) - 3
-  const yearRangeMax = (listing.year || 0) + 3
-
-  // Fetch all potential similar vehicles
-  const { data: potentialSimilar } = await supabase
-    .from('listings')
-    .select('*')
-    .neq('id', params.id)
-    .eq('make', listing.make)
-    .eq('model', listing.model)
-    .gte('year', yearRangeMin)
-    .lte('year', yearRangeMax)
-    .eq('is_sold', false)
-    .eq('is_paused', false)
-    .eq('status', 'active')
-    .order('created_at', { ascending: false })
-
-  // Filter by price range and exclude finance transfers without outstanding balance
-  const similarListings = potentialSimilar?.filter(item => {
-    // Exclude finance transfer vehicles that don't have outstanding balance specified
-    if (item.pricing_type === 'finance' && item.finance_type === 'transfer' && !item.outstanding_balance) {
-      return false
-    }
-
-    const itemPrice = getEffectivePrice(item)
-    return itemPrice >= priceRangeMin && itemPrice <= priceRangeMax
-  }).slice(0, 6) || []
 
   // Prepare image array
   const images = listing.image_urls || (listing.image_url ? [listing.image_url] : [])

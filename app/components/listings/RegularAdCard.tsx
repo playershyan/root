@@ -77,7 +77,11 @@ export default function RegularAdCard({
 
   return (
     <>
-    <Link href={`/listings/${listing.id}`} className="block">
+    <Link
+      href={`/listings/${listing.id}`}
+      prefetch={true}
+      className="block"
+    >
       <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100 group cursor-pointer">
         {/* Image Section */}
         <div className="relative h-48 bg-gray-200 rounded-t-lg overflow-hidden group">

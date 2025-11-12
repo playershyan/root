@@ -84,7 +84,11 @@ export default function UrgentListingCard({ listing }: UrgentListingCardProps) {
       </div>
 
       {/* Clickable Link Area */}
-      <Link href={`/listings/${listing.id}`} className="block">
+      <Link
+        href={`/listings/${listing.id}`}
+        prefetch={true}
+        className="block"
+      >
         {/* Image Section */}
         <div className="relative h-48 bg-gray-100 mt-10">
           {!imageError && primaryImage ? (

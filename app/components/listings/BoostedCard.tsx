@@ -100,7 +100,11 @@ export default function BoostedCard({ listing }: BoostedCardProps) {
         )}
       </div>
 
-      <Link href={`/listings/${listing.id}`} className="block">
+      <Link
+        href={`/listings/${listing.id}`}
+        prefetch={true}
+        className="block"
+      >
         {/* Image Section */}
         <div className="relative h-48 bg-gradient-to-br from-blue-100 to-cyan-100 mt-1">
           {!imageError && primaryImage ? (

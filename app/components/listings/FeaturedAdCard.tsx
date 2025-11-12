@@ -96,7 +96,10 @@ export default function FeaturedAdCard({ listing, promotionType }: FeaturedAdCar
   }
 
   return (
-    <Link href={`/listings/${listing.id}`}>
+    <Link
+      href={`/listings/${listing.id}`}
+      prefetch={true}
+    >
       <div className={`relative rounded-xl overflow-hidden transition-all duration-300 ${cardStyles[priority]}`}>
         {/* Premium Badge for Featured Ads */}
         {priority === 'featured' && (
