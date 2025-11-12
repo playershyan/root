@@ -38,7 +38,6 @@ const LISTING_SELECT_FIELDS = `
   is_top_spot,
   is_boosted,
   is_urgent,
-  features,
   is_sold,
   is_paused,
   status,
@@ -185,17 +184,25 @@ export default async function ListingDetailPage({
 
   // Increment view count (server-side with rate limiting)
   if (user?.id !== listing.user_id) {
-    supabase.rpc('increment_listing_views_enhanced', {
-      listing_id: params.id,
-      viewer_ip: null,
-      viewer_user_id: user?.id || null,
-    }).catch(() => {
-      supabase.rpc('increment_listing_views_simple', {
-        listing_id: params.id,
-      }).catch(() => {
-        // Swallow fallback failures to avoid blocking render
-      })
-    })
+    // Fire-and-forget - don't block page render
+    (async () => {
+      try {
+        await supabase.rpc('increment_listing_views_enhanced', {
+          listing_id: params.id,
+          viewer_ip: null,
+          viewer_user_id: user?.id || null,
+        })
+      } catch {
+        // Fallback to simple increment
+        try {
+          await supabase.rpc('increment_listing_views_simple', {
+            listing_id: params.id,
+          })
+        } catch {
+          // Swallow errors - view tracking shouldn't break page load
+        }
+      }
+    })()
   }
 
   // Prepare image array

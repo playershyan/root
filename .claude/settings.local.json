@@ -33,7 +33,8 @@
       "Bash(find:*)",
       "Bash(npm ls:*)",
       "Bash(powershell -Command \"(Get-Content ''D:\\projects\\root\\data\\cities.json'' | Measure-Object -Line).Lines\")",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(powershell -Command \"if (Test-Path .next) { Remove-Item -Recurse -Force .next; Write-Output ''Cache cleared'' } else { Write-Output ''No cache found'' }\")"
     ],
     "deny": [],
     "ask": []
