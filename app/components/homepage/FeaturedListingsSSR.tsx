@@ -33,7 +33,11 @@ async function getFeaturedListings(displayCount: number = 6): Promise<Listing[]>
     const supabase = createServerComponentClient({ cookies })
     const { data: listings, error } = await supabase
       .from('listings')
-      .select('*')
+      .select(`
+        id, title, price, image_url, image_urls, year, mileage,
+        fuel_type, location, views, created_at, featured_until,
+        boost_score, make, model
+      `)
       .eq('is_featured', true)
       .eq('status', 'active')
       .or(`featured_until.is.null,featured_until.gt.${new Date().toISOString()}`)

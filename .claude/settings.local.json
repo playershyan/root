@@ -30,7 +30,10 @@
       "Bash(npx shadcn@latest init)",
       "Bash(npx shadcn@latest add:*)",
       "Bash(powershell -Command \"(Get-Content ''D:\\projects\\root\\app\\globals.css'' | Measure-Object -Line).Lines\")",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npm ls:*)",
+      "Bash(powershell -Command \"(Get-Content ''D:\\projects\\root\\data\\cities.json'' | Measure-Object -Line).Lines\")",
+      "Bash(node -e:*)"
     ],
     "deny": [],
     "ask": []

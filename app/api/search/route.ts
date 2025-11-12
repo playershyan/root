@@ -21,11 +21,17 @@ export async function GET(request: NextRequest) {
     const isFinance = searchParams.get('isFinance')
     const sortBy = searchParams.get('sortBy') || 'created_at'
     const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '20')
+    const limit = Math.min(parseInt(searchParams.get('limit') || '15'), 50)
 
     let queryBuilder = supabase
       .from('listings')
-      .select('*', { count: 'exact' })
+      .select(`
+        id, title, price, location, make, model, year, mileage,
+        fuel_type, transmission, body_type, negotiable, pricing_type,
+        image_url, primary_image_url, image_urls,
+        is_featured, is_top_spot, is_boosted, is_urgent, boost_score,
+        created_at, views, seller_id
+      `, { count: 'exact' })
       .eq('is_sold', false)
 
     // Text search
@@ -75,10 +81,44 @@ export async function GET(request: NextRequest) {
       throw new APIError('Failed to search listings', 500, error)
     }
 
+    // Optimize response: only include promotion fields if active
+    const optimizedListings = listings?.map(listing => {
+      const base: any = {
+        id: listing.id,
+        title: listing.title,
+        price: listing.price,
+        location: listing.location,
+        make: listing.make,
+        model: listing.model,
+        year: listing.year,
+        mileage: listing.mileage,
+        fuel_type: listing.fuel_type,
+        transmission: listing.transmission,
+        body_type: listing.body_type,
+        negotiable: listing.negotiable,
+        pricing_type: listing.pricing_type,
+        image_url: listing.image_url,
+        primary_image_url: listing.primary_image_url,
+        image_urls: listing.image_urls,
+        created_at: listing.created_at,
+        views: listing.views,
+        seller_id: listing.seller_id
+      }
+
+      // Only add promotion fields if they're active
+      if (listing.is_featured) base.is_featured = true
+      if (listing.is_top_spot) base.is_top_spot = true
+      if (listing.is_boosted) base.is_boosted = true
+      if (listing.is_urgent) base.is_urgent = true
+      if (listing.boost_score && listing.boost_score > 0) base.boost_score = listing.boost_score
+
+      return base
+    })
+
     const totalPages = Math.ceil((count || 0) / limit)
 
     return Response.json({
-      data: listings,
+      data: optimizedListings,
       pagination: {
         page,
         limit,

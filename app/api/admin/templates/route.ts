@@ -28,7 +28,11 @@ export async function GET(request: Request) {
       case 'templates':
         const { data: templates } = await supabase
           .from('description_templates')
-          .select('*')
+          .select(`
+            id, style, vehicle_type, template_content, usage_count,
+            success_rate, avg_generation_time_ms, is_active,
+            created_at, updated_at
+          `)
           .eq('is_active', true)
           .order('style', { ascending: true })
           .order('usage_count', { ascending: false })
@@ -89,7 +93,7 @@ export async function POST(request: Request) {
         // Get specific template
         const { data: template } = await supabase
           .from('description_templates')
-          .select('template_content')
+          .select('id, template_content, style, vehicle_type')
           .eq('id', templateId)
           .single()
 
@@ -144,7 +148,11 @@ export async function PUT(request: Request) {
         updated_at: new Date().toISOString()
       })
       .eq('id', templateId)
-      .select()
+      .select(`
+        id, style, vehicle_type, template_content, usage_count,
+        success_rate, avg_generation_time_ms, is_active,
+        created_at, updated_at
+      `)
       .single()
 
     if (error) {

@@ -1,0 +1,2845 @@
+{
+  "generated_at": "2025-11-12T11:00:33.592Z",
+  "summary": {
+    "total_components": 164,
+    "can_convert": 5,
+    "can_convert_percentage": "3.0",
+    "need_split": 1,
+    "need_split_percentage": "0.6",
+    "must_remain_client": 158,
+    "must_remain_client_percentage": "96.3",
+    "convert_savings_kb": 25,
+    "split_savings_kb": 3,
+    "total_savings_kb": 28
+  },
+  "components": [
+    {
+      "path": "app/account/update-password/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/admin-old/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/admin-old/setup/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/admin-old/templates/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/admin/analytics/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/admin/business/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/admin/components/AdminHeader.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/admin/components/AdminProvider.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": true,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/admin/components/AdminSidebar.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/admin/components/AlertsOverviewClient.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/admin/components/DashboardStatsClient.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": false,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/admin/components/RecentActivityClient.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": false,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/admin/components/SystemHealthClient.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": false,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/admin/listings/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/admin/reports/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": true,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/admin/users/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/admin/wanted-requests/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/careers/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/admin/AlertsWidget.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/admin/CleanupMonitoringWidget.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/admin/SecurityStatusWidget.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/admin/SystemHealthWidget.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/auth/AuthModal.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/auth/EmailAuthForm.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/auth/ForgotPasswordFlow.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": true,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/auth/GoogleOneTapProvider.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/auth/GoogleSignInButton.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/auth/OTPInput.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": true,
+        "hasDomManipulation": true,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/auth/OTPVerification.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": true,
+        "hasDomManipulation": true,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/auth/PhoneAuthForm.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/auth/PhoneNumberInput.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/auth/SimpleForgotPassword.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/auth/StreamlinedSignup.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/auth/UsernameCreation.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/AuthWrapper.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/bin/BinListingCard.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/bin/BinMessageCard.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/bin/BinTab.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/bin/BinWantedCard.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/CapacitorInitializer.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": false,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/CloudinaryTestUpload.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/ContactProfile.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/ContactProfileOriginal.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/EmailVerificationAlert.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/ErrorBoundary.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/FavoriteButton.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/favorites/FavoriteAdCard.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/favorites/FavoritesTab.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/favorites/FavoriteWantedCard.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/filters/MobileFilterSheet.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/filters/MobileWantedFilterSheet.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/Footer.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/GoogleOneTap.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/header.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": true,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/hero/HeroFiltersSection.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/hero/HeroSearchBar.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": true,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/hero/QuickFilters.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/hero/SimpleLocationFilter.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": true,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/hero/SmartLocationSearch.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": true,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/ImageLightbox.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/ImageUploadWithCompression.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": true,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/listings/BoostedCard.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/listings/FairShareIndicator.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/listings/FeaturedAdCard.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/listings/GoldFeaturedCard.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/listings/ListingActions.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": true,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/listings/ListingCard.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/listings/ListingStatusBadge.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "convert_to_server",
+      "reasoning": "No client-only hooks or browser APIs detected; component is a pure display element.",
+      "priority": "high"
+    },
+    {
+      "path": "app/components/listings/ListingStatusMessage.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "convert_to_server",
+      "reasoning": "No client-only hooks or browser APIs detected; component is a pure display element.",
+      "priority": "high"
+    },
+    {
+      "path": "app/components/listings/PremiumCardSelector.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "No direct client-only APIs detected, but component name suggests interactive responsibilities; manual review recommended before conversion.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/listings/PromotedListingsSection.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/listings/PromotionBadges.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "convert_to_server",
+      "reasoning": "No client-only hooks or browser APIs detected; component is a pure display element.",
+      "priority": "high"
+    },
+    {
+      "path": "app/components/listings/RegularAdCard.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/listings/TopSpotCard.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/listings/UrgentListingCard.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/LocationFilter.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/messages/ConversationView.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/messages/MessagePreview.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/messages/MessagesList.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "split_component",
+      "reasoning": "Lightweight interactivity detected (event handlers without local state). Consider extracting handlers into a client sub-component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/messages/MessagesTab.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/messaging/EnhancedConversationModal.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": true,
+        "hasDomManipulation": true,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/messaging/OfferCard.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/messaging/OfferModal.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/mobile/MobileProfileHeader.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/mobile/MobileProfileTabs.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/mobile/ProfileMenu.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/modals/ContactModal.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/modals/ConversationModal.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": true,
+        "hasDomManipulation": true,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/modals/DeleteAccountModal.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/notifications/ImageSizeError.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/notifications/NotificationCard.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/notifications/NotificationsTab.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": true,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/notifications/Toast.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/notifications/ToastContainer.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/notifications/useToast.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/NotificationSystem.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": true,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/payments/PaymentModal.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/PhoneVerificationModal.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": true,
+        "hasDomManipulation": true,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/profile/BusinessPageTab.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": true,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/profile/BusinessProfileManagement.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/profile/BusinessProfileRecovery.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/profile/CreateBusinessProfile.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/profile/ProfileSetup.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/ReportModal.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/security/DeleteAccountCard.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/security/EmailSecurityCard.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/security/PasswordSecurityCard.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/security/SecuritySettingsCard.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/security/SecurityTab.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": true,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/security/SessionsCard.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/security/TwoFactorCard.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/vehicle-forms/AdditionalInformationSection.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "No direct client-only APIs detected, but component name suggests interactive responsibilities; manual review recommended before conversion.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/vehicle-forms/BaseVehicleForm.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": true,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/vehicle-forms/BicycleForm.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "No direct client-only APIs detected, but component name suggests interactive responsibilities; manual review recommended before conversion.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/vehicle-forms/BoatForm.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "No direct client-only APIs detected, but component name suggests interactive responsibilities; manual review recommended before conversion.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/vehicle-forms/BusForm.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "No direct client-only APIs detected, but component name suggests interactive responsibilities; manual review recommended before conversion.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/vehicle-forms/CarForm.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "No direct client-only APIs detected, but component name suggests interactive responsibilities; manual review recommended before conversion.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/vehicle-forms/DescriptionGenerator.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": true,
+        "hasDomManipulation": true,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/vehicle-forms/FeaturesSection.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/vehicle-forms/LorryForm.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "No direct client-only APIs detected, but component name suggests interactive responsibilities; manual review recommended before conversion.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/vehicle-forms/MotorcycleForm.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "No direct client-only APIs detected, but component name suggests interactive responsibilities; manual review recommended before conversion.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/vehicle-forms/PlantMachineryForm.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "No direct client-only APIs detected, but component name suggests interactive responsibilities; manual review recommended before conversion.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/vehicle-forms/PricingSection.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/vehicle-forms/ThreeWheelerForm.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "No direct client-only APIs detected, but component name suggests interactive responsibilities; manual review recommended before conversion.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/vehicle-forms/TractorForm.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "No direct client-only APIs detected, but component name suggests interactive responsibilities; manual review recommended before conversion.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/vehicle-forms/VanForm.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "No direct client-only APIs detected, but component name suggests interactive responsibilities; manual review recommended before conversion.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/vehicle-forms/VehicleFormFactory.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "No direct client-only APIs detected, but component name suggests interactive responsibilities; manual review recommended before conversion.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/WantedRequestFavoriteButton.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/wantedRequests/RegularWantedCard.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/wantedRequests/UrgentWantedCard.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/wantedRequests/WantedRequestActions.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/components/wantedRequests/WantedRequestStatusBadge.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "convert_to_server",
+      "reasoning": "No client-only hooks or browser APIs detected; component is a pure display element.",
+      "priority": "high"
+    },
+    {
+      "path": "app/components/wantedRequests/WantedRequestStatusMessage.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "convert_to_server",
+      "reasoning": "No client-only hooks or browser APIs detected; component is a pure display element.",
+      "priority": "high"
+    },
+    {
+      "path": "app/contexts/AuthContext.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": false,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": true,
+        "hasClientContext": true,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/faq/FAQClient.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/forgot-password/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/hooks/useAuthWithRedirect.ts",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": false,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/hooks/useSessionManager.ts",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/listings/_components/ListingsPageClient.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/listings/[id]/ListingDetailClient.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/post/boost/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/post/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": true,
+        "hasDomManipulation": true,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/post/paid-features/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/profile/account/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/profile/bin/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/profile/business/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/profile/favorites/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/profile/listings/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": false
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/profile/messages/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/profile/notifications/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/profile/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/profile/security/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/profile/setup/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/profile/wanted/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/reset-password/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/security/recaptcha-test/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/test-auth/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/wanted/[id]/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/wanted/components/MatchNotificationBanner.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": false,
+        "hasEventHandlers": true,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/wanted/edit/[id]/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": false,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": false,
+        "hasBrowserApis": false,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": false,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/wanted/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/wanted/payment/[requestId]/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/wanted/post/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": true,
+        "hasDomManipulation": true,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    },
+    {
+      "path": "app/wanted/search/page.tsx",
+      "features": {
+        "hasUseStateOrReducer": true,
+        "hasUseEffectOrLayout": true,
+        "hasEventHandlers": true,
+        "hasBrowserApis": true,
+        "hasUseRef": false,
+        "hasDomManipulation": false,
+        "hasThirdPartyClient": true,
+        "hasClientContext": false,
+        "hasAnyHook": true
+      },
+      "verdict": "keep_client",
+      "reasoning": "Uses client-only features that require the component to remain a Client Component.",
+      "priority": "normal"
+    }
+  ],
+  "conversions": [
+    {
+      "path": "app/components/listings/ListingStatusBadge.tsx",
+      "action": "convert_to_server",
+      "reason": "No client-only hooks or browser APIs detected; component is a pure display element.",
+      "estimated_savings_kb": 5
+    },
+    {
+      "path": "app/components/listings/ListingStatusMessage.tsx",
+      "action": "convert_to_server",
+      "reason": "No client-only hooks or browser APIs detected; component is a pure display element.",
+      "estimated_savings_kb": 5
+    },
+    {
+      "path": "app/components/listings/PromotionBadges.tsx",
+      "action": "convert_to_server",
+      "reason": "No client-only hooks or browser APIs detected; component is a pure display element.",
+      "estimated_savings_kb": 5
+    },
+    {
+      "path": "app/components/wantedRequests/WantedRequestStatusBadge.tsx",
+      "action": "convert_to_server",
+      "reason": "No client-only hooks or browser APIs detected; component is a pure display element.",
+      "estimated_savings_kb": 5
+    },
+    {
+      "path": "app/components/wantedRequests/WantedRequestStatusMessage.tsx",
+      "action": "convert_to_server",
+      "reason": "No client-only hooks or browser APIs detected; component is a pure display element.",
+      "estimated_savings_kb": 5
+    }
+  ],
+  "splits": [
+    {
+      "path": "app/components/messages/MessagesList.tsx",
+      "action": "split_component",
+      "extract": "MessagesListClient",
+      "estimated_savings_kb": 3
+    }
+  ]
+}

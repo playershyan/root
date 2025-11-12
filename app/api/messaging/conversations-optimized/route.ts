@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
 
     // Parse query parameters
     const searchParams = request.nextUrl.searchParams
-    const limit = parseInt(searchParams.get('limit') || '20', 10)
+    const limit = Math.min(parseInt(searchParams.get('limit') || '15', 10), 100)
     const offset = parseInt(searchParams.get('offset') || '0', 10)
     const includeArchived = searchParams.get('archived') === 'true'
 
@@ -159,26 +159,27 @@ export async function GET(request: NextRequest) {
       ), { reason: 'supabase-error', code: error.code, userId: user.id })
     }
 
-    // Transform to flat structure with profile data
-    const transformedConversations: ConversationResponse[] = (conversations || []).map(conv => ({
-      id: conv.id,
-      listing_id: conv.listing_id,
-      listing_title: conv.listing_title,
-      listing_price: conv.listing_price,
-      listing_image_url: conv.listing_image_url,
-      buyer_id: conv.buyer_id,
-      seller_id: conv.seller_id,
-      last_message_at: conv.last_message_at,
-      last_message_preview: conv.last_message_preview,
-      buyer_unread_count: conv.buyer_unread_count || 0,
-      seller_unread_count: conv.seller_unread_count || 0,
-      buyer_archived: conv.buyer_archived || false,
-      seller_archived: conv.seller_archived || false,
-      buyer_name: conv.buyer_name || 'Unknown User',
-      buyer_avatar_url: conv.buyer_avatar_url || null,
-      seller_name: conv.seller_name || 'Unknown User',
-      seller_avatar_url: conv.seller_avatar_url || null,
-    }))
+    // Transform to flat structure with profile data (optimized: only return other participant's data)
+    const transformedConversations: ConversationResponse[] = (conversations || []).map(conv => {
+      const isUserBuyer = conv.buyer_id === user.id
+      return {
+        id: conv.id,
+        listing_id: conv.listing_id,
+        listing_title: conv.listing_title,
+        listing_price: conv.listing_price,
+        listing_image_url: conv.listing_image_url,
+        buyer_id: conv.buyer_id,
+        seller_id: conv.seller_id,
+        last_message_at: conv.last_message_at,
+        last_message_preview: conv.last_message_preview,
+        // User's role-specific data
+        unread_count: isUserBuyer ? (conv.buyer_unread_count || 0) : (conv.seller_unread_count || 0),
+        is_archived: isUserBuyer ? (conv.buyer_archived || false) : (conv.seller_archived || false),
+        // Other participant's data only
+        participant_name: isUserBuyer ? (conv.seller_name || 'Unknown User') : (conv.buyer_name || 'Unknown User'),
+        participant_avatar_url: isUserBuyer ? (conv.seller_avatar_url || null) : (conv.buyer_avatar_url || null),
+      }
+    })
 
     performanceMonitor.incrementCounter('messaging.conversations_optimized.results', transformedConversations.length, { type: 'conversations' })
     return finish('success', NextResponse.json({

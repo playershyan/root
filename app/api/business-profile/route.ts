@@ -17,7 +17,11 @@ export async function GET(request: NextRequest) {
 
     const { data: profile, error } = await supabase
       .from('business_profiles')
-      .select('*')
+      .select(`
+        id, user_id, business_name, description, website, address,
+        phone, whatsapp, operating_hours, logo_url, banner_url,
+        profile_image_url, is_verified, is_paused, created_at, updated_at
+      `)
       .eq('user_id', user.id)
       .eq('is_active', true)
       .single()
@@ -100,7 +104,11 @@ export async function POST(request: NextRequest) {
           updated_at: new Date().toISOString()
         })
         .eq('id', existingProfile.id)
-        .select()
+        .select(`
+          id, user_id, business_name, description, website, address,
+          phone, whatsapp, operating_hours, logo_url, banner_url,
+          profile_image_url, is_verified, is_paused, created_at, updated_at
+        `)
         .single()
       
       profile = updatedProfile
@@ -126,7 +134,11 @@ export async function POST(request: NextRequest) {
           is_paused: false,
           is_verified: false
         })
-        .select()
+        .select(`
+          id, user_id, business_name, description, website, address,
+          phone, whatsapp, operating_hours, logo_url, banner_url,
+          profile_image_url, is_verified, is_paused, created_at, updated_at
+        `)
         .single()
       
       profile = newProfile
@@ -202,7 +214,11 @@ export async function PATCH(request: NextRequest) {
       .update(updates)
       .eq('user_id', user.id)
       .eq('is_active', true)
-      .select()
+      .select(`
+        id, user_id, business_name, description, website, address,
+        phone, whatsapp, operating_hours, logo_url, banner_url,
+        profile_image_url, is_verified, is_paused, created_at, updated_at
+      `)
       .single()
 
     if (error) {

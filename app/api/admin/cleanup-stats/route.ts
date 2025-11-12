@@ -77,7 +77,10 @@ export async function GET(request: NextRequest) {
     // Get recovery statistics
     const { data: recoveryStats, error: recoveryError } = await supabase
       .from('admin_recovery_stats')
-      .select('*')
+      .select(`
+        user_id, user_email, total_recoverable_records,
+        recovery_value_estimate, last_deletion_date, days_since_deletion
+      `)
 
     if (recoveryError) {
       logger.error('Error fetching recovery stats', recoveryError as Error)
@@ -89,7 +92,10 @@ export async function GET(request: NextRequest) {
     // Get business profiles eligible for recovery
     const { data: eligibleRecoveries, error: eligibleError } = await supabase
       .from('admin_business_recovery_eligible')
-      .select('*')
+      .select(`
+        user_id, business_name, user_email, deleted_at,
+        days_since_deletion, active_listings_count
+      `)
       .limit(10)
 
     if (eligibleError) {

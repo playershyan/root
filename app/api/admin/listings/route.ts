@@ -45,7 +45,12 @@ export async function GET(request: NextRequest) {
     // Note: The field is 'status' in the database
     const { data: listings, error: listingsError } = await supabase
       .from('listings')
-      .select('*')
+      .select(`
+        id, title, price, location, make, model, year, mileage,
+        fuel_type, transmission, body_type, status, negotiable,
+        pricing_type, description, seller_id, primary_image_url,
+        image_urls, created_at, updated_at, is_sold, views
+      `)
       .eq('status', status)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)

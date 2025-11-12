@@ -125,7 +125,11 @@ export async function POST(request: NextRequest) {
     const { data: newRequest, error: insertError } = await supabase
       .from('wanted_requests')
       .insert([payload])
-      .select()
+      .select(`
+        id, user_id, title, description, min_budget, max_budget,
+        make, model, min_year, max_year, location, phone,
+        status, created_at
+      `)
       .single()
 
     if (insertError) {
@@ -162,7 +166,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
 
     const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '20')
+    const limit = Math.min(parseInt(searchParams.get('limit') || '15'), 50)
     const search = searchParams.get('search') || ''
     const make = searchParams.get('make')
     const model = searchParams.get('model')
@@ -179,7 +183,12 @@ export async function GET(request: NextRequest) {
     // Build query
     let query = supabase
       .from('wanted_requests')
-      .select('*', { count: 'exact' })
+      .select(`
+        id, user_id, title, description, min_budget, max_budget,
+        make, model, min_year, max_year, location, phone,
+        fuel_type, transmission, max_mileage,
+        created_at, updated_at, views, is_urgent
+      `, { count: 'exact' })
       .eq('status', 'active')
       .eq('is_active', true)
 

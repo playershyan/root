@@ -126,7 +126,10 @@ export async function GET(request: NextRequest) {
     // Get pending deletions from the view
     const { data: pending, error: pendingError } = await supabase
       .from('pending_permanent_deletion')
-      .select('*')
+      .select(`
+        id, table_name, title, scheduled_permanent_deletion,
+        days_until_deletion, deletion_status, seller_id, created_at
+      `)
       .order('scheduled_permanent_deletion', { ascending: true })
 
     if (pendingError) {
@@ -139,7 +142,10 @@ export async function GET(request: NextRequest) {
     // Get recent deletion logs
     const { data: logs, error: logsError } = await supabase
       .from('deletion_logs')
-      .select('*')
+      .select(`
+        id, table_name, record_id, user_id, deletion_reason,
+        record_data, created_at
+      `)
       .order('created_at', { ascending: false })
       .limit(50)
 

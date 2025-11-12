@@ -17,7 +17,7 @@ export async function GET() {
 
     const { data: profile, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, name, email, phone, avatar_url, location, language, bio')
       .eq('id', user.id)
       .single()
 
@@ -59,7 +59,7 @@ export async function PUT(request: NextRequest) {
         updated_at: new Date().toISOString()
       })
       .eq('id', user.id)
-      .select()
+      .select('id, name, email, phone, avatar_url, location, language, bio')
       .single()
 
     if (error) {

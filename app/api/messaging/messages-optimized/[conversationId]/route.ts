@@ -85,7 +85,7 @@ export async function GET(
 
     const conversationId = params.conversationId
     const searchParams = request.nextUrl.searchParams
-    const limit = parseInt(searchParams.get('limit') || '50', 10)
+    const limit = Math.min(parseInt(searchParams.get('limit') || '30', 10), 200)
     const before = searchParams.get('before') // ISO timestamp for pagination
     const markAsRead = searchParams.get('markAsRead') !== 'false'
 

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { Check, X, Loader2 } from 'lucide-react'
-import { debounce } from 'lodash'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -60,9 +59,13 @@ export default function UsernameCreation({
     return { isValid: true }
   }
 
-  // Debounced username availability check
+  // Debounced username availability check (native implementation)
   const debouncedCheckAvailability = useMemo(
-    () => debounce(async (value: string) => {
+    () => {
+      let timeout: NodeJS.Timeout
+      return (value: string) => {
+        clearTimeout(timeout)
+        timeout = setTimeout(async () => {
       if (!value.trim()) {
         setUsernameStatus('idle')
         return
@@ -103,7 +106,9 @@ export default function UsernameCreation({
         setUsernameStatus('invalid')
         setError('Failed to check username availability')
       }
-    }, 500),
+        }, 500)
+      }
+    },
     []
   )
 

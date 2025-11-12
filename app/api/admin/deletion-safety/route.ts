@@ -51,7 +51,10 @@ export async function GET(request: NextRequest) {
     // Get pending approval requests
     const { data: pendingApprovals, error: approvalsError } = await supabase
       .from('deletion_approval_requests')
-      .select('*')
+      .select(`
+        id, requested_by, requester_email, request_reason,
+        status, requested_at, approved_by, approved_at
+      `)
       .eq('status', 'pending')
       .order('requested_at', { ascending: false })
 
@@ -62,7 +65,10 @@ export async function GET(request: NextRequest) {
     // Get recent safety activity
     const { data: recentActivity, error: activityError } = await supabase
       .from('deletion_logs')
-      .select('*')
+      .select(`
+        id, table_name, record_id, user_id, deletion_reason,
+        record_data, created_at
+      `)
       .in('table_name', ['cleanup_operation', 'restoration'])
       .order('created_at', { ascending: false })
       .limit(10)
@@ -74,7 +80,10 @@ export async function GET(request: NextRequest) {
     // Get restorable backups
     const { data: backups, error: backupsError } = await supabase
       .from('deletion_backups')
-      .select('*')
+      .select(`
+        id, table_name, record_id, backup_data, backup_created_at,
+        can_restore, restored_at, restored_by
+      `)
       .eq('can_restore', true)
       .is('restored_at', null)
       .order('backup_created_at', { ascending: false })
