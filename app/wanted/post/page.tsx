@@ -18,6 +18,7 @@ import {
 } from '@/lib/constants/vehicleData'
 import { useUserProfile } from '@/lib/hooks/useUserProfile'
 import { useToast } from '@/app/components/notifications/useToast'
+import { toast } from 'sonner'
 import { Toast } from '@/app/components/notifications/Toast'
 import { logger } from '@/lib/utils/logger'
 
@@ -162,7 +163,7 @@ export default function PostWantedPage() {
             action: 'loadWantedRequest',
             requestId: editId
           })
-          alert('Error loading wanted request. Please try again.')
+          toast.error('Error loading wanted request. Try again later.')
           router.push('/wanted')
         }
       }

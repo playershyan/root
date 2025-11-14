@@ -8,6 +8,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { logger } from '@/lib/utils/logger'
+import { toast } from 'sonner'
 
 export default function BinPage() {
   const router = useRouter()
@@ -36,7 +37,7 @@ export default function BinPage() {
       setBinItems(data.all_items || [])
     } catch (error) {
       logger.error('Error loading bin items', error as Error)
-      alert('Failed to load bin items')
+      toast.error('Failed to load bin items')
     } finally {
       setLoading(false)
     }
@@ -73,14 +74,17 @@ export default function BinPage() {
       const data = await response.json()
 
       // Show success message
-      alert(`${data.message}\n\n${data.next_steps}`)
+      toast.success(data.message)
+      if (data.next_steps) {
+        toast.info(data.next_steps, { duration: 5000 })
+      }
 
       // Reload bin items to reflect changes
       await loadBinItems()
     } catch (error) {
       logger.error('Error restoring item', error as Error)
-      alert(error instanceof Error ? error.message : 'Failed to restore item')
-    } finally {
+      toast.error(error instanceof Error ? error.message : 'Failed to restore item')
+    } finally{
       setRestoring(null)
     }
   }

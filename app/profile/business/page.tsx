@@ -8,6 +8,7 @@ import BusinessProfileRecovery from '@/app/components/profile/BusinessProfileRec
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { logger } from '@/lib/utils/logger'
+import { toast } from 'sonner'
 
 interface UpdateBusinessProfileData {
   business_name?: string
@@ -43,7 +44,7 @@ export default function BusinessPage() {
       // Refresh business profile data
       await fetchBusinessProfile()
 
-      alert('Business profile updated successfully')
+      toast.success('Business profile updated successfully')
       return result
     } catch (error) {
       logger.error('Failed to update business profile', error as Error, {

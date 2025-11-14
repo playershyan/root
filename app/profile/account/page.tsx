@@ -2,7 +2,7 @@
 
 import { useState, useEffect, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Camera } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import Image from 'next/image'
 import { useAuth } from '@/app/contexts/AuthContext'
 import { useBusinessProfile } from '@/app/hooks/useBusinessProfile'
@@ -210,15 +210,6 @@ export default function AccountPage() {
                           : 'U'
                     )}
                   </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute bottom-0 right-0 bg-white border-2 border-gray-300 rounded-full hover:bg-gray-50 h-8 w-8"
-                    title="Avatar upload coming soon"
-                  >
-                    <Camera className="w-4 h-4 text-gray-600" />
-                  </Button>
                 </div>
               </div>
 

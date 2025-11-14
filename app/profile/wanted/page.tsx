@@ -11,6 +11,7 @@ import WantedRequestActions from '@/app/components/wantedRequests/WantedRequestA
 import WantedRequestStatusMessage from '@/app/components/wantedRequests/WantedRequestStatusMessage'
 import { Button } from '@/components/ui/button'
 import { logger } from '@/lib/utils/logger'
+import { toast } from 'sonner'
 
 interface WantedRequest {
   id: string
@@ -126,10 +127,10 @@ export default function WantedPage() {
         )
       )
 
-      alert(data.message || `Wanted request ${action}d successfully`)
+      toast.success(data.message || `Wanted request ${action}d successfully`)
     } catch (error: any) {
       logger.error(`Error ${action}ing wanted request`, error as Error)
-      alert(error.message || `Failed to ${action} wanted request`)
+      toast.error(error.message || `Failed to ${action} wanted request`)
     }
   }
 
@@ -163,10 +164,10 @@ export default function WantedPage() {
         )
       )
 
-      alert(data.message || 'Wanted request closed successfully')
+      toast.success(data.message || 'Wanted request closed successfully')
     } catch (error: any) {
       logger.error('Error closing wanted request', error as Error)
-      alert(error.message || 'Failed to close wanted request')
+      toast.error(error.message || 'Failed to close wanted request')
     }
   }
 
@@ -196,10 +197,10 @@ export default function WantedPage() {
         )
       )
 
-      alert(data.message || 'Wanted request renewed successfully')
+      toast.success(data.message || 'Wanted request renewed successfully')
     } catch (error: any) {
       logger.error('Error renewing wanted request', error as Error)
-      alert(error.message || 'Failed to renew wanted request')
+      toast.error(error.message || 'Failed to renew wanted request')
     }
   }
 
@@ -225,10 +226,10 @@ export default function WantedPage() {
 
       // Remove from local state
       setWantedRequests(prev => prev.filter(r => r.id !== requestId))
-      alert('Wanted request moved to bin')
+      toast.success('Wanted request moved to bin')
     } catch (error) {
       logger.error('Error deleting wanted request', error as Error)
-      alert('Failed to move wanted request to bin')
+      toast.error('Failed to move wanted request to bin')
     }
   }
 
@@ -241,7 +242,7 @@ export default function WantedPage() {
       })
     } else {
       navigator.clipboard.writeText(`${window.location.origin}/wanted/${requestId}`)
-      alert('Link copied to clipboard!')
+      toast.success('Link copied to clipboard!')
     }
   }
 

@@ -8,6 +8,7 @@ import { useCallback } from 'react'
 import FavoritesTab from '@/app/components/favorites/FavoritesTab'
 import { FavoriteAdData, FavoriteWantedData } from '@/lib/utils/favoritesUtils'
 import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
 
 export default function FavoritesPage() {
   const router = useRouter()
@@ -22,7 +23,7 @@ export default function FavoritesPage() {
         // Refresh favorites list
         await fetchFavorites()
       } else {
-        alert(result.error || 'Failed to remove from favorites')
+        toast.error(result.error || 'Failed to remove from favorites')
       }
     }
   }, [toggleFavorite, fetchFavorites])
@@ -35,7 +36,7 @@ export default function FavoritesPage() {
         // Refresh favorites list
         await fetchFavorites()
       } else {
-        alert(result.error || 'Failed to remove from favorites')
+        toast.error(result.error || 'Failed to remove from favorites')
       }
     }
   }, [toggleFavorite, fetchFavorites])
@@ -50,7 +51,7 @@ export default function FavoritesPage() {
       })
     } else {
       navigator.clipboard.writeText(`${window.location.origin}${url}`)
-      alert('Link copied to clipboard!')
+      toast.success('Link copied to clipboard!')
     }
   }, [])
 
@@ -64,7 +65,7 @@ export default function FavoritesPage() {
       })
     } else {
       navigator.clipboard.writeText(`${window.location.origin}${url}`)
-      alert('Link copied to clipboard!')
+      toast.success('Link copied to clipboard!')
     }
   }, [])
 

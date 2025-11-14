@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { logger } from '@/lib/utils/logger'
+import { toast } from 'sonner'
 
 export default function AdPaidFeatures() {
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([])
@@ -101,7 +102,7 @@ export default function AdPaidFeatures() {
 
   const handlePayment = async () => {
     if (!listingId) {
-      alert('No listing ID provided')
+      toast.error('No listing ID provided')
       return
     }
 
