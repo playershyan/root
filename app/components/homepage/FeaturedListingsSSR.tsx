@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { Star, Eye, MapPin, Calendar, ArrowRight } from 'lucide-react'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { unstable_cache } from 'next/cache'
 import { logger } from '@/lib/utils/logger'
 
 interface Listing {
@@ -27,53 +28,60 @@ interface FeaturedListingsSSRProps {
   displayCount?: number
 }
 
-// Server-side function to get fair-rotated listings
-async function getFeaturedListings(displayCount: number = 6): Promise<Listing[]> {
-  try {
-    const supabase = createServerComponentClient({ cookies })
-    const { data: listings, error } = await supabase
-      .from('listings')
-      .select(`
-        id, title, price, image_url, image_urls, year, mileage,
-        fuel_type, location, views, created_at, featured_until,
-        boost_score, make, model
-      `)
-      .eq('is_featured', true)
-      .eq('status', 'active')
-      .or(`featured_until.is.null,featured_until.gt.${new Date().toISOString()}`)
-      .order('created_at', { ascending: false })
+// Server-side function to get fair-rotated listings (with caching)
+const getFeaturedListings = unstable_cache(
+  async (displayCount: number = 6): Promise<Listing[]> => {
+    try {
+      const supabase = createServerComponentClient({ cookies })
+      const { data: listings, error } = await supabase
+        .from('listings')
+        .select(`
+          id, title, price, image_url, image_urls, year, mileage,
+          fuel_type, location, views, created_at, featured_until,
+          boost_score, make, model
+        `)
+        .eq('is_featured', true)
+        .eq('status', 'active')
+        .or(`featured_until.is.null,featured_until.gt.${new Date().toISOString()}`)
+        .order('created_at', { ascending: false })
 
-    if (error) {
-      logger.error('Error fetching featured listings', error, {
+      if (error) {
+        logger.error('Error fetching featured listings', error, {
+          component: 'FeaturedListingsSSR',
+          action: 'getFeaturedListings'
+        })
+        return []
+      }
+
+      if (!listings || listings.length === 0) {
+        return []
+      }
+
+      // Simple time-based rotation for server-side rendering
+      const now = new Date()
+      const rotationSeed = Math.floor(now.getTime() / (5 * 60 * 1000)) // Changes every 5 minutes
+      
+      // Apply fair rotation logic
+      const rotatedListings = listings.map((listing: Listing, index: number) => ({
+        ...listing,
+        rotationScore: calculateRotationScore(listing, rotationSeed, index)
+      })).sort((a: any, b: any) => b.rotationScore - a.rotationScore)
+
+      return rotatedListings.slice(0, displayCount)
+    } catch (error) {
+      logger.error('Error in getFeaturedListings', error as Error, {
         component: 'FeaturedListingsSSR',
         action: 'getFeaturedListings'
       })
       return []
     }
-
-    if (!listings || listings.length === 0) {
-      return []
-    }
-
-    // Simple time-based rotation for server-side rendering
-    const now = new Date()
-    const rotationSeed = Math.floor(now.getTime() / (5 * 60 * 1000)) // Changes every 5 minutes
-    
-    // Apply fair rotation logic
-    const rotatedListings = listings.map((listing: Listing, index: number) => ({
-      ...listing,
-      rotationScore: calculateRotationScore(listing, rotationSeed, index)
-    })).sort((a: any, b: any) => b.rotationScore - a.rotationScore)
-
-    return rotatedListings.slice(0, displayCount)
-  } catch (error) {
-    logger.error('Error in getFeaturedListings', error as Error, {
-      component: 'FeaturedListingsSSR',
-      action: 'getFeaturedListings'
-    })
-    return []
+  },
+  ['featured-listings'],
+  {
+    revalidate: 60, // Cache for 60 seconds
+    tags: ['featured-listings']
   }
-}
+)
 
 function calculateRotationScore(listing: Listing, rotationSeed: number, index: number): number {
   const listingAge = Math.floor((new Date().getTime() - new Date(listing.created_at).getTime()) / (1000 * 60 * 60 * 24))

@@ -15,8 +15,7 @@ import AnimatedHeroHeading from './components/hero/AnimatedHeroHeading'
 import HeroSearchBar from './components/hero/HeroSearchBar'
 import HeroFiltersSection from './components/hero/HeroFiltersSection'
 
-export const revalidate = 60 // Refresh every minute
-export const dynamic = 'force-dynamic'
+export const revalidate = 60 // Revalidate every minute (ISR)
 
 export default async function HomePage() {
   return (

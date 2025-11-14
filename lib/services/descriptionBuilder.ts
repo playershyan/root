@@ -73,80 +73,116 @@ export const buildListingDescription = (input: ListingDescriptionInput): Descrip
   const askingPriceNumber = toInteger(input.askingPrice)
   const priceNumber = toInteger(input.price)
 
-  const lines: string[] = []
+  const sections: string[] = []
 
-  if (input.title) lines.push(toCleanString(input.title))
+  // Section 1: Title, Make/Model/Trim, Year
+  const section1: string[] = []
+  if (input.title) section1.push(toCleanString(input.title))
 
-  if (resolvedMake) lines.push(`Make: ${resolvedMake}`)
-  if (resolvedModel) lines.push(`Model: ${resolvedModel}`)
-  if (resolvedTrim) lines.push(`Trim / Grade: ${resolvedTrim}`)
+  if (resolvedMake) section1.push(`Make: ${resolvedMake}`)
+  if (resolvedModel) section1.push(`Model: ${resolvedModel}`)
+  if (resolvedTrim) section1.push(`Trim / Grade: ${resolvedTrim}`)
 
   if (resolvedYear) {
-    lines.push(`Year of Manufacture: ${resolvedYear}`)
+    section1.push(`Year of Manufacture: ${resolvedYear}`)
   }
 
+  if (section1.length > 0) {
+    sections.push(section1.join('\n'))
+  }
+
+  // Section 2: Mileage, Condition
+  const section2: string[] = []
   if (Number.isFinite(mileageNumber) && mileageNumber > 0) {
-    lines.push(`Mileage: ${mileageNumber.toLocaleString('en-LK')} km`)
+    section2.push(`Mileage: ${mileageNumber.toLocaleString('en-LK')} km`)
   }
 
-  if (input.condition) lines.push(`Condition: ${input.condition}`)
+  if (input.condition) {
+    section2.push(`Condition: ${input.condition}`)
+  }
 
+  if (section2.length > 0) {
+    sections.push(section2.join('\n'))
+  }
+
+  // Section 3: Engine Capacity, Fuel Type, Transmission (on same line)
+  const section3Fields: string[] = []
   if (Number.isFinite(engineCapacityNumber) && engineCapacityNumber > 0) {
-    lines.push(`Engine Capacity: ${engineCapacityNumber.toLocaleString('en-LK')} cc`)
+    section3Fields.push(`Engine Capacity: ${engineCapacityNumber.toLocaleString('en-LK')} cc`)
   }
-  if (input.fuelType) lines.push(`Fuel Type: ${input.fuelType}`)
-  if (input.transmission) lines.push(`Transmission: ${input.transmission}`)
+  if (input.fuelType) {
+    section3Fields.push(`Fuel Type: ${input.fuelType}`)
+  }
+  if (input.transmission) {
+    section3Fields.push(`Transmission: ${input.transmission}`)
+  }
 
-  if (input.color) lines.push(`Exterior Color: ${input.color}`)
+  if (section3Fields.length > 0) {
+    sections.push(section3Fields.join(' | '))
+  }
+
+  // Section 4: Key Features, Service Records
+  const section4: string[] = []
+  if (input.features?.length) {
+    section4.push(`Key Features: ${input.features.join(', ')}`)
+  }
 
   if (input.serviceRecordsAvailable === true) {
-    lines.push('Service Records Available: Yes')
+    section4.push('Service Records Available: Yes')
   }
 
+  if (section4.length > 0) {
+    sections.push(section4.join('\n'))
+  }
+
+  // Section 5: Pricing, Negotiable, Location
+  const section5: string[] = []
   if (input.pricingType === 'cash') {
     const currency = formatCurrency(priceNumber)
-    if (currency) lines.push(`Price: ${currency}`)
+    if (currency) section5.push(`Price: ${currency}`)
   } else if (input.pricingType === 'finance') {
     const askingPrice = formatCurrency(askingPriceNumber)
-    if (askingPrice) lines.push(`Asking Price: ${askingPrice}`)
+    if (askingPrice) section5.push(`Asking Price: ${askingPrice}`)
 
     const outstandingBalance = formatCurrency(outstandingBalanceNumber)
-    if (outstandingBalance) lines.push(`Outstanding Balance: ${outstandingBalance}`)
+    if (outstandingBalance) section5.push(`Outstanding Balance: ${outstandingBalance}`)
 
     const monthlyPayment = formatCurrency(monthlyPaymentNumber)
-    if (monthlyPayment) lines.push(`Monthly Payment: ${monthlyPayment}`)
+    if (monthlyPayment) section5.push(`Monthly Payment: ${monthlyPayment}`)
 
     if (Number.isFinite(remainingTermNumber) && remainingTermNumber > 0) {
-      lines.push(`Remaining Term: ${remainingTermNumber} months`)
+      section5.push(`Remaining Term: ${remainingTermNumber} months`)
     }
 
     if (input.financeType) {
-      lines.push(`Finance Type: ${input.financeType}`)
+      section5.push(`Finance Type: ${input.financeType}`)
     }
   }
 
   if (input.negotiable) {
-    lines.push('Negotiable: Yes')
+    section5.push('Negotiable: Yes')
   }
 
   if (input.city || input.district) {
     const locationParts = [input.city, input.district].filter(Boolean)
-    lines.push(`Location: ${locationParts.join(', ')}`)
+    section5.push(`Location: ${locationParts.join(', ')}`)
   }
 
-  if (input.features?.length) {
-    lines.push(`Key Features: ${input.features.join(', ')}`)
+  if (section5.length > 0) {
+    sections.push(section5.join('\n'))
   }
 
-  if (!lines.length) {
-    lines.push('Listing details are not complete yet.')
-  }
+  // Join sections with double line breaks for visual separation
+  const description = sections.length > 0 
+    ? sections.join('\n\n').trim()
+    : 'Listing details are not complete yet.'
 
-  const description = lines.join('\n').trim()
+  // Calculate total line count (including section separators)
+  const linesCount = description.split('\n').filter(line => line.trim().length > 0).length
 
   return {
     description,
-    linesCount: lines.length
+    linesCount
   }
 }
 
