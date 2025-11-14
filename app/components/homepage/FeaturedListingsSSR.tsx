@@ -1,9 +1,8 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Star, Eye, MapPin, Calendar, ArrowRight } from 'lucide-react'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
 import { unstable_cache } from 'next/cache'
+import { createServiceSupabaseClient } from '@/lib/supabase-server'
 import { logger } from '@/lib/utils/logger'
 
 interface Listing {
@@ -32,7 +31,7 @@ interface FeaturedListingsSSRProps {
 const getFeaturedListings = unstable_cache(
   async (displayCount: number = 6): Promise<Listing[]> => {
     try {
-      const supabase = createServerComponentClient({ cookies })
+      const supabase = createServiceSupabaseClient()
       const { data: listings, error } = await supabase
         .from('listings')
         .select(`

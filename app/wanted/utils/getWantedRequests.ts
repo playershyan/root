@@ -1,6 +1,5 @@
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
 import { unstable_cache } from 'next/cache'
+import { createServiceSupabaseClient } from '@/lib/supabase-server'
 import { logger } from '@/lib/utils/logger'
 
 export interface WantedRequest {
@@ -69,8 +68,7 @@ const getWantedRequestsUncached = async (
   limit: number = 20
 ): Promise<{ requests: WantedRequest[]; totalCount: number }> => {
   try {
-    const cookieStore = await cookies()
-    const supabase = createServerComponentClient({ cookies: () => cookieStore })
+    const supabase = createServiceSupabaseClient()
     
     let query = supabase
       .from('wanted_requests')

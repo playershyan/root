@@ -2,7 +2,7 @@ import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { createServiceSupabaseClient } from '@/lib/supabase-server'
 import ListingDetailClient from './ListingDetailClient'
 import { logger } from '@/lib/utils/logger'
 
@@ -48,6 +48,7 @@ const LISTING_SELECT_FIELDS = `
 `
 
 const getCachedListing = cache(async (id: string) => {
+  const supabase = createServiceSupabaseClient()
   const { data, error } = await supabase
     .from('listings')
     .select(LISTING_SELECT_FIELDS)
@@ -66,6 +67,7 @@ const getCachedListing = cache(async (id: string) => {
 
 const getSimilarListingsCached = unstable_cache(
   async (listingId: string, make: string, model: string, year: number, price: number) => {
+    const supabase = createServiceSupabaseClient()
     const { data, error } = await supabase.rpc('get_similar_listings', {
       p_listing_id: listingId,
       p_make: make,
@@ -128,6 +130,8 @@ export default async function ListingDetailPage({
     return listing.price || 0
   })()
 
+  const supabase = createServiceSupabaseClient()
+  
   const [
     authResponse,
     sellerProfileResponse,
