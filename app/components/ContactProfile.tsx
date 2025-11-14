@@ -8,6 +8,7 @@ import { formatPhoneDisplay, formatPhoneForWhatsApp, formatPhoneForTel } from '@
 import ContactModal from '@/app/components/modals/ContactModal'
 import { logger } from '@/lib/utils/logger'
 import { useAuth } from '@/app/contexts/AuthContext'
+import { toast } from 'sonner'
 
 // Types
 type Listing = {
@@ -223,7 +224,7 @@ function MessageButton({ listing, onMessageClick }: {
 
     // Fallback to original redirect behavior
     if (!listing.id || !listing.user_id) {
-      alert('Unable to send message. Listing information is missing.')
+      toast.error('Unable to send message. Listing information is missing.')
       return
     }
 
@@ -249,7 +250,7 @@ function MessageButton({ listing, onMessageClick }: {
       if (!response.ok) {
         const error = await response.json()
         if (error.error === 'Cannot message yourself') {
-          alert('You cannot send messages to your own listing.')
+          toast.error('You cannot send messages to your own listing.')
           return
         }
         throw new Error('Failed to create conversation')
@@ -263,7 +264,7 @@ function MessageButton({ listing, onMessageClick }: {
         action: 'handleMessage',
         listingId: listing.id
       })
-      alert('Failed to start conversation. Please try again.')
+      toast.error('Failed to start conversation. Try again later.')
     } finally {
       setLoading(false)
     }

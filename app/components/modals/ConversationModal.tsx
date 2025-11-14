@@ -12,6 +12,7 @@ import { getContextualQuickReplies } from '@/lib/messaging/quickReplies'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { logger } from '@/lib/utils/logger'
+import { toast } from 'sonner'
 
 interface Message {
   id: string
@@ -269,7 +270,7 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
       })
       // Restore message to input on error
       setNewMessage(messageContent)
-      alert('Failed to send message. Please try again.')
+      toast.error('Failed to send message. Try again later.')
     } finally {
       setSending(false)
     }
@@ -352,7 +353,7 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
                 <LogIn className="w-8 h-8 text-blue-600" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Log in to send messages</h3>
-              <p className="text-gray-600 mb-4 text-sm">You need to be logged in to contact the seller</p>
+              <p className="text-gray-600 mb-4 text-sm">Sign in required to contact the seller</p>
               <div className="flex gap-3">
                 <Button
                   onClick={() => {
@@ -494,7 +495,7 @@ export default function ConversationModal({ isOpen, onClose, listing }: Conversa
           ) : (
             <div className="text-center text-gray-500 text-sm">
               <LogIn className="w-5 h-5 mx-auto mb-2" />
-              <p>Please log in to send messages</p>
+              <p>Log in to send messages</p>
             </div>
           )}
         </div>

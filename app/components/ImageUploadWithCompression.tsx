@@ -18,6 +18,7 @@ import {
 import { UPLOAD_CONSTRAINTS } from '@/lib/config/images'
 import { takePhoto, pickFromGallery, isNative } from '@/lib/capacitor-bridge'
 import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
 import { logger } from '@/lib/utils/logger'
 
 export interface ImageUploadWithCompressionProps {
@@ -65,7 +66,7 @@ export default function ImageUploadWithCompression({
 
     // Check max images limit
     if (images.length + files.length > maxImages) {
-      alert(`Maximum ${maxImages} images allowed`)
+      toast.error(`Maximum ${maxImages} images allowed`)
       return
     }
 
@@ -81,7 +82,7 @@ export default function ImageUploadWithCompression({
           fileName: file.name,
           error
         })
-        alert(`${file.name}: ${error}`)
+        toast.error(`${file.name}: ${error}`)
       })
     }
 
@@ -122,7 +123,7 @@ export default function ImageUploadWithCompression({
         component: 'ImageUploadWithCompression',
         action: 'processFiles'
       })
-      alert('Failed to compress images. Please try again.')
+      toast.error('Failed to compress images. Try again later.')
     } finally {
       setCompressing(false)
       setCompressionProgress(new Map())

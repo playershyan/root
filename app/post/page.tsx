@@ -427,19 +427,19 @@ export default function EnhancedPostVehiclePage() {
     const newErrors: Record<string, string> = {}
 
     // Vehicle type and title
-    if (!formData.vehicleType) newErrors.vehicleType = 'Please select vehicle type'
+    if (!formData.vehicleType) newErrors.vehicleType = 'Vehicle type is required'
     if (!formData.title) newErrors.title = 'Title is required'
 
     // Make and model
     if (!formData.make) {
       newErrors.make = 'Make is required'
     } else if (formData.make === 'Other' && !formData.customMake) {
-      newErrors.make = 'Please enter custom make name'
+      newErrors.make = 'Custom make name is required'
     }
     if (!formData.model) {
       newErrors.model = 'Model is required'
     } else if (formData.model === 'Other' && !formData.customModel) {
-      newErrors.model = 'Please enter custom model name'
+      newErrors.model = 'Custom model name is required'
     }
 
     // Year
@@ -793,7 +793,7 @@ const getUploadUserId = (): string => {
   
   const generateAIDescription = async () => {
     if (!formData.make || !formData.model || !formData.year) {
-      showWarning('Please fill in make, model, and year first', 3000)
+      showWarning('Fill in make, model, and year first', 3000)
       return
     }
 
@@ -851,7 +851,7 @@ const getUploadUserId = (): string => {
       showSuccess('Description generated successfully!', 2000)
     } catch (error) {
       logger.error('AI description inline generation failed', error as Error)
-      showError('Could not build the description. Please try again.', 4000)
+      showError('Could not build the description. Try again later.', 4000)
     } finally {
       setAiLoading(false)
     }
@@ -865,7 +865,7 @@ const getUploadUserId = (): string => {
       // Check if user is authenticated
       if (!user) {
         router.push('/?auth=true&redirect=/post')
-        showWarning('Please sign in to post a listing.', 5000)
+        showWarning('Sign in required to post a listing.', 5000)
         setLoading(false)
         return
       }
@@ -875,13 +875,13 @@ const getUploadUserId = (): string => {
       )
 
       if (hasActiveUploads || formData.images.length > 0) {
-        showWarning('Please wait for all image uploads to finish or retry failed uploads before submitting.', 5000)
+        showWarning('Wait for all image uploads to finish or retry failed uploads before submitting.', 5000)
         setLoading(false)
         return
       }
 
       if (formData.imageUrls.length === 0) {
-        showError('Please upload at least one image before publishing your listing.', 5000)
+        showError('At least one image required', 5000)
         setLoading(false)
         return
       }
@@ -1088,7 +1088,7 @@ const getUploadUserId = (): string => {
       }
     } catch (error: any) {
       // Show the actual error message to the user
-      const errorMessage = error?.message || 'Error posting vehicle. Please try again.'
+      const errorMessage = error?.message || 'Error posting vehicle. Try again later.'
       showError(errorMessage, 7000)
     } finally {
       setLoading(false)
@@ -1340,7 +1340,7 @@ const getUploadUserId = (): string => {
                         type="text"
                         value={formData.city}
                         disabled
-                        placeholder="Please select a district first"
+                        placeholder="Select a district first"
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed"
                       />
                     )}

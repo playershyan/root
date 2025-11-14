@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/app/contexts/AuthContext'
 import { AuthModal } from '@/app/components/auth'
+import { toast } from 'sonner'
 import { getContextualQuickReplies, trackQuickReplyUsage, SmartQuickReplies } from '@/lib/messaging/quickReplies'
 import { updateMessageStatus, markMessagesAsDelivered } from '@/lib/messaging/status'
 import { getMessagingRealtime } from '@/lib/messaging/realtime'
@@ -298,7 +299,7 @@ export default function EnhancedConversationModal({ isOpen, onClose, listing }: 
       ))
 
       // Show retry option
-      alert('Failed to send message. Please try again.')
+      toast.error('Failed to send message. Try again later.')
     } finally {
       setSending(false)
     }

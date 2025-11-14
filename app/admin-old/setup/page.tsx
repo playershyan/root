@@ -265,7 +265,7 @@ export default function AdminSetup() {
                 <div>
                   <h3 className="font-medium text-orange-900">Admin Access Required</h3>
                   <p className="text-orange-700 text-sm mt-1">
-                    Admin users already exist in the system. You need to be granted admin access by an existing administrator.
+                    Admin users already exist in the system. Contact an existing administrator to request access.
                   </p>
                 </div>
               </div>

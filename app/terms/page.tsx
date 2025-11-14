@@ -69,7 +69,7 @@ export default function TermsConditionsPage() {
 
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">5. Prohibited Activities</h2>
-              <p className="text-gray-700 mb-4">You must not:</p>
+              <p className="text-gray-700 mb-4">The following activities are prohibited:</p>
               <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-2">
                 <li>Engage in fraud, misrepresentation, or illegal activities</li>
                 <li>Sell stolen vehicles or items</li>
@@ -91,7 +91,7 @@ export default function TermsConditionsPage() {
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">7. Fees</h2>
               <p className="text-gray-700 mb-4">
-                Premium services may require payment. All applicable fees are clearly displayed before purchase and are subject to change with prior notice.
+                Premium services may require payment. All applicable fees are displayed before purchase and are subject to change with prior notice.
               </p>
             </section>
 

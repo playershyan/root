@@ -211,7 +211,7 @@ export default function NotificationsTab({
               <div className="hidden rounded-xl bg-gray-50 p-4 sm:flex sm:items-center sm:justify-between">
                 <div>
                   <p className="font-medium text-gray-900">Changes pending</p>
-                  <p className="text-sm text-gray-600">Don't forget to save your notification preferences</p>
+                  <p className="text-sm text-gray-600">Save your changes to apply preferences</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Button

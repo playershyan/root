@@ -1,16 +1,17 @@
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
 import {
   User, Shield, Bell, Car, Heart, Search, MessageSquare,
   Trash2, Building2, ChevronRight
 } from 'lucide-react'
-import { getProfileStats } from './utils/getProfileStats'
-
-// Enable ISR with 60-second revalidation
-// This means the page will be cached and regenerated every 60 seconds
-export const revalidate = 60
+import { useAuth } from '../contexts/AuthContext'
+import { useBusinessProfile } from '../hooks/useBusinessProfile'
+import { useListingManagement } from '../hooks/useListingManagement'
+import { useFavorites } from '../hooks/useFavorites'
+import { useMessaging } from '../hooks/useMessaging'
 
 interface ProfileLink {
   title: string
@@ -19,24 +20,39 @@ interface ProfileLink {
   badge?: number
 }
 
-export default async function ProfileLandingPage() {
-  // Get authenticated user (server-side)
-  const cookieStore = await cookies()
-  const supabase = createServerComponentClient({ 
-    cookies: () => cookieStore 
-  })
-  
-  const { data: { user } } = await supabase.auth.getUser()
+export default function ProfileLandingPage() {
+  const router = useRouter()
+  const { user, loading: authLoading } = useAuth()
+  const { businessProfile } = useBusinessProfile()
+  const { listings } = useListingManagement(user?.id)
+  const { favoritedAds, favoritedWantedRequests } = useFavorites(user?.id)
+  const { conversations } = useMessaging(user?.id)
+
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  // Calculate unread message count
+  useEffect(() => {
+    const count = conversations.reduce((sum, conv) => sum + (conv.unread_count || 0), 0)
+    setUnreadCount(count)
+  }, [conversations])
 
   // Redirect if not authenticated
-  if (!user) {
-    redirect('/')
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/')
+    }
+  }, [user, authLoading, router])
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
   }
 
-  // Fetch profile stats (single optimized query)
-  const stats = await getProfileStats(user.id)
+  if (!user) return null
 
-  // Build sections with stats
   const sections = [
     {
       title: 'Personal',
@@ -49,36 +65,20 @@ export default async function ProfileLandingPage() {
     {
       title: 'Content',
       links: [
-        { 
-          title: 'My Listings', 
-          href: '/profile/listings', 
-          icon: Car,
-          badge: stats.listings_count > 0 ? stats.listings_count : undefined
-        },
-        { 
-          title: 'Wanted Requests', 
-          href: '/profile/wanted', 
-          icon: Search,
-          badge: stats.wanted_count > 0 ? stats.wanted_count : undefined
-        },
-        { 
-          title: 'Favorites', 
-          href: '/profile/favorites', 
-          icon: Heart,
-          badge: stats.favorites_count > 0 ? stats.favorites_count : undefined
-        },
+        { title: 'My Listings', href: '/profile/listings', icon: Car },
+        { title: 'Wanted Requests', href: '/profile/wanted', icon: Search },
+        { title: 'Favorites', href: '/profile/favorites', icon: Heart },
         {
           title: 'Messages',
           href: '/profile/messages',
           icon: MessageSquare,
-          badge: stats.unread_count > 0 ? stats.unread_count : undefined
+          badge: unreadCount > 0 ? unreadCount : undefined
         }
       ]
     }
   ]
 
-  // Add business section if user has active business profile
-  if (stats.has_business_profile) {
+  if (businessProfile?.is_active) {
     sections.push({
       title: 'Business',
       links: [
@@ -87,7 +87,6 @@ export default async function ProfileLandingPage() {
     })
   }
 
-  // Add utilities section
   sections.push({
     title: 'Utilities',
     links: [

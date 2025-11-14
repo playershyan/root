@@ -40,7 +40,7 @@ function getAvailableModels(make: string): string[] {
 }
 
 interface PageProps {
-  searchParams: {
+  searchParams: Promise<{
     location?: string
     make?: string
     model?: string
@@ -52,25 +52,28 @@ interface PageProps {
     highPriorityOnly?: string
     search?: string
     page?: string
-  }
+  }>
 }
 
 export default async function WantedRequestsPage({ searchParams }: PageProps) {
+  // Await searchParams (Next.js 15+)
+  const params = await searchParams
+  
   // Parse filters from URL
   const filters: WantedFilters = {
-    location: searchParams.location,
-    make: searchParams.make,
-    model: searchParams.model,
-    minBudget: searchParams.minBudget,
-    maxBudget: searchParams.maxBudget,
-    yearFrom: searchParams.yearFrom,
-    yearTo: searchParams.yearTo,
-    sortBy: searchParams.sortBy || 'recent',
-    highPriorityOnly: searchParams.highPriorityOnly === 'true',
-    search: searchParams.search
+    location: params.location,
+    make: params.make,
+    model: params.model,
+    minBudget: params.minBudget,
+    maxBudget: params.maxBudget,
+    yearFrom: params.yearFrom,
+    yearTo: params.yearTo,
+    sortBy: params.sortBy || 'recent',
+    highPriorityOnly: params.highPriorityOnly === 'true',
+    search: params.search
   }
 
-  const currentPage = parseInt(searchParams.page || '1')
+  const currentPage = parseInt(params.page || '1')
   
   // Fetch data on server
   const { requests, totalCount } = await getWantedRequestsDynamic(filters, currentPage, 20)

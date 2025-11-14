@@ -69,7 +69,8 @@ const getWantedRequestsUncached = async (
   limit: number = 20
 ): Promise<{ requests: WantedRequest[]; totalCount: number }> => {
   try {
-    const supabase = createServerComponentClient({ cookies })
+    const cookieStore = await cookies()
+    const supabase = createServerComponentClient({ cookies: () => cookieStore })
     
     let query = supabase
       .from('wanted_requests')

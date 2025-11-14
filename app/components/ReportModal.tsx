@@ -279,7 +279,7 @@ export default function ReportModal({
 
               {/* Disclaimer */}
               <p className="text-xs text-gray-500 mt-4 text-center">
-                False reports may result in account restrictions. Please only report genuine violations.
+                Misuse of the report feature may result in account restrictions.
               </p>
             </>
           )}

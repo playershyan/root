@@ -58,7 +58,7 @@ const boostOptions: BoostOption[] = [
   {
     id: 'urgent',
     name: 'Urgent Sale',
-    description: 'Let buyers know you need to sell quickly with an eye-catching urgent badge',
+    description: 'Boost your listing with an eye-catching urgent badge',
     icon: AlertCircle,
     price: 1000,
     duration: '14 days',

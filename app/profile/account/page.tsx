@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { logger } from '@/lib/utils/logger'
+import { toast } from 'sonner'
 
 interface ProfileData {
   id: string
@@ -113,13 +114,13 @@ export default function AccountPage() {
 
       const result = await response.json()
       if (result.success) {
-        alert('Profile updated successfully!')
+        toast.success('Profile updated successfully!')
       } else {
         throw new Error(result.error || 'Failed to update profile')
       }
     } catch (error) {
       logger.error('Error updating profile', error as Error)
-      alert(`Failed to update profile: ${error instanceof Error ? error.message : 'Please try again.'}`)
+      toast.error(`Failed to update profile: ${error instanceof Error ? error.message : 'Try again later.'}`)
     } finally {
       setIsLoading(false)
     }
@@ -130,9 +131,9 @@ export default function AccountPage() {
     const result = await createBusinessProfile(data)
     if (result.success) {
       setShowCreateProfile(false)
-      alert('Business profile created successfully!')
+      toast.success('Business profile created successfully!')
     } else {
-      alert(`Error: ${result.error || 'Failed to create business profile'}`)
+      toast.error(`Error: ${result.error || 'Failed to create business profile'}`)
     }
     return result
   }
@@ -140,18 +141,18 @@ export default function AccountPage() {
   const handlePauseBusinessProfile = async () => {
     const result = await pauseBusinessProfile()
     if (result.success) {
-      alert('Business profile paused successfully!')
+      toast.success('Business profile paused successfully!')
     } else {
-      alert(`Error: ${result.error || 'Failed to pause business profile'}`)
+      toast.error(`Error: ${result.error || 'Failed to pause business profile'}`)
     }
   }
 
   const handleResumeBusinessProfile = async () => {
     const result = await resumeBusinessProfile()
     if (result.success) {
-      alert('Business profile resumed successfully!')
+      toast.success('Business profile resumed successfully!')
     } else {
-      alert(`Error: ${result.error || 'Failed to resume business profile'}`)
+      toast.error(`Error: ${result.error || 'Failed to resume business profile'}`)
     }
   }
 
@@ -162,9 +163,9 @@ export default function AccountPage() {
 
     const result = await deleteBusinessProfile()
     if (result.success) {
-      alert('Business profile deleted successfully!')
+      toast.success('Business profile deleted successfully!')
     } else {
-      alert(`Error: ${result.error || 'Failed to delete business profile'}`)
+      toast.error(`Error: ${result.error || 'Failed to delete business profile'}`)
     }
   }
 

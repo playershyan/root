@@ -65,8 +65,8 @@ export async function POST(request: NextRequest) {
     } = body
 
     // Validate required fields
-    if (!business_name || !description || !phone) {
-      return NextResponse.json({ error: 'Missing required fields: business name, description, and phone are required' }, { status: 400 })
+    if (!business_name) {
+      return NextResponse.json({ error: 'Missing required fields: business name is required' }, { status: 400 })
     }
 
     // Check if any profile exists (active or deleted)

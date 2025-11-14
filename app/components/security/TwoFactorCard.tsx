@@ -297,7 +297,7 @@ export default function TwoFactorCard({
       {/* Benefits Section */}
       {!twoFactorData?.isEnabled && !setupStep && (
         <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50/70 p-3 sm:p-4">
-          <p className="text-sm font-medium text-blue-900">Why enable two-factor authentication?</p>
+          <p className="text-sm font-medium text-blue-900">Two-factor authentication benefits:</p>
           <ul className="mt-2 space-y-1 text-sm text-blue-800">
             <li>• Protects against unauthorized access</li>
             <li>• Works even if someone knows your password</li>

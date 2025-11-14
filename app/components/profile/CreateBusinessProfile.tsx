@@ -21,11 +21,9 @@ export default function CreateBusinessProfile({
 }: CreateBusinessProfileProps) {
   const [formData, setFormData] = useState<CreateBusinessProfileData>({
     business_name: '',
-    description: '',
     website: '',
     address: '',
     phone: '',
-    operating_hours: '',
     logo_url: '',
     banner_url: '',
     profile_image_url: ''
@@ -38,10 +36,6 @@ export default function CreateBusinessProfile({
     
     if (!formData.business_name.trim()) {
       newErrors.business_name = 'Business name is required'
-    }
-    
-    if (!formData.description.trim()) {
-      newErrors.description = 'Business description is required'
     }
     
     if (formData.website && !formData.website.match(/^https?:\/\/.+/)) {
@@ -92,7 +86,7 @@ export default function CreateBusinessProfile({
                 <Star className="w-8 h-8 text-blue-600 mb-3" />
                 <h4 className="font-semibold text-blue-900 mb-2">Build Trust</h4>
                 <p className="text-sm text-blue-700">
-                  Verified business profile with contact information and operating hours
+                  Verified business profile with contact information
                 </p>
               </div>
               <div className="bg-green-50 p-6 rounded-lg">
@@ -175,37 +169,6 @@ export default function CreateBusinessProfile({
               />
             </div>
 
-            <div>
-              <Label htmlFor="description">
-                Business Description <span className="text-red-500">*</span>
-              </Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                placeholder="Tell customers about your business, services, and what makes you special..."
-                className={errors.description ? 'border-red-300' : ''}
-                rows={4}
-                disabled={loading}
-              />
-              {errors.description && (
-                <p className="mt-1 text-sm text-red-600">{errors.description}</p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="operating-hours">
-                Operating Hours
-              </Label>
-              <Input
-                id="operating-hours"
-                type="text"
-                value={formData.operating_hours}
-                onChange={(e) => setFormData({...formData, operating_hours: e.target.value})}
-                placeholder="e.g., Mon-Fri 9AM-6PM, Sat 9AM-4PM"
-                disabled={loading}
-              />
-            </div>
 
             <div className="flex gap-3 pt-4 border-t">
               <Button
@@ -214,7 +177,7 @@ export default function CreateBusinessProfile({
                 variant="primary"
                 className="flex-1"
               >
-                {loading ? 'Creating...' : 'Create Business Profile'}
+                {loading ? 'Creating...' : 'Create'}
               </Button>
               <Button
                 type="button"

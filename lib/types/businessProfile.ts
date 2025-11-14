@@ -19,7 +19,7 @@ export interface BusinessProfile {
 
 export interface CreateBusinessProfileData {
   business_name: string
-  description: string
+  description?: string
   website?: string
   address?: string
   phone?: string

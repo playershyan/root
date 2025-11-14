@@ -48,8 +48,8 @@ export default function GoldFeaturedCard({ listing, size = 'regular' }: GoldFeat
     const now = new Date()
     const created = new Date(date)
     const diffInHours = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60))
-
-    if (diffInHours < 1) return 'Just now'
+    
+    if (diffInHours < 1) return 'Now'
     if (diffInHours < 24) return `${diffInHours}h ago`
     const diffInDays = Math.floor(diffInHours / 24)
     if (diffInDays === 1) return 'Yesterday'

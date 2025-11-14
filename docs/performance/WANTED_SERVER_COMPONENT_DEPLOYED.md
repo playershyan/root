@@ -1,11 +1,24 @@
 # /wanted Server Component Migration - DEPLOYED ✅
 
+## ⚠️ CRITICAL FIX APPLIED (November 14, 2025)
+
+**Issue**: Server Components error after deployment  
+**Cause**: Next.js 15 requires `await` for `cookies()` and `searchParams`  
+**Status**: ✅ **FIXED** - Ready to test
+
+### Changes Made:
+1. ✅ `app/wanted/utils/getWantedRequests.ts` - Now awaits `cookies()` 
+2. ✅ `app/wanted/page.tsx` - Now awaits `searchParams`
+3. ✅ All TypeScript checks passing
+
+---
+
 ## Status: Implementation Complete
 
 **Date**: November 14, 2025  
 **Time Taken**: ~15 minutes (automated implementation)  
 **Files Created**: 6 new files  
-**Files Modified**: 1 (page.tsx replaced)  
+**Files Modified**: 3 (page.tsx + fix applied to 2 files)  
 **Files Backed Up**: 1 (page.client-backup.tsx)
 
 ---
@@ -458,12 +471,22 @@ Cleaner separation of concerns ✅
 
 ---
 
-## Status: ✅ READY FOR TESTING
+## Status: ✅ FIXED AND READY FOR TESTING
 
-**Next Action**: Apply database migration and test locally
+### Issue Fixed (November 14, 2025)
+**Problem**: Server Components error - "An error occurred in the Server Components render"
+
+**Root Cause**: Next.js 15 breaking change - `cookies()` and `searchParams` are now async and must be awaited.
+
+**Fix Applied**:
+1. ✅ Updated `getWantedRequests.ts` - await `cookies()` before creating Supabase client
+2. ✅ Updated `page.tsx` - await `searchParams` in page component
+3. ✅ No TypeScript errors
+
+**Next Action**: Test locally
 
 ```bash
-# 1. Apply migration
+# 1. Apply migration (if not done already)
 cd D:\projects\root
 supabase db push
 
