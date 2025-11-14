@@ -7,7 +7,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import {
   Heart, User, Search, Menu, X, Bell,
   Car, MessageSquare, Settings, LogOut,
-  Crown, Shield, FileText, Plus, Globe, Trash2
+  Crown, Shield, FileText, Plus, Globe, Trash2, Grid
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { AuthModal } from './auth'
@@ -136,19 +136,19 @@ export default function Header() {
       <nav className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left side - Mobile menu button + Logo */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0">
             {/* Mobile menu button */}
             <Button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               variant="ghost"
               size="icon"
-              className="md:hidden -ml-2"
+              className="md:hidden -ml-3"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
 
             {/* Logo */}
-            <Link href="/" className="flex items-center" aria-label="VERA home">
+            <Link href="/" className="flex items-center -ml-2" aria-label="VERA home">
               <Image
                 src="/vera-logo.png"
                 alt="VERA logo"
@@ -369,6 +369,19 @@ export default function Header() {
                 </button>
               )}
 
+              {/* All Ads Button - Mobile Only */}
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="sm:hidden flex-col h-auto py-2 px-3 gap-0.5"
+              >
+                <Link href="/listings">
+                  <Grid className="w-5 h-5" />
+                  <span className="text-xs">All Ads</span>
+                </Link>
+              </Button>
+
               {/* Wanted Button - Mobile Only */}
               <Button
                 asChild
@@ -379,19 +392,6 @@ export default function Header() {
                 <Link href="/wanted">
                   <Search className="w-5 h-5" />
                   <span className="text-xs">Wanted</span>
-                </Link>
-              </Button>
-
-              {/* Browse Button - Mobile Only */}
-              <Button
-                asChild
-                variant="ghost"
-                size="sm"
-                className="sm:hidden flex-col h-auto py-2 px-3 gap-0.5"
-              >
-                <Link href="/listings">
-                  <Globe className="w-5 h-5" />
-                  <span className="text-xs">Browse</span>
                 </Link>
               </Button>
 
