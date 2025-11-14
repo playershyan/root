@@ -201,49 +201,45 @@ export default function Footer() {
               </div>
             </div> */}
           </div>
+          
+          {/* All systems normal - Mobile only, at end of footer links */}
+          <div className="md:hidden flex items-center space-x-1.5 text-xs text-gray-500 mt-6">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+            </span>
+            <span className="text-blue-600">All systems normal</span>
+          </div>
         </div>
 
         {/* Bottom Footer */}
         <div className="border-t border-gray-200 py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center">
+          <div className="flex flex-col items-center md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
             {/* Logo and Copyright */}
-            <div className="flex items-center space-x-4 mb-4 md:mb-0">
-              <Link href="/" className="flex items-center" aria-label="VERA home">
+            <div className="flex flex-col md:flex-row items-center md:items-center space-y-2 md:space-y-0 md:space-x-4">
+              {/* Logo - shown second on mobile, first on desktop */}
+              <Link href="/" className="flex items-center justify-center md:justify-start order-2 md:order-none" aria-label="VERA home">
                 <Image
                   src="/vera-logo.png"
                   alt="VERA logo"
                   width={270}
                   height={68}
-                  className="h-[72px] w-auto"
+                  className="h-[72px] w-auto brightness-0"
                 />
               </Link>
-              <div className="hidden md:block text-gray-500 text-xs">
+              {/* Copyright - shown first on mobile, second on desktop */}
+              <div className="text-gray-500 text-xs text-center md:text-left order-1 md:order-none">
                 © {new Date().getFullYear()} Capitalist One (Pvt) Ltd. All rights reserved.
               </div>
             </div>
 
             {/* Additional Info */}
-            <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6 text-xs text-gray-500">
-              <div className="md:hidden">
-                © {new Date().getFullYear()} Capitalist One (Pvt) Ltd. All rights reserved.
-              </div>
-              <div className="flex items-center space-x-1">
-                <Image src="/sri-lanka-flag.svg" alt="Sri Lanka" width={20} height={12} />
-                <span>Made in Sri Lanka</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1M10 17L6 13L7.41 11.59L10 14.17L16.59 7.58L18 9L10 17Z"/>
-                </svg>
-                <span>Secure & Trusted</span>
-              </div>
-              <div className="flex items-center space-x-1.5">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
-                </span>
-                <span className="text-blue-600">All systems normal</span>
-              </div>
+            <div className="hidden md:flex items-center space-x-1.5 text-xs text-gray-500">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+              </span>
+              <span className="text-blue-600">All systems normal</span>
             </div>
           </div>
         </div>
