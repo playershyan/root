@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react'
+import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle, useCallback } from 'react'
 import { Sparkles, FileText, ChevronDown } from 'lucide-react'
 
 interface DescriptionGeneratorProps {
@@ -26,6 +26,30 @@ const DescriptionGenerator = forwardRef<DescriptionGeneratorRef, DescriptionGene
   const [isGenerating, setIsGenerating] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // Auto-resize textarea based on content
+  const adjustTextareaHeight = useCallback(() => {
+    const textarea = textareaRef.current
+    if (textarea) {
+      // Reset height to auto to get the correct scrollHeight
+      textarea.style.height = 'auto'
+      // Set height based on scrollHeight, with min and max constraints
+      const newHeight = Math.min(Math.max(textarea.scrollHeight, 120), 600)
+      textarea.style.height = `${newHeight}px`
+    }
+  }, [])
+
+  useEffect(() => {
+    adjustTextareaHeight()
+  }, [formData.description, adjustTextareaHeight])
+
+  // Also resize when expanded
+  useEffect(() => {
+    if (isExpanded) {
+      // Small delay to ensure DOM is updated
+      setTimeout(adjustTextareaHeight, 100)
+    }
+  }, [isExpanded, adjustTextareaHeight])
 
   // Expose methods to parent component
   useImperativeHandle(ref, () => ({
@@ -114,25 +138,56 @@ const DescriptionGenerator = forwardRef<DescriptionGeneratorRef, DescriptionGene
             <div className="relative">
               <textarea
                 ref={textareaRef}
-                rows={6}
                 name="description"
                 value={formData.description}
-                onChange={(e) => setFormData((prev: any) => ({ ...prev, description: e.target.value }))}
+                onChange={(e) => {
+                  setFormData((prev: any) => ({ ...prev, description: e.target.value }))
+                  // Resize immediately on input
+                  setTimeout(adjustTextareaHeight, 0)
+                }}
                 placeholder="Describe your vehicle in detail... Include key features, condition, maintenance history, and why it's a great purchase."
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-all resize-y ${
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-all resize-none overflow-hidden ${
                   errors?.description ? 'border-red-300' : 'border-gray-300'
                 } ${isGenerating ? 'bg-gray-50' : 'bg-white'}`}
                 disabled={isGenerating}
-                style={{ whiteSpace: 'pre-wrap' }}
+                style={{ whiteSpace: 'pre-wrap', minHeight: '120px', maxHeight: '600px' }}
               />
               
               {/* Preview of formatted description */}
               {formData.description && (
                 <div className="mt-3 p-3 bg-gray-50 rounded-lg border">
                   <h4 className="text-sm font-medium text-gray-700 mb-2">Preview:</h4>
-                  <div className="text-sm text-gray-800 whitespace-pre-wrap">
-                    {formData.description.split('\n').map((line, index) => {
+                  <div className="text-sm text-gray-800">
+                    {formData.description.split('\n').map((line, index, lines) => {
                       const trimmedLine = line.trim()
+                      const prevLine = index > 0 ? lines[index - 1].trim() : ''
+                      const nextLine = index < lines.length - 1 ? lines[index + 1].trim() : ''
+                      
+                      // Find the next non-empty line
+                      let nextNonEmptyLine = ''
+                      for (let i = index + 1; i < lines.length; i++) {
+                        if (lines[i].trim() !== '') {
+                          nextNonEmptyLine = lines[i].trim()
+                          break
+                        }
+                      }
+                      
+                      // Detect section separator: empty line that comes after a non-empty line
+                      // and before another non-empty line (handles consecutive empty lines)
+                      const isSectionSeparator = trimmedLine === '' && prevLine !== '' && nextNonEmptyLine !== ''
+                      const isAfterSeparator = index > 0 && prevLine === '' && lines[index - 1].trim() === ''
+
+                      // Render section separator as a visual divider (only once per separator group)
+                      if (isSectionSeparator && prevLine !== '') {
+                        return (
+                          <div key={index} className="h-4 border-b border-gray-300 my-4"></div>
+                        )
+                      }
+
+                      // Skip rendering empty lines
+                      if (trimmedLine === '') {
+                        return null
+                      }
 
                       // First line (title) - make it bold if it doesn't contain a colon
                       if (index === 0 && !trimmedLine.includes(':')) {
@@ -150,7 +205,7 @@ const DescriptionGenerator = forwardRef<DescriptionGeneratorRef, DescriptionGene
                         const fieldValue = trimmedLine.substring(colonIndex + 1).trim()
 
                         return (
-                          <div key={index}>
+                          <div key={index} className={isAfterSeparator ? 'mt-0' : ''}>
                             <strong className="font-semibold text-gray-900">{fieldName}:</strong>
                             {fieldValue && <span> {fieldValue}</span>}
                           </div>
@@ -159,7 +214,7 @@ const DescriptionGenerator = forwardRef<DescriptionGeneratorRef, DescriptionGene
 
                       // Regular lines
                       return (
-                        <div key={index}>
+                        <div key={index} className={isAfterSeparator ? 'mt-0' : ''}>
                           {trimmedLine}
                         </div>
                       )

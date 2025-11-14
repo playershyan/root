@@ -105,20 +105,20 @@ export const buildListingDescription = (input: ListingDescriptionInput): Descrip
     sections.push(section2.join('\n'))
   }
 
-  // Section 3: Engine Capacity, Fuel Type, Transmission (on same line)
-  const section3Fields: string[] = []
+  // Section 3: Engine Capacity, Fuel Type, Transmission (on separate lines)
+  const section3: string[] = []
   if (Number.isFinite(engineCapacityNumber) && engineCapacityNumber > 0) {
-    section3Fields.push(`Engine Capacity: ${engineCapacityNumber.toLocaleString('en-LK')} cc`)
+    section3.push(`Engine Capacity: ${engineCapacityNumber.toLocaleString('en-LK')} cc`)
   }
   if (input.fuelType) {
-    section3Fields.push(`Fuel Type: ${input.fuelType}`)
+    section3.push(`Fuel Type: ${input.fuelType}`)
   }
   if (input.transmission) {
-    section3Fields.push(`Transmission: ${input.transmission}`)
+    section3.push(`Transmission: ${input.transmission}`)
   }
 
-  if (section3Fields.length > 0) {
-    sections.push(section3Fields.join(' | '))
+  if (section3.length > 0) {
+    sections.push(section3.join('\n'))
   }
 
   // Section 4: Key Features, Service Records
