@@ -1,32 +1,11 @@
 import { redirect } from 'next/navigation'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
-import { ArrowLeft, Car, Camera, Eye, CheckCircle, Zap } from 'lucide-react'
-import Link from 'next/link'
 import { getListings, type ListingStatus } from './utils/getListings'
-import FilterDropdown from './components/FilterDropdown'
-import LoadMoreButton from './components/LoadMoreButton'
-import ListingStatusBadge from '@/app/components/listings/ListingStatusBadge'
-import ListingActions from '@/app/components/listings/ListingActions'
-import { Button } from '@/components/ui/button'
+import ListingsPageClient from './ListingsPageClient'
 
 // Enable ISR with 30-second revalidation
 export const revalidate = 30
-
-// Helper function to format listing dates
-function formatListingDate(dateString: string): string {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffTime = Math.abs(now.getTime() - date.getTime())
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-  if (diffDays === 0) return 'Today'
-  if (diffDays === 1) return 'Yesterday'
-  if (diffDays < 7) return `${diffDays} days ago`
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
-  if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`
-  return date.toLocaleDateString()
-}
 
 interface PageProps {
   searchParams: Promise<{
@@ -62,206 +41,12 @@ export default async function ListingsPage({ searchParams }: PageProps) {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Link href="/profile">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="mb-6 gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Profile
-          </Button>
-        </Link>
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          {/* Header */}
-          <div className="p-4 md:p-6 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <h1 className="text-xl md:text-2xl font-semibold">My Listings</h1>
-            <FilterDropdown />
-          </div>
-
-          {/* Content */}
-          <div className="p-4 md:p-6">
-            {listings.length === 0 ? (
-              /* Empty State */
-              <div className="text-center py-12">
-                <Car className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                <p className="font-medium text-gray-900 mb-1">
-                  {statusFilter === 'all' ? 'No listings yet' : `No ${statusFilter === 'pending' ? 'under review' : statusFilter === 'reported' ? 'reported' : statusFilter} listings`}
-                </p>
-                <p className="text-sm text-gray-600 mb-4">
-                  {statusFilter === 'all' ? 'Start selling by posting your first vehicle' : 'Try selecting a different filter'}
-                </p>
-                <Button
-                  asChild
-                  variant="primary"
-                  size="default"
-                >
-                  <Link href="/post">
-                    Post Your First Ad
-                  </Link>
-                </Button>
-              </div>
-            ) : (
-              <>
-                {/* Desktop Table View */}
-                <div className="hidden md:block">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 border-b">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Vehicle</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Price</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Views</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Posted</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {listings.map((listing) => (
-                        <tr key={listing.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-16 h-12 bg-gray-200 rounded flex items-center justify-center text-gray-500 overflow-hidden">
-                                {listing.primary_image_url || listing.image_url || (listing.image_urls && listing.image_urls[0]) ? (
-                                  <img
-                                    src={listing.primary_image_url || listing.image_url || listing.image_urls![0]}
-                                    alt={listing.title}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <Camera className="w-5 h-5" />
-                                )}
-                              </div>
-                              <div>
-                                <Link
-                                  href={`/listings/${listing.id}`}
-                                  className="font-medium text-blue-600 hover:text-blue-700"
-                                >
-                                  {listing.title}
-                                </Link>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-4">Rs. {listing.price?.toLocaleString() || '0'}</td>
-                          <td className="px-4 py-4">{listing.views}</td>
-                          <td className="px-4 py-4">
-                            <ListingStatusBadge listing={listing} showReason={true} />
-                          </td>
-                          <td className="px-4 py-4 text-sm text-gray-600">{formatListingDate(listing.created_at)}</td>
-                          <td className="px-4 py-4">
-                            <div className="flex items-center gap-2">
-                              {listing.status === 'active' && (
-                                <>
-                                  <Button
-                                    asChild
-                                    size="default"
-                                    className="bg-amber-500 hover:bg-amber-600 text-white gap-2"
-                                  >
-                                    <Link href={`/post/paid-features?listing=${listing.id}`}>
-                                      <Zap className="w-4 h-4 animate-pulse" />
-                                      Boost
-                                    </Link>
-                                  </Button>
-                                </>
-                              )}
-
-                              {listing.status !== 'sold' && listing.status !== 'deleted' && (
-                                <ListingActions
-                                  listing={listing}
-                                  onPause={async () => {}}
-                                  onResume={async () => {}}
-                                  onMarkAsSold={async () => {}}
-                                  onDelete={async () => {}}
-                                  onShare={() => {}}
-                                  viewMode="mobile"
-                                />
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Mobile Card View */}
-                <div className="md:hidden space-y-4 relative">
-                  {listings.map((listing) => (
-                    <div key={listing.id} className="bg-white border rounded-lg shadow-sm relative">
-                      <div className="p-4">
-                        <div className="flex gap-3">
-                          <div className="min-w-[64px] w-16 h-14 bg-gray-200 rounded flex items-center justify-center text-gray-500 flex-shrink-0 overflow-hidden">
-                            {listing.primary_image_url || listing.image_url || (listing.image_urls && listing.image_urls[0]) ? (
-                              <img
-                                src={listing.primary_image_url || listing.image_url || listing.image_urls![0]}
-                                alt={listing.title}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <Camera className="w-5 h-5" />
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2">
-                              <Link
-                                href={`/listings/${listing.id}`}
-                                className="text-sm font-medium text-blue-600 hover:text-blue-700 block line-clamp-2 break-words"
-                              >
-                                {listing.title}
-                              </Link>
-                            </div>
-                            <div className="mt-2">
-                              <span className="text-base font-semibold text-gray-900">Rs. {listing.price?.toLocaleString() || '0'}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="px-4 pb-4">
-                        <div className="flex items-center justify-between text-xs text-gray-600 mb-3">
-                          <span className="flex items-center gap-1">
-                            <Eye className="w-3.5 h-3.5" />
-                            {listing.views} views
-                          </span>
-                          <span>{formatListingDate(listing.created_at)}</span>
-                        </div>
-
-                        <div className="mb-3">
-                          <ListingStatusBadge listing={listing} showReason={true} />
-                        </div>
-
-                        {listing.status === 'active' && (
-                          <div className="flex gap-2">
-                            <Button
-                              asChild
-                              size="default"
-                              className="flex-1 bg-amber-500 hover:bg-amber-600 text-white gap-2"
-                            >
-                              <Link href={`/post/paid-features?listing=${listing.id}`}>
-                                <Zap className="w-4 h-4" />
-                                Boost
-                              </Link>
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Load More Button */}
-                <LoadMoreButton 
-                  currentPage={currentPage}
-                  hasMore={hasMore}
-                />
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+    <ListingsPageClient
+      listings={listings}
+      totalCount={totalCount}
+      hasMore={hasMore}
+      statusFilter={statusFilter}
+      currentPage={currentPage}
+    />
   )
 }
