@@ -174,10 +174,10 @@ export const rateLimiters = {
     maxRequests: 30
   }, 'search'),
   
-  // File upload: 10 uploads per hour
+  // File upload: 15 uploads per minute (allows 10 concurrent uploads with buffer)
   upload: rateLimit({
-    interval: 60 * 60 * 1000,
-    maxRequests: 10
+    interval: 60 * 1000,
+    maxRequests: 15
   }, 'upload'),
   
   // Message sending: 20 messages per minute
@@ -203,10 +203,10 @@ export const rateLimiters = {
     maxRequests: 50
   }, 'admin'),
   
-  // Strict rate limit for sensitive operations: 3 per hour
+  // Strict rate limit for sensitive operations: 20 per 15 minutes (allows power users to manage multiple listings)
   strict: rateLimit({
-    interval: 60 * 60 * 1000,
-    maxRequests: 3
+    interval: 15 * 60 * 1000,
+    maxRequests: 20
   }, 'strict')
 }
 

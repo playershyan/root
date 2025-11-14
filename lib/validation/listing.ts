@@ -216,8 +216,8 @@ export function validateListing(input: ListingInput): ValidationResult {
   // Images - at least 1 required
   if (!input.imageUrls || input.imageUrls.length === 0) {
     errors.imageUrls = 'At least one image is required'
-  } else if (input.imageUrls.length > 15) {
-    errors.imageUrls = 'Maximum 15 images allowed'
+  } else if (input.imageUrls.length > 10) {
+    errors.imageUrls = 'Maximum 10 images allowed'
   }
 
   // Optional validations

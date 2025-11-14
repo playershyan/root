@@ -717,8 +717,8 @@ const getUploadUserId = (): string => {
 
     const files = validFiles
     
-    if (files.length + formData.images.length + formData.imageUrls.length > 15) {
-      showError('Maximum 15 images allowed', 3000)
+    if (files.length + formData.images.length + formData.imageUrls.length > 10) {
+      showError('Maximum 10 images allowed', 3000)
       return
     }
     
@@ -749,8 +749,8 @@ const getUploadUserId = (): string => {
 
     const files = validFiles
     
-    if (files.length + formData.images.length + formData.imageUrls.length > 15) {
-      showError('Maximum 15 images allowed', 3000)
+    if (files.length + formData.images.length + formData.imageUrls.length > 10) {
+      showError('Maximum 10 images allowed', 3000)
       return
     }
     
@@ -1380,7 +1380,7 @@ const getUploadUserId = (): string => {
                     Choose Photos
                   </Button>
                   <p className="text-xs text-gray-500 mt-2">
-                    At least 1 photo required. Maximum 15 photos, up to 10MB each. Formats: JPEG, JPG, PNG, TIFF, WebP.
+                    At least 1 photo required. Maximum 10 photos, up to 10MB each. Formats: JPEG, JPG, PNG, TIFF, WebP.
                   </p>
                   {errors.images && <p className="text-red-600 text-sm mt-1">{errors.images}</p>}
                 </div>

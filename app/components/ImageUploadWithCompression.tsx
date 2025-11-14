@@ -36,7 +36,7 @@ export default function ImageUploadWithCompression({
   images,
   imageUrls = [],
   imagePreviews,
-  maxImages = 15,
+  maxImages = 10,
   onImagesChange,
   onImageUrlsChange,
   onRemove,
