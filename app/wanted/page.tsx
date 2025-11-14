@@ -33,13 +33,6 @@ const MAKE_MODELS: Record<string, string[]> = {
 
 const ALL_MODELS = Object.values(MAKE_MODELS).flat().sort()
 
-function getAvailableModels(make: string): string[] {
-  if (make === 'All Makes' || !make) {
-    return ALL_MODELS
-  }
-  return MAKE_MODELS[make] || []
-}
-
 interface PageProps {
   searchParams: Promise<{
     location?: string
@@ -150,7 +143,8 @@ export default async function WantedRequestsPage({ searchParams }: PageProps) {
             <Suspense fallback={<div className="h-96 bg-gray-200 rounded-lg animate-pulse" />}>
               <FilterPanel 
                 makes={MAKES} 
-                getAvailableModels={getAvailableModels}
+                makeModels={MAKE_MODELS}
+                allModels={ALL_MODELS}
               />
             </Suspense>
           </div>

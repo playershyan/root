@@ -6,10 +6,18 @@ import LocationFilter from '@/app/components/LocationFilter'
 
 interface FilterPanelProps {
   makes: string[]
-  getAvailableModels: (make: string) => string[]
+  makeModels: Record<string, string[]>
+  allModels: string[]
 }
 
-export default function FilterPanel({ makes, getAvailableModels }: FilterPanelProps) {
+export default function FilterPanel({ makes, makeModels, allModels }: FilterPanelProps) {
+  // Helper function to get available models based on selected make
+  const getAvailableModels = (make: string): string[] => {
+    if (make === 'All Makes' || !make) {
+      return allModels
+    }
+    return makeModels[make] || []
+  }
   const router = useRouter()
   const searchParams = useSearchParams()
   
