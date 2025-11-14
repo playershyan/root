@@ -1,5 +1,6 @@
 'use client'
 
+import { Crown, Zap, AlertTriangle, Star, TrendingUp, Car, Info } from 'lucide-react'
 import { usePromotedListings } from '@/lib/hooks/usePromotedListings'
 import FeaturedAdCard from './FeaturedAdCard'
 import ListingCard from './ListingCard'
@@ -66,7 +67,7 @@ export default function PromotedListingsSection({
         <div className="space-y-4">
           <div className="flex items-center gap-3 mb-4">
             <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-full font-bold flex items-center gap-2">
-              <i className="fas fa-star"></i>
+              <Star size={16} />
               <span>FEATURED LISTINGS</span>
             </div>
             <span className="text-sm text-gray-500">Premium placement • Maximum visibility</span>
@@ -89,7 +90,7 @@ export default function PromotedListingsSection({
         <div className="space-y-4">
           <div className="flex items-center gap-3 mb-4">
             <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-full font-bold flex items-center gap-2">
-              <i className="fas fa-crown"></i>
+              <Crown size={16} />
               <span>TOP SPOT</span>
             </div>
             <span className="text-sm text-gray-500">Premium positioning</span>
@@ -117,7 +118,7 @@ export default function PromotedListingsSection({
         <div className="space-y-4">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-sm font-semibold text-blue-600">
-              <i className="fas fa-arrow-up mr-1"></i>
+              <TrendingUp size={16} className="mr-1" />
               Recently Boosted
             </span>
           </div>
@@ -161,7 +162,7 @@ export default function PromotedListingsSection({
        boostedListings.length === 0 && 
        regularListings.length === 0 && (
         <div className="text-center py-12">
-          <i className="fas fa-car text-gray-300 text-5xl mb-4"></i>
+          <Car className="text-gray-300 mb-4 mx-auto" size={80} />
           <p className="text-gray-500 text-lg">No listings found</p>
           <p className="text-gray-400 text-sm mt-2">Try adjusting your filters</p>
         </div>
@@ -175,7 +176,7 @@ export function PromotionRulesInfo() {
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
       <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
-        <i className="fas fa-info-circle"></i>
+        <Info size={16} />
         How Promoted Listings Work
       </h3>
       <div className="text-sm text-blue-800 space-y-1">

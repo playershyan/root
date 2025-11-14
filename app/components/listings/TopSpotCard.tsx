@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { MapPin, Calendar, Eye, Crown, Star, TrendingUp } from 'lucide-react'
+import { MapPin, Calendar, Eye, Crown, Star, TrendingUp, Car, Camera, Gauge, Fuel, Phone, Mail } from 'lucide-react'
 import OptimizedImage from '@/components/ui/OptimizedImage'
 import FavoriteButton from '@/app/components/FavoriteButton'
 import { Button } from '@/components/ui/button'
@@ -121,14 +121,14 @@ export default function TopSpotCard({ listing }: TopSpotCardProps) {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <i className="fas fa-car text-purple-400 text-4xl"></i>
+              <Car className="text-purple-400" size={64} />
             </div>
           )}
 
           {/* Image count */}
           {imageCount > 1 && (
             <div className="absolute bottom-2 left-2 bg-purple-600/90 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
-              <i className="fas fa-camera"></i>
+              <Camera size={12} />
               <span>{imageCount}</span>
             </div>
           )}
@@ -152,13 +152,13 @@ export default function TopSpotCard({ listing }: TopSpotCardProps) {
             </span>
             {listing.mileage && (
               <span className="flex items-center gap-1">
-                <i className="fas fa-tachometer-alt text-purple-500 text-xs"></i>
+                <Gauge className="text-purple-500" size={12} />
                 {formatMileage(listing.mileage)}
               </span>
             )}
             {listing.fuel_type && (
               <span className="flex items-center gap-1">
-                <i className="fas fa-gas-pump text-purple-500 text-xs"></i>
+                <Fuel className="text-purple-500" size={12} />
                 {listing.fuel_type}
               </span>
             )}
@@ -210,7 +210,7 @@ export default function TopSpotCard({ listing }: TopSpotCardProps) {
                 size="default"
                 className="flex-1 bg-purple-600 hover:bg-purple-700 text-white gap-1"
               >
-                <i className="fas fa-phone text-xs"></i>
+                <Phone size={12} />
                 Call
               </Button>
               <Button
@@ -222,7 +222,7 @@ export default function TopSpotCard({ listing }: TopSpotCardProps) {
                 size="default"
                 className="flex-1 border-purple-600 text-purple-600 hover:bg-purple-50 gap-1"
               >
-                <i className="fas fa-envelope text-xs"></i>
+                <Mail size={12} />
                 Message
               </Button>
             </div>

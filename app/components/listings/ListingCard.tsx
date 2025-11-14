@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { MapPin, Calendar, Eye } from 'lucide-react'
+import { MapPin, Calendar, Eye, Car, ImageIcon, Zap } from 'lucide-react'
 import PromotionBadges from './PromotionBadges'
 import OptimizedImage from '@/components/ui/OptimizedImage'
 import FavoriteButton from '@/app/components/FavoriteButton'
@@ -84,7 +84,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
-            <i className="fas fa-car text-slate-300 text-3xl mb-2"></i>
+            <Car className="text-slate-300 mb-2" size={48} />
             <span className="text-xs text-slate-400 font-medium">No image</span>
           </div>
         )}
@@ -100,7 +100,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
         {/* Image count badge - repositioned to avoid favorite button */}
         {imageCount > 1 && (
           <div className="absolute bottom-3 right-3 bg-slate-900/90 backdrop-blur-sm text-white px-2.5 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 shadow-lg">
-            <i className="fas fa-images"></i>
+            <ImageIcon size={16} />
             <span>{imageCount}</span>
           </div>
         )}
@@ -109,7 +109,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
         {listing.is_urgent && (
           <div className="absolute bottom-3 left-3">
             <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1.5 rounded-md text-xs font-semibold shadow-lg flex items-center gap-1.5">
-              <i className="fas fa-bolt text-xs"></i>
+              <Zap size={12} />
               URGENT
             </span>
           </div>

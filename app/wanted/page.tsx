@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
+import { Plus } from 'lucide-react'
 import { getWantedRequestsDynamic } from './utils/getWantedRequests'
 import type { WantedFilters } from './utils/getWantedRequests'
 import SearchBar from './components/SearchBar'
@@ -111,7 +112,7 @@ export default async function WantedRequestsPage({ searchParams }: PageProps) {
               href="/wanted/post" 
               className="hidden lg:inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold text-sm"
             >
-              <i className="fas fa-plus"></i>
+              <Plus size={16} />
               Publish a Wanted Request
             </Link>
             
@@ -120,7 +121,7 @@ export default async function WantedRequestsPage({ searchParams }: PageProps) {
               href="/wanted/post" 
               className="inline-flex lg:hidden items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold text-sm"
             >
-              <i className="fas fa-plus"></i>
+              <Plus size={16} />
               Publish a Wanted Request
             </Link>
           </div>

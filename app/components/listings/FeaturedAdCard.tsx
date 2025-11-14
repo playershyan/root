@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { Heart, MapPin, Calendar, Eye, Star } from 'lucide-react'
+import { Heart, MapPin, Calendar, Eye, Star, Crown, Gauge, Fuel, Settings, Phone, Mail, ArrowUp, AlertTriangle } from 'lucide-react'
 import PromotionBadges from './PromotionBadges'
 import ImageCarousel from '@/components/ui/ImageCarousel'
 import { Button } from '@/components/ui/button'
@@ -112,7 +112,7 @@ export default function FeaturedAdCard({ listing, promotionType }: FeaturedAdCar
         {/* Top Spot Badge */}
         {priority === 'top_spot' && (
           <div className="absolute top-4 left-4 z-20 bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
-            <i className="fas fa-crown text-sm"></i>
+            <Crown className="w-4 h-4" />
             <span className="text-sm font-bold">TOP SPOT</span>
           </div>
         )}
@@ -147,24 +147,24 @@ export default function FeaturedAdCard({ listing, promotionType }: FeaturedAdCar
                 {/* Vehicle Details */}
                 <div className="flex flex-wrap gap-3 text-sm text-gray-600 mb-3">
                   <span className="flex items-center gap-1">
-                    <i className="fas fa-calendar text-gray-400"></i>
+                    <Calendar className="w-4 h-4 text-gray-400" />
                     {listing.year}
                   </span>
                   {listing.mileage && (
                     <span className="flex items-center gap-1">
-                      <i className="fas fa-tachometer-alt text-gray-400"></i>
+                      <Gauge className="w-4 h-4 text-gray-400" />
                       {formatMileage(listing.mileage)}
                     </span>
                   )}
                   {listing.fuel_type && (
                     <span className="flex items-center gap-1">
-                      <i className="fas fa-gas-pump text-gray-400"></i>
+                      <Fuel className="w-4 h-4 text-gray-400" />
                       {listing.fuel_type}
                     </span>
                   )}
                   {listing.transmission && (
                     <span className="flex items-center gap-1">
-                      <i className="fas fa-cogs text-gray-400"></i>
+                      <Settings className="w-4 h-4 text-gray-400" />
                       {listing.transmission}
                     </span>
                   )}
@@ -225,7 +225,7 @@ export default function FeaturedAdCard({ listing, promotionType }: FeaturedAdCar
                     size="default"
                     className="gap-2"
                   >
-                    <i className="fas fa-phone text-sm"></i>
+                    <Phone size={14} />
                     Call
                   </Button>
                   <Button
@@ -237,7 +237,7 @@ export default function FeaturedAdCard({ listing, promotionType }: FeaturedAdCar
                     size="default"
                     className="gap-2"
                   >
-                    <i className="fas fa-envelope text-sm"></i>
+                    <Mail size={14} />
                     Message
                   </Button>
                 </div>
@@ -250,12 +250,12 @@ export default function FeaturedAdCard({ listing, promotionType }: FeaturedAdCar
                 <div className="flex items-center gap-4">
                   {listing.is_boosted && (
                     <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
-                      <i className="fas fa-arrow-up mr-1"></i>Boosted
+                      <ArrowUp className="w-3 h-3 inline mr-1" />Boosted
                     </span>
                   )}
                   {listing.is_urgent && (
                     <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">
-                      <i className="fas fa-exclamation-triangle mr-1"></i>Urgent Sale
+                      <AlertTriangle className="w-3 h-3 inline mr-1" />Urgent Sale
                     </span>
                   )}
                   <span className="text-xs text-gray-500 ml-auto">

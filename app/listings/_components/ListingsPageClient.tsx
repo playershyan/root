@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
+import { Filter, Search, Star, Crown, Zap, AlertCircle } from 'lucide-react'
 import FeaturedAdCard from '@/app/components/listings/FeaturedAdCard'
 import TopSpotCard from '@/app/components/listings/TopSpotCard'
 import BoostedCard from '@/app/components/listings/BoostedCard'
@@ -267,7 +268,7 @@ export default function ListingsPageClient({
                   className="lg:hidden px-3 py-3 bg-white border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50 flex items-center justify-center"
                   aria-label="Open filters"
                 >
-                  <i className="fas fa-filter"></i>
+                  <Filter size={16} />
                 </button>
 
                 {/* Search Input */}
@@ -290,7 +291,7 @@ export default function ListingsPageClient({
                     className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors focus:outline-none"
                     aria-label="Search"
                   >
-                    <i className="fas fa-search text-base"></i>
+                    <Search size={16} />
                   </button>
                 </div>
               </div>
@@ -523,7 +524,7 @@ export default function ListingsPageClient({
                   {promoted.featured.length > 0 && (
                     <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4">
                       <h2 className="mb-3 text-lg font-semibold text-yellow-800 flex items-center gap-2">
-                        <i className="fas fa-star text-yellow-500"></i>
+                        <Star className="text-yellow-500 fill-yellow-500" size={16} />
                         Featured Listings
                       </h2>
                       <div className="grid gap-4 md:grid-cols-2">
@@ -545,7 +546,7 @@ export default function ListingsPageClient({
                   {promoted.top_spot.length > 0 && (
                     <div className="rounded-xl border border-purple-200 bg-purple-50 p-4">
                       <h2 className="mb-3 text-lg font-semibold text-purple-800 flex items-center gap-2">
-                        <i className="fas fa-crown text-purple-500"></i>
+                        <Crown className="text-purple-500" size={16} />
                         Top Spot Listings
                       </h2>
                       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -569,7 +570,7 @@ export default function ListingsPageClient({
               {localFilters.vehicleType && promoted.boosted.length > 0 && (
                 <div className="rounded-xl border border-blue-200 bg-white p-4">
                   <h2 className="mb-3 text-lg font-semibold text-blue-800 flex items-center gap-2">
-                    <i className="fas fa-bolt text-blue-500"></i>
+                    <Zap className="text-blue-500" size={16} />
                     Boosted Listings
                   </h2>
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -591,7 +592,7 @@ export default function ListingsPageClient({
               {localFilters.vehicleType && promoted.urgent.length > 0 && (
                 <div className="rounded-xl border border-red-200 bg-red-50 p-4">
                   <h2 className="mb-3 text-lg font-semibold text-red-800 flex items-center gap-2">
-                    <i className="fas fa-exclamation-circle text-red-500"></i>
+                    <AlertCircle className="text-red-500" size={16} />
                     Urgent Deals
                   </h2>
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -623,7 +624,7 @@ export default function ListingsPageClient({
 
                 {listings.length === 0 ? (
                   <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 py-12 text-center">
-                    <i className="fas fa-search text-4xl text-gray-300"></i>
+                    <Search size={64} className="text-gray-300" />
                     <p className="mt-4 text-lg font-semibold text-gray-700">No vehicles found</p>
                     <p className="mt-2 text-sm text-gray-500">
                       Try adjusting your filters or clearing them to see more results.

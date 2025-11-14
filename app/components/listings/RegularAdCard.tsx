@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { Heart } from 'lucide-react'
+import { Heart, Handshake, ImageIcon, ChevronLeft, ChevronRight, Car, Calendar, Activity, Fuel, Settings, MapPin, Phone, Mail } from 'lucide-react'
 import PriceDisplay from '@/app/components/PriceDisplay'
 import PromotionBadges from './PromotionBadges'
 import FavoriteButton from '@/app/components/FavoriteButton'
@@ -95,7 +95,7 @@ export default function RegularAdCard({
         {/* Finance Badge */}
         {listing.pricing_type === 'finance' && (
           <div className="absolute top-2 right-12 z-10 bg-amber-500 text-white px-2 py-1 rounded text-xs font-semibold shadow-sm">
-            <i className="fas fa-handshake mr-1"></i>
+            <Handshake className="mr-1 inline" size={12} />
             Finance
           </div>
         )}
@@ -124,7 +124,7 @@ export default function RegularAdCard({
             )}
             {imageError && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-500 text-sm flex-col">
-                <i className="fas fa-image text-2xl mb-2"></i>
+                <ImageIcon size={32} className="mb-2" />
                 <p>Image unavailable</p>
               </div>
             )}
@@ -141,7 +141,7 @@ export default function RegularAdCard({
                   size="icon"
                   className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
                 >
-                  <i className="fas fa-chevron-left"></i>
+                  <ChevronLeft size={16} />
                 </Button>
                 <Button
                   onClick={(e) => {
@@ -152,7 +152,7 @@ export default function RegularAdCard({
                   size="icon"
                   className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
                 >
-                  <i className="fas fa-chevron-right"></i>
+                  <ChevronRight size={16} />
                 </Button>
                 <div className="absolute bottom-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
                   {activeImageIndex + 1}/{images.length}
@@ -162,7 +162,7 @@ export default function RegularAdCard({
           </>
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
-            <i className="fas fa-car text-3xl mb-2"></i>
+            <Car size={48} className="mb-2" />
             <span className="text-sm">No images</span>
           </div>
         )}
@@ -187,7 +187,7 @@ export default function RegularAdCard({
           
           {/* Price */}
           <PriceDisplay
-            pricingType={listing.pricing_type}
+            pricingType={listing.pricing_type as 'cash' | 'finance'}
             price={listing.price}
             negotiable={listing.negotiable}
             askingPrice={listing.asking_price}
@@ -198,26 +198,26 @@ export default function RegularAdCard({
           {/* Vehicle Details */}
           <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
             <div className="flex items-center gap-1">
-              <i className="fas fa-calendar text-blue-500 w-4"></i>
+              <Calendar className="text-blue-500 w-4 h-4" />
               <span>{listing.year}</span>
             </div>
             <div className="flex items-center gap-1">
-              <i className="fas fa-road text-gray-500 w-4"></i>
+              <Activity className="text-gray-500 w-4 h-4" />
               <span>{listing.mileage?.toLocaleString() || 'N/A'} km</span>
             </div>
             <div className="flex items-center gap-1">
-              <i className="fas fa-gas-pump text-green-500 w-4"></i>
+              <Fuel className="text-green-500 w-4 h-4" />
               <span>{listing.fuel_type || 'N/A'}</span>
             </div>
             <div className="flex items-center gap-1">
-              <i className="fas fa-cogs text-purple-500 w-4"></i>
+              <Settings className="text-purple-500 w-4 h-4" />
               <span>{listing.transmission || 'N/A'}</span>
             </div>
           </div>
           
           {/* Location */}
           <div className="flex items-center gap-2 text-sm text-gray-600 pt-1 border-t border-gray-100">
-            <i className="fas fa-map-marker-alt text-red-500"></i>
+            <MapPin className="text-red-500" size={16} />
             <span>{listing.location}</span>
           </div>
         </div>
@@ -235,7 +235,7 @@ export default function RegularAdCard({
             size="default"
             className="flex-1 gap-2"
           >
-            <i className="fas fa-phone"></i>
+            <Phone size={16} />
             Call Now
           </Button>
           <Button
@@ -247,7 +247,7 @@ export default function RegularAdCard({
             size="default"
             className="flex-1 border-blue-600 text-blue-600 hover:bg-blue-50 gap-2"
           >
-            <i className="fas fa-envelope"></i>
+            <Mail size={16} />
             Message
           </Button>
         </div>

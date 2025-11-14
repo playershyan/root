@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { MapPin, Calendar, Eye, TrendingUp, Star, Crown } from 'lucide-react'
+import { MapPin, Calendar, Eye, TrendingUp, Star, Crown, Car, Camera, Gauge, Fuel, Phone, Mail } from 'lucide-react'
 import OptimizedImage from '@/components/ui/OptimizedImage'
 import FavoriteButton from '@/app/components/FavoriteButton'
 import { Button } from '@/components/ui/button'
@@ -121,14 +121,14 @@ export default function BoostedCard({ listing }: BoostedCardProps) {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <i className="fas fa-car text-blue-400 text-3xl"></i>
+              <Car className="text-blue-400" size={48} />
             </div>
           )}
 
           {/* Image count */}
           {imageCount > 1 && (
             <div className="absolute bottom-2 left-2 bg-blue-600/90 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
-              <i className="fas fa-camera"></i>
+              <Camera size={12} />
               <span>{imageCount}</span>
             </div>
           )}
@@ -158,13 +158,13 @@ export default function BoostedCard({ listing }: BoostedCardProps) {
             </span>
             {listing.mileage && (
               <span className="flex items-center gap-1">
-                <i className="fas fa-tachometer-alt text-blue-500 text-xs"></i>
+                <Gauge className="text-blue-500" size={12} />
                 {formatMileage(listing.mileage)}
               </span>
             )}
             {listing.fuel_type && (
               <span className="flex items-center gap-1">
-                <i className="fas fa-gas-pump text-blue-500 text-xs"></i>
+                <Fuel className="text-blue-500" size={12} />
                 {listing.fuel_type}
               </span>
             )}
@@ -228,7 +228,7 @@ export default function BoostedCard({ listing }: BoostedCardProps) {
                 size="default"
                 className="flex-1 gap-1"
               >
-                <i className="fas fa-phone text-xs"></i>
+                <Phone size={12} />
                 Call
               </Button>
               <Button
@@ -240,7 +240,7 @@ export default function BoostedCard({ listing }: BoostedCardProps) {
                 size="default"
                 className="flex-1 gap-1"
               >
-                <i className="fas fa-envelope text-xs"></i>
+                <Mail size={12} />
                 Message
               </Button>
             </div>

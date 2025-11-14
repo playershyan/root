@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Search } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useInView } from 'react-intersection-observer'
 import LocationFilter from '@/app/components/LocationFilter'
@@ -426,7 +427,7 @@ function WantedSearchPageContent() {
                   onClick={() => setSearchTerm(searchInput.trim())}
                   className="absolute right-1 top-1 p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                 >
-                  <i className="fas fa-search text-sm"></i>
+                  <Search size={14} />
                 </button>
               </div>
 
@@ -499,7 +500,7 @@ function WantedSearchPageContent() {
         ) : (
           <div className="text-center py-12 bg-white rounded-lg shadow">
             <div className="max-w-md mx-auto">
-              <i className="fas fa-search text-4xl text-gray-300 mb-4"></i>
+              <Search size={64} className="text-gray-300 mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">No wanted requests found</h3>
               <p className="text-gray-600 mb-4">
                 {hasActiveFilters() || searchTerm

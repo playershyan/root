@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useCallback } from 'react'
+import { Search } from 'lucide-react'
 
 export default function SearchBar() {
   const router = useRouter()
@@ -44,7 +45,7 @@ export default function SearchBar() {
         className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors focus:outline-none"
         aria-label="Search"
       >
-        <i className="fas fa-search text-base"></i>
+        <Search size={16} />
       </button>
     </div>
   )

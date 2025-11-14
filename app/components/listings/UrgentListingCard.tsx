@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { MapPin, Calendar, Eye, AlertTriangle, Phone, MessageCircle } from 'lucide-react'
+import { MapPin, Calendar, Eye, AlertTriangle, Phone, MessageCircle, Car, Camera, Gauge, Fuel } from 'lucide-react'
 import OptimizedImage from '@/components/ui/OptimizedImage'
 import FavoriteButton from '@/app/components/FavoriteButton'
 import { Button } from '@/components/ui/button'
@@ -105,14 +105,14 @@ export default function UrgentListingCard({ listing }: UrgentListingCardProps) {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-50 to-red-100">
-              <i className="fas fa-car text-red-400 text-3xl"></i>
+              <Car className="text-red-400" size={48} />
             </div>
           )}
 
           {/* Image count */}
           {imageCount > 1 && (
             <div className="absolute top-2 right-2 bg-red-600/90 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
-              <i className="fas fa-camera"></i>
+              <Camera size={12} />
               <span>{imageCount}</span>
             </div>
           )}
@@ -136,13 +136,13 @@ export default function UrgentListingCard({ listing }: UrgentListingCardProps) {
             </span>
             {listing.mileage && (
               <span className="flex items-center gap-1">
-                <i className="fas fa-tachometer-alt text-red-500 text-xs"></i>
+                <Gauge className="text-red-500" size={12} />
                 {formatMileage(listing.mileage)}
               </span>
             )}
             {listing.fuel_type && (
               <span className="flex items-center gap-1">
-                <i className="fas fa-gas-pump text-red-500 text-xs"></i>
+                <Fuel className="text-red-500" size={12} />
                 {listing.fuel_type}
               </span>
             )}

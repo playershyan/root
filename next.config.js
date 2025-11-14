@@ -68,6 +68,10 @@ const nextConfig = {
   trailingSlash: false,
   reactStrictMode: true,
   swcMinify: true,
+  optimizeFonts: true,
+  experimental: {
+    optimizeCss: true, // Enable CSS optimization
+  },
   webpack: (config, { isServer }) => {
     // Exclude README and other non-JS files from node_modules
     config.module.rules.push({

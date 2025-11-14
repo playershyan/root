@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/app/contexts/AuthContext'
-import { ArrowLeft, MapPin, Calendar, Eye, Edit, Share2, Flag, Zap, TrendingUp } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, Eye, Edit, Share2, Flag, Zap, TrendingUp, Star } from 'lucide-react'
 import ContactModal from '@/app/components/modals/ContactModal'
 import WantedRequestFavoriteButton from '@/app/components/WantedRequestFavoriteButton'
 import { logger } from '@/lib/utils/logger'
@@ -321,7 +321,7 @@ export default function WantedRequestDetailPage() {
                 )}
                 {isGoldFeatured && !isHighPriority && (
                   <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-amber-500 text-white rounded-full text-sm font-bold shadow-md">
-                    <i className="fas fa-star"></i>
+                    <Star size={16} />
                     FEATURED
                   </span>
                 )}

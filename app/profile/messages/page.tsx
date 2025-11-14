@@ -1,200 +1,209 @@
-'use client'
-
-import { useRouter } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
-import { useAuth } from '@/app/contexts/AuthContext'
-import { useCallback, useState, useEffect } from 'react'
-import MessagesTab from '@/app/components/messages/MessagesTab'
-import { MessageData, ConversationData } from '@/lib/utils/messageUtils'
-import { supabase } from '@/lib/supabase'
+import { redirect } from 'next/navigation'
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
+import { ArrowLeft, MessageSquare, Camera, User } from 'lucide-react'
+import Link from 'next/link'
+import { getConversations } from './utils/getConversations'
+import MessagesLoadMoreButton from './components/MessagesLoadMoreButton'
 import { Button } from '@/components/ui/button'
-import { logger } from '@/lib/utils/logger'
 
-export default function MessagesPage() {
-  const router = useRouter()
-  const { user } = useAuth()
-  const [conversations, setConversations] = useState<ConversationData[]>([])
-  const [loading, setLoading] = useState(false)
+// Enable ISR with 10-second revalidation (more frequent for messages)
+export const revalidate = 10
 
-  // Fetch conversations - EXACT COPY FROM BACKUP
-  const fetchConversations = useCallback(async () => {
-    try {
-      if (!user) {
-        logger.debug('fetchConversations - User not loaded yet')
-        return
-      }
+// Helper to format message timestamp
+function formatMessageTime(dateString?: string): string {
+  if (!dateString) return ''
+  
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / (1000 * 60))
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
-      logger.debug('fetchConversations - Fetching for user', { userId: user.id })
+  if (diffMins < 1) return 'Just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays < 7) return `${diffDays}d ago`
+  return date.toLocaleDateString()
+}
 
-      // Use optimized API endpoint - single query with JOINs
-      const response = await fetch('/api/messaging/conversations-optimized?limit=50&offset=0')
+interface PageProps {
+  searchParams: Promise<{
+    page?: string
+  }>
+}
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch conversations')
-      }
+export default async function MessagesPage({ searchParams }: PageProps) {
+  const cookieStore = await cookies()
+  const supabase = createServerComponentClient({ 
+    cookies: () => cookieStore 
+  })
+  
+  const { data: { user } } = await supabase.auth.getUser()
 
-      const { conversations: conversationsData } = await response.json()
-      logger.debug('fetchConversations - Received conversations', { count: conversationsData?.length || 0 })
-
-      // Transform to match ConversationData interface
-      const transformedConversations = conversationsData?.map((conv: any) => ({
-        id: conv.id,
-        listing_id: conv.listing_id,
-        listing_title: conv.listing_title,
-        listing_price: conv.listing_price,
-        listing_image_url: conv.listing_image_url,
-        buyer_id: conv.buyer_id,
-        seller_id: conv.seller_id,
-        last_message_at: conv.last_message_at,
-        last_message_preview: conv.last_message_preview || '',
-        unread_count: conv.buyer_id === user.id ? conv.buyer_unread_count : conv.seller_unread_count,
-        is_archived: conv.buyer_id === user.id ? conv.buyer_archived : conv.seller_archived,
-        current_user_role: (conv.buyer_id === user.id ? 'buyer' : 'seller') as 'buyer' | 'seller',
-        buyer: {
-          profiles: {
-            name: conv.buyer_name || 'Unknown User',
-            avatar_url: conv.buyer_avatar_url || ''
-          }
-        },
-        seller: {
-          profiles: {
-            name: conv.seller_name || 'Unknown User',
-            avatar_url: conv.seller_avatar_url || ''
-          }
-        }
-      })) || []
-
-      logger.debug('fetchConversations - Setting conversations', { count: transformedConversations.length })
-      setConversations(transformedConversations)
-    } catch (error) {
-      logger.error('fetchConversations error', error as Error)
-      setConversations([])
-    }
-  }, [user])
-
-  // Fetch messages - EXACT COPY FROM BACKUP
-  const handleFetchMessages = async (conversationId: string): Promise<MessageData[]> => {
-    try {
-      // Use optimized API endpoint - single query with JOINs, auto mark-as-read
-      const response = await fetch(
-        `/api/messaging/messages-optimized/${conversationId}?limit=100&markAsRead=true`
-      )
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch messages')
-      }
-
-      const { messages: messagesData } = await response.json()
-
-      // Transform to match MessageData interface
-      const transformedMessages = messagesData?.map((msg: any) => ({
-        id: msg.id,
-        conversation_id: msg.conversation_id,
-        sender_id: msg.sender_id,
-        content: msg.content,
-        is_read: msg.is_read,
-        created_at: msg.created_at,
-        message_type: msg.message_type,
-        offer_data: msg.offer_data,
-        sender: {
-          id: msg.sender_id,
-          email: '', // Not needed for display
-          profiles: {
-            name: msg.sender_name || 'Unknown User',
-            avatar_url: msg.sender_avatar_url || ''
-          }
-        }
-      })) || []
-
-      return transformedMessages
-    } catch (error) {
-      logger.error('Error fetching messages', error as Error)
-      return []
-    }
+  if (!user) {
+    redirect('/')
   }
 
-  // Handle sending a message
-  const handleSendMessage = useCallback(async (conversationId: string, content: string) => {
-    try {
-      if (!user) throw new Error('User not authenticated')
+  const params = await searchParams
+  const currentPage = parseInt(params.page || '1')
 
-      const { error } = await supabase
-        .from('messages')
-        .insert({
-          conversation_id: conversationId,
-          sender_id: user.id,
-          content: content
-        })
-
-      if (error) throw error
-    } catch (error) {
-      logger.error('Error sending message', error as Error)
-      throw error
-    }
-  }, [user])
-
-  // Handle archiving conversation (currently just logs)
-  const handleArchiveConversation = useCallback(async (conversationId: string) => {
-    try {
-      // TODO: Implement archive API endpoint
-      logger.debug('Archiving conversation', { conversationId })
-    } catch (error) {
-      logger.error('Error archiving conversation', error as Error)
-    }
-  }, [])
-
-  // Handle moving conversation to bin
-  const handleMoveConversationToBin = useCallback(async (conversationId: string) => {
-    try {
-      // TODO: Implement bin API endpoint or use existing delete handler
-      logger.debug('Moving conversation to bin', { conversationId })
-    } catch (error) {
-      logger.error('Error moving conversation to bin', error as Error)
-    }
-  }, [])
-
-  // Handle marking conversation as read
-  const handleMarkConversationAsRead = useCallback(async (conversationId: string) => {
-    try {
-      // Marking as read is handled automatically by the fetch messages endpoint
-      // Just refresh conversations to update UI
-      await fetchConversations()
-    } catch (error) {
-      logger.error('Error marking conversation as read', error as Error)
-    }
-  }, [fetchConversations])
-
-  // Fetch conversations on mount
-  useEffect(() => {
-    if (user) {
-      fetchConversations()
-    }
-  }, [user, fetchConversations])
+  const { conversations, totalCount, unreadCount, hasMore } = await getConversations(
+    user.id,
+    currentPage,
+    20
+  )
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Button
-          onClick={() => router.push('/profile')}
-          variant="ghost"
-          size="sm"
-          className="mb-6 gap-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Profile
-        </Button>
+        <Link href="/profile">
+          <Button variant="ghost" size="sm" className="mb-6 gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Profile
+          </Button>
+        </Link>
 
-        <MessagesTab
-          conversations={conversations}
-          currentUserId={user?.id}
-          onFetchConversations={fetchConversations}
-          onFetchMessages={handleFetchMessages}
-          onSendMessage={handleSendMessage}
-          onArchiveConversation={handleArchiveConversation}
-          onMoveConversationToBin={handleMoveConversationToBin}
-          onMarkConversationAsRead={handleMarkConversationAsRead}
-          loading={loading}
-        />
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          {/* Header */}
+          <div className="p-6 border-b">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <MessageSquare className="w-6 h-6 text-gray-400" />
+                <div>
+                  <h1 className="text-2xl font-semibold">Messages</h1>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {unreadCount > 0 ? `${unreadCount} unread message${unreadCount !== 1 ? 's' : ''}` : 'All caught up!'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Conversations List */}
+          <div>
+            {conversations.length === 0 ? (
+              /* Empty State */
+              <div className="text-center py-12 px-4">
+                <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p className="font-medium text-gray-900 mb-1">No messages yet</p>
+                <p className="text-sm text-gray-600 mb-4">
+                  Start a conversation by contacting sellers on their listings
+                </p>
+                <Button asChild variant="primary" size="default">
+                  <Link href="/">Browse Listings</Link>
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="divide-y">
+                  {conversations.map((conversation) => {
+                    const otherUser = conversation.other_user
+                    const listing = conversation.listing
+                    const wantedRequest = conversation.wanted_request
+                    const hasUnread = conversation.unread_count > 0
+
+                    return (
+                      <Link
+                        key={conversation.id}
+                        href={`/messages/${conversation.id}`}
+                        className={`block hover:bg-gray-50 transition-colors ${
+                          hasUnread ? 'bg-blue-50' : ''
+                        }`}
+                      >
+                        <div className="p-4">
+                          <div className="flex items-start gap-4">
+                            {/* Avatar */}
+                            <div className="relative flex-shrink-0">
+                              {otherUser?.avatar_url ? (
+                                <img
+                                  src={otherUser.avatar_url}
+                                  alt={otherUser.name || 'User'}
+                                  className="w-12 h-12 rounded-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                                  <User className="w-6 h-6 text-gray-400" />
+                                </div>
+                              )}
+                              {hasUnread && (
+                                <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-600 text-white text-xs rounded-full flex items-center justify-center">
+                                  {conversation.unread_count}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2 mb-1">
+                                <p className={`font-medium truncate ${
+                                  hasUnread ? 'text-gray-900' : 'text-gray-700'
+                                }`}>
+                                  {otherUser?.name || 'User'}
+                                </p>
+                                <span className="text-xs text-gray-500 whitespace-nowrap">
+                                  {formatMessageTime(conversation.last_message_at)}
+                                </span>
+                              </div>
+
+                              {/* Item Preview */}
+                              {listing && (
+                                <div className="flex items-center gap-2 mb-2">
+                                  <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center overflow-hidden flex-shrink-0">
+                                    {listing.image_url ? (
+                                      <img
+                                        src={listing.image_url}
+                                        alt=""
+                                        className="w-full h-full object-cover"
+                                      />
+                                    ) : (
+                                      <Camera className="w-4 h-4 text-gray-400" />
+                                    )}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-sm text-gray-600 truncate">{listing.title}</p>
+                                    <p className="text-xs text-gray-500">Rs. {listing.price.toLocaleString()}</p>
+                                  </div>
+                                </div>
+                              )}
+
+                              {wantedRequest && (
+                                <div className="mb-2">
+                                  <p className="text-sm text-gray-600 truncate">{wantedRequest.title}</p>
+                                  {wantedRequest.max_budget && (
+                                    <p className="text-xs text-gray-500">Budget: Rs. {wantedRequest.max_budget.toLocaleString()}</p>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Last Message */}
+                              {conversation.last_message && (
+                                <p className={`text-sm truncate ${
+                                  hasUnread ? 'font-medium text-gray-900' : 'text-gray-600'
+                                }`}>
+                                  {conversation.last_message}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    )
+                  })}
+                </div>
+
+                {/* Load More */}
+                <div className="p-4">
+                  <MessagesLoadMoreButton 
+                    currentPage={currentPage}
+                    hasMore={hasMore}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )

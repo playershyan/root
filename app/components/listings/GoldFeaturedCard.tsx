@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { MapPin, Calendar, Eye, Star, Crown, TrendingUp } from 'lucide-react'
+import { MapPin, Calendar, Eye, Star, Crown, TrendingUp, Car, Camera, Gauge, Fuel, Settings, ArrowRight } from 'lucide-react'
 import OptimizedImage from '@/components/ui/OptimizedImage'
 import FavoriteButton from '@/app/components/FavoriteButton'
 import ImageCarousel from '@/components/ui/ImageCarousel'
@@ -125,20 +125,20 @@ export default function GoldFeaturedCard({ listing, size = 'regular' }: GoldFeat
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <i className="fas fa-car text-amber-400 text-4xl"></i>
+                    <Car className="text-amber-400" size={64} />
                   </div>
                 )
               )
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <i className="fas fa-car text-amber-400 text-4xl"></i>
+                <Car className="text-amber-400" size={64} />
               </div>
             )}
 
             {/* Image count */}
             {imageCount > 1 && !isLarge && (
               <div className="absolute top-2 left-2 bg-amber-600/90 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
-                <i className="fas fa-camera"></i>
+                <Camera size={12} />
                 <span>{imageCount}</span>
               </div>
             )}
@@ -164,19 +164,19 @@ export default function GoldFeaturedCard({ listing, size = 'regular' }: GoldFeat
               </span>
               {listing.mileage && (
                 <span className="flex items-center gap-1">
-                  <i className="fas fa-tachometer-alt text-amber-500 text-xs"></i>
+                  <Gauge className="w-3 h-3 text-amber-500" />
                   {formatMileage(listing.mileage)}
                 </span>
               )}
               {listing.fuel_type && (
                 <span className="flex items-center gap-1">
-                  <i className="fas fa-gas-pump text-amber-500 text-xs"></i>
+                  <Fuel className="w-3 h-3 text-amber-500" />
                   {listing.fuel_type}
                 </span>
               )}
               {listing.transmission && (
                 <span className="flex items-center gap-1">
-                  <i className="fas fa-cogs text-amber-500 text-xs"></i>
+                  <Settings className="w-3 h-3 text-amber-500" />
                   {listing.transmission}
                 </span>
               )}
@@ -212,7 +212,7 @@ export default function GoldFeaturedCard({ listing, size = 'regular' }: GoldFeat
               {isLarge && (
                 <button className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-lg">
                   View Details
-                  <i className="fas fa-arrow-right text-sm"></i>
+                  <ArrowRight size={14} />
                 </button>
               )}
             </div>

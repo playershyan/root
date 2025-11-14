@@ -1,309 +1,238 @@
-'use client'
-
-import { useState, useEffect, FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
-import Image from 'next/image'
-import { useAuth } from '@/app/contexts/AuthContext'
-import { useBusinessProfile } from '@/app/hooks/useBusinessProfile'
-import { supabase } from '@/lib/supabase'
-import BusinessProfileManagement from '@/app/components/profile/BusinessProfileManagement'
-import CreateBusinessProfile from '@/app/components/profile/CreateBusinessProfile'
-import { CreateBusinessProfileData } from '@/lib/types/businessProfile'
+import { redirect } from 'next/navigation'
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
+import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, Camera } from 'lucide-react'
+import Link from 'next/link'
+import { getAccountInfo } from './utils/getAccountInfo'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { logger } from '@/lib/utils/logger'
-import { toast } from 'sonner'
 
-interface ProfileData {
-  id: string
-  fullName: string
-  phone: string
-  phoneVerified: boolean
-  phoneVerifiedAt: string | null
-  avatar: string
-  tempPhone: string
-  country: string
-}
+// Enable ISR with 60-second revalidation
+export const revalidate = 60
 
-export default function AccountPage() {
-  const router = useRouter()
-  const { user } = useAuth()
-
-  const {
-    businessProfile,
-    loading: businessLoading,
-    createBusinessProfile,
-    pauseBusinessProfile,
-    resumeBusinessProfile,
-    deleteBusinessProfile
-  } = useBusinessProfile()
-
-  const [profile, setProfile] = useState<ProfileData>({
-    id: '',
-    fullName: '',
-    phone: '',
-    phoneVerified: false,
-    phoneVerifiedAt: null,
-    avatar: '',
-    tempPhone: '',
-    country: 'LK'
+export default async function AccountPage() {
+  const cookieStore = await cookies()
+  const supabase = createServerComponentClient({ 
+    cookies: () => cookieStore 
   })
+  
+  const { data: { user } } = await supabase.auth.getUser()
 
-  const [isLoading, setIsLoading] = useState(false)
-  const [showCreateProfile, setShowCreateProfile] = useState(false)
-
-  // Load user profile data
-  useEffect(() => {
-    const loadProfile = async () => {
-      if (!user) {
-        router.push('/')
-        return
-      }
-
-      try {
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single()
-
-        if (profileData) {
-          setProfile({
-            id: user.id,
-            fullName: profileData.name || '',
-            phone: profileData.phone || user.phone || '',
-            phoneVerified: profileData.phone_verified || false,
-            phoneVerifiedAt: profileData.phone_verified_at,
-            avatar: profileData.avatar_url || '',
-            tempPhone: profileData.temp_phone || '',
-            country: profileData.location || 'LK'
-          })
-        }
-      } catch (error) {
-        logger.error('Error loading profile', error as Error)
-      }
-    }
-
-    loadProfile()
-  }, [user, router])
-
-  // Handle profile form submission
-  const handleProfileSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-
-    try {
-      const response = await fetch('/api/profiles', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: profile.fullName,
-          phone: profile.phone,
-          location: profile.country,
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to update profile')
-      }
-
-      const result = await response.json()
-      if (result.success) {
-        toast.success('Profile updated successfully!')
-      } else {
-        throw new Error(result.error || 'Failed to update profile')
-      }
-    } catch (error) {
-      logger.error('Error updating profile', error as Error)
-      toast.error(`Failed to update profile: ${error instanceof Error ? error.message : 'Try again later.'}`)
-    } finally {
-      setIsLoading(false)
-    }
+  if (!user) {
+    redirect('/')
   }
 
-  // Business profile event handlers
-  const handleCreateBusinessProfile = async (data: CreateBusinessProfileData): Promise<{ success: boolean; error?: string }> => {
-    const result = await createBusinessProfile(data)
-    if (result.success) {
-      setShowCreateProfile(false)
-      toast.success('Business profile created successfully!')
-    } else {
-      toast.error(`Error: ${result.error || 'Failed to create business profile'}`)
-    }
-    return result
-  }
-
-  const handlePauseBusinessProfile = async () => {
-    const result = await pauseBusinessProfile()
-    if (result.success) {
-      toast.success('Business profile paused successfully!')
-    } else {
-      toast.error(`Error: ${result.error || 'Failed to pause business profile'}`)
-    }
-  }
-
-  const handleResumeBusinessProfile = async () => {
-    const result = await resumeBusinessProfile()
-    if (result.success) {
-      toast.success('Business profile resumed successfully!')
-    } else {
-      toast.error(`Error: ${result.error || 'Failed to resume business profile'}`)
-    }
-  }
-
-  const handleDeleteBusinessProfile = async () => {
-    if (!confirm('Are you sure you want to delete your business profile? This action cannot be undone.')) {
-      return
-    }
-
-    const result = await deleteBusinessProfile()
-    if (result.success) {
-      toast.success('Business profile deleted successfully!')
-    } else {
-      toast.error(`Error: ${result.error || 'Failed to delete business profile'}`)
-    }
-  }
+  const { profile, preferences, stats, email } = await getAccountInfo(user.id)
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Button
-          onClick={() => router.push('/profile')}
-          variant="ghost"
-          size="sm"
-          className="mb-6 gap-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Profile
-        </Button>
+        <Link href="/profile">
+          <Button variant="ghost" size="sm" className="mb-6 gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Profile
+          </Button>
+        </Link>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="p-6 border-b">
-            <h1 className="text-2xl font-semibold">My Profile</h1>
+        <div className="space-y-6">
+          {/* Profile Section */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold">Profile Information</h2>
+              <Button variant="outline" size="sm" disabled>
+                Edit Profile
+              </Button>
+            </div>
+            
+            <div className="flex items-start gap-6">
+              {/* Avatar */}
+              <div className="relative">
+                {profile?.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt="Profile"
+                    className="w-24 h-24 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center">
+                    <User className="w-12 h-12 text-gray-400" />
+                  </div>
+                )}
+                <button
+                  disabled
+                  className="absolute bottom-0 right-0 p-2 bg-white rounded-full shadow-sm border border-gray-200 hover:bg-gray-50"
+                >
+                  <Camera className="w-4 h-4 text-gray-600" />
+                </button>
+              </div>
+
+              {/* Info */}
+              <div className="flex-1 space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Full Name</label>
+                  <p className="mt-1 text-gray-900">{profile?.full_name || 'Not set'}</p>
+                </div>
+
+                {profile?.display_name && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Display Name</label>
+                    <p className="mt-1 text-gray-900">{profile.display_name}</p>
+                  </div>
+                )}
+
+                {profile?.bio && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Bio</label>
+                    <p className="mt-1 text-gray-600">{profile.bio}</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
-          <div className="p-6">
-            {/* Personal Profile Form */}
-            <form onSubmit={handleProfileSubmit} className="space-y-6">
-              {/* Avatar Section */}
-              <div className="flex items-center justify-center mb-8">
-                <div className="relative">
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold overflow-hidden">
-                    {profile.avatar ? (
-                      <Image
-                        src={profile.avatar}
-                        alt={profile.fullName || 'User'}
-                        width={96}
-                        height={96}
-                        className="object-cover w-full h-full"
-                      />
-                    ) : (
-                      user?.user_metadata?.full_name
-                        ? user.user_metadata.full_name.split(' ').map(n => n[0]).join('').toUpperCase()
-                        : profile.fullName
-                          ? profile.fullName.split(' ').map(n => n[0]).join('').toUpperCase()
-                          : 'U'
-                    )}
+          {/* Contact Information */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold mb-4">Contact Information</h2>
+            
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 py-2">
+                <Mail className="w-5 h-5 text-gray-400" />
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Email</p>
+                  <p className="text-gray-900">{email}</p>
+                </div>
+              </div>
+
+              {profile?.phone && (
+                <div className="flex items-center gap-3 py-2">
+                  <Phone className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Phone</p>
+                    <p className="text-gray-900">{profile.phone}</p>
                   </div>
                 </div>
-              </div>
+              )}
 
-              {/* Profile Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Full Name */}
-                <div>
-                  <Label htmlFor="fullName">
-                    Full Name <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="fullName"
-                    type="text"
-                    value={profile.fullName}
-                    onChange={(e) => setProfile({...profile, fullName: e.target.value})}
-                    required
-                  />
-                </div>
-
-                {/* Email (disabled) */}
-                <div>
-                  <Label htmlFor="email">
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={user?.email || ''}
-                    disabled
-                  />
-                </div>
-
-                {/* Phone Number */}
-                <div>
-                  <Label htmlFor="phone">
-                    Phone Number
-                  </Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={profile.phone}
-                    onChange={(e) => setProfile({...profile, phone: e.target.value})}
-                  />
-                </div>
-
-                {/* Country (static) */}
-                <div>
-                  <Label htmlFor="country">
-                    Country
-                  </Label>
-                  <div className="h-12 px-4 flex items-center border border-gray-300 rounded-lg bg-gray-50 text-gray-700 font-medium">
-                    🇱🇰 Sri Lanka
+              {profile?.whatsapp && (
+                <div className="flex items-center gap-3 py-2">
+                  <Phone className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">WhatsApp</p>
+                    <p className="text-gray-900">{profile.whatsapp}</p>
                   </div>
                 </div>
-              </div>
+              )}
 
-              {/* Submit Button */}
-              <div className="flex gap-3">
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  variant="primary"
-                  size="default"
-                >
-                  {isLoading ? 'Saving...' : 'Save Changes'}
-                </Button>
-              </div>
-            </form>
-
-            {/* Business Profile Management Section */}
-            <div className="mt-12 border-t pt-8">
-              <h3 className="text-lg font-semibold mb-4">Business Profile</h3>
-              <BusinessProfileManagement
-                businessProfile={businessProfile}
-                onCreateProfile={() => setShowCreateProfile(true)}
-                onPauseProfile={handlePauseBusinessProfile}
-                onResumeProfile={handleResumeBusinessProfile}
-                onDeleteProfile={handleDeleteBusinessProfile}
-                loading={businessLoading}
-              />
+              {profile?.location && (
+                <div className="flex items-center gap-3 py-2">
+                  <MapPin className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Location</p>
+                    <p className="text-gray-900">{profile.location}</p>
+                  </div>
+                </div>
+              )}
             </div>
+          </div>
 
-            {/* Create Business Profile Modal */}
-            {showCreateProfile && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                  <CreateBusinessProfile
-                    onSubmit={handleCreateBusinessProfile}
-                    onCancel={() => setShowCreateProfile(false)}
-                    loading={businessLoading}
-                  />
-                </div>
+          {/* Account Stats */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold mb-4">Account Statistics</h2>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <p className="text-2xl font-bold text-blue-600">{stats.total_listings}</p>
+                <p className="text-sm text-gray-600">Listings</p>
               </div>
-            )}
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <p className="text-2xl font-bold text-green-600">{stats.total_wanted_requests}</p>
+                <p className="text-sm text-gray-600">Requests</p>
+              </div>
+              <div className="text-center p-4 bg-purple-50 rounded-lg">
+                <p className="text-2xl font-bold text-purple-600">{stats.total_favorites}</p>
+                <p className="text-sm text-gray-600">Favorites</p>
+              </div>
+              <div className="text-center p-4 bg-amber-50 rounded-lg">
+                <p className="text-2xl font-bold text-amber-600">{stats.account_age_days}</p>
+                <p className="text-sm text-gray-600">Days</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Notification Preferences */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Notification Preferences</h2>
+              <Button variant="outline" size="sm" disabled>
+                Save Changes
+              </Button>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex items-center justify-between py-2">
+                <div>
+                  <p className="font-medium text-gray-900">Email Notifications</p>
+                  <p className="text-sm text-gray-600">Receive updates via email</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={preferences.email_notifications}
+                  disabled
+                  className="w-4 h-4"
+                />
+              </div>
+
+              <div className="flex items-center justify-between py-2">
+                <div>
+                  <p className="font-medium text-gray-900">Push Notifications</p>
+                  <p className="text-sm text-gray-600">Receive browser notifications</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={preferences.push_notifications}
+                  disabled
+                  className="w-4 h-4"
+                />
+              </div>
+
+              <div className="flex items-center justify-between py-2">
+                <div>
+                  <p className="font-medium text-gray-900">Price Drop Alerts</p>
+                  <p className="text-sm text-gray-600">Get notified when prices drop</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={preferences.price_drop_alerts}
+                  disabled
+                  className="w-4 h-4"
+                />
+              </div>
+
+              <div className="flex items-center justify-between py-2">
+                <div>
+                  <p className="font-medium text-gray-900">New Matches</p>
+                  <p className="text-sm text-gray-600">Alert me about matching listings</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={preferences.new_matches_alerts}
+                  disabled
+                  className="w-4 h-4"
+                />
+              </div>
+
+              <div className="flex items-center justify-between py-2">
+                <div>
+                  <p className="font-medium text-gray-900">Marketing Emails</p>
+                  <p className="text-sm text-gray-600">Receive promotional content</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={preferences.marketing_emails}
+                  disabled
+                  className="w-4 h-4"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>

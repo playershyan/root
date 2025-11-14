@@ -13,7 +13,12 @@ import { FavoritesProvider } from '@/lib/contexts/FavoritesContext'
 import CapacitorInitializer from './components/CapacitorInitializer'
 import { Analytics } from '@vercel/analytics/next'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap', // Prevent FOIT (Flash of Invisible Text)
+  preload: true,
+  fallback: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif']
+})
 
 export const metadata: Metadata = {
   title: 'VERA - Verified Exchange & Resource Assistant',
@@ -29,7 +34,11 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-        <script src="https://kit.fontawesome.com/5a82e6e998.js" crossOrigin="anonymous"></script>
+        {/* Preconnect to external domains for faster resource loading */}
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        <link rel="preconnect" href="https://ahmynvxoxzhocuhxlcvo.supabase.co" />
+        <link rel="dns-prefetch" href="https://ahmynvxoxzhocuhxlcvo.supabase.co" />
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger

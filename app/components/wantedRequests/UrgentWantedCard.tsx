@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { MapPin, Calendar, AlertTriangle, MessageCircle, TrendingUp } from 'lucide-react'
+import { MapPin, Calendar, AlertTriangle, MessageCircle, TrendingUp, Fuel, Settings } from 'lucide-react'
 import WantedRequestFavoriteButton from '@/app/components/WantedRequestFavoriteButton'
 import ContactModal from '@/app/components/modals/ContactModal'
 import { logger } from '@/lib/utils/logger'
@@ -190,7 +190,7 @@ export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
             {/* Fuel Type */}
             {request.fuel_type && (
               <div className="flex items-center gap-2 text-gray-700">
-                <i className="fas fa-gas-pump text-orange-500 text-sm w-4 text-center flex-shrink-0"></i>
+                <Fuel className="text-orange-500 text-sm w-4 h-4 text-center flex-shrink-0" />
                 <span className="text-sm">{request.fuel_type}</span>
               </div>
             )}
@@ -198,7 +198,7 @@ export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
             {/* Transmission */}
             {request.transmission && (
               <div className="flex items-center gap-2 text-gray-700">
-                <i className="fas fa-cogs text-orange-500 text-sm w-4 text-center flex-shrink-0"></i>
+                <Settings className="text-orange-500 text-sm w-4 h-4 text-center flex-shrink-0" />
                 <span className="text-sm">{request.transmission}</span>
               </div>
             )}

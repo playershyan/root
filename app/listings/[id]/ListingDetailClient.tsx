@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Share2, Phone, MessageCircle, MessageSquare, MapPin, Calendar, Eye, Check, ChevronLeft, ChevronRight, Star, Calculator } from 'lucide-react'
+import { Share2, Phone, MessageCircle, MessageSquare, MapPin, Calendar, Eye, Check, ChevronLeft, ChevronRight, Star, Calculator, Activity, Fuel, Settings, Handshake, Info } from 'lucide-react'
 import ContactProfile from '../../components/ContactProfile'
 import PriceDisplay from '../../components/PriceDisplay'
 import FavoriteButton from '@/app/components/FavoriteButton'
@@ -378,29 +378,29 @@ export default function ListingDetailClient({
             {/* Key Details Pills */}
             <div className="flex flex-wrap gap-2 mb-6">
               <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
-                <i className="fas fa-calendar-alt mr-1"></i> {listing.year}
+                <Calendar className="mr-1" size={16} /> {listing.year}
               </span>
               {listing.mileage && (
                 <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
-                  <i className="fas fa-road mr-1"></i> {listing.mileage.toLocaleString()} km
+                  <Activity className="mr-1" size={16} /> {listing.mileage.toLocaleString()} km
                 </span>
               )}
               {listing.fuel_type && (
                 <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
-                  <i className="fas fa-gas-pump mr-1"></i> {listing.fuel_type}
+                  <Fuel className="mr-1" size={16} /> {listing.fuel_type}
                 </span>
               )}
               {listing.transmission && (
                 <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
-                  <i className="fas fa-cog mr-1"></i> {listing.transmission}
+                  <Settings className="mr-1" size={16} /> {listing.transmission}
                 </span>
               )}
               <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
-                <i className="fas fa-map-marker-alt mr-1"></i> {listing.location}
+                <MapPin className="mr-1" size={16} /> {listing.location}
               </span>
               {listing.pricing_type === 'finance' && (
                 <span className="px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-sm font-medium">
-                  <i className="fas fa-handshake mr-1"></i> Finance Takeover
+                  <Handshake className="mr-1" size={16} /> Finance Takeover
                 </span>
               )}
             </div>
@@ -687,7 +687,7 @@ export default function ListingDetailClient({
             {listing.pricing_type === 'finance' && (
               <div className="mb-4 p-3 bg-amber-50 border border-amber-100 rounded-lg">
                 <p className="text-sm text-amber-800">
-                  <i className="fas fa-info-circle mr-1"></i>
+                  <Info className="mr-1" size={16} />
                   This vehicle has an existing finance. You can either take over the current loan or calculate your own financing after settling the outstanding balance.
                 </p>
               </div>
@@ -797,7 +797,7 @@ export default function ListingDetailClient({
                   </h3>
                   {similar.pricing_type === 'finance' && (
                     <div className="inline-flex items-center px-2 py-1 bg-amber-50 text-amber-700 rounded text-xs font-medium mt-1">
-                      <i className="fas fa-handshake mr-1"></i> Finance Takeover
+                      <Handshake className="mr-1" size={16} /> Finance Takeover
                     </div>
                   )}
                   <p className="text-2xl font-bold text-blue-600 mt-2">
@@ -815,7 +815,7 @@ export default function ListingDetailClient({
                     <span>•</span>
                     <span>{similar.fuel_type || 'N/A'}</span>
                   </div>
-                  <p className="text-sm text-gray-500 mt-1"><i className="fas fa-map-marker-alt mr-1"></i> {similar.location}</p>
+                  <p className="text-sm text-gray-500 mt-1"><MapPin className="mr-1" size={16} /> {similar.location}</p>
                 </div>
               </Link>
             ))}
@@ -862,7 +862,7 @@ export default function ListingDetailClient({
                     </h3>
                     {similar.pricing_type === 'finance' && (
                       <div className="inline-flex items-center px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded text-[10px] font-medium mt-0.5">
-                        <i className="fas fa-handshake mr-0.5 text-[10px]"></i> Finance
+                        <Handshake className="mr-0.5" size={10} /> Finance
                       </div>
                     )}
                     <p className="text-lg font-bold text-blue-600 mt-1">
@@ -879,7 +879,7 @@ export default function ListingDetailClient({
                       <span>{similar.mileage?.toLocaleString() || 'N/A'} km</span>
                     </div>
                     <p className="text-xs text-gray-500 mt-1 line-clamp-1">
-                      <i className="fas fa-map-marker-alt mr-1"></i> {similar.location}
+                      <MapPin className="mr-1" size={16} /> {similar.location}
                     </p>
                   </div>
                 </Link>

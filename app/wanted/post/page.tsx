@@ -21,6 +21,7 @@ import { useToast } from '@/app/components/notifications/useToast'
 import { toast } from 'sonner'
 import { Toast } from '@/app/components/notifications/Toast'
 import { logger } from '@/lib/utils/logger'
+import { Lightbulb } from 'lucide-react'
 
 interface FormData {
   description: string
@@ -612,7 +613,7 @@ export default function PostWantedPage() {
         {/* Info Box */}
         <div className="bg-blue-50 border-b lg:border border-blue-200 lg:rounded-lg p-4 mb-4 lg:mb-8 -mx-4 lg:mx-0">
           <div className="flex items-start gap-3">
-            <i className="fas fa-lightbulb text-blue-600 text-xl"></i>
+            <Lightbulb className="text-blue-600" size={20} />
             <div>
               <p className="text-blue-900 font-semibold mb-1">How it works:</p>
               <ul className="text-blue-800 text-sm space-y-1">
