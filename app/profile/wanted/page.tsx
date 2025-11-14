@@ -1,278 +1,95 @@
-'use client'
-
-import { useRouter } from 'next/navigation'
+import { redirect } from 'next/navigation'
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
+import { ArrowLeft, Search, MapPin, Zap } from 'lucide-react'
 import Link from 'next/link'
-import { ArrowLeft, Search, MapPin, MoreVertical, Share2, Edit, Pause, Play, RefreshCw, Trash2, X, Zap } from 'lucide-react'
-import { useAuth } from '@/app/contexts/AuthContext'
-import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '@/lib/supabase'
+import { getUserWantedRequests, type WantedRequestStatus } from './utils/getWantedRequests'
+import StatusFilterDropdown from './components/StatusFilterDropdown'
+import WantedLoadMoreButton from './components/WantedLoadMoreButton'
 import WantedRequestStatusBadge from '@/app/components/wantedRequests/WantedRequestStatusBadge'
-import WantedRequestActions from '@/app/components/wantedRequests/WantedRequestActions'
-import WantedRequestStatusMessage from '@/app/components/wantedRequests/WantedRequestStatusMessage'
 import { Button } from '@/components/ui/button'
-import { logger } from '@/lib/utils/logger'
-import { toast } from 'sonner'
 
-interface WantedRequest {
-  id: string
-  title: string
-  description: string
-  budget: number
-  status: 'active' | 'paused' | 'closed' | 'reported'
-  postedDate: string
-  clicks: number
-  location: string
-  isReportedTakedown?: boolean
-  rejectionReason?: string
+// Enable ISR with 30-second revalidation
+export const revalidate = 30
+
+// Helper function to format dates
+function formatDate(dateString: string): string {
+  const date = new Date(dateString)
+  if (isNaN(date.getTime())) return dateString
+
+  const hours = date.getHours().toString().padStart(2, '0')
+  const minutes = date.getMinutes().toString().padStart(2, '0')
+  const day = date.getDate().toString().padStart(2, '0')
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
+  const year = date.getFullYear().toString().slice(-2)
+
+  return `${hours}:${minutes} ${day}/${month}/${year}`
 }
 
-export default function WantedPage() {
-  const router = useRouter()
-  const { user, loading } = useAuth()
-  const [wantedRequests, setWantedRequests] = useState<WantedRequest[]>([])
-  const [wantedRequestsLoading, setWantedRequestsLoading] = useState(true)
-  const [showActionMenu, setShowActionMenu] = useState<string | null>(null)
+interface PageProps {
+  searchParams: Promise<{
+    status?: string
+    page?: string
+  }>
+}
 
-  // Helper: Format date
-  const formatListingDate = (dateString: string): string => {
-    const date = new Date(dateString)
-    if (isNaN(date.getTime())) return dateString
+export default async function WantedPage({ searchParams }: PageProps) {
+  // Get authenticated user
+  const cookieStore = await cookies()
+  const supabase = createServerComponentClient({ 
+    cookies: () => cookieStore 
+  })
+  
+  const { data: { user } } = await supabase.auth.getUser()
 
-    const hours = date.getHours().toString().padStart(2, '0')
-    const minutes = date.getMinutes().toString().padStart(2, '0')
-    const day = date.getDate().toString().padStart(2, '0')
-    const month = (date.getMonth() + 1).toString().padStart(2, '0')
-    const year = date.getFullYear().toString().slice(-2)
-
-    return `${hours}:${minutes} ${day}/${month}/${year}`
+  if (!user) {
+    redirect('/')
   }
 
-  // Helper: Days until renewal
-  const getDaysUntilWantedRequestRenewal = (postedDate: string) => {
-    const posted = new Date(postedDate)
-    const now = new Date()
-    const daysSincePosted = Math.floor((now.getTime() - posted.getTime()) / (1000 * 60 * 60 * 24))
-    const daysUntilRenewal = 18 - daysSincePosted
-    return daysUntilRenewal > 0 ? daysUntilRenewal : 0
-  }
+  // Parse URL parameters
+  const params = await searchParams
+  const statusFilter = (params.status || 'all') as WantedRequestStatus
+  const currentPage = parseInt(params.page || '1')
 
-  // Load wanted requests
-  const loadWantedRequests = useCallback(async () => {
-    if (!user) return
-
-    try {
-      const { data: wantedRequests, error } = await supabase
-        .from('wanted_requests')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-
-      if (error) {
-        logger.error('Error fetching wanted requests', error as Error)
-        setWantedRequests([])
-      } else {
-        const formattedRequests = wantedRequests?.map(request => ({
-          id: request.id,
-          title: request.title,
-          description: request.description,
-          budget: request.budget,
-          status: request.status,
-          postedDate: new Date(request.created_at).toLocaleDateString(),
-          clicks: request.clicks || 0,
-          location: request.location,
-          isReportedTakedown: request.is_reported || false,
-          rejectionReason: request.rejection_reason || undefined
-        })) || []
-
-        setWantedRequests(formattedRequests)
-      }
-    } catch (error) {
-      logger.error('Error loading wanted requests', error as Error)
-      setWantedRequests([])
-    } finally {
-      setWantedRequestsLoading(false)
-    }
-  }, [user])
-
-  // Load on mount
-  useEffect(() => {
-    if (!loading && user) {
-      loadWantedRequests()
-    }
-  }, [user, loading, loadWantedRequests])
-
-  // Handle pause/resume
-  const handlePauseResumeWantedRequest = async (requestId: string, action: 'pause' | 'resume') => {
-    try {
-      const response = await fetch('/api/wanted-requests/pause', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ requestId, action }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || `Failed to ${action} wanted request`)
-      }
-
-      // Update local state
-      setWantedRequests(prevRequests =>
-        prevRequests.map(request =>
-          request.id === requestId
-            ? { ...request, status: action === 'pause' ? 'paused' : 'active' }
-            : request
-        )
-      )
-
-      toast.success(data.message || `Wanted request ${action}d successfully`)
-    } catch (error: any) {
-      logger.error(`Error ${action}ing wanted request`, error as Error)
-      toast.error(error.message || `Failed to ${action} wanted request`)
-    }
-  }
-
-  // Handle close
-  const handleCloseWantedRequest = async (requestId: string) => {
-    if (!confirm('Are you sure you want to close this wanted request? This action cannot be undone.')) {
-      return
-    }
-
-    try {
-      const response = await fetch('/api/wanted-requests/close', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ requestId }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to close wanted request')
-      }
-
-      // Update local state
-      setWantedRequests(prevRequests =>
-        prevRequests.map(request =>
-          request.id === requestId
-            ? { ...request, status: 'closed' }
-            : request
-        )
-      )
-
-      toast.success(data.message || 'Wanted request closed successfully')
-    } catch (error: any) {
-      logger.error('Error closing wanted request', error as Error)
-      toast.error(error.message || 'Failed to close wanted request')
-    }
-  }
-
-  // Handle renew
-  const handleRenewWantedRequest = async (requestId: string) => {
-    try {
-      const response = await fetch('/api/wanted-requests/renew', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ requestId }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to renew wanted request')
-      }
-
-      // Update local state
-      setWantedRequests(prevRequests =>
-        prevRequests.map(request =>
-          request.id === requestId
-            ? { ...request, status: 'active', postedDate: new Date().toLocaleDateString() }
-            : request
-        )
-      )
-
-      toast.success(data.message || 'Wanted request renewed successfully')
-    } catch (error: any) {
-      logger.error('Error renewing wanted request', error as Error)
-      toast.error(error.message || 'Failed to renew wanted request')
-    }
-  }
-
-  // Handle delete
-  const handleDelete = async (requestId: string) => {
-    if (!confirm('Move this wanted request to bin?')) return
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const response = await fetch('/api/user/delete', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session?.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          item_id: requestId,
-          item_type: 'wanted_request'
-        })
-      })
-
-      if (!response.ok) throw new Error('Failed to delete wanted request')
-
-      // Remove from local state
-      setWantedRequests(prev => prev.filter(r => r.id !== requestId))
-      toast.success('Wanted request moved to bin')
-    } catch (error) {
-      logger.error('Error deleting wanted request', error as Error)
-      toast.error('Failed to move wanted request to bin')
-    }
-  }
-
-  // Handle share
-  const handleShareWantedRequest = (requestId: string) => {
-    if (navigator.share) {
-      navigator.share({
-        title: 'Check out this wanted request',
-        url: `/wanted/${requestId}`
-      })
-    } else {
-      navigator.clipboard.writeText(`${window.location.origin}/wanted/${requestId}`)
-      toast.success('Link copied to clipboard!')
-    }
-  }
+  // Fetch wanted requests (server-side, filtered, paginated)
+  const { requests, totalCount, hasMore } = await getUserWantedRequests(
+    user.id,
+    statusFilter,
+    currentPage,
+    20
+  )
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Button
-          onClick={() => router.push('/profile')}
-          variant="ghost"
-          size="sm"
-          className="mb-6 gap-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Profile
-        </Button>
+        <Link href="/profile">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mb-6 gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Profile
+          </Button>
+        </Link>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           {/* Header */}
-          <div className="p-6 border-b flex justify-between items-center">
+          <div className="p-6 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <h1 className="text-2xl font-semibold">Wanted Requests</h1>
-            <Button
-              asChild
-              variant="primary"
-              size="default"
-              className="gap-2"
-            >
-              <Link href="/wanted/post">
-                <span>+</span> Publish a Request
-              </Link>
-            </Button>
+            <div className="flex gap-3 w-full sm:w-auto">
+              <StatusFilterDropdown />
+              <Button
+                asChild
+                variant="primary"
+                size="default"
+                className="gap-2 whitespace-nowrap"
+              >
+                <Link href="/wanted/post">
+                  <span>+</span> New Request
+                </Link>
+              </Button>
+            </div>
           </div>
 
           <div className="p-6">
@@ -280,17 +97,18 @@ export default function WantedPage() {
               Tell the community what vehicle you're looking for and let sellers come to you.
             </p>
 
-            {/* Content */}
-            {wantedRequestsLoading ? (
-              <div className="text-center py-12">
-                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading your wanted requests...</p>
-              </div>
-            ) : wantedRequests.length === 0 ? (
+            {requests.length === 0 ? (
+              /* Empty State */
               <div className="text-center py-12">
                 <Search className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                <p className="font-medium text-gray-900 mb-1">No wanted requests yet</p>
-                <p className="text-sm text-gray-600 mb-4">Create your first wanted request to find your ideal vehicle</p>
+                <p className="font-medium text-gray-900 mb-1">
+                  {statusFilter === 'all' ? 'No wanted requests yet' : `No ${statusFilter} requests`}
+                </p>
+                <p className="text-sm text-gray-600 mb-4">
+                  {statusFilter === 'all' 
+                    ? 'Create your first wanted request to find your ideal vehicle' 
+                    : 'Try selecting a different filter'}
+                </p>
                 <Button
                   asChild
                   variant="primary"
@@ -317,7 +135,7 @@ export default function WantedPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y">
-                      {wantedRequests.map((request) => (
+                      {requests.map((request) => (
                         <tr key={request.id} className="hover:bg-gray-50">
                           <td className="px-4 py-4">
                             <div>
@@ -333,68 +151,29 @@ export default function WantedPage() {
                               </div>
                             </div>
                           </td>
-                          <td className="px-4 py-4">Rs. {request.budget?.toLocaleString() || '0'}</td>
+                          <td className="px-4 py-4">
+                            Rs. {(request.max_budget || request.min_budget || 0).toLocaleString()}
+                          </td>
                           <td className="px-4 py-4">{request.clicks}</td>
                           <td className="px-4 py-4">
-                            <WantedRequestStatusBadge request={request} />
+                            <WantedRequestStatusBadge request={request as any} />
                           </td>
-                          <td className="px-4 py-4 text-sm text-gray-600">{formatListingDate(request.postedDate)}</td>
+                          <td className="px-4 py-4 text-sm text-gray-600">
+                            {formatDate(request.created_at)}
+                          </td>
                           <td className="px-4 py-4">
-                            <div className="flex items-center gap-2">
-                              {request.status === 'active' && (
-                                <>
-                                  <Button
-                                    onClick={() => handleCloseWantedRequest(request.id)}
-                                    size="default"
-                                    className="bg-gray-600 hover:bg-gray-700 text-white gap-1"
-                                  >
-                                    <X className="w-3 h-3" />
-                                    Close
-                                  </Button>
-                                  <Button
-                                    asChild
-                                    size="default"
-                                    className="bg-amber-500 hover:bg-amber-600 text-white gap-1"
-                                  >
-                                    <Link href={`/wanted-request/paid-features?request=${request.id}`}>
-                                      <Zap className="w-3 h-3 animate-pulse" />
-                                      Boost
-                                    </Link>
-                                  </Button>
-                                </>
-                              )}
-
-                              {request.status === 'paused' && (
-                                <>
-                                  <Button
-                                    onClick={() => handlePauseResumeWantedRequest(request.id, 'resume')}
-                                    size="default"
-                                    className="bg-green-600 hover:bg-green-700 text-white gap-1"
-                                  >
-                                    <Play className="w-3 h-3" />
-                                    Resume
-                                  </Button>
-                                  <Button
-                                    onClick={() => handleCloseWantedRequest(request.id)}
-                                    size="default"
-                                    className="bg-gray-600 hover:bg-gray-700 text-white gap-1"
-                                  >
-                                    <X className="w-3 h-3" />
-                                    Close
-                                  </Button>
-                                </>
-                              )}
-
-                              <WantedRequestActions
-                                request={request}
-                                onPause={(id) => handlePauseResumeWantedRequest(id, 'pause')}
-                                onResume={(id) => handlePauseResumeWantedRequest(id, 'resume')}
-                                onClose={handleCloseWantedRequest}
-                                onDelete={(id) => handleDelete(id)}
-                                onShare={handleShareWantedRequest}
-                                viewMode="desktop"
-                              />
-                            </div>
+                            {request.status === 'active' && (
+                              <Button
+                                asChild
+                                size="default"
+                                className="bg-amber-500 hover:bg-amber-600 text-white gap-1"
+                              >
+                                <Link href={`/wanted-request/paid-features?request=${request.id}`}>
+                                  <Zap className="w-3 h-3 animate-pulse" />
+                                  Boost
+                                </Link>
+                              </Button>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -404,29 +183,21 @@ export default function WantedPage() {
 
                 {/* Mobile Card View */}
                 <div className="md:hidden space-y-4">
-                  {wantedRequests.map((request) => (
+                  {requests.map((request) => (
                     <div key={request.id} className="bg-white border rounded-lg shadow-sm">
                       <div className="p-4">
-                        <div className="flex items-start justify-between gap-2">
-                          <Link
-                            href={`/wanted/${request.id}`}
-                            className="text-sm font-medium text-blue-600 hover:text-blue-700 block line-clamp-2 break-words flex-1 min-w-0"
-                          >
-                            {request.title}
-                          </Link>
-                          <Button
-                            onClick={() => setShowActionMenu(showActionMenu === request.id ? null : request.id)}
-                            variant="ghost"
-                            size="icon"
-                            className="flex-shrink-0 h-10 w-10"
-                          >
-                            <MoreVertical className="w-5 h-5" />
-                          </Button>
-                        </div>
+                        <Link
+                          href={`/wanted/${request.id}`}
+                          className="text-sm font-medium text-blue-600 hover:text-blue-700 block line-clamp-2 break-words"
+                        >
+                          {request.title}
+                        </Link>
 
                         <div className="space-y-3 mt-3">
                           <div className="flex items-center justify-between">
-                            <span className="text-base font-semibold text-gray-900">Rs. {request.budget?.toLocaleString() || '0'}</span>
+                            <span className="text-base font-semibold text-gray-900">
+                              Rs. {(request.max_budget || request.min_budget || 0).toLocaleString()}
+                            </span>
                             <span className="text-xs text-gray-600">{request.clicks} clicks</span>
                           </div>
 
@@ -435,119 +206,35 @@ export default function WantedPage() {
                               <MapPin className="w-3.5 h-3.5" />
                               {request.location}
                             </span>
-                            <span>{formatListingDate(request.postedDate)}</span>
+                            <span>{formatDate(request.created_at)}</span>
                           </div>
 
                           <div>
-                            <WantedRequestStatusBadge request={request} />
-                            <WantedRequestStatusMessage request={request} />
+                            <WantedRequestStatusBadge request={request as any} />
                           </div>
 
-                          {/* Quick Actions */}
                           {request.status === 'active' && (
-                            <div className="flex gap-2 pt-2">
-                              <Button
-                                onClick={() => handlePauseResumeWantedRequest(request.id, 'pause')}
-                                variant="outline"
-                                size="default"
-                                className="flex-1"
-                              >
-                                Pause
-                              </Button>
-                              <Button
-                                asChild
-                                size="default"
-                                className="flex-1 bg-amber-500 hover:bg-amber-600 text-white"
-                              >
-                                <Link href={`/wanted-request/paid-features?request=${request.id}`}>
-                                  Boost
-                                </Link>
-                              </Button>
-                            </div>
-                          )}
-
-                          {request.status === 'paused' && (
                             <Button
-                              onClick={() => handlePauseResumeWantedRequest(request.id, 'resume')}
+                              asChild
                               size="default"
-                              className="w-full bg-green-600 hover:bg-green-700 text-white"
+                              className="w-full bg-amber-500 hover:bg-amber-600 text-white"
                             >
-                              Resume
+                              <Link href={`/wanted-request/paid-features?request=${request.id}`}>
+                                Boost
+                              </Link>
                             </Button>
                           )}
                         </div>
                       </div>
-
-                      {/* Action Menu */}
-                      {showActionMenu === request.id && (
-                        <div className="border-t p-2">
-                          <button
-                            onClick={() => {
-                              handleShareWantedRequest(request.id)
-                              setShowActionMenu(null)
-                            }}
-                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 rounded"
-                          >
-                            <Share2 className="w-4 h-4" />
-                            Share Request
-                          </button>
-                          <Link
-                            href={`/wanted/edit/${request.id}`}
-                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 rounded block"
-                          >
-                            <Edit className="w-4 h-4" />
-                            Edit Request
-                          </Link>
-                          {(request.status === 'active' || request.status === 'paused') && (
-                            <>
-                              {request.status === 'active' && (
-                                <button
-                                  onClick={() => {
-                                    handleRenewWantedRequest(request.id)
-                                    setShowActionMenu(null)
-                                  }}
-                                  className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 rounded ${
-                                    getDaysUntilWantedRequestRenewal(request.postedDate) > 0
-                                      ? 'text-gray-400 cursor-not-allowed'
-                                      : 'text-gray-900'
-                                  }`}
-                                  disabled={getDaysUntilWantedRequestRenewal(request.postedDate) > 0}
-                                >
-                                  <RefreshCw className="w-4 h-4" />
-                                  {getDaysUntilWantedRequestRenewal(request.postedDate) > 0
-                                    ? `${getDaysUntilWantedRequestRenewal(request.postedDate)} days to renew`
-                                    : 'Renew Request'
-                                  }
-                                </button>
-                              )}
-                              <button
-                                onClick={() => {
-                                  handleCloseWantedRequest(request.id)
-                                  setShowActionMenu(null)
-                                }}
-                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 rounded"
-                              >
-                                <X className="w-4 h-4" />
-                                Close Request
-                              </button>
-                            </>
-                          )}
-                          <hr className="my-2" />
-                          <button
-                            onClick={() => {
-                              handleDelete(request.id)
-                              setShowActionMenu(null)
-                            }}
-                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-red-600 rounded"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            Move to Bin
-                          </button>
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>
+
+                {/* Load More Button */}
+                <WantedLoadMoreButton 
+                  currentPage={currentPage}
+                  hasMore={hasMore}
+                />
               </>
             )}
           </div>

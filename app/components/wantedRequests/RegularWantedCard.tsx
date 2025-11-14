@@ -27,6 +27,8 @@ interface RegularWantedCardProps {
     views?: number
     clicks?: number
     urgency?: 'low' | 'medium' | 'high'
+    phone?: string
+    whatsapp?: string
   }
 }
 

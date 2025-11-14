@@ -29,6 +29,8 @@ interface UrgentWantedCardProps {
     is_urgent: true
     urgent_until?: string
     urgency?: 'urgent' | 'high'
+    phone?: string
+    whatsapp?: string
   }
 }
 

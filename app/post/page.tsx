@@ -257,7 +257,7 @@ export default function EnhancedPostVehiclePage() {
           }
 
           if (imageUrls.length > 0) {
-            setImagePreviews(imageUrls)
+            setImagePreviews(imageUrls.map(url => ({ url, type: 'remote' as const })))
             setFormData(prev => ({
               ...prev,
               imageUrls: imageUrls,
@@ -525,7 +525,6 @@ const getUploadUserId = (): string => {
   if (user?.id) return user.id
   logger.warn(
     'Image upload attempted without an authenticated user. Falling back to temporary identifier.',
-    new Error('Missing user context'),
     {
       scope: 'post-page',
       action: 'getUploadUserId'

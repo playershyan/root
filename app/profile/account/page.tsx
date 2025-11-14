@@ -127,7 +127,7 @@ export default function AccountPage() {
   }
 
   // Business profile event handlers
-  const handleCreateBusinessProfile = async (data: CreateBusinessProfileData) => {
+  const handleCreateBusinessProfile = async (data: CreateBusinessProfileData): Promise<{ success: boolean; error?: string }> => {
     const result = await createBusinessProfile(data)
     if (result.success) {
       setShowCreateProfile(false)
