@@ -1,5 +1,3 @@
-import { formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
-
 export type PricingType = 'cash' | 'finance'
 
 export interface ListingDescriptionInput {
@@ -66,7 +64,6 @@ export const buildListingDescription = (input: ListingDescriptionInput): Descrip
   const resolvedModel = input.model === 'Other' ? input.customModel : input.model
   const resolvedTrim = toCleanString(input.trim)
   const resolvedYear = toCleanString(input.year)
-  const resolvedRegYear = toCleanString(input.registrationYear)
 
   const mileageNumber = toInteger(input.mileage)
   const engineCapacityNumber = toInteger(input.engineCapacity)
@@ -75,27 +72,17 @@ export const buildListingDescription = (input: ListingDescriptionInput): Descrip
   const remainingTermNumber = toInteger(input.remainingTerm)
   const askingPriceNumber = toInteger(input.askingPrice)
   const priceNumber = toInteger(input.price)
-  const previousOwnersNumber = toInteger(input.previousOwners)
 
   const lines: string[] = []
 
-  if (input.title) lines.push(`Title: ${toCleanString(input.title)}`)
-  if (input.vehicleType) lines.push(`Vehicle Type: ${input.vehicleType}`)
+  if (input.title) lines.push(toCleanString(input.title))
 
   if (resolvedMake) lines.push(`Make: ${resolvedMake}`)
   if (resolvedModel) lines.push(`Model: ${resolvedModel}`)
   if (resolvedTrim) lines.push(`Trim / Grade: ${resolvedTrim}`)
 
   if (resolvedYear) {
-    let yearLine = `Year of Manufacture: ${resolvedYear}`
-    if (resolvedRegYear && resolvedRegYear !== resolvedYear) {
-      yearLine += ` | Registration Year: ${resolvedRegYear}`
-    } else if (resolvedRegYear && resolvedRegYear === resolvedYear) {
-      yearLine += ` | Registered: ${resolvedRegYear}`
-    }
-    lines.push(yearLine)
-  } else if (resolvedRegYear) {
-    lines.push(`Registration Year: ${resolvedRegYear}`)
+    lines.push(`Year of Manufacture: ${resolvedYear}`)
   }
 
   if (Number.isFinite(mileageNumber) && mileageNumber > 0) {
@@ -103,9 +90,6 @@ export const buildListingDescription = (input: ListingDescriptionInput): Descrip
   }
 
   if (input.condition) lines.push(`Condition: ${input.condition}`)
-  if (input.vehicleConditionDetails) {
-    lines.push(`Condition Detail: ${input.vehicleConditionDetails}`)
-  }
 
   if (Number.isFinite(engineCapacityNumber) && engineCapacityNumber > 0) {
     lines.push(`Engine Capacity: ${engineCapacityNumber.toLocaleString('en-LK')} cc`)
@@ -114,13 +98,6 @@ export const buildListingDescription = (input: ListingDescriptionInput): Descrip
   if (input.transmission) lines.push(`Transmission: ${input.transmission}`)
 
   if (input.color) lines.push(`Exterior Color: ${input.color}`)
-  if (input.interiorColor) lines.push(`Interior Color: ${input.interiorColor}`)
-
-  if (Number.isFinite(previousOwnersNumber) && previousOwnersNumber > 0) {
-    lines.push(`Previous Owners: ${previousOwnersNumber}`)
-  } else if (typeof input.previousOwners === 'string' && input.previousOwners.trim().length > 0) {
-    lines.push(`Previous Owners: ${input.previousOwners}`)
-  }
 
   if (input.serviceRecordsAvailable === true) {
     lines.push('Service Records Available: Yes')
@@ -159,16 +136,6 @@ export const buildListingDescription = (input: ListingDescriptionInput): Descrip
 
   if (input.features?.length) {
     lines.push(`Key Features: ${input.features.join(', ')}`)
-  }
-
-  if (input.phone) lines.push(`Phone: ${formatPhoneDisplay(input.phone)}`)
-  if (input.whatsapp) lines.push(`WhatsApp: ${formatPhoneDisplay(input.whatsapp)}`)
-  if (input.email) lines.push(`Email: ${input.email}`)
-  if (input.preferredContact) {
-    lines.push(`Preferred Contact: ${input.preferredContact}`)
-  }
-  if (input.bestTimeToCall) {
-    lines.push(`Best Time to Contact: ${input.bestTimeToCall}`)
   }
 
   if (!lines.length) {
