@@ -150,7 +150,7 @@ export default function Header() {
             {/* Logo */}
             <Link href="/" className="flex items-center -ml-2" aria-label="VERA home">
               <Image
-                src="/vera-logo.png"
+                src="/vera-logo.svg"
                 alt="VERA logo"
                 width={400}
                 height={100}
@@ -492,7 +492,7 @@ export default function Header() {
               ) : (
                 <Link href="/" className="flex items-center" onClick={() => setMobileMenuOpen(false)} aria-label="VERA home">
                   <Image
-                    src="/vera-logo.png"
+                    src="/vera-logo.svg"
                     alt="VERA logo"
                     width={360}
                     height={90}

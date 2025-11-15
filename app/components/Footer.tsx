@@ -10,6 +10,16 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Footer Content */}
         <div className="py-12">
+          {/* Logo - Mobile only, at top of footer links */}
+          <div className="md:hidden mb-8">
+            <Image
+              src="/V (3).svg"
+              alt="VERA logo"
+              width={500}
+              height={500}
+              className="h-[72px] w-auto"
+            />
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-4xl mx-auto">
 
             {/* From VERA Section */}
@@ -220,7 +230,7 @@ export default function Footer() {
               {/* Logo - shown second on mobile, first on desktop */}
               <Link href="/" className="flex items-center justify-center md:justify-start order-2 md:order-none" aria-label="VERA home">
                 <Image
-                  src="/vera-logo.png"
+                  src="/vera-logo.svg"
                   alt="VERA logo"
                   width={270}
                   height={68}

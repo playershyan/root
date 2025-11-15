@@ -23,6 +23,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'VERA - Verified Exchange & Resource Assistant',
   description: 'Sri Lanka\'s trusted marketplace for vehicles, properties, tech, and more. Verified listings powered by AI.',
+  icons: {
+    icon: '/V (3).svg',
+  },
 }
 
 export default function RootLayout({
