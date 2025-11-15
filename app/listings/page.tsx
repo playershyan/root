@@ -106,9 +106,14 @@ export default async function ListingsPage(props: ListingsPageProps) {
   const searchParams = await props.searchParams
   const { dbFilters, clientFilters } = parseFilters(searchParams)
 
-  const [initialFeed, promoted] = await Promise.all([
-    getListingsFeed(dbFilters),
-    getPromotedSlots(dbFilters.vehicleType ?? null)
+  // Fetch promoted slots first to get featured listings
+  const promoted = await getPromotedSlots(dbFilters.vehicleType ?? null)
+  
+  // Get IDs of featured listings to exclude from regular feed (first 2 spots)
+  const excludeFeaturedIds = promoted.featured.slice(0, 2).map(listing => listing.id)
+
+  const [initialFeed] = await Promise.all([
+    getListingsFeed(dbFilters, excludeFeaturedIds.length > 0 ? excludeFeaturedIds : undefined)
   ])
 
   const shouldRefetchLastPage =
@@ -117,7 +122,7 @@ export default async function ListingsPage(props: ListingsPageProps) {
     initialFeed.page > initialFeed.totalPages
 
   const feed = shouldRefetchLastPage
-    ? await getListingsFeed({ ...dbFilters, page: initialFeed.totalPages })
+    ? await getListingsFeed({ ...dbFilters, page: initialFeed.totalPages }, excludeFeaturedIds.length > 0 ? excludeFeaturedIds : undefined)
     : initialFeed
 
   const pagination: ListingsPagePaginationState = {

@@ -184,6 +184,77 @@ export default function ListingsPageClient({
     applyFilters(localFilters, page)
   }
 
+  // Helper function to render the appropriate card based on promotion status
+  const renderListingCard = (listing: ListingSummary) => {
+    const listingData = {
+      ...listing,
+      user_id: listing.user_id ?? 'unknown',
+      image_urls: listing.image_urls ?? [],
+      year: listing.year ?? 0,
+      location: listing.location ?? '',
+      make: listing.make ?? '',
+      model: listing.model ?? '',
+      created_at: listing.created_at ?? new Date().toISOString(),
+      views: 0
+    }
+
+    // Priority order: featured > top_spot > urgent > boosted > regular
+    // Featured listings get special card styling (even if not in top 2 spots)
+    if (listing.is_featured) {
+      return (
+        <FeaturedAdCard
+          key={listing.id}
+          promotionType="featured"
+          listing={listingData}
+        />
+      )
+    }
+    
+    if (listing.is_top_spot) {
+      return (
+        <TopSpotCard
+          key={listing.id}
+          listing={{
+            ...listingData,
+            is_top_spot: true
+          } as any}
+        />
+      )
+    }
+    
+    if (listing.is_urgent) {
+      return (
+        <UrgentListingCard
+          key={listing.id}
+          listing={{
+            ...listingData,
+            is_urgent: true
+          } as any}
+        />
+      )
+    }
+    
+    if (listing.is_boosted) {
+      return (
+        <BoostedCard
+          key={listing.id}
+          listing={{
+            ...listingData,
+            is_boosted: true
+          } as any}
+        />
+      )
+    }
+    
+    // Default to regular card
+    return (
+      <RegularAdCard
+        key={listing.id}
+        listing={listingData}
+      />
+    )
+  }
+
   const activeFilterBadges = useMemo(() => {
     const badges: { label: string; onClear: () => void }[] = []
     if (localFilters.vehicleType) {
@@ -518,31 +589,32 @@ export default function ListingsPageClient({
                 </div>
               )}
 
-              {/* Promoted Sections */}
-              {localFilters.vehicleType && (promoted.featured.length > 0 || promoted.top_spot.length > 0) && (
-                <div className="space-y-4">
-                  {promoted.featured.length > 0 && (
-                    <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4">
-                      <h2 className="mb-3 text-lg font-semibold text-yellow-800 flex items-center gap-2">
-                        <Star className="text-yellow-500 fill-yellow-500" size={16} />
-                        Featured Listings
-                      </h2>
-                      <div className="grid gap-4 md:grid-cols-2">
-                        {promoted.featured.map((listing) => (
-                          <FeaturedAdCard
-                            key={listing.id}
-                            promotionType="featured"
-                            listing={{
-                              ...listing,
-                              user_id: listing.user_id ?? 'unknown',
-                              image_urls: listing.image_urls ?? []
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
+              {/* Featured Listings - Always at the top (first 2 spots) */}
+              {promoted.featured.length > 0 && (
+                <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4">
+                  <h2 className="mb-3 text-lg font-semibold text-yellow-800 flex items-center gap-2">
+                    <Star className="text-yellow-500 fill-yellow-500" size={16} />
+                    Featured Listings
+                  </h2>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {promoted.featured.slice(0, 2).map((listing) => (
+                      <FeaturedAdCard
+                        key={listing.id}
+                        promotionType="featured"
+                        listing={{
+                          ...listing,
+                          user_id: listing.user_id ?? 'unknown',
+                          image_urls: listing.image_urls ?? []
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
 
+              {/* Other Promoted Sections - Only when vehicle type filter is applied */}
+              {localFilters.vehicleType && (promoted.top_spot.length > 0 || promoted.boosted.length > 0 || promoted.urgent.length > 0) && (
+                <div className="space-y-4">
                   {promoted.top_spot.length > 0 && (
                     <div className="rounded-xl border border-purple-200 bg-purple-50 p-4">
                       <h2 className="mb-3 text-lg font-semibold text-purple-800 flex items-center gap-2">
@@ -567,7 +639,7 @@ export default function ListingsPageClient({
                 </div>
               )}
 
-              {localFilters.vehicleType && promoted.boosted.length > 0 && (
+              {promoted.boosted.length > 0 && (
                 <div className="rounded-xl border border-blue-200 bg-white p-4">
                   <h2 className="mb-3 text-lg font-semibold text-blue-800 flex items-center gap-2">
                     <Zap className="text-blue-500" size={16} />
@@ -589,7 +661,7 @@ export default function ListingsPageClient({
                 </div>
               )}
 
-              {localFilters.vehicleType && promoted.urgent.length > 0 && (
+              {promoted.urgent.length > 0 && (
                 <div className="rounded-xl border border-red-200 bg-red-50 p-4">
                   <h2 className="mb-3 text-lg font-semibold text-red-800 flex items-center gap-2">
                     <AlertCircle className="text-red-500" size={16} />
@@ -635,16 +707,7 @@ export default function ListingsPageClient({
                   </div>
                 ) : (
                   <div className="grid gap-4 md:grid-cols-2">
-                    {listings.map((listing) => (
-                      <RegularAdCard
-                        key={listing.id}
-                        listing={{
-                          ...listing,
-                          user_id: listing.user_id ?? 'unknown',
-                          image_urls: listing.image_urls ?? []
-                        }}
-                      />
-                    ))}
+                    {listings.map((listing) => renderListingCard(listing))}
                   </div>
                 )}
 

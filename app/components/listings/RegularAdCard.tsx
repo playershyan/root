@@ -38,6 +38,11 @@ interface RegularAdCardProps {
     phone?: string
     whatsapp?: string
     user_id: string
+    // Promotion flags
+    is_featured?: boolean
+    is_top_spot?: boolean
+    is_boosted?: boolean
+    is_urgent?: boolean
   }
   showPromotionBadge?: boolean
   activeImageIndex?: number
@@ -63,16 +68,24 @@ export default function RegularAdCard({
   const [showConversationModal, setShowConversationModal] = useState(false)
   
   const getPromotionBadge = () => {
-    if (!showPromotionBadge || !listing.isPromoted) return null
-    
-    switch (listing.promotionType) {
-      case 'urgent':
-        return <PromotionBadges.Urgent />
-      case 'boost':
-        return <PromotionBadges.Boost />
-      default:
-        return null
+    // Show promotion badges if any promotion flag is set
+    if (listing.is_featured || listing.is_top_spot || listing.is_boosted || listing.is_urgent) {
+      return <PromotionBadges listing={listing} size="small" />
     }
+    
+    // Legacy support for old promotion system
+    if (showPromotionBadge && listing.isPromoted) {
+      switch (listing.promotionType) {
+        case 'urgent':
+          return <PromotionBadges listing={{ is_urgent: true }} size="small" />
+        case 'boost':
+          return <PromotionBadges listing={{ is_boosted: true }} size="small" />
+        default:
+          return null
+      }
+    }
+    
+    return null
   }
 
   return (
@@ -85,10 +98,10 @@ export default function RegularAdCard({
       <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100 group cursor-pointer">
         {/* Image Section */}
         <div className="relative h-48 bg-gray-200 rounded-t-lg overflow-hidden group">
-        {/* Promotion Badge */}
-        {getPromotionBadge() && (
+        {/* Promotion Badges */}
+        {(listing.is_featured || listing.is_top_spot || listing.is_boosted || listing.is_urgent) && (
           <div className="absolute top-2 left-2 z-10">
-            {getPromotionBadge()}
+            <PromotionBadges listing={listing} size="small" />
           </div>
         )}
         

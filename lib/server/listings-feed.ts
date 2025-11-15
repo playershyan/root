@@ -13,7 +13,7 @@ import type {
 const DEFAULT_PAGE_SIZE = 24
 const MAX_PAGE_SIZE = 60
 
-async function fetchListingsFeed(filters: ListingsFeedFilters): Promise<ListingsFeedResult> {
+async function fetchListingsFeed(filters: ListingsFeedFilters, excludeFeaturedIds?: string[]): Promise<ListingsFeedResult> {
   const supabase = createServiceSupabaseClient()
   const page = Math.max(filters.page ?? 1, 1)
   const pageSize = Math.min(Math.max(filters.pageSize ?? DEFAULT_PAGE_SIZE, 1), MAX_PAGE_SIZE)
@@ -56,6 +56,15 @@ async function fetchListingsFeed(filters: ListingsFeedFilters): Promise<Listings
     `, { count: 'exact' })
     .eq('status', 'active')
     .eq('is_sold', false)
+
+  // Exclude featured listings that are shown at the top (first 2 spots)
+  // Only exclude on page 1 to avoid duplicates
+  if (page === 1 && excludeFeaturedIds && excludeFeaturedIds.length > 0) {
+    // Use filter to exclude featured listing IDs
+    for (const id of excludeFeaturedIds) {
+      query = query.neq('id', id)
+    }
+  }
 
   if (filters.vehicleType) {
     query = query.eq('vehicle_type', filters.vehicleType)
@@ -202,9 +211,9 @@ async function fetchPromotedSlots(filters: Pick<ListingsFeedFilters, 'vehicleTyp
 }
 
 const getListingsFeedCached = unstable_cache(
-  async (serialized: string) => {
+  async (serialized: string, excludeFeaturedIds?: string[]) => {
     const parsed = JSON.parse(serialized) as ListingsFeedFilters
-    return fetchListingsFeed(parsed)
+    return fetchListingsFeed(parsed, excludeFeaturedIds)
   },
   ['listings-feed'],
   { revalidate: 120 }
@@ -218,10 +227,10 @@ const getPromotedSlotsCached = unstable_cache(
   { revalidate: 120 }
 )
 
-export async function getListingsFeed(filters: ListingsFeedFilters): Promise<ListingsFeedResult> {
+export async function getListingsFeed(filters: ListingsFeedFilters, excludeFeaturedIds?: string[]): Promise<ListingsFeedResult> {
   // Serialize filters to ensure stable cache key
   const serialized = JSON.stringify(filters ?? {})
-  return getListingsFeedCached(serialized)
+  return getListingsFeedCached(serialized, excludeFeaturedIds)
 }
 
 export async function getPromotedSlots(vehicleType?: string | null): Promise<PromotedSlots> {
