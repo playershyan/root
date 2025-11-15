@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 import { SandboxPaymentService } from '@/lib/payments/sandboxPaymentService'
 import { logger } from '@/lib/utils/logger'
 import { PromotionType } from '@/lib/services/promotionService'
@@ -10,6 +12,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Sandbox mode is not enabled. Set PAYMENT_SANDBOX_MODE=true in your environment.' },
         { status: 403 }
+      )
+    }
+
+    // Authenticate user
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized. Please sign in to process payments.' },
+        { status: 401 }
       )
     }
 
@@ -43,7 +58,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Process sandbox payment
+    // Verify listing ownership
+    const { data: listing, error: listingError } = await supabase
+      .from('listings')
+      .select('id, user_id')
+      .eq('id', listingId)
+      .single()
+
+    if (listingError || !listing) {
+      return NextResponse.json(
+        { error: 'Listing not found' },
+        { status: 404 }
+      )
+    }
+
+    if (listing.user_id !== user.id) {
+      return NextResponse.json(
+        { error: 'You do not have permission to promote this listing' },
+        { status: 403 }
+      )
+    }
+
+    // Process sandbox payment with authenticated client
     const result = await SandboxPaymentService.processPayment({
       listingId,
       promotionTypes: promotionTypes as PromotionType[],
@@ -52,7 +88,7 @@ export async function POST(request: NextRequest) {
       customerPhone,
       scenario,
       delay
-    })
+    }, supabase)
 
     if (result.success) {
       return NextResponse.json(result, { status: 200 })

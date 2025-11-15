@@ -121,8 +121,11 @@ export class PromotionService {
   static async createPromotionBundle(
     listingId: string,
     promotionTypes: PromotionType[],
-    paymentId?: string
+    paymentId?: string,
+    client?: SupabaseClient
   ): Promise<{ data: any; error: any }> {
+    const supabase = this.getClient(client)
+    
     const promotions = promotionTypes.map((type) => {
       const pricing = PROMOTION_PRICING[type]
       const expiresAt = new Date()
@@ -138,10 +141,10 @@ export class PromotionService {
       }
     })
 
-    const { data, error } = await supabaseClient.from('promotions').insert(promotions)
+    const { data, error } = await supabase.from('promotions').insert(promotions)
 
     if (!error) {
-      await this.updateListingPromotions(listingId)
+      await this.updateListingPromotions(listingId, client)
     }
 
     return { data, error }
@@ -150,9 +153,11 @@ export class PromotionService {
   /**
    * Update listing promotion flags based on active promotions
    */
-  static async updateListingPromotions(listingId: string): Promise<void> {
+  static async updateListingPromotions(listingId: string, client?: SupabaseClient): Promise<void> {
+    const supabase = this.getClient(client)
+    
     // Get all active promotions for the listing
-    const { data: promotions } = await supabaseClient
+    const { data: promotions } = await supabase
       .from('promotions')
       .select('*')
       .eq('listing_id', listingId)
@@ -194,7 +199,7 @@ export class PromotionService {
       }
     })
 
-    await supabaseClient.from('listings').update(updateData).eq('id', listingId)
+    await supabase.from('listings').update(updateData).eq('id', listingId)
   }
 
   /**

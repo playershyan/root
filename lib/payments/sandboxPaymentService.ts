@@ -1,6 +1,7 @@
 import { PromotionService, PromotionType } from '@/lib/services/promotionService'
 import { logger } from '@/lib/utils/logger'
 import { randomUUID } from 'crypto'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 export interface SandboxPaymentData {
   listingId: string
@@ -42,7 +43,7 @@ export class SandboxPaymentService {
   /**
    * Process a sandbox payment
    */
-  static async processPayment(data: SandboxPaymentData): Promise<SandboxPaymentResponse> {
+  static async processPayment(data: SandboxPaymentData, supabaseClient?: SupabaseClient): Promise<SandboxPaymentResponse> {
     // Generate a readable order ID for logging/tracking
     const orderId = `SANDBOX-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
     // Generate a proper UUID for payment_id (required by database)
@@ -65,7 +66,7 @@ export class SandboxPaymentService {
     // Handle different payment scenarios
     switch (scenario) {
       case 'success':
-        return await this.handleSuccessPayment(data, orderId, transactionId)
+        return await this.handleSuccessPayment(data, orderId, transactionId, supabaseClient)
       
       case 'failure':
         return {
@@ -78,7 +79,7 @@ export class SandboxPaymentService {
       case 'delayed':
         // Simulate delayed payment processing
         await this.delay(3000)
-        return await this.handleSuccessPayment(data, orderId, transactionId)
+        return await this.handleSuccessPayment(data, orderId, transactionId, supabaseClient)
       
       case 'partial':
         return {
@@ -89,7 +90,7 @@ export class SandboxPaymentService {
         }
       
       default:
-        return await this.handleSuccessPayment(data, orderId, transactionId)
+        return await this.handleSuccessPayment(data, orderId, transactionId, supabaseClient)
     }
   }
 
@@ -99,14 +100,16 @@ export class SandboxPaymentService {
   private static async handleSuccessPayment(
     data: SandboxPaymentData,
     orderId: string,
-    transactionId: string
+    transactionId: string,
+    supabaseClient?: SupabaseClient
   ): Promise<SandboxPaymentResponse> {
     try {
-      // Create promotions for the listing
+      // Create promotions for the listing with authenticated client
       const { error } = await PromotionService.createPromotionBundle(
         data.listingId,
         data.promotionTypes,
-        transactionId
+        transactionId,
+        supabaseClient
       )
 
       if (error) {
