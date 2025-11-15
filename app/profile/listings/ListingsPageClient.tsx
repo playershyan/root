@@ -1,14 +1,15 @@
 'use client'
 
-import { useState } from 'react'
-import { ArrowLeft, Car, Camera, Zap } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { ArrowLeft, Car, Camera, Zap, CheckCircle, Star, Crown, TrendingUp, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import FilterDropdown from './components/FilterDropdown'
 import LoadMoreButton from './components/LoadMoreButton'
 import ListingStatusBadge from '@/app/components/listings/ListingStatusBadge'
 import ListingActions from '@/app/components/listings/ListingActions'
+import PromotionBadges from '@/app/components/listings/PromotionBadges'
 import { logger } from '@/lib/utils/logger'
 import { toast } from 'sonner'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
@@ -41,6 +42,16 @@ interface Listing {
   is_sold?: boolean
   is_reported?: boolean
   rejection_reason?: string
+  // Promotion fields
+  is_featured?: boolean
+  is_top_spot?: boolean
+  is_boosted?: boolean
+  is_urgent?: boolean
+  featured_until?: string
+  top_spot_until?: string
+  boosted_until?: string
+  urgent_until?: string
+  boost_score?: number
 }
 
 interface ListingsPageClientProps {
@@ -59,8 +70,50 @@ export default function ListingsPageClient({
   currentPage
 }: ListingsPageClientProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClientComponentClient()
   const [listings, setListings] = useState(initialListings)
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false)
+  const [paymentMessage, setPaymentMessage] = useState('')
+
+  // Handle payment success message from URL params
+  useEffect(() => {
+    const payment = searchParams.get('payment')
+    const features = searchParams.get('features')
+    const type = searchParams.get('type')
+
+    if (payment === 'success' && features) {
+      const featureList = features.split(',').map(f => {
+        if (f === 'top-spot') return 'Top Spot'
+        return f.charAt(0).toUpperCase() + f.slice(1)
+      }).join(', ')
+      
+      setPaymentMessage(
+        type === 'listing' 
+          ? `Promotions activated successfully! Your listing now has: ${featureList}`
+          : `Promotions activated successfully! Your wanted request now has: ${featureList}`
+      )
+      setShowPaymentSuccess(true)
+      
+      // Remove params from URL
+      const url = new URL(window.location.href)
+      url.searchParams.delete('payment')
+      url.searchParams.delete('features')
+      url.searchParams.delete('type')
+      window.history.replaceState({}, '', url)
+      
+      // Refresh data to show updated promotions
+      router.refresh()
+      
+      // Auto-hide after 8 seconds
+      setTimeout(() => setShowPaymentSuccess(false), 8000)
+    } else if (payment === 'failed') {
+      toast.error('Payment failed. Please try again.')
+      const url = new URL(window.location.href)
+      url.searchParams.delete('payment')
+      window.history.replaceState({}, '', url)
+    }
+  }, [searchParams, router])
 
   // Handle pause listing
   const handlePause = async (listingId: string) => {
@@ -172,6 +225,36 @@ export default function ListingsPageClient({
     }
   }
 
+  // Get active promotions for a listing
+  const getActivePromotions = (listing: Listing) => {
+    const promotions = []
+    if (listing.is_featured && (!listing.featured_until || new Date(listing.featured_until) > new Date())) {
+      promotions.push({ type: 'featured', until: listing.featured_until })
+    }
+    if (listing.is_top_spot && (!listing.top_spot_until || new Date(listing.top_spot_until) > new Date())) {
+      promotions.push({ type: 'top_spot', until: listing.top_spot_until })
+    }
+    if (listing.is_boosted && (!listing.boosted_until || new Date(listing.boosted_until) > new Date())) {
+      promotions.push({ type: 'boost', until: listing.boosted_until })
+    }
+    if (listing.is_urgent && (!listing.urgent_until || new Date(listing.urgent_until) > new Date())) {
+      promotions.push({ type: 'urgent', until: listing.urgent_until })
+    }
+    return promotions
+  }
+
+  // Format expiration date
+  const formatExpiration = (dateString?: string) => {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffDays = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    if (diffDays < 0) return 'Expired'
+    if (diffDays === 0) return 'Expires today'
+    if (diffDays === 1) return 'Expires tomorrow'
+    return `Expires in ${diffDays} days`
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -181,6 +264,23 @@ export default function ListingsPageClient({
             Back to Profile
           </Button>
         </Link>
+
+        {/* Payment Success Message */}
+        {showPaymentSuccess && paymentMessage && (
+          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3">
+            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-green-800 font-medium">{paymentMessage}</p>
+              <p className="text-green-700 text-sm mt-1">Your promotions are now active and will be visible to all users.</p>
+            </div>
+            <button
+              onClick={() => setShowPaymentSuccess(false)}
+              className="text-green-600 hover:text-green-800"
+            >
+              ×
+            </button>
+          </div>
+        )}
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           {/* Header */}
@@ -236,13 +336,30 @@ export default function ListingsPageClient({
                                   <Camera className="w-5 h-5" />
                                 )}
                               </div>
-                              <div>
+                              <div className="flex-1">
                                 <Link
                                   href={`/listings/${listing.id}`}
-                                  className="font-medium text-blue-600 hover:text-blue-700"
+                                  className="font-medium text-blue-600 hover:text-blue-700 block mb-1"
                                 >
                                   {listing.title}
                                 </Link>
+                                {/* Promotion Badges */}
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  <PromotionBadges listing={listing} size="small" />
+                                </div>
+                                {/* Promotion Expiration Info */}
+                                {getActivePromotions(listing).length > 0 && (
+                                  <div className="text-xs text-gray-500 mt-1">
+                                    {getActivePromotions(listing).map((p, idx) => (
+                                      <span key={p.type}>
+                                        {idx > 0 && ', '}
+                                        {p.type === 'featured' ? 'Featured' : 
+                                         p.type === 'top_spot' ? 'Top Spot' : 
+                                         p.type === 'boost' ? 'Boost' : 'Urgent'}: {formatExpiration(p.until)}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </td>
@@ -306,12 +423,18 @@ export default function ListingsPageClient({
                           
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-2">
-                              <Link
-                                href={`/listings/${listing.id}`}
-                                className="text-sm font-medium text-blue-600 hover:text-blue-700 line-clamp-2 break-words"
-                              >
-                                {listing.title}
-                              </Link>
+                              <div className="flex-1 min-w-0">
+                                <Link
+                                  href={`/listings/${listing.id}`}
+                                  className="text-sm font-medium text-blue-600 hover:text-blue-700 line-clamp-2 break-words block"
+                                >
+                                  {listing.title}
+                                </Link>
+                                {/* Promotion Badges - Mobile */}
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  <PromotionBadges listing={listing} size="small" />
+                                </div>
+                              </div>
                               
                               {listing.status !== 'sold' && listing.status !== 'deleted' && (
                                 <ListingActions
@@ -336,6 +459,20 @@ export default function ListingsPageClient({
                                 <ListingStatusBadge listing={listing} showReason={false} />
                                 <span className="text-gray-600">{formatListingDate(listing.created_at)}</span>
                               </div>
+
+                              {/* Promotion Expiration Info - Mobile */}
+                              {getActivePromotions(listing).length > 0 && (
+                                <div className="text-xs text-gray-500 bg-gray-50 rounded px-2 py-1">
+                                  {getActivePromotions(listing).map((p, idx) => (
+                                    <span key={p.type}>
+                                      {idx > 0 && ' • '}
+                                      {p.type === 'featured' ? '⭐ Featured' : 
+                                       p.type === 'top_spot' ? '👑 Top Spot' : 
+                                       p.type === 'boost' ? '⚡ Boost' : '🚨 Urgent'}: {formatExpiration(p.until)}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
 
                               {listing.status === 'active' && (
                                 <Button

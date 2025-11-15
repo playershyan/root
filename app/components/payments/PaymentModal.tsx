@@ -123,13 +123,28 @@ export default function PaymentModal({
       const result = await response.json()
 
       if (response.ok && result.success) {
-        toast.success('Payment processed successfully (Sandbox)')
+        const featureNames = selectedFeatures.map(f => {
+          if (f === 'top_spot') return 'Top Spot'
+          return f.charAt(0).toUpperCase() + f.slice(1)
+        }).join(', ')
+        
+        toast.success(`Promotions activated! ${featureNames}`, {
+          duration: 5000,
+          description: 'Your listing will now appear with enhanced visibility'
+        })
+        
         if (onSuccess) {
           onSuccess()
         }
-        onClose()
+        
+        // Close modal after a brief delay to show the toast
+        setTimeout(() => {
+          onClose()
+        }, 1000)
       } else {
-        toast.error(result.message || 'Payment failed (Sandbox)')
+        toast.error(result.message || 'Payment failed (Sandbox)', {
+          duration: 5000
+        })
       }
     } catch (error) {
       toast.error('Error processing sandbox payment')

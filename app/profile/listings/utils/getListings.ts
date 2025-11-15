@@ -34,6 +34,16 @@ export interface Listing {
   rejection_reason?: string
   is_paused?: boolean
   pause_date?: string
+  // Promotion fields
+  is_featured?: boolean
+  is_top_spot?: boolean
+  is_boosted?: boolean
+  is_urgent?: boolean
+  featured_until?: string
+  top_spot_until?: string
+  boosted_until?: string
+  urgent_until?: string
+  boost_score?: number
 }
 
 export interface GetListingsResult {
@@ -133,7 +143,17 @@ export async function getListings(
       report_count: listing.report_count || 0,
       rejection_reason: listing.rejection_reason,
       is_paused: listing.is_paused || false,
-      pause_date: listing.pause_date
+      pause_date: listing.pause_date,
+      // Promotion fields
+      is_featured: listing.is_featured || false,
+      is_top_spot: listing.is_top_spot || false,
+      is_boosted: listing.is_boosted || false,
+      is_urgent: listing.is_urgent || false,
+      featured_until: listing.featured_until,
+      top_spot_until: listing.top_spot_until,
+      boosted_until: listing.boosted_until,
+      urgent_until: listing.urgent_until,
+      boost_score: listing.boost_score || 0
     }))
 
     const totalCount = count || 0
