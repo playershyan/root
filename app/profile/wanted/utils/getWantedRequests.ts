@@ -81,13 +81,15 @@ export async function getUserWantedRequests(
     // Apply status filter
     switch (statusFilter) {
       case 'active':
-        query = query.eq('status', 'active').eq('is_active', true)
+        query = query.eq('status', 'active')
+        // Note: is_active is synced by trigger, but we only filter by status to ensure all active requests appear
         break
       case 'paused':
         query = query.eq('status', 'paused')
         break
       case 'closed':
-        query = query.eq('status', 'closed')
+        // Database stores 'fulfilled' status, but UI shows it as 'closed'
+        query = query.eq('status', 'fulfilled')
         break
       case 'reported':
         query = query.eq('is_reported', true)

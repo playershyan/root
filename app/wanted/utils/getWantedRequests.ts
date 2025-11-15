@@ -93,7 +93,7 @@ const getWantedRequestsUncached = async (
         )
       `, { count: 'exact' })
       .eq('status', 'active')
-      .eq('is_active', true)
+      // Note: is_active is synced by trigger, but we only filter by status to ensure all active requests appear
 
     // Apply filters
     if (filters.location && filters.location !== 'All of Sri Lanka') {

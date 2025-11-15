@@ -197,7 +197,7 @@ export async function GET(request: NextRequest) {
         created_at, updated_at, views, is_urgent
       `, { count: 'exact' })
       .eq('status', 'active')
-      .eq('is_active', true)
+      // Note: is_active is synced by trigger, but we only filter by status to ensure all active requests appear
 
     // Apply filters
     if (search) {
