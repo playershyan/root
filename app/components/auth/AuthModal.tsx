@@ -29,6 +29,7 @@ export default function AuthModal({
   const [verificationData, setVerificationData] = useState<{
     phone?: string;
     email?: string;
+    name?: string;
   }>({})
   const [loading, setLoading] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
@@ -76,8 +77,8 @@ export default function AuthModal({
     // Error handling is managed by individual components
   }
 
-  const handlePhoneVerificationRequired = (phone: string) => {
-    setVerificationData({ phone })
+  const handlePhoneVerificationRequired = (data: { phone: string; name?: string }) => {
+    setVerificationData({ phone: data.phone, name: data.name })
     setCurrentView('otp-verify')
   }
 
@@ -336,6 +337,7 @@ export default function AuthModal({
             <OTPVerification
               phone={verificationData.phone}
               email={verificationData.email}
+              name={verificationData.name}
               onVerificationComplete={handleVerificationComplete}
               onResendOTP={handleResendOTP}
             />

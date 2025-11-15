@@ -89,8 +89,9 @@ const formatBudget = (value: number | null | undefined): string => {
 
 // Helper function to render the appropriate card component
 const renderWantedCard = (request: WantedRequest) => {
-  const requestWithBudget = {
+  const requestWithBudget: Parameters<typeof RegularWantedCard>[0]['request'] = {
     ...request,
+    description: request.description || '',
     budget: request.max_budget || request.min_budget || 0
   }
 
@@ -300,13 +301,13 @@ function WantedSearchPageContent() {
     if (filters.minBudget) {
       const min = parseFloat(filters.minBudget)
       filtered = filtered.filter(req =>
-        req.max_budget ? req.max_budget >= min : true
+        typeof req.min_budget === 'number' ? req.min_budget >= min : false
       )
     }
     if (filters.maxBudget) {
       const max = parseFloat(filters.maxBudget)
       filtered = filtered.filter(req =>
-        req.min_budget ? req.min_budget <= max : true
+        typeof req.max_budget === 'number' ? req.max_budget <= max : false
       )
     }
 
@@ -331,10 +332,11 @@ function WantedSearchPageContent() {
           return (b.max_budget || 0) - (a.max_budget || 0)
         case 'budget-low':
           return (a.min_budget || 0) - (b.min_budget || 0)
-        case 'urgency':
-          const aUrgency = a.urgency === 'high' ? 0 : 1
-          const bUrgency = b.urgency === 'high' ? 0 : 1
-          return aUrgency - bUrgency
+        case 'high-priority':
+          if (a.is_high_priority === b.is_high_priority) {
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          }
+          return (a.is_high_priority ? 0 : 1) - (b.is_high_priority ? 0 : 1)
         default: // recent
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       }
@@ -468,7 +470,7 @@ function WantedSearchPageContent() {
               <option value="recent">Most Recent</option>
               <option value="budget-high">Budget: High to Low</option>
               <option value="budget-low">Budget: Low to High</option>
-              <option value="urgency">Most Urgent</option>
+              <option value="high-priority">High Priority First</option>
             </select>
           </div>
         </div>

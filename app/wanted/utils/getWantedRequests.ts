@@ -110,12 +110,12 @@ const getWantedRequestsUncached = async (
 
     if (filters.minBudget) {
       const minBudget = parseFloat(filters.minBudget)
-      query = query.gte('max_budget', minBudget)
+      query = query.gte('min_budget', minBudget)
     }
 
     if (filters.maxBudget) {
       const maxBudget = parseFloat(filters.maxBudget)
-      query = query.lte('min_budget', maxBudget)
+      query = query.lte('max_budget', maxBudget)
     }
 
     if (filters.yearFrom) {
@@ -149,7 +149,7 @@ const getWantedRequestsUncached = async (
       case 'budget-low':
         query = query.order('min_budget', { ascending: true, nullsFirst: false })
         break
-      case 'urgency':
+      case 'high-priority':
         query = query
           .order('is_high_priority', { ascending: false, nullsFirst: false })
           .order('created_at', { ascending: false })

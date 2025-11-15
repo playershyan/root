@@ -6,7 +6,8 @@ import { ConversationData, MessageData, formatMessageDate, formatPrice, getOther
 import OfferCard from '@/app/components/messaging/OfferCard'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { logger } from '@/lib/utils/logger'
+
+type OfferAction = 'accepted' | 'declined'
 
 interface ConversationViewProps {
   conversation: ConversationData
@@ -16,6 +17,11 @@ interface ConversationViewProps {
   onSendMessage: (content: string) => Promise<void>
   loadingMessages?: boolean
   sendingMessage?: boolean
+  onOfferAction?: (offerId: string, action: OfferAction) => Promise<void>
+  onMakeOffer?: () => void
+  onLoadOlder?: () => Promise<void> | void
+  hasMoreOlder?: boolean
+  loadingOlder?: boolean
 }
 
 export default function ConversationView({
@@ -25,7 +31,12 @@ export default function ConversationView({
   onBack,
   onSendMessage,
   loadingMessages = false,
-  sendingMessage = false
+  sendingMessage = false,
+  onOfferAction,
+  onMakeOffer,
+  onLoadOlder,
+  hasMoreOlder = false,
+  loadingOlder = false
 }: ConversationViewProps) {
   const [newMessage, setNewMessage] = useState('')
   const otherUser = getOtherUser(conversation)
@@ -76,26 +87,34 @@ export default function ConversationView({
           </div>
 
           {/* Listing Info - Desktop only */}
-          <div className="hidden md:flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition-colors flex-shrink-0 cursor-pointer">
-            {conversation.listing_image_url ? (
-              <img
-                src={conversation.listing_image_url}
-                alt={conversation.listing_title}
-                className="w-12 h-12 object-cover rounded"
-              />
-            ) : (
-              <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
-                <Car className="w-6 h-6 text-gray-400" />
+          <div className="hidden md:flex items-center gap-3">
+            <div className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition-colors flex-shrink-0 cursor-pointer">
+              {conversation.listing_image_url ? (
+                <img
+                  src={conversation.listing_image_url}
+                  alt={conversation.listing_title}
+                  className="w-12 h-12 object-cover rounded"
+                />
+              ) : (
+                <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
+                  <Car className="w-6 h-6 text-gray-400" />
+                </div>
+              )}
+              <div className="text-right">
+                <p className="text-sm font-medium truncate max-w-[200px]">
+                  {conversation.listing_title}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {formatPrice(conversation.listing_price)}
+                </p>
               </div>
-            )}
-            <div className="text-right">
-              <p className="text-sm font-medium truncate max-w-[200px]">
-                {conversation.listing_title}
-              </p>
-              <p className="text-sm text-gray-500">
-                {formatPrice(conversation.listing_price)}
-              </p>
             </div>
+
+            {conversation.current_user_role === 'buyer' && onMakeOffer && (
+              <Button variant="secondary" size="sm" onClick={onMakeOffer}>
+                Make Offer
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -123,10 +142,29 @@ export default function ConversationView({
             </p>
           </div>
         </div>
+        {conversation.current_user_role === 'buyer' && onMakeOffer && (
+          <div className="mt-2">
+            <Button variant="secondary" size="sm" className="w-full" onClick={onMakeOffer}>
+              Make Offer
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-3 md:px-6 py-3 md:py-4 space-y-3 md:space-y-4 min-h-[400px] max-h-[600px] bg-gray-50">
+        {onLoadOlder && hasMoreOlder && (
+          <div className="flex justify-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onLoadOlder()}
+              disabled={loadingOlder}
+            >
+              {loadingOlder ? 'Loading…' : 'Load earlier messages'}
+            </Button>
+          </div>
+        )}
         {loadingMessages ? (
           <div className="flex justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -180,14 +218,16 @@ export default function ConversationView({
                           senderName={message.sender.profiles?.name || 'User'}
                           timestamp={message.created_at}
                           isOwner={conversation.seller_id === currentUserId}
-                          onReaction={async (action) => {
-                            // TODO: Implement offer response
-                            logger.debug('Offer response action', {
-                              component: 'ConversationView',
-                              action,
-                              offerId: message.offer_data.offerId
-                            })
-                          }}
+                          reaction={
+                            message.offer_data.status === 'accepted' || message.offer_data.status === 'declined'
+                              ? message.offer_data.status
+                              : null
+                          }
+                          onReaction={
+                            onOfferAction && conversation.seller_id === currentUserId
+                              ? (offerId, action) => onOfferAction(offerId, action)
+                              : undefined
+                          }
                           listingTitle={message.offer_data.listingTitle}
                         />
                       ) : (

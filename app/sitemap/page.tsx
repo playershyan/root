@@ -47,8 +47,7 @@ export default function SitemapPage() {
                 <div className="ml-4 space-y-1">
                     <div>├── <Link href="/post/boost" className="text-blue-600 hover:underline">Boost Your Listing</Link></div>
                     <div>├── <Link href="/post/paid-features" className="text-blue-600 hover:underline">Paid Features</Link></div>
-                    <div>├── <Link href="/wanted/post/boost" className="text-blue-600 hover:underline">Boost Wanted Request</Link></div>
-                    <div>└── <Link href="/wanted-request/paid-features" className="text-blue-600 hover:underline">Wanted Paid Features</Link></div>
+                    <div>└── <Link href="/wanted/post/boost" className="text-blue-600 hover:underline">Boost Wanted Request</Link></div>
                 </div>
               </div>
             </div>

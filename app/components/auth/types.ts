@@ -35,6 +35,7 @@ export interface EmailAuthProps extends AuthButtonProps {
 export interface OTPVerificationProps {
   phone?: string;
   email?: string;
+  name?: string;
   onVerificationComplete: (result: AuthResult) => void;
   onResendOTP: () => void;
   resendTimer?: number;

@@ -217,11 +217,11 @@ export async function GET(request: NextRequest) {
     }
 
     if (minBudget) {
-      query = query.gte('max_budget', parseFloat(minBudget))
+      query = query.gte('min_budget', parseFloat(minBudget))
     }
 
     if (maxBudget) {
-      query = query.lte('min_budget', parseFloat(maxBudget))
+      query = query.lte('max_budget', parseFloat(maxBudget))
     }
 
     if (yearFrom) {
@@ -244,8 +244,10 @@ export async function GET(request: NextRequest) {
       case 'budget-low':
         query = query.order('min_budget', { ascending: true, nullsFirst: false })
         break
-      case 'urgency':
-        query = query.order('is_high_priority', { ascending: false })
+      case 'high-priority':
+        query = query
+          .order('is_high_priority', { ascending: false })
+          .order('created_at', { ascending: false })
         break
       default: // recent
         query = query.order('created_at', { ascending: false })

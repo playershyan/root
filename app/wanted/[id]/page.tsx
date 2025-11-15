@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/app/contexts/AuthContext'
-import { ArrowLeft, MapPin, Calendar, Eye, Edit, Share2, Flag, Zap, TrendingUp, Star } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, Eye, Edit, Share2, Flag, Zap, TrendingUp } from 'lucide-react'
 import ContactModal from '@/app/components/modals/ContactModal'
 import WantedRequestFavoriteButton from '@/app/components/WantedRequestFavoriteButton'
 import { logger } from '@/lib/utils/logger'
@@ -27,7 +27,6 @@ interface WantedRequest {
   fuel_type?: string
   transmission?: string
   max_mileage?: number
-  urgency?: 'high' | 'medium' | 'low'
   created_at: string
   user_name?: string
   user_avatar?: string
@@ -254,40 +253,16 @@ export default function WantedRequestDetailPage() {
   }
 
   // Determine tier styling
-  const isGoldFeatured = request.urgency === 'high'
   const isHighPriority = request.is_high_priority
-  const isBoosted = request.is_boosted
-
-  const getTierStyles = () => {
-    if (isHighPriority) {
-      return {
+  const tierStyles = isHighPriority
+    ? {
         containerClass: 'bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50',
-        borderClass: 'border-2 border-red-300',
-        accentColor: 'red'
+        borderClass: 'border-2 border-red-300'
       }
-    }
-    if (isGoldFeatured) {
-      return {
-        containerClass: 'bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50',
-        borderClass: 'border-2 border-yellow-400',
-        accentColor: 'yellow'
+    : {
+        containerClass: 'bg-white',
+        borderClass: 'border border-gray-200'
       }
-    }
-    if (isBoosted) {
-      return {
-        containerClass: 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50',
-        borderClass: 'border-2 border-blue-300',
-        accentColor: 'blue'
-      }
-    }
-    return {
-      containerClass: 'bg-white',
-      borderClass: 'border border-gray-200',
-      accentColor: 'gray'
-    }
-  }
-
-  const tierStyles = getTierStyles()
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -319,18 +294,6 @@ export default function WantedRequestDetailPage() {
                     URGENT REQUEST
                   </span>
                 )}
-                {isGoldFeatured && !isHighPriority && (
-                  <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-amber-500 text-white rounded-full text-sm font-bold shadow-md">
-                    <Star size={16} />
-                    FEATURED
-                  </span>
-                )}
-                {isBoosted && !isHighPriority && !isGoldFeatured && (
-                  <span className="inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full text-sm font-semibold shadow-md">
-                    <TrendingUp className="w-4 h-4" />
-                    BOOSTED
-                  </span>
-                )}
               </div>
 
               <h1 className="text-3xl font-bold text-gray-900 mb-4">{request.title}</h1>
@@ -360,18 +323,10 @@ export default function WantedRequestDetailPage() {
 
               {/* Budget */}
               <div className={`rounded-lg p-4 border-l-4 ${
-                isHighPriority ? 'bg-red-100 border-red-600' :
-                isGoldFeatured ? 'bg-yellow-100 border-yellow-600' :
-                isBoosted ? 'bg-blue-100 border-blue-600' :
-                'bg-blue-50 border-blue-600'
+                isHighPriority ? 'bg-red-100 border-red-600' : 'bg-blue-50 border-blue-600'
               }`}>
                 <div className="font-semibold text-gray-700 mb-1">Budget Range</div>
-                <div className={`text-2xl font-bold ${
-                  isHighPriority ? 'text-red-700' :
-                  isGoldFeatured ? 'text-yellow-700' :
-                  isBoosted ? 'text-blue-700' :
-                  'text-blue-600'
-                }`}>
+                <div className={`text-2xl font-bold ${isHighPriority ? 'text-red-700' : 'text-blue-600'}`}>
                   Rs. {formatBudget(request.min_budget)} - {formatBudget(request.max_budget)}
                 </div>
               </div>
@@ -380,9 +335,9 @@ export default function WantedRequestDetailPage() {
             {/* Description */}
             {request.description && (
               <div className={`rounded-lg shadow-md p-6 ${
-                isHighPriority || isGoldFeatured || isBoosted ? tierStyles.containerClass : 'bg-white'
+                isHighPriority ? tierStyles.containerClass : 'bg-white'
               } ${
-                isHighPriority || isGoldFeatured || isBoosted ? tierStyles.borderClass : ''
+                isHighPriority ? tierStyles.borderClass : ''
               }`}>
                 <h2 className="text-xl font-bold text-gray-900 mb-3">Description</h2>
                 <p className="text-gray-700 whitespace-pre-wrap">{request.description}</p>
@@ -391,9 +346,9 @@ export default function WantedRequestDetailPage() {
 
             {/* Vehicle Preferences */}
             <div className={`rounded-lg shadow-md p-6 ${
-              isHighPriority || isGoldFeatured || isBoosted ? tierStyles.containerClass : 'bg-white'
+              isHighPriority ? tierStyles.containerClass : 'bg-white'
             } ${
-              isHighPriority || isGoldFeatured || isBoosted ? tierStyles.borderClass : ''
+              isHighPriority ? tierStyles.borderClass : ''
             }`}>
               <h2 className="text-xl font-bold text-gray-900 mb-4">Vehicle Preferences</h2>
               <div className="grid grid-cols-2 gap-4">
@@ -443,9 +398,9 @@ export default function WantedRequestDetailPage() {
           <div className="lg:col-span-1 space-y-6">
             {/* Contact/Actions Card */}
             <div className={`rounded-lg shadow-md p-6 sticky top-6 ${
-              isHighPriority || isGoldFeatured || isBoosted ? tierStyles.containerClass : 'bg-white'
+            isHighPriority ? tierStyles.containerClass : 'bg-white'
             } ${
-              isHighPriority || isGoldFeatured || isBoosted ? tierStyles.borderClass : ''
+            isHighPriority ? tierStyles.borderClass : ''
             }`}>
               {isOwner ? (
                 <>
@@ -454,10 +409,9 @@ export default function WantedRequestDetailPage() {
                     <Link
                       href={`/wanted/edit/${request.id}`}
                       className={`w-full flex items-center justify-center gap-2 py-3 rounded-lg text-white hover:opacity-90 transition font-semibold ${
-                        isHighPriority ? 'bg-gradient-to-r from-red-600 to-orange-600' :
-                        isGoldFeatured ? 'bg-gradient-to-r from-yellow-600 to-amber-600' :
-                        isBoosted ? 'bg-gradient-to-r from-blue-600 to-indigo-600' :
-                        'bg-blue-600 hover:bg-blue-700'
+                        isHighPriority
+                          ? 'bg-gradient-to-r from-red-600 to-orange-600'
+                          : 'bg-blue-600 hover:bg-blue-700'
                       }`}
                     >
                       <Edit className="w-4 h-4" />
@@ -507,10 +461,9 @@ export default function WantedRequestDetailPage() {
                   <button
                     onClick={handleContact}
                     className={`w-full text-white py-3 rounded-lg hover:opacity-90 transition font-semibold mb-3 ${
-                      isHighPriority ? 'bg-gradient-to-r from-red-600 to-orange-600 animate-pulse' :
-                      isGoldFeatured ? 'bg-gradient-to-r from-yellow-600 to-amber-600' :
-                      isBoosted ? 'bg-gradient-to-r from-blue-600 to-indigo-600' :
-                      'bg-blue-600 hover:bg-blue-700'
+                      isHighPriority
+                        ? 'bg-gradient-to-r from-red-600 to-orange-600 animate-pulse'
+                        : 'bg-blue-600 hover:bg-blue-700'
                     }`}
                   >
                     Respond to Request

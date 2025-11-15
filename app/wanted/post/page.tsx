@@ -157,6 +157,8 @@ export default function PostWantedPage() {
             if (district) {
               setSelectedDistrict(district)
             }
+
+            setHighPriority(Boolean(data.is_high_priority))
           }
         } catch (error) {
           logger.error('Error in loadWantedRequest', error as Error, {
@@ -412,27 +414,25 @@ export default function PostWantedPage() {
     setStep(step - 1)
   }
 
-  // Format phone number for Sri Lanka only
-  const formatPhoneNumber = (phone: string): string => {
-    // Remove any non-digit characters
-    const cleanPhone = phone.replace(/\D/g, '')
+  const highPriorityPaymentUrl = process.env.NEXT_PUBLIC_WANTED_PAYMENT_URL
 
-    let formattedPhone = cleanPhone
-
-    // If number starts with 0, remove it
-    if (formattedPhone.startsWith('0')) {
-      formattedPhone = formattedPhone.substring(1)
+  const handlePostCreationRedirect = (requestId?: string) => {
+    if (highPriority && requestId) {
+      if (highPriorityPaymentUrl) {
+        const separator = highPriorityPaymentUrl.includes('?') ? '&' : '?'
+        router.push(`${highPriorityPaymentUrl}${separator}requestId=${requestId}`)
+      } else {
+        logger.warn('High priority payment URL is not configured', {
+          component: 'PostWantedPage',
+          action: 'handlePostCreationRedirect',
+          requestId
+        })
+        showError('High priority payments are coming soon. Your request is live as a regular post.', 5000)
+        router.push('/wanted?posted=success')
+      }
+    } else {
+      router.push('/wanted?posted=success')
     }
-
-    // Format as +94 XX XXX XXXX
-    if (formattedPhone.length >= 9) {
-      const areaCode = formattedPhone.substring(0, 2)
-      const firstPart = formattedPhone.substring(2, 5)
-      const secondPart = formattedPhone.substring(5, 9)
-      return `+94 ${areaCode} ${firstPart} ${secondPart}`
-    }
-
-    return `+94 ${formattedPhone}`
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -444,68 +444,59 @@ export default function PostWantedPage() {
 
     setLoading(true)
 
-    // Format phone number (Sri Lankan format only)
-    const formattedPhone = formatPhoneNumber(formData.phone)
-
-    // Combine city and district for location
     const locationString = formData.location && selectedDistrict
-      ? `${formData.location}, ${selectedDistrict}` 
+      ? `${formData.location}, ${selectedDistrict}`
       : formData.location || selectedDistrict
 
     const title = generateTitle()
 
+    const requestPayload = {
+      title,
+      description: formData.description.trim() || null,
+      min_budget: formData.min_budget,
+      max_budget: formData.max_budget,
+      make: formData.make,
+      customMake: formData.customMake,
+      model: formData.model,
+      customModel: formData.customModel,
+      min_year: formData.min_year,
+      max_year: formData.max_year,
+      location: locationString,
+      phone: formData.phone,
+      fuel_type: formData.fuel_type || null,
+      transmission: formData.transmission || null,
+      max_mileage: formData.max_mileage || null
+    }
+
     try {
       if (isEditMode && editId) {
-        // Update existing wanted request
-        const { data, error } = await supabase
-          .from('wanted_requests')
-          .update({
-            title: title,
-            description: formData.description.trim() || null,
-            vehicle_type: formData.vehicleType || null,
-            min_budget: formData.min_budget ? parseFloat(formData.min_budget) : null,
-            max_budget: formData.max_budget ? parseFloat(formData.max_budget) : null,
-            make: formData.make === 'Other' ? (formData.customMake || 'Other') : (formData.make || null),
-            model: formData.model === 'Other' ? (formData.customModel || 'Other') : (formData.model || null),
-            min_year: formData.min_year ? parseInt(formData.min_year) : null,
-            max_year: formData.max_year ? parseInt(formData.max_year) : null,
-            location: locationString,
-            phone: formattedPhone,
-            fuel_type: formData.fuel_type || null,
-            transmission: formData.transmission || null,
-            max_mileage: formData.max_mileage ? parseInt(formData.max_mileage) : null,
-            updated_at: new Date().toISOString()
+        const response = await fetch('/api/wanted-requests/update', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            requestId: editId,
+            ...requestPayload
           })
-          .eq('id', editId)
-          .eq('user_id', user.id)
-          .select()
-          .single()
+        })
 
-        if (error) throw error
+        const result = await response.json()
 
-        showSuccess('Wanted request updated successfully!', 2000)
-        // Redirect to profile with success message
-        setTimeout(() => router.push('/profile?updated=wanted-request'), 1000)
-      } else {
-        // Create new wanted request via API route
-        const requestPayload = {
-          title: title,
-          description: formData.description.trim() || null,
-          min_budget: formData.min_budget,
-          max_budget: formData.max_budget,
-          make: formData.make,
-          customMake: formData.customMake,
-          model: formData.model,
-          customModel: formData.customModel,
-          min_year: formData.min_year,
-          max_year: formData.max_year,
-          location: locationString,
-          phone: formData.phone,
-          fuel_type: formData.fuel_type || null,
-          transmission: formData.transmission || null,
-          max_mileage: formData.max_mileage || null
+        if (!response.ok) {
+          if (response.status === 400 && result.errors) {
+            setErrors(result.errors)
+            showError(result.error || 'Validation failed. Please check your input.', 4000)
+            return
+          }
+
+          showError(result.error || 'Failed to update wanted request', 4000)
+          return
         }
 
+        showSuccess('Wanted request updated successfully!', 2000)
+        setTimeout(() => router.push('/profile?updated=wanted-request'), 1000)
+      } else {
         const response = await fetch('/api/wanted-requests', {
           method: 'POST',
           headers: {
@@ -517,20 +508,17 @@ export default function PostWantedPage() {
         const result = await response.json()
 
         if (!response.ok) {
-          // Handle validation errors
           if (response.status === 400 && result.errors) {
             setErrors(result.errors)
             showError(result.error || 'Validation failed. Please check your input.', 4000)
             return
           }
-          
-          // Handle duplicate errors
+
           if (response.status === 409) {
             showError(result.error || 'You have already posted a similar request recently.', 4000)
             return
           }
-          
-          // Handle rate limiting
+
           if (response.status === 429) {
             showError(result.message || 'Too many requests. Please try again later.', 4000)
             return
@@ -541,22 +529,9 @@ export default function PostWantedPage() {
 
         showSuccess('Wanted request created successfully! Redirecting...', 2000)
 
-        // Redirect based on high priority selection
         setTimeout(() => {
-          if (result.request && result.request.id) {
-            const requestId = result.request.id
-
-            // If high priority is selected, redirect to payment page
-            if (highPriority) {
-              router.push(`/wanted/payment/${requestId}`)
-            } else {
-              // Otherwise, redirect to wanted page with success message
-              router.push('/wanted?posted=success')
-            }
-          } else {
-            // Fallback if no data returned - just go to wanted page with success
-            router.push('/wanted?posted=success')
-          }
+          const requestId = result.request?.id
+          handlePostCreationRedirect(requestId)
         }, 1000)
       }
     } catch (error) {

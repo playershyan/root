@@ -15,8 +15,7 @@ import CreateBusinessProfile from '@/app/components/profile/CreateBusinessProfil
 import { CreateBusinessProfileData } from '@/lib/types/businessProfile'
 
 interface ProfileData {
-  full_name?: string
-  display_name?: string
+  name?: string
   avatar_url?: string
   phone?: string
   whatsapp?: string
@@ -45,7 +44,7 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
   const [showCreateProfile, setShowCreateProfile] = useState(false)
   
   const [formData, setFormData] = useState({
-    displayName: initialProfile?.full_name || initialProfile?.display_name || '',
+    displayName: initialProfile?.name || '',
     phone: initialProfile?.phone || '',
     whatsapp: initialProfile?.whatsapp || ''
   })
@@ -174,7 +173,7 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
                     onClick={() => {
                       setIsEditing(false)
                       setFormData({
-                        displayName: initialProfile?.full_name || initialProfile?.display_name || '',
+                        displayName: initialProfile?.name || '',
                         phone: initialProfile?.phone || '',
                         whatsapp: initialProfile?.whatsapp || ''
                       })
@@ -234,7 +233,7 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
                 ) : (
                   <div>
                     <label className="text-sm font-medium text-gray-700">Display Name</label>
-                    <p className="mt-1 text-gray-900">{initialProfile?.full_name || initialProfile?.display_name || 'Not set'}</p>
+                    <p className="mt-1 text-gray-900">{initialProfile?.name || 'Not set'}</p>
                   </div>
                 )}
               </div>

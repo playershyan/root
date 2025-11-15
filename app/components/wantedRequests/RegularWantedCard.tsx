@@ -26,7 +26,6 @@ interface RegularWantedCardProps {
     created_at: string
     views?: number
     clicks?: number
-    urgency?: 'low' | 'medium' | 'high'
     phone?: string
     whatsapp?: string
   }
@@ -227,20 +226,6 @@ export default function RegularWantedCard({ request }: RegularWantedCardProps) {
               <Calendar className="w-3.5 h-3.5" />
               {getTimeAgo(request.created_at)}
             </span>
-
-            {/* Verified Badge */}
-            {request.urgency && (
-              <div className={`text-xs font-medium flex items-center gap-1 ${
-                request.urgency === 'high' ? 'text-orange-600' :
-                request.urgency === 'medium' ? 'text-yellow-600' : 'text-green-600'
-              }`}>
-                <span className={`w-2 h-2 rounded-full ${
-                  request.urgency === 'high' ? 'bg-orange-500' :
-                  request.urgency === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
-                }`}></span>
-                {request.urgency.charAt(0).toUpperCase() + request.urgency.slice(1)}
-              </div>
-            )}
           </div>
 
           {/* CTA Button */}

@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Eye, Share2, HeartOff, MoreVertical, MapPin, Calendar, MessageCircle, Clock } from 'lucide-react'
-import { FavoriteWantedData, formatPrice, formatDate, truncateDescription, getUrgencyColor, getUrgencyLabel } from '@/lib/utils/favoritesUtils'
+import { Eye, Share2, HeartOff, MoreVertical, MapPin, Calendar, MessageCircle, Zap } from 'lucide-react'
+import { FavoriteWantedData, formatPrice, formatDate, truncateDescription } from '@/lib/utils/favoritesUtils'
 
 interface FavoriteWantedCardProps {
   wanted: FavoriteWantedData
@@ -103,10 +103,10 @@ export default function FavoriteWantedCard({
 
       {/* Status badges */}
       <div className="flex flex-wrap gap-2 mb-3">
-        {wanted.urgency && (
-          <span className={`text-xs px-2 py-1 rounded-full font-medium ${getUrgencyColor(wanted.urgency)}`}>
-            <Clock className="w-3 h-3 inline mr-1" />
-            {getUrgencyLabel(wanted.urgency)}
+        {wanted.is_high_priority && (
+          <span className="text-xs px-2 py-1 rounded-full font-medium bg-orange-50 text-orange-700 inline-flex items-center gap-1">
+            <Zap className="w-3 h-3" />
+            High Priority
           </span>
         )}
         

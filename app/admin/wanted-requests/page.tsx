@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Clock, CheckCircle, XCircle, Eye, Filter, MessageSquare, User, MapPin, Calendar, DollarSign, AlertTriangle, Trash2 } from 'lucide-react'
+import { Search, Clock, CheckCircle, XCircle, Eye, Filter, MessageSquare, User, MapPin, Calendar, DollarSign, AlertTriangle, Trash2, Zap } from 'lucide-react'
 import { useAdmin } from '../components/AdminProvider'
 import { logger } from '@/lib/utils/logger'
 
@@ -22,7 +22,7 @@ interface WantedRequest {
   transmission?: string
   max_mileage?: number
   status: 'pending' | 'active' | 'paused' | 'deleted' | 'fulfilled'
-  urgency?: 'high' | 'medium' | 'low'
+  is_high_priority?: boolean
   created_at: string
   approved_at?: string
   report_count: number
@@ -217,22 +217,6 @@ export default function WantedRequestsManagement() {
     }
   }
 
-  const getUrgencyBadge = (urgency?: string) => {
-    if (!urgency) return null
-
-    const colors = {
-      high: 'bg-red-100 text-red-800',
-      medium: 'bg-yellow-100 text-yellow-800',
-      low: 'bg-gray-100 text-gray-800'
-    }
-
-    return (
-      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${colors[urgency as keyof typeof colors]}`}>
-        {urgency.charAt(0).toUpperCase() + urgency.slice(1)} Priority
-      </span>
-    )
-  }
-
   if (!hasPermission('moderate_listings')) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -382,9 +366,12 @@ export default function WantedRequestsManagement() {
                           <Calendar className="w-3 h-3 ml-2" />
                           {formatTimeAgo(request.created_at)}
                         </div>
-                        {request.urgency && (
+                        {request.is_high_priority && (
                           <div className="mt-2">
-                            {getUrgencyBadge(request.urgency)}
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700">
+                              <Zap className="w-3 h-3 mr-1" />
+                              High Priority
+                            </span>
                           </div>
                         )}
                       </div>

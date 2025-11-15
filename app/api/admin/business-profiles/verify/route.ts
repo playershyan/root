@@ -1,30 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
 import { logger } from '@/lib/utils/logger'
+import { getServiceRoleClient } from '@/lib/supabase/serviceRoleClient'
 
 // PATCH - Verify or reject business profile
 export async function PATCH(request: NextRequest) {
   try {
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const authResult = await verifyAdminAccess(request)
+    if (authResult instanceof NextResponse) {
+      return authResult
     }
 
-    // Check if user is admin
-    const { data: adminUser } = await supabase
-      .from('admin_users')
-      .select('role')
-      .eq('user_id', user.id)
-      .single()
-
-    if (!adminUser) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+    if (!authResult.hasPermission('view_dashboard')) {
+      return NextResponse.json({ error: 'Permission denied' }, { status: 403 })
     }
+
+    const supabase = getServiceRoleClient()
 
     const body = await request.json()
     const { profileId, action, reason } = body

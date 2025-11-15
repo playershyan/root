@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
 import { logger } from '@/lib/utils/logger'
+import { getServiceRoleClient } from '@/lib/supabase/serviceRoleClient'
 
 export async function POST(request: NextRequest) {
   // Verify admin access
@@ -16,8 +15,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const supabase = getServiceRoleClient()
     const { requestId, reason } = await request.json()
 
     if (!requestId) {

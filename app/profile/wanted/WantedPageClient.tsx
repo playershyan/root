@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowLeft, Search, MapPin, Zap } from 'lucide-react'
+import { ArrowLeft, Search, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -238,18 +238,6 @@ export default function WantedPageClient({
                           </td>
                           <td className="px-4 py-4">
                             <div className="flex items-center gap-2">
-                              {request.status === 'active' && (
-                                <Button
-                                  asChild
-                                  size="sm"
-                                  className="bg-amber-500 hover:bg-amber-600 text-white gap-1"
-                                >
-                                  <Link href={`/wanted-request/paid-features?request=${request.id}`}>
-                                    <Zap className="w-3 h-3" />
-                                    Boost
-                                  </Link>
-                                </Button>
-                              )}
                               <WantedRequestActions
                                 request={request as any}
                                 onPause={() => handlePauseResume(request.id, 'pause')}
@@ -310,18 +298,6 @@ export default function WantedPageClient({
                             <WantedRequestStatusBadge request={request as any} />
                           </div>
 
-                          {request.status === 'active' && (
-                            <Button
-                              asChild
-                              size="default"
-                              className="w-full bg-amber-500 hover:bg-amber-600 text-white gap-1"
-                            >
-                              <Link href={`/wanted-request/paid-features?request=${request.id}`}>
-                                <Zap className="w-3 h-3" />
-                                Boost
-                              </Link>
-                            </Button>
-                          )}
                         </div>
                       </div>
                     </div>

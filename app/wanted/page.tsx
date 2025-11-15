@@ -76,8 +76,9 @@ export default async function WantedRequestsPage({ searchParams }: PageProps) {
 
   // Render wanted card
   const renderWantedCard = (request: any) => {
-    const requestWithBudget = {
+    const requestWithBudget: Parameters<typeof RegularWantedCard>[0]['request'] = {
       ...request,
+      description: request.description || '',
       budget: request.max_budget || request.min_budget || 0
     }
 

@@ -61,11 +61,3 @@ export function truncateDescription(description: string, maxLength: number = 100
   if (description.length <= maxLength) return description
   return description.substring(0, maxLength) + '...'
 }
-
-export function getUrgencyColor(isHighPriority?: boolean): string {
-  return isHighPriority ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
-}
-
-export function getUrgencyLabel(isHighPriority?: boolean): string {
-  return isHighPriority ? 'High Priority' : ''
-}

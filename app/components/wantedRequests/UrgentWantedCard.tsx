@@ -18,17 +18,14 @@ interface UrgentWantedCardProps {
     location: string
     make?: string
     model?: string
-    year_min?: number
-    year_max?: number
-    mileage_max?: number
+    min_year?: number
+    max_year?: number
+    max_mileage?: number
     fuel_type?: string
     transmission?: string
     created_at: string
     views?: number
     clicks?: number
-    is_urgent: true
-    urgent_until?: string
-    urgency?: 'urgent' | 'high'
     phone?: string
     whatsapp?: string
   }
@@ -92,12 +89,12 @@ export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
   }
 
   const getYearRange = () => {
-    if (request.year_min && request.year_max) {
-      return `${request.year_min} - ${request.year_max}`
-    } else if (request.year_min) {
-      return `${request.year_min}+`
-    } else if (request.year_max) {
-      return `Up to ${request.year_max}`
+    if (request.min_year && request.max_year) {
+      return `${request.min_year} - ${request.max_year}`
+    } else if (request.min_year) {
+      return `${request.min_year}+`
+    } else if (request.max_year) {
+      return `Up to ${request.max_year}`
     }
     return null
   }
@@ -180,10 +177,10 @@ export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
             </div>
 
             {/* Mileage */}
-            {request.mileage_max && (
+            {request.max_mileage && (
               <div className="flex items-center gap-2 text-gray-700">
                 <TrendingUp className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                <span className="text-sm">Max {request.mileage_max.toLocaleString()} km</span>
+                <span className="text-sm">Max {request.max_mileage.toLocaleString()} km</span>
               </div>
             )}
 
@@ -262,7 +259,7 @@ export default function UrgentWantedCard({ request }: UrgentWantedCardProps) {
           location: request.location,
           make: request.make,
           model: request.model,
-          year: request.year_max || request.year_min
+            year: request.max_year || request.min_year
         }}
       />
     </>

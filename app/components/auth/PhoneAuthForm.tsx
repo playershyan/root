@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { authConfig } from '@/lib/config/auth.config'
 import { signInWithOTP } from '@/lib/auth'
 import { validatePhone } from '@/lib/errorHandling'
-import { formatPhoneForStorage, formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
+import { formatPhoneForStorage } from '@/lib/utils/phoneFormatter'
 import type { PhoneAuthProps, AuthResult } from './types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label'
 import { logger } from '@/lib/utils/logger'
 
 interface PhoneAuthFormProps extends PhoneAuthProps {
-  onVerificationRequired?: (phone: string) => void;
+  onVerificationRequired?: (data: { phone: string; name?: string }) => void;
 }
 
 export default function PhoneAuthForm({
@@ -28,8 +28,10 @@ export default function PhoneAuthForm({
   onVerificationRequired
 }: PhoneAuthFormProps) {
   const [phone, setPhone] = useState('')
+  const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [nameError, setNameError] = useState('')
 
   const { refreshUser } = useAuth()
   const router = useRouter()
@@ -45,6 +47,12 @@ export default function PhoneAuthForm({
 
     // Format phone for storage (Sri Lankan format only - country code + number without zero)
     const fullPhone = formatPhoneForStorage(phone, '94')
+    const trimmedName = name.trim()
+
+    if (!trimmedName) {
+      setNameError('Full name is required')
+      return
+    }
     
     if (!validatePhone(fullPhone)) {
       const errorMessage = 'Please enter a valid phone number'
@@ -61,7 +69,7 @@ export default function PhoneAuthForm({
       
       if (result.success) {
         // Phone OTP requires verification step
-        onVerificationRequired?.(fullPhone)
+        onVerificationRequired?.({ phone: fullPhone, name: trimmedName })
         const authResult: AuthResult = { 
           success: true, 
           requiresPhoneVerification: true 
@@ -95,6 +103,29 @@ export default function PhoneAuthForm({
         )}
 
         <div className="space-y-2">
+          <Label htmlFor="fullName">
+            Full Name
+          </Label>
+          <Input
+            id="fullName"
+            type="text"
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value)
+              if (nameError) setNameError('')
+            }}
+            className={nameError ? 'border-red-500 focus-visible:ring-red-500' : ''}
+            placeholder="Enter your full name"
+            disabled={loading || externalLoading || disabled}
+          />
+          {nameError && (
+            <p className="text-sm text-red-600">
+              {nameError}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="phone">
             Phone Number
           </Label>
@@ -109,7 +140,7 @@ export default function PhoneAuthForm({
               value={phone}
               onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))}
               className={error ? 'border-red-500 focus-visible:ring-red-500' : ''}
-              placeholder="77 123 4567"
+            placeholder="77 123 4567"
               maxLength={10}
               disabled={loading || externalLoading || disabled}
             />
@@ -124,7 +155,14 @@ export default function PhoneAuthForm({
           variant="primary"
           size="default"
           className="w-full"
-          disabled={loading || externalLoading || disabled || !phone.trim()}
+          disabled={
+            loading ||
+            externalLoading ||
+            disabled ||
+            !phone.trim() ||
+            phone.replace(/[^0-9]/g, '').length < 9 ||
+            !name.trim()
+          }
         >
           {loading || externalLoading ? (
             <>

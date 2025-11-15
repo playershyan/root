@@ -30,7 +30,6 @@ Disallow: /forgot-password
 Disallow: /post/boost
 Disallow: /post/paid-features
 Disallow: /wanted/post/boost
-Disallow: /wanted-request/paid-features
 Disallow: /wanted/edit/
 Disallow: /business/
 

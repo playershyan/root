@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
 import { performance } from 'perf_hooks'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
 import { logger } from '@/lib/utils/logger'
 import { performanceMonitor } from '@/lib/monitoring/metrics'
+import { getServiceRoleClient } from '@/lib/supabase/serviceRoleClient'
 
 export const dynamic = 'force-dynamic'
 
@@ -70,8 +69,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const supabase = getServiceRoleClient()
 
     // Try to use the new calculate_dashboard_metrics function
     const { data: metrics, error: metricsError } = await timed(

@@ -12,6 +12,9 @@ export interface MessageData {
     amount: number
     message?: string
     listingTitle?: string
+    status?: 'pending' | 'accepted' | 'declined' | 'expired'
+    responseMessage?: string | null
+    respondedAt?: string | null
   }
   sender: {
     id: string

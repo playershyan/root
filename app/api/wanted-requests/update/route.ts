@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { logger } from '@/lib/utils/logger'
+import {
+  sanitizeWantedRequest,
+  validateWantedRequest,
+  formatPhoneNumber,
+  generateWantedRequestTitle
+} from '@/lib/validation/wantedRequest'
 
 export async function PUT(request: NextRequest) {
   try {
@@ -50,12 +56,48 @@ export async function PUT(request: NextRequest) {
       )
     }
 
+    const sanitizedInput = sanitizeWantedRequest(updateData)
+    const validation = validateWantedRequest(sanitizedInput)
+
+    if (!validation.isValid) {
+      return NextResponse.json(
+        {
+          error: 'Validation failed',
+          errors: validation.errors
+        },
+        { status: 400 }
+      )
+    }
+
     const now = new Date()
+    const formattedPhone = formatPhoneNumber(sanitizedInput.phone || '')
+    const generatedTitle = generateWantedRequestTitle(sanitizedInput)
 
     // Prepare update data
-    const updatePayload = {
-      ...updateData,
+    const updatePayload: Record<string, any> = {
+      title: (updateData.title && updateData.title.trim()) || generatedTitle,
+      description: sanitizedInput.description || null,
+      min_budget: sanitizedInput.min_budget ? parseFloat(String(sanitizedInput.min_budget)) : null,
+      max_budget: sanitizedInput.max_budget ? parseFloat(String(sanitizedInput.max_budget)) : null,
+      make: sanitizedInput.make === 'Other'
+        ? (sanitizedInput.customMake || 'Other')
+        : (sanitizedInput.make || null),
+      model: sanitizedInput.model === 'Other'
+        ? (sanitizedInput.customModel || 'Other')
+        : (sanitizedInput.model || null),
+      min_year: sanitizedInput.min_year ? parseInt(String(sanitizedInput.min_year), 10) : null,
+      max_year: sanitizedInput.max_year ? parseInt(String(sanitizedInput.max_year), 10) : null,
+      location: sanitizedInput.location || '',
+      phone: formattedPhone,
+      fuel_type: sanitizedInput.fuel_type || null,
+      transmission: sanitizedInput.transmission || null,
+      max_mileage: sanitizedInput.max_mileage ? parseInt(String(sanitizedInput.max_mileage), 10) : null,
       updated_at: now.toISOString()
+    }
+
+    if (existingRequest.status === 'deleted') {
+      updatePayload.status = 'pending'
+      updatePayload.resubmitted_at = now.toISOString()
     }
 
     // If this is a resubmission (from deleted status), set to pending

@@ -15,18 +15,15 @@ import { logger } from '@/lib/utils/logger'
 
 export interface UserProfile {
   id: string
-  user_id: string
-  full_name?: string
-  display_name?: string
+  name?: string
   avatar_url?: string
   bio?: string
   phone?: string
   whatsapp?: string
   location?: string
-  preferred_language?: string
-  timezone?: string
-  created_at: string
-  updated_at: string
+  language?: string
+  created_at?: string
+  updated_at?: string
 }
 
 export interface UserPreferences {
@@ -72,9 +69,9 @@ export async function getAccountInfo(userId: string): Promise<GetAccountInfoResu
 
     // Get user profile
     const { data: profile } = await supabase
-      .from('user_profiles')
+      .from('profiles')
       .select('*')
-      .eq('user_id', userId)
+      .eq('id', userId)
       .single()
 
     // Get user preferences

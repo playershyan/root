@@ -139,7 +139,7 @@ export default function MobileWantedFilterSheet({
           'recent': 'Most Recent',
           'budget-high': 'Budget: High to Low',
           'budget-low': 'Budget: Low to High',
-          'urgency': 'Most Urgent'
+          'high-priority': 'High Priority First'
         }
         return {
           text: sortLabels[sortBy] || 'Most Recent',
@@ -853,7 +853,7 @@ function SortFilterPage({
     { value: 'recent', label: 'Most Recent' },
     { value: 'budget-high', label: 'Budget: High to Low' },
     { value: 'budget-low', label: 'Budget: Low to High' },
-    { value: 'urgency', label: 'Most Urgent' }
+    { value: 'high-priority', label: 'High Priority First' }
   ]
 
   return (

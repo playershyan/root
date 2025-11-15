@@ -108,7 +108,7 @@ export default function FilterPanel({ makes, makeModels, allModels }: FilterPane
           <option value="recent">Most Recent</option>
           <option value="budget-high">Budget: High to Low</option>
           <option value="budget-low">Budget: Low to High</option>
-          <option value="urgency">Most Urgent</option>
+          <option value="high-priority">High Priority First</option>
         </select>
       </div>
 

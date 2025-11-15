@@ -1,32 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
 import { logger } from '@/lib/utils/logger'
+import { getServiceRoleClient } from '@/lib/supabase/serviceRoleClient'
 
 export const runtime = 'nodejs'
 
 // GET - Fetch all business profiles for admin review
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const authResult = await verifyAdminAccess(request)
+    if (authResult instanceof NextResponse) {
+      return authResult
     }
 
-    // Check if user is admin
-    const { data: adminUser } = await supabase
-      .from('admin_users')
-      .select('role')
-      .eq('user_id', user.id)
-      .single()
-
-    if (!adminUser) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+    if (!authResult.hasPermission('view_dashboard')) {
+      return NextResponse.json({ error: 'Permission denied' }, { status: 403 })
     }
+
+    const supabase = getServiceRoleClient()
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status') || 'pending'
@@ -47,7 +38,11 @@ export async function GET(request: NextRequest) {
         is_paused,
         created_at,
         updated_at,
-        user_id
+        user_id,
+        profiles:profiles!business_profiles_user_id_fkey (
+          email,
+          name
+        )
       `)
 
     if (status === 'pending') {
@@ -65,7 +60,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch business profiles' }, { status: 500 })
     }
 
-    return NextResponse.json({ profiles })
+    const businesses = (profiles || []).map(({ profiles: ownerProfile, ...rest }) => ({
+      ...rest,
+      user: ownerProfile
+        ? {
+            email: ownerProfile.email,
+            full_name: ownerProfile.name || undefined
+          }
+        : undefined
+    }))
+
+    return NextResponse.json({ businesses })
   } catch (error) {
     logger.error('Unexpected error', error as Error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

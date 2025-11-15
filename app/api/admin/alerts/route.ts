@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
 import { logger } from '@/lib/utils/logger'
+import { getServiceRoleClient } from '@/lib/supabase/serviceRoleClient'
 
 // GET - Get recent alerts and alert configuration
 export async function GET(request: NextRequest) {
@@ -20,8 +19,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Permission denied - view_dashboard required' }, { status: 403 })
     }
 
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const supabase = getServiceRoleClient()
 
     const url = new URL(request.url)
     const action = url.searchParams.get('action') || 'recent'
@@ -143,8 +141,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Permission denied - manage_alerts required' }, { status: 403 })
     }
 
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const supabase = getServiceRoleClient()
 
     const body = await request.json()
     const { action, alertType, config } = body

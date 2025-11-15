@@ -14,6 +14,7 @@ import { logger } from '@/lib/utils/logger'
 export default function OTPVerification({
   phone,
   email,
+  name,
   onVerificationComplete,
   onResendOTP,
   resendTimer = 60
@@ -138,7 +139,7 @@ export default function OTPVerification({
         throw new Error('OTP verification currently only supports phone numbers')
       }
 
-      const result = await verifyOTP(phone, code)
+      const result = await verifyOTP(phone, code, name)
       
       if (result.success) {
         await refreshUser()

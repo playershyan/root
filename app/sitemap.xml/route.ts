@@ -35,7 +35,6 @@ export async function GET() {
     '/post/boost',
     '/post/paid-features',
     '/wanted/post/boost',
-    '/wanted-request/paid-features',
     '/wanted/edit',
     '/business',
   ]

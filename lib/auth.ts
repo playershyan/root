@@ -27,7 +27,11 @@ export async function signInWithOTP(phone: string): Promise<{ success: boolean; 
   }
 }
 
-export async function verifyOTP(phone: string, token: string): Promise<{ success: boolean; error?: AuthError; user?: any }> {
+export async function verifyOTP(
+  phone: string,
+  token: string,
+  name?: string
+): Promise<{ success: boolean; error?: AuthError; user?: any }> {
   try {
     const { data, error } = await supabase.auth.verifyOtp({
       phone: phone,
@@ -40,19 +44,44 @@ export async function verifyOTP(phone: string, token: string): Promise<{ success
     }
 
     if (data.user) {
-      // Check if user profile exists, if not create one
-      const { data: profile } = await supabase
+      const resolvedName =
+        name?.trim() ||
+        data.user.user_metadata?.full_name ||
+        data.user.user_metadata?.name ||
+        null
+
+      const { data: existingProfile } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, name, phone')
         .eq('id', data.user.id)
         .single()
 
-      if (!profile) {
+      if (!existingProfile) {
         await supabase.from('profiles').insert({
           id: data.user.id,
-          phone: phone,
+          phone,
+          name: resolvedName,
+          email: data.user.email,
           created_at: new Date().toISOString()
         })
+      } else if (!existingProfile.name || !existingProfile.phone) {
+        const updatePayload: Record<string, string | null> = {}
+        if (!existingProfile.name && resolvedName) {
+          updatePayload.name = resolvedName
+        }
+        if (!existingProfile.phone && phone) {
+          updatePayload.phone = phone
+        }
+
+        if (Object.keys(updatePayload).length > 0) {
+          await supabase
+            .from('profiles')
+            .update({
+              ...updatePayload,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', data.user.id)
+        }
       }
     }
 
@@ -85,7 +114,12 @@ export async function signInWithEmail(email: string, password: string): Promise<
   }
 }
 
-export async function signUp(email: string, password: string, phone?: string, name?: string): Promise<{ success: boolean; error?: AuthError; user?: any }> {
+export async function signUp(
+  email: string,
+  password: string,
+  name?: string,
+  phone?: string
+): Promise<{ success: boolean; error?: AuthError; user?: any }> {
   try {
     // Get the current site URL for email redirect
     const siteUrl = typeof window !== 'undefined'
@@ -97,8 +131,8 @@ export async function signUp(email: string, password: string, phone?: string, na
       password,
       options: {
         data: {
-          phone,
-          name
+          name,
+          phone
         },
         emailRedirectTo: `${siteUrl}/api/auth/callback`
       }
@@ -110,13 +144,15 @@ export async function signUp(email: string, password: string, phone?: string, na
 
     if (data.user) {
       // Create user profile
-      await supabase.from('profiles').insert({
-        id: data.user.id,
-        email: email,
-        phone: phone,
-        name: name,
-        created_at: new Date().toISOString()
-      })
+      await supabase
+        .from('profiles')
+        .insert({
+          id: data.user.id,
+          email,
+          phone,
+          name,
+          created_at: new Date().toISOString()
+        })
     }
 
     return { success: true, user: data.user }

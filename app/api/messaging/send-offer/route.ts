@@ -191,11 +191,12 @@ export async function POST(request: NextRequest) {
       offerId: offer.id,
       amount,
       message,
-      listingTitle
+      listingTitle,
+      status: 'pending'
     }
-
+    
     const messageStart = performance.now()
-    const { error: messageError } = await supabase
+    const { data: messageRecord, error: messageError } = await supabase
       .from('messages')
       .insert({
         conversation_id: conversationId,
@@ -204,6 +205,20 @@ export async function POST(request: NextRequest) {
         message_type: 'offer',
         offer_data: offerMessageContent
       })
+      .select(`
+        id,
+        conversation_id,
+        sender_id,
+        content,
+        is_read,
+        read_at,
+        created_at,
+        updated_at,
+        status,
+        message_type,
+        offer_data
+      `)
+      .single()
     const messageDuration = performance.now() - messageStart
     logger.db.query('messages.insert_offer_message', {
       durationMs: Math.round(messageDuration),
@@ -220,7 +235,25 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    logger.debug('Send offer API - Created offer message')
+    logger.debug('Send offer API - Created offer message', { messageId: messageRecord?.id })
+
+    // Link offer to message for realtime status updates
+    if (messageRecord?.id) {
+      const { error: linkError } = await supabase
+        .from('offers')
+        .update({
+          message_id: messageRecord.id,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', offer.id)
+
+      if (linkError) {
+        logger.error('Send offer API - Error linking offer to message', linkError as Error, {
+          offerId: offer.id,
+          messageId: messageRecord.id
+        })
+      }
+    }
 
     // Update conversation last activity
     const updateStart = performance.now()
@@ -244,7 +277,8 @@ export async function POST(request: NextRequest) {
     return finish('success', NextResponse.json({
       success: true,
       offerId: offer.id,
-      conversationId
+      conversationId,
+      message: messageRecord
     }), {
       offerId: offer.id,
       conversationId,
