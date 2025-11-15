@@ -7,6 +7,7 @@ import { MapPin, Calendar, Eye, TrendingUp, Star, Crown, Car, Camera, Gauge, Fue
 import OptimizedImage from '@/components/ui/OptimizedImage'
 import FavoriteButton from '@/app/components/FavoriteButton'
 import { Button } from '@/components/ui/button'
+import { CARD_CONSTANTS, PROMOTION_COLORS, getCardClasses } from './card-design-system'
 
 // Lazy load modals (Phase 2 optimization)
 const ContactModal = dynamic(() => import('@/app/components/modals/ContactModal'))
@@ -70,31 +71,35 @@ export default function BoostedCard({ listing }: BoostedCardProps) {
 
   const primaryImage = listing.image_urls?.[0] || listing.image_url
   const imageCount = listing.image_urls?.length || 0
+  const colors = PROMOTION_COLORS.boosted
 
   return (
-    <div className="relative rounded-lg overflow-hidden transition-all duration-300 group cursor-pointer bg-gradient-to-br from-blue-50 via-white to-cyan-50 border border-blue-200 hover:border-blue-300 shadow-md hover:shadow-lg hover:shadow-blue-200/30 hover:-translate-y-0.5">
+    <div className={getCardClasses('boosted')}>
       {/* Blue Accent Line */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
+      <div className="absolute top-0 left-0 right-0 h-0.5 sm:h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
+
+      {/* Overlay gradient */}
+      <div className={`absolute inset-0 bg-gradient-to-br ${CARD_CONSTANTS.overlay.boosted} pointer-events-none`}></div>
 
       {/* Boost Badge */}
-      <div className="absolute top-3 left-3 z-20">
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-1.5 rounded-full shadow-md flex items-center gap-1.5">
-          <TrendingUp className="w-3 h-3" />
+      <div className={`absolute ${CARD_CONSTANTS.badgePosition.left} z-20 mt-1`}>
+        <div className={`${colors.badge} text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-md flex items-center gap-1 sm:gap-1.5`}>
+          <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
           <span className="text-xs font-bold tracking-wide">BOOSTED</span>
         </div>
       </div>
 
       {/* Additional Badges */}
-      <div className="absolute top-3 right-3 z-20 flex flex-col gap-1">
+      <div className={`absolute ${CARD_CONSTANTS.badgePosition.right} z-20 flex flex-col gap-1 mt-1`}>
         {listing.is_featured && (
-          <div className="bg-gradient-to-r from-amber-400 to-yellow-500 text-white px-2 py-1 rounded-full shadow-md flex items-center gap-1">
-            <Star className="w-3 h-3 fill-white" />
+          <div className={`${PROMOTION_COLORS.featured.badge} text-white px-2 py-0.5 sm:py-1 rounded-full shadow-md flex items-center gap-1`}>
+            <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-white" />
             <span className="text-xs font-semibold">FEATURED</span>
           </div>
         )}
         {listing.is_top_spot && (
-          <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-2 py-1 rounded-full shadow-md flex items-center gap-1">
-            <Crown className="w-3 h-3" />
+          <div className={`${PROMOTION_COLORS.topSpot.badge} text-white px-2 py-0.5 sm:py-1 rounded-full shadow-md flex items-center gap-1`}>
+            <Crown className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
             <span className="text-xs font-semibold">TOP</span>
           </div>
         )}
@@ -106,7 +111,7 @@ export default function BoostedCard({ listing }: BoostedCardProps) {
         className="block"
       >
         {/* Image Section */}
-        <div className="relative h-48 bg-gradient-to-br from-blue-100 to-cyan-100 mt-1">
+        <div className={`relative ${CARD_CONSTANTS.imageHeight.promoted} bg-gradient-to-br from-blue-100 to-cyan-100 mt-0.5 sm:mt-1`}>
           {!imageError && primaryImage ? (
             <OptimizedImage
               src={primaryImage}
@@ -127,54 +132,54 @@ export default function BoostedCard({ listing }: BoostedCardProps) {
 
           {/* Image count */}
           {imageCount > 1 && (
-            <div className="absolute bottom-2 left-2 bg-blue-600/90 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
-              <Camera size={12} />
+            <div className="absolute bottom-2 left-2 bg-blue-600/90 text-white px-2 py-0.5 sm:py-1 rounded text-xs flex items-center gap-1">
+              <Camera className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
               <span>{imageCount}</span>
             </div>
           )}
 
-          {/* Boost Indicator */}
-          <div className="absolute bottom-2 right-2 bg-blue-600/90 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
+          {/* Boost Indicator - desktop only */}
+          <div className="absolute bottom-2 right-2 bg-blue-600/90 text-white px-2 py-0.5 sm:py-1 rounded text-xs items-center gap-1 hidden sm:flex">
             <TrendingUp className="w-3 h-3" />
             <span>Boosted</span>
           </div>
 
           {/* Blue Gradient Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-blue-600/5 to-transparent h-16"></div>
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-blue-600/5 to-transparent h-12 sm:h-16"></div>
         </div>
 
         {/* Content Section */}
-        <div className="p-4 bg-gradient-to-br from-white via-blue-50/10 to-cyan-50/10">
+        <div className={`${CARD_CONSTANTS.padding.promoted} bg-gradient-to-br from-white via-blue-50/10 to-cyan-50/10`}>
           {/* Title */}
-          <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-700 transition-colors">
+          <h3 className={`font-bold ${CARD_CONSTANTS.titleSize.boosted} ${colors.text} ${colors.hover} mb-2 line-clamp-2 transition-colors`}>
             {listing.title}
           </h3>
 
           {/* Vehicle Details */}
-          <div className="flex flex-wrap gap-3 text-sm text-gray-600 mb-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
             <span className="flex items-center gap-1">
               <Calendar className="w-3 h-3 text-blue-500" />
-              {listing.year}
+              <span>{listing.year}</span>
             </span>
             {listing.mileage && (
               <span className="flex items-center gap-1">
-                <Gauge className="text-blue-500" size={12} />
-                {formatMileage(listing.mileage)}
+                <Gauge className="text-blue-500 w-3 h-3" />
+                <span className="truncate">{formatMileage(listing.mileage)}</span>
               </span>
             )}
             {listing.fuel_type && (
               <span className="flex items-center gap-1">
-                <Fuel className="text-blue-500" size={12} />
-                {listing.fuel_type}
+                <Fuel className="text-blue-500 w-3 h-3" />
+                <span className="truncate">{listing.fuel_type}</span>
               </span>
             )}
           </div>
 
           {/* Location and Date */}
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 gap-1 sm:gap-0">
             <div className="flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-blue-500" />
-              <span>{listing.location}</span>
+              <MapPin className="w-3 h-3 text-blue-500 flex-shrink-0" />
+              <span className="truncate">{listing.location}</span>
             </div>
             <div className="flex items-center gap-1">
               <Calendar className="w-3 h-3" />
@@ -183,36 +188,38 @@ export default function BoostedCard({ listing }: BoostedCardProps) {
           </div>
 
           {/* Price and Stats */}
-          <div className="flex items-end justify-between">
-            <div>
-              <div className="font-bold text-xl text-blue-600">
+          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <div className={`font-bold ${CARD_CONSTANTS.priceSize.boosted} ${colors.text}`}>
                 {formatPrice(listing.price)}
               </div>
 
               {/* Stats */}
               <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
                 <Eye className="w-3 h-3" />
-                <span>{listing.views || 0} views</span>
+                <span className="hidden sm:inline">{listing.views || 0} views</span>
+                <span className="sm:hidden">{listing.views || 0}</span>
               </div>
             </div>
 
             {/* Boost Status */}
             <div className="text-right">
-              <div className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-semibold flex items-center gap-1">
+              <div className="bg-blue-100 text-blue-700 px-2 py-0.5 sm:py-1 rounded text-xs font-semibold flex items-center gap-1">
                 <TrendingUp className="w-3 h-3" />
-                Enhanced
+                <span>Enhanced</span>
               </div>
             </div>
           </div>
 
           {/* Boost Benefits */}
-          <div className="mt-3 pt-3 border-t border-blue-100">
-            <div className="flex items-center justify-between mb-3">
+          <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-blue-100">
+            <div className="flex flex-wrap items-center justify-between mb-2 sm:mb-3 gap-1">
               <span className="text-xs text-blue-700 font-medium flex items-center gap-1">
                 <TrendingUp className="w-3 h-3" />
-                Increased Visibility
+                <span className="hidden sm:inline">Increased Visibility</span>
+                <span className="sm:hidden">Boosted</span>
               </span>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-gray-500 hidden sm:inline">
                 More Views
               </span>
             </div>
@@ -224,12 +231,11 @@ export default function BoostedCard({ listing }: BoostedCardProps) {
                   e.preventDefault()
                   setShowContactModal(true)
                 }}
-                variant="primary"
-                size="default"
-                className="flex-1 gap-1"
+                size="sm"
+                className={`flex-1 ${colors.button} text-white gap-1 text-xs sm:text-sm`}
               >
-                <Phone size={12} />
-                Call
+                <Phone className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span>Call</span>
               </Button>
               <Button
                 onClick={(e) => {
@@ -237,11 +243,11 @@ export default function BoostedCard({ listing }: BoostedCardProps) {
                   setShowConversationModal(true)
                 }}
                 variant="outline"
-                size="default"
-                className="flex-1 gap-1"
+                size="sm"
+                className={`flex-1 ${colors.buttonOutline} border-2 gap-1 text-xs sm:text-sm`}
               >
-                <Mail size={12} />
-                Message
+                <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span>Message</span>
               </Button>
             </div>
           </div>
@@ -249,10 +255,10 @@ export default function BoostedCard({ listing }: BoostedCardProps) {
       </Link>
 
       {/* Favorite Button */}
-      <div className="absolute top-10 right-3 z-10">
+      <div className="absolute top-10 sm:top-12 right-3 sm:right-4 z-10">
         <FavoriteButton
           listingId={listing.id}
-          className="bg-white/90 hover:bg-white shadow-md border border-blue-200"
+          className="bg-white/90 hover:bg-white shadow-md border border-blue-200 w-8 h-8 sm:w-10 sm:h-10"
         />
       </div>
 

@@ -12,6 +12,7 @@ import RegularAdCard from '@/app/components/listings/RegularAdCard'
 import LocationFilter from '@/app/components/LocationFilter'
 import { Button } from '@/components/ui/button'
 import { getVehicleCategories, getMakesByCategory } from '@/lib/constants/vehicleData'
+import { GRID_LAYOUTS, SECTION_STYLES } from '@/app/components/listings/card-design-system'
 import type { ListingSummary, PromotedSlots } from '@/lib/types/listings-feed'
 import type {
   ListingsPageFilterState,
@@ -591,12 +592,12 @@ export default function ListingsPageClient({
 
               {/* Featured Listings - Always at the top (first 2 spots) */}
               {promoted.featured.length > 0 && (
-                <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4">
-                  <h2 className="mb-3 text-lg font-semibold text-yellow-800 flex items-center gap-2">
-                    <Star className="text-yellow-500 fill-yellow-500" size={16} />
-                    Featured Listings
+                <div className={SECTION_STYLES.featured}>
+                  <h2 className="mb-2 sm:mb-3 text-base sm:text-lg font-semibold text-yellow-800 flex items-center gap-1.5 sm:gap-2">
+                    <Star className="text-yellow-500 fill-yellow-500 w-4 h-4 sm:w-5 sm:h-5" />
+                    <span>Featured Listings</span>
                   </h2>
-                  <div className="grid gap-4 md:grid-cols-2">
+                  <div className={GRID_LAYOUTS.featured}>
                     {promoted.featured.slice(0, 2).map((listing) => (
                       <FeaturedAdCard
                         key={listing.id}
@@ -614,14 +615,14 @@ export default function ListingsPageClient({
 
               {/* Other Promoted Sections - Only when vehicle type filter is applied */}
               {localFilters.vehicleType && (promoted.top_spot.length > 0 || promoted.boosted.length > 0 || promoted.urgent.length > 0) && (
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {promoted.top_spot.length > 0 && (
-                    <div className="rounded-xl border border-purple-200 bg-purple-50 p-4">
-                      <h2 className="mb-3 text-lg font-semibold text-purple-800 flex items-center gap-2">
-                        <Crown className="text-purple-500" size={16} />
-                        Top Spot Listings
+                    <div className={SECTION_STYLES.topSpot}>
+                      <h2 className="mb-2 sm:mb-3 text-base sm:text-lg font-semibold text-purple-800 flex items-center gap-1.5 sm:gap-2">
+                        <Crown className="text-purple-500 w-4 h-4 sm:w-5 sm:h-5" />
+                        <span>Top Spot Listings</span>
                       </h2>
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      <div className={GRID_LAYOUTS.promoted}>
                         {promoted.top_spot.map((listing) => (
                           <TopSpotCard
                             key={listing.id}
@@ -640,12 +641,12 @@ export default function ListingsPageClient({
               )}
 
               {promoted.boosted.length > 0 && (
-                <div className="rounded-xl border border-blue-200 bg-white p-4">
-                  <h2 className="mb-3 text-lg font-semibold text-blue-800 flex items-center gap-2">
-                    <Zap className="text-blue-500" size={16} />
-                    Boosted Listings
+                <div className={SECTION_STYLES.boosted}>
+                  <h2 className="mb-2 sm:mb-3 text-base sm:text-lg font-semibold text-blue-800 flex items-center gap-1.5 sm:gap-2">
+                    <Zap className="text-blue-500 w-4 h-4 sm:w-5 sm:h-5" />
+                    <span>Boosted Listings</span>
                   </h2>
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <div className={GRID_LAYOUTS.promoted}>
                     {promoted.boosted.map((listing) => (
                       <BoostedCard
                         key={listing.id}
@@ -662,12 +663,12 @@ export default function ListingsPageClient({
               )}
 
               {promoted.urgent.length > 0 && (
-                <div className="rounded-xl border border-red-200 bg-red-50 p-4">
-                  <h2 className="mb-3 text-lg font-semibold text-red-800 flex items-center gap-2">
-                    <AlertCircle className="text-red-500" size={16} />
-                    Urgent Deals
+                <div className={SECTION_STYLES.urgent}>
+                  <h2 className="mb-2 sm:mb-3 text-base sm:text-lg font-semibold text-red-800 flex items-center gap-1.5 sm:gap-2">
+                    <AlertCircle className="text-red-500 w-4 h-4 sm:w-5 sm:h-5" />
+                    <span>Urgent Deals</span>
                   </h2>
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <div className={GRID_LAYOUTS.promoted}>
                     {promoted.urgent.map((listing) => (
                       <UrgentListingCard
                         key={listing.id}
@@ -684,29 +685,29 @@ export default function ListingsPageClient({
               )}
 
               {/* Main Listings */}
-              <div className="rounded-xl border border-gray-200 bg-white p-4 lg:p-6">
-                <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-gray-900">
+              <div className={SECTION_STYLES.regular}>
+                <div className="mb-3 sm:mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-900">
                     Vehicle Listings
                   </h2>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-xs sm:text-sm text-gray-500">
                     Page {pagination.page} of {Math.max(pagination.totalPages, 1)}
                   </span>
                 </div>
 
                 {listings.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 py-12 text-center">
-                    <Search size={64} className="text-gray-300" />
-                    <p className="mt-4 text-lg font-semibold text-gray-700">No vehicles found</p>
-                    <p className="mt-2 text-sm text-gray-500">
+                  <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 sm:py-12 text-center px-4">
+                    <Search size={48} className="text-gray-300 mx-auto sm:w-16 sm:h-16" />
+                    <p className="mt-3 sm:mt-4 text-base sm:text-lg font-semibold text-gray-700">No vehicles found</p>
+                    <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-500">
                       Try adjusting your filters or clearing them to see more results.
                     </p>
-                    <Button className="mt-4" variant="outline" onClick={handleClearFilters}>
+                    <Button className="mt-3 sm:mt-4 text-sm" variant="outline" onClick={handleClearFilters}>
                       Reset filters
                     </Button>
                   </div>
                 ) : (
-                  <div className="grid gap-4 md:grid-cols-2">
+                  <div className={GRID_LAYOUTS.regular}>
                     {listings.map((listing) => renderListingCard(listing))}
                   </div>
                 )}
