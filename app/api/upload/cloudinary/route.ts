@@ -16,16 +16,21 @@ export async function POST(request: NextRequest) {
     response: NextResponse,
     context: Record<string, any> = {}
   ) => {
-    const durationMs = Math.round(performance.now() - requestStart)
-    const logContext = { ...context, durationMs }
-    performanceMonitor.trackApiResponseTime('/api/upload/cloudinary', durationMs)
-    performanceMonitor.incrementCounter(`uploads.cloudinary.${outcome}`, 1, { method: 'POST' })
+    try {
+      const durationMs = Math.round(performance.now() - requestStart)
+      const logContext = { ...context, durationMs }
+      performanceMonitor.trackApiResponseTime('/api/upload/cloudinary', durationMs)
+      performanceMonitor.incrementCounter(`uploads.cloudinary.${outcome}`, 1, { method: 'POST' })
 
-    if (outcome === 'success') {
-      logger.api.success('POST', '/api/upload/cloudinary', durationMs, logContext)
-    } else {
-      const reason = context.reason || 'Request failed'
-      logger.api.error('POST', '/api/upload/cloudinary', new Error(reason), logContext)
+      if (outcome === 'success') {
+        logger.api.success('POST', '/api/upload/cloudinary', durationMs, logContext)
+      } else {
+        const reason = context.reason || 'Request failed'
+        logger.api.error('POST', '/api/upload/cloudinary', new Error(reason), logContext)
+      }
+    } catch (finishError) {
+      // If logging/monitoring fails, don't let it break the response
+      console.error('Error in finish() helper:', finishError)
     }
 
     return response
@@ -64,7 +69,18 @@ export async function POST(request: NextRequest) {
     const forwarded = request.headers.get('x-forwarded-for')
     const ipHeader = forwarded ? forwarded.split(',')[0].trim() : request.headers.get('x-real-ip') || undefined
     const headerToken = request.headers.get('x-recaptcha-token')
-    const formData = await request.formData()
+
+    let formData: FormData
+    try {
+      formData = await request.formData()
+    } catch (formError) {
+      logger.error('FormData parsing failed', formError as Error)
+      return finish('failure', NextResponse.json({
+        error: 'Invalid form data',
+        details: 'Failed to parse multipart form data'
+      }, { status: 400 }), { reason: 'formdata-parse-failed' })
+    }
+
     const formToken = formData.get('recaptchaToken') as string | null
     const uploadCaptchaRequired = (process.env.RECAPTCHA_UPLOAD_REQUIRED || '').toLowerCase() === 'true'
     const candidateToken = headerToken || formToken || undefined
@@ -116,38 +132,74 @@ export async function POST(request: NextRequest) {
     }
 
     // Convert Files to Buffers
-    const fileBuffers = await Promise.all(
-      files.map(async (file) => {
-        const arrayBuffer = await file.arrayBuffer()
-        const buffer = Buffer.from(arrayBuffer)
-        return {
-          buffer,
-          fileType: file.type
-        }
-      })
-    )
+    let fileBuffers: Array<{ buffer: Buffer; fileType: string }>
+    try {
+      fileBuffers = await Promise.all(
+        files.map(async (file) => {
+          try {
+            const arrayBuffer = await file.arrayBuffer()
+            const buffer = Buffer.from(arrayBuffer)
+            return {
+              buffer,
+              fileType: file.type
+            }
+          } catch (fileError) {
+            logger.error('Failed to convert file to buffer', fileError as Error, {
+              fileName: file.name,
+              fileSize: file.size,
+              fileType: file.type
+            })
+            throw new Error(`Failed to process file: ${file.name}`)
+          }
+        })
+      )
+    } catch (bufferError) {
+      return finish('failure', NextResponse.json({
+        error: 'Failed to process uploaded files',
+        details: (bufferError as Error).message
+      }, { status: 500 }), { reason: 'buffer-conversion-failed' })
+    }
 
     // Upload to Cloudinary
     const folder = `vera-lk/listings/${listingId || user.id}`
 
     // Upload with vera.lk optimizations
     const uploadStart = performance.now()
-    const uploadResults = await CloudinaryService.uploadMultipleImages(
-      fileBuffers,
-      folder,
-      {
-        tags: ['vera-lk', 'vehicle-listing', user.id, listingId || 'temp'].filter(Boolean),
-        transformation: [
-          {
-            width: 1920,
-            height: 1440,
-            crop: 'limit',
-            quality: 'auto:eco',
-            fetch_format: 'auto',
-          },
-        ],
-      }
-    )
+    let uploadResults: any[]
+    try {
+      uploadResults = await CloudinaryService.uploadMultipleImages(
+        fileBuffers,
+        folder,
+        {
+          tags: ['vera-lk', 'vehicle-listing', user.id, listingId || 'temp'].filter(Boolean),
+          transformation: [
+            {
+              width: 1920,
+              height: 1440,
+              crop: 'limit',
+              quality: 'auto:eco',
+              fetch_format: 'auto',
+            },
+          ],
+        }
+      )
+    } catch (cloudinaryError) {
+      const uploadDuration = performance.now() - uploadStart
+      logger.error('Cloudinary service error', cloudinaryError as Error, {
+        durationMs: Math.round(uploadDuration),
+        fileCount: files.length,
+        userId: user.id
+      })
+      return finish('failure', NextResponse.json({
+        error: 'Upload service temporarily unavailable',
+        details: 'Failed to upload images to storage service',
+        debug: {
+          error: (cloudinaryError as Error).message,
+          fileCount: files.length
+        }
+      }, { status: 500 }), { reason: 'cloudinary-service-error' })
+    }
+
     const uploadDuration = performance.now() - uploadStart
     logger.info('Cloudinary upload batch completed', {
       durationMs: Math.round(uploadDuration),
@@ -203,20 +255,42 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error: any) {
-    logger.error('Cloudinary upload error', error)
-    return finish('failure', NextResponse.json({ 
-      error: 'Internal server error',
-      details: error.message,
-      debug: {
-        name: error.name,
-        message: error.message,
-        cloudinaryConfig: {
-          cloud_name: !!process.env.CLOUDINARY_CLOUD_NAME,
-          api_key: !!process.env.CLOUDINARY_API_KEY,
-          api_secret: !!process.env.CLOUDINARY_API_SECRET,
+    // Log error safely
+    try {
+      logger.error('Cloudinary upload error', error)
+    } catch (logError) {
+      console.error('Logger failed during upload error:', logError, 'Original error:', error)
+    }
+
+    // Ensure we always return a valid JSON response
+    try {
+      const errorMessage = error?.message || String(error) || 'Unknown error occurred'
+      const errorName = error?.name || 'Error'
+
+      return finish('failure', NextResponse.json({
+        error: 'Internal server error',
+        details: errorMessage,
+        debug: {
+          name: errorName,
+          message: errorMessage,
+          cloudinaryConfig: {
+            cloud_name: !!process.env.CLOUDINARY_CLOUD_NAME,
+            api_key: !!process.env.CLOUDINARY_API_KEY,
+            api_secret: !!process.env.CLOUDINARY_API_SECRET,
+          }
         }
-      }
-    }, { status: 500 }), { reason: error.message })
+      }, { status: 500 }), { reason: errorMessage })
+    } catch (responseError) {
+      // Last resort: return minimal error response if JSON.stringify fails
+      console.error('Failed to create error response:', responseError)
+      return new NextResponse(
+        JSON.stringify({ error: 'Internal server error', success: false }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      )
+    }
   }
 }
 
