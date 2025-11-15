@@ -9,12 +9,22 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 
 export async function POST(request: NextRequest) {
   try {
-    logger.api.request('POST', '/api/upload')
+    // Safely log request start
+    try {
+      logger.api.request('POST', '/api/upload')
+    } catch (logError) {
+      console.error('Logger error at request start:', logError)
+    }
+
     const supabase = createClient()
 
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     if (userError || !user) {
-      logger.error('Upload auth failed', userError || new Error('No user'))
+      try {
+        logger.error('Upload auth failed', userError || new Error('No user'))
+      } catch (logError) {
+        console.error('Logger error during auth check:', logError)
+      }
       throw new APIError('Authentication required', 401)
     }
 
@@ -27,7 +37,11 @@ export async function POST(request: NextRequest) {
     try {
       formData = await request.formData()
     } catch (formError) {
-      logger.error('FormData parsing failed', formError as Error)
+      try {
+        logger.error('FormData parsing failed', formError as Error)
+      } catch (logError) {
+        console.error('Logger error during FormData parsing:', logError)
+      }
       throw new APIError('Invalid form data', 400)
     }
     const formToken = formData.get('recaptchaToken') as string | null
@@ -113,21 +127,40 @@ export async function POST(request: NextRequest) {
       success: true
     })
   } catch (error) {
-    logger.error('Upload POST error', error as Error, {
-      userId: (error as any)?.userId,
-      isAPIError: error instanceof APIError
-    })
+    // Safely log the error - wrap in try-catch to prevent logger errors from breaking response
+    try {
+      logger.error('Upload POST error', error as Error, {
+        userId: (error as any)?.userId,
+        isAPIError: error instanceof APIError
+      })
+    } catch (logError) {
+      // If logger fails, at least we can still return an error response
+      console.error('Upload error (logger failed):', error, logError)
+    }
 
-    if (error instanceof APIError) {
+    // Always return a proper error response
+    try {
+      if (error instanceof APIError) {
+        return NextResponse.json(
+          { error: error.message, success: false },
+          { status: error.status }
+        )
+      }
       return NextResponse.json(
-        { error: error.message, success: false },
-        { status: error.status }
+        { error: 'Internal server error', success: false },
+        { status: 500 }
+      )
+    } catch (responseError) {
+      // Last resort: return a minimal error response
+      console.error('Failed to create error response:', responseError)
+      return new NextResponse(
+        JSON.stringify({ error: 'Internal server error', success: false }),
+        { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
       )
     }
-    return NextResponse.json(
-      { error: 'Internal server error', success: false },
-      { status: 500 }
-    )
   }
 }
 
