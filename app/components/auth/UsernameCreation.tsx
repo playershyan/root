@@ -177,6 +177,8 @@ export default function UsernameCreation({
 
       if (result.success) {
         // Account created successfully
+        // If session was created server-side, it's already in cookies
+        // The onAccountCreated callback will refresh the auth state
         onAccountCreated()
       } else {
         setError(result.error || 'Failed to create account')

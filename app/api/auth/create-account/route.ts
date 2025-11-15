@@ -163,8 +163,8 @@ export async function POST(request: Request) {
     }
 
     // If we created a new user, also update the phone_verifications record with the user_id
+    // And create a session to automatically log them in
     if (userId && !existingProfile) {
-      // Update phone_verifications to link the user_id
       const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
       
@@ -183,13 +183,93 @@ export async function POST(request: Request) {
           .eq('phone_number', phoneNumber)
           .eq('verified', true)
           .is('user_id', null)
+
+        // Create a session to automatically log the user in after registration
+        try {
+          // Format phone number to E.164 for session creation
+          let e164PhoneForSession = phoneNumber.trim()
+          const cleanPhone = e164PhoneForSession.replace(/[^\d+]/g, '')
+          
+          if (cleanPhone.startsWith('+')) {
+            e164PhoneForSession = cleanPhone
+          } else if (cleanPhone.startsWith('0')) {
+            e164PhoneForSession = `+94${cleanPhone.substring(1)}`
+          } else if (cleanPhone.startsWith('94')) {
+            e164PhoneForSession = `+${cleanPhone}`
+          } else {
+            e164PhoneForSession = `+94${cleanPhone}`
+          }
+
+          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://vera.lk'
+          
+          // Generate a magic link (recovery type) which includes a token hash
+          const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+            type: 'recovery',
+            phone: e164PhoneForSession,
+            options: {
+              redirectTo: `${siteUrl}/auth/callback?type=recovery`
+            }
+          })
+
+          if (!linkError && linkData?.properties?.action_link) {
+            // Extract token_hash from the recovery link
+            const recoveryUrl = new URL(linkData.properties.action_link)
+            const tokenHash = recoveryUrl.searchParams.get('token_hash')
+
+            if (tokenHash) {
+              // Use the regular Supabase client to verify the recovery token and create session
+              // This will create a valid session that gets stored in cookies
+              const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+                phone: e164PhoneForSession,
+                token_hash: tokenHash,
+                type: 'recovery'
+              })
+
+              if (!verifyError && verifyData?.session) {
+                // Session created successfully!
+                logger.info('Session created successfully for new user registration', {
+                  userId,
+                  phoneNumber
+                })
+
+                return NextResponse.json({
+                  success: true,
+                  userId: userId,
+                  message: 'Account created successfully',
+                  user: verifyData.user,
+                  session: {
+                    access_token: verifyData.session.access_token,
+                    refresh_token: verifyData.session.refresh_token,
+                    expires_at: verifyData.session.expires_at
+                  }
+                })
+              } else {
+                logger.warn('Failed to create session after account creation', {
+                  verifyError,
+                  hasSession: !!verifyData?.session
+                })
+              }
+            }
+          } else {
+            logger.warn('Failed to generate recovery link after account creation', {
+              linkError
+            })
+          }
+        } catch (sessionError) {
+          logger.error('Error creating session after account creation', sessionError as Error, {
+            userId
+          })
+          // Continue to return success even if session creation fails
+          // The user can still log in manually
+        }
       }
     }
 
     return NextResponse.json({
       success: true,
       userId: userId,
-      message: 'Account created successfully'
+      message: 'Account created successfully',
+      requiresClientSession: true // Indicate client needs to create session if we couldn't create it here
     })
 
   } catch (error) {

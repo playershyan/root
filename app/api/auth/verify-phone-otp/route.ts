@@ -118,42 +118,234 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Original flow for authenticated users
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // For login flow: user exists but is not authenticated yet
+    // Use service role client to verify OTP and find user by phone
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!serviceRoleKey || !supabaseUrl) {
+      const missing = !serviceRoleKey ? 'SUPABASE_SERVICE_ROLE_KEY' : 'NEXT_PUBLIC_SUPABASE_URL'
+      logger.error('Service role key or URL not configured', new Error(`Missing: ${missing}`))
+      return NextResponse.json({ 
+        error: 'Server configuration error',
+        details: `Missing required environment variable: ${missing}`
+      }, { status: 500 })
     }
 
-    // Call the database function to verify OTP
-    const { data, error } = await supabase.rpc('verify_phone_otp', {
-      p_user_id: user.id,
-      p_phone_number: phoneNumber,
-      p_otp_code: otpCode
+    // Create service role client for login verification
+    const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
     })
 
-    if (error) {
-      logger.error('Error verifying OTP', error as Error)
-      return NextResponse.json({ error: 'Verification failed' }, { status: 500 })
+    // Format phone number to E.164 for Supabase auth lookup
+    let e164PhoneNumber = phoneNumber.trim()
+    const cleanPhone = e164PhoneNumber.replace(/[^\d+]/g, '')
+    
+    if (cleanPhone.startsWith('+')) {
+      e164PhoneNumber = cleanPhone
+    } else if (cleanPhone.startsWith('0')) {
+      e164PhoneNumber = `+94${cleanPhone.substring(1)}`
+    } else if (cleanPhone.startsWith('94')) {
+      e164PhoneNumber = `+${cleanPhone}`
+    } else {
+      e164PhoneNumber = `+94${cleanPhone}`
     }
 
-    const result = data?.[0]
-
-    if (!result) {
-      return NextResponse.json({ error: 'Verification failed' }, { status: 500 })
+    // Find user by phone number using admin API
+    const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers()
+    
+    if (listError) {
+      logger.error('Error listing users for login', listError as Error, { phoneNumber })
+      return NextResponse.json({ error: 'Failed to find user' }, { status: 500 })
     }
 
-    if (result.success) {
+    // Find user matching this phone number
+    const matchingUser = users?.find(user => 
+      user.phone === e164PhoneNumber || 
+      user.phone === phoneNumber ||
+      user.user_metadata?.phone === phoneNumber
+    )
+
+    if (!matchingUser) {
+      logger.debug('User not found for login', { phoneNumber, e164PhoneNumber })
+      return NextResponse.json({
+        error: 'No account found with this phone number. Please sign up first.'
+      }, { status: 404 })
+    }
+
+    // Verify OTP from database (check both with user_id and null user_id)
+    const dbClient = createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
+
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+    
+    // Check OTP records - could be with user_id or null (from previous registration attempts)
+    const { data: otpRecord, error: otpError } = await dbClient
+      .from('phone_verifications')
+      .select('*')
+      .eq('phone_number', phoneNumber)
+      .eq('otp_code', otpCode)
+      .eq('verified', false)
+      .or(`user_id.eq.${matchingUser.id},user_id.is.null`)
+      .gte('expires_at', oneHourAgo)
+      .order('created_at', { ascending: false })
+      .single()
+
+    if (otpError || !otpRecord) {
+      logger.debug('OTP verification failed for login', {
+        error: otpError,
+        hasRecord: !!otpRecord,
+        phoneNumber,
+        userId: matchingUser.id
+      })
+      return NextResponse.json({
+        error: 'Invalid or expired verification code'
+      }, { status: 400 })
+    }
+
+    // Check attempt limit
+    if (otpRecord.attempts >= 3) {
+      return NextResponse.json({
+        error: 'Too many verification attempts. Please request a new code.'
+      }, { status: 400 })
+    }
+
+    // Increment attempt counter
+    await dbClient
+      .from('phone_verifications')
+      .update({ attempts: (otpRecord.attempts || 0) + 1 })
+      .eq('id', otpRecord.id)
+
+    // Mark OTP as verified and link to user
+    const { error: updateError } = await dbClient
+      .from('phone_verifications')
+      .update({
+        verified: true,
+        verified_at: new Date().toISOString(),
+        user_id: matchingUser.id // Link to user if it was null
+      })
+      .eq('id', otpRecord.id)
+
+    if (updateError) {
+      logger.error('Error updating OTP record for login', updateError as Error)
+      return NextResponse.json({
+        error: 'Verification failed'
+      }, { status: 500 })
+    }
+
+    // Create a session for the user after OTP verification
+    // Use Supabase Admin API to generate a magic link with recovery type
+    // Then extract token and verify it to create a session
+    try {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://vera.lk'
+      
+      // Generate a magic link (recovery type) which includes a token hash
+      const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+        type: 'recovery',
+        phone: e164PhoneNumber,
+        options: {
+          redirectTo: `${siteUrl}/auth/callback?type=recovery`
+        }
+      })
+
+      if (linkError || !linkData?.properties?.action_link) {
+        logger.error('Error generating recovery link for login', linkError as Error, {
+          userId: matchingUser.id,
+          phoneNumber,
+          e164PhoneNumber
+        })
+        
+        // Fallback: Return success - client will need to handle session via another method
+        return NextResponse.json({
+          success: true,
+          userId: matchingUser.id,
+          message: 'Phone number verified successfully',
+          requiresClientSession: true,
+          user: {
+            id: matchingUser.id,
+            phone: matchingUser.phone
+          }
+        })
+      }
+
+      // Extract token_hash from the recovery link
+      // Format: https://.../?token_hash=...&type=recovery
+      const recoveryUrl = new URL(linkData.properties.action_link)
+      const tokenHash = recoveryUrl.searchParams.get('token_hash')
+
+      if (!tokenHash) {
+        logger.error('No token hash in recovery link', new Error('Missing token_hash'), {
+          link: linkData.properties.action_link
+        })
+        return NextResponse.json({
+          success: true,
+          userId: matchingUser.id,
+          message: 'Phone number verified successfully',
+          requiresClientSession: true
+        })
+      }
+
+      // Use the regular Supabase client to verify the recovery token and create session
+      // This will create a valid session that gets stored in cookies
+      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+        phone: e164PhoneNumber,
+        token_hash: tokenHash,
+        type: 'recovery'
+      })
+
+      if (verifyError || !verifyData?.session) {
+        logger.error('Error verifying recovery token for session', verifyError as Error, {
+          userId: matchingUser.id,
+          hasSession: !!verifyData?.session
+        })
+        
+        // Fallback: Return success - session creation failed but OTP is verified
+        return NextResponse.json({
+          success: true,
+          userId: matchingUser.id,
+          message: 'Phone number verified successfully',
+          requiresClientSession: true,
+          sessionError: 'Failed to create session automatically'
+        })
+      }
+
+      // Session created successfully!
+      logger.info('Session created successfully for login', {
+        userId: matchingUser.id,
+        phoneNumber
+      })
+
       return NextResponse.json({
         success: true,
-        userId: user.id,
-        message: result.message
+        userId: matchingUser.id,
+        message: 'Login successful',
+        user: verifyData.user,
+        session: {
+          access_token: verifyData.session.access_token,
+          refresh_token: verifyData.session.refresh_token,
+          expires_at: verifyData.session.expires_at
+        }
       })
-    } else {
+
+    } catch (sessionError) {
+      logger.error('Error creating session for login', sessionError as Error, {
+        userId: matchingUser.id
+      })
+      // Fallback: Return success - client will handle session creation
       return NextResponse.json({
-        success: false,
-        error: result.message
-      }, { status: 400 })
+        success: true,
+        userId: matchingUser.id,
+        message: 'Phone number verified successfully',
+        requiresClientSession: true,
+        sessionError: (sessionError as Error).message
+      })
     }
 
   } catch (error) {
