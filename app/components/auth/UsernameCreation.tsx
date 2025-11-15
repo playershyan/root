@@ -59,13 +59,23 @@ export default function UsernameCreation({
     return { isValid: true }
   }
 
-  // Debounced username availability check (native implementation)
+  // Debounced username availability check (native implementation with cancel)
   const debouncedCheckAvailability = useMemo(
     () => {
-      let timeout: NodeJS.Timeout
-      return (value: string) => {
-        clearTimeout(timeout)
+      let timeout: NodeJS.Timeout | null = null
+      
+      const debouncedFn = (value: string) => {
+        // Clear existing timeout
+        if (timeout) {
+          clearTimeout(timeout)
+          timeout = null
+        }
+        
+        // Set new timeout
         timeout = setTimeout(async () => {
+          // Clear timeout reference after execution starts
+          timeout = null
+          
           if (!value.trim()) {
             setUsernameStatus('idle')
             return
@@ -108,6 +118,16 @@ export default function UsernameCreation({
           }
         }, 500)
       }
+      
+      // Add cancel method to the function
+      debouncedFn.cancel = () => {
+        if (timeout) {
+          clearTimeout(timeout)
+          timeout = null
+        }
+      }
+      
+      return debouncedFn as typeof debouncedFn & { cancel: () => void }
     },
     []
   )
