@@ -24,6 +24,14 @@ export async function POST(request: Request) {
         }, { status: 500 })
       }
 
+      // Format phone number to E.164 format for Supabase (must start with +)
+      // phoneNumber comes as "94771234567" (from formatPhoneForStorage)
+      // E.164 format requires "+94771234567"
+      let e164PhoneNumber = phoneNumber
+      if (!e164PhoneNumber.startsWith('+')) {
+        e164PhoneNumber = `+${e164PhoneNumber}`
+      }
+
       // Use service role client to create user
       const adminClient = createClient(supabaseUrl, serviceRoleKey, {
         auth: {
@@ -34,12 +42,12 @@ export async function POST(request: Request) {
 
       // Create user in Supabase auth with phone number
       // Note: Supabase requires either email or phone for user creation
-      // We'll create with phone number as the primary identifier
+      // We'll create with phone number as the primary identifier in E.164 format
       const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
-        phone: phoneNumber,
+        phone: e164PhoneNumber,
         phone_confirmed: true, // Phone is already verified via OTP
         user_metadata: {
-          phone: phoneNumber,
+          phone: phoneNumber, // Store original format in metadata
           username: username.toLowerCase()
         }
       })
