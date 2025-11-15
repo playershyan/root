@@ -23,15 +23,15 @@ export default async function AdminDashboard() {
   ])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-5 lg:space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
-        <p className="text-gray-600 mt-1">Welcome back, {user.email ?? 'Admin'}</p>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Dashboard Overview</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Welcome back, {user.email ?? 'Admin'}</p>
       </div>
 
       <DashboardStats data={stats} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
         <RecentActivity initialActivities={activities} />
         <AlertsOverview initialAlerts={alerts} />
       </div>

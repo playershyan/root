@@ -99,9 +99,9 @@ export default function SystemHealthClient({
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">System Health</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">System Health</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {[...Array(4)].map((_, index) => (
             <div key={index} className="animate-pulse">
               <div className="h-20 bg-gray-200 rounded-lg" />
@@ -114,27 +114,27 @@ export default function SystemHealthClient({
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">System Health</h3>
+      <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900">System Health</h3>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">Uptime:</span>
-            <span className="text-sm font-medium text-green-600">{health.metrics.uptime}%</span>
+            <span className="text-xs sm:text-sm text-gray-500">Uptime:</span>
+            <span className="text-xs sm:text-sm font-medium text-green-600">{health.metrics.uptime}%</span>
           </div>
         </div>
       </div>
 
-      <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="p-4 sm:p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {services.map((service) => {
             const Icon = service.icon
             return (
               <div
                 key={service.name}
-                className={`p-4 rounded-lg border ${getStatusColor(service.status)}`}
+                className={`p-3 sm:p-4 rounded-lg border ${getStatusColor(service.status)}`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <Icon size={20} className="text-gray-600" />
+                  <Icon size={18} className="text-gray-600 sm:w-5 sm:h-5" />
                   {getStatusIcon(service.status)}
                 </div>
                 <p className="text-sm font-medium text-gray-900">{service.name}</p>
@@ -144,31 +144,31 @@ export default function SystemHealthClient({
           })}
         </div>
 
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-4">
             <div>
-              <p className="text-xs text-gray-500">DB Latency</p>
-              <p className="text-lg font-semibold text-gray-900">{health.metrics.dbLatency}ms</p>
+              <p className="text-xs text-gray-500 mb-1">DB Latency</p>
+              <p className="text-base sm:text-lg font-semibold text-gray-900">{health.metrics.dbLatency}ms</p>
             </div>
             <div>
-              <p className="text-xs text-gray-500">API Latency</p>
-              <p className="text-lg font-semibold text-gray-900">{health.metrics.apiLatency}ms</p>
+              <p className="text-xs text-gray-500 mb-1">API Latency</p>
+              <p className="text-base sm:text-lg font-semibold text-gray-900">{health.metrics.apiLatency}ms</p>
             </div>
             <div>
-              <p className="text-xs text-gray-500">Storage Usage</p>
-              <p className="text-lg font-semibold text-gray-900">{health.metrics.storageUsage}%</p>
+              <p className="text-xs text-gray-500 mb-1">Storage Usage</p>
+              <p className="text-base sm:text-lg font-semibold text-gray-900">{health.metrics.storageUsage}%</p>
             </div>
             <div>
-              <p className="text-xs text-gray-500">Error Rate</p>
-              <p className="text-lg font-semibold text-gray-900">{health.metrics.errorRate}%</p>
+              <p className="text-xs text-gray-500 mb-1">Error Rate</p>
+              <p className="text-base sm:text-lg font-semibold text-gray-900">{health.metrics.errorRate}%</p>
             </div>
           </div>
         </div>
 
         {health.issues && health.issues.length > 0 && (
-          <div className="mt-6">
-            <h4 className="text-sm font-semibold text-red-600 mb-2">Detected Issues</h4>
-            <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+          <div className="mt-4 sm:mt-6">
+            <h4 className="text-xs sm:text-sm font-semibold text-red-600 mb-2">Detected Issues</h4>
+            <ul className="list-disc list-inside text-xs sm:text-sm text-gray-600 space-y-1">
               {health.issues.map((issue) => (
                 <li key={issue}>{issue}</li>
               ))}
@@ -177,9 +177,9 @@ export default function SystemHealthClient({
         )}
 
         {health.recommendations && health.recommendations.length > 0 && (
-          <div className="mt-4">
-            <h4 className="text-sm font-semibold text-gray-800 mb-2">Recommendations</h4>
-            <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+          <div className="mt-3 sm:mt-4">
+            <h4 className="text-xs sm:text-sm font-semibold text-gray-800 mb-2">Recommendations</h4>
+            <ul className="list-disc list-inside text-xs sm:text-sm text-gray-600 space-y-1">
               {health.recommendations.map((recommendation) => (
                 <li key={recommendation}>{recommendation}</li>
               ))}

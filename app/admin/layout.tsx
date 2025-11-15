@@ -20,7 +20,7 @@ export default function AdminLayout({
         <div className="flex">
           <AdminSidebar />
           <main className="flex-1 lg:ml-64">
-            <div className="p-4 lg:p-8">
+            <div className="p-3 sm:p-4 lg:p-8">
               {children}
             </div>
           </main>

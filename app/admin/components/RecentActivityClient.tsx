@@ -106,17 +106,17 @@ export default function RecentActivityClient({
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
+      <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900">Recent Activity</h3>
       </div>
 
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {loading ? (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {[...Array(5)].map((_, index) => (
-              <div key={index} className="flex items-start gap-4 animate-pulse">
-                <div className="w-10 h-10 bg-gray-200 rounded-full" />
-                <div className="flex-1">
+              <div key={index} className="flex items-start gap-3 sm:gap-4 animate-pulse">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-200 rounded-full flex-shrink-0" />
+                <div className="flex-1 min-w-0">
                   <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
                   <div className="h-3 bg-gray-200 rounded w-1/2" />
                 </div>
@@ -124,27 +124,31 @@ export default function RecentActivityClient({
             ))}
           </div>
         ) : activities.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <Clock size={48} className="mx-auto mb-4 text-gray-300" />
-            <p>No recent activity</p>
+          <div className="text-center py-6 sm:py-8 text-gray-500">
+            <Clock size={40} className="mx-auto mb-3 sm:mb-4 text-gray-300 sm:w-12 sm:h-12" />
+            <p className="text-sm sm:text-base">No recent activity</p>
           </div>
         ) : (
-          <div className="space-y-4 max-h-96 overflow-y-auto">
+          <div className="space-y-3 sm:space-y-4 max-h-96 overflow-y-auto">
             {activities.map((activity) => {
               const { icon: Icon, color, bg } = getActivityIcon(activity.type)
               return (
-                <div key={activity.id} className="flex items-start gap-4">
-                  <div className={`p-2 ${bg} rounded-full flex-shrink-0`}>
-                    <Icon size={16} className={color} />
+                <div key={activity.id} className="flex items-start gap-3 sm:gap-4">
+                  <div className={`p-1.5 sm:p-2 ${bg} rounded-full flex-shrink-0`}>
+                    <Icon size={14} className={`${color} sm:w-4 sm:h-4`} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{activity.title}</p>
-                    <p className="text-xs text-gray-500 truncate">{activity.description}</p>
-                    {activity.user && (
-                      <p className="text-xs text-gray-400 mt-1">by {activity.user}</p>
-                    )}
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs sm:text-sm font-medium text-gray-900 break-words">{activity.title}</p>
+                        <p className="text-xs text-gray-500 break-words mt-0.5">{activity.description}</p>
+                        {activity.user && (
+                          <p className="text-xs text-gray-400 mt-1">by {activity.user}</p>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-400 flex-shrink-0 sm:ml-2">{formatTime(activity.timestamp)}</span>
+                    </div>
                   </div>
-                  <span className="text-xs text-gray-400 flex-shrink-0">{formatTime(activity.timestamp)}</span>
                 </div>
               )
             })}

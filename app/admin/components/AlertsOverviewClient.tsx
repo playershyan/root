@@ -119,56 +119,58 @@ export default function AlertsOverviewClient({
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">System Alerts</h3>
+      <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900">System Alerts</h3>
           {unreadCount > 0 && (
-            <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-600 rounded-full">
+            <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-600 rounded-full flex-shrink-0">
               {unreadCount} unread
             </span>
           )}
         </div>
       </div>
 
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {loading ? (
           <div className="space-y-3">
             {[...Array(3)].map((_, index) => (
               <div key={index} className="animate-pulse">
-                <div className="h-16 bg-gray-200 rounded-lg" />
+                <div className="h-16 sm:h-20 bg-gray-200 rounded-lg" />
               </div>
             ))}
           </div>
         ) : alerts.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <Bell size={48} className="mx-auto mb-4 text-gray-300" />
-            <p>No alerts</p>
-            <p className="text-sm mt-1">System is running smoothly</p>
+          <div className="text-center py-6 sm:py-8 text-gray-500">
+            <Bell size={40} className="mx-auto mb-3 sm:mb-4 text-gray-300 sm:w-12 sm:h-12" />
+            <p className="text-sm sm:text-base">No alerts</p>
+            <p className="text-xs sm:text-sm mt-1">System is running smoothly</p>
           </div>
         ) : (
-          <div className="space-y-3 max-h-96 overflow-y-auto">
+          <div className="space-y-2.5 sm:space-y-3 max-h-96 overflow-y-auto">
             {alerts.map((alert) => (
               <div
                 key={alert.id}
-                className={`p-4 rounded-lg border ${getAlertStyle(alert.type)} ${
+                className={`p-3 sm:p-4 rounded-lg border ${getAlertStyle(alert.type)} ${
                   !alert.isRead ? 'ring-2 ring-blue-400' : ''
-                } cursor-pointer transition-all hover:shadow-sm`}
+                } cursor-pointer transition-all hover:shadow-sm active:scale-[0.98] touch-manipulation`}
                 onClick={() => !alert.isRead && markAsRead(alert.id)}
               >
-                <div className="flex items-start gap-3">
-                  {getAlertIcon(alert.type)}
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{alert.title}</p>
-                        <p className="text-xs text-gray-600 mt-1">{alert.message}</p>
+                <div className="flex items-start gap-2.5 sm:gap-3">
+                  <div className="flex-shrink-0 mt-0.5">
+                    {getAlertIcon(alert.type)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs sm:text-sm font-medium text-gray-900 break-words">{alert.title}</p>
+                        <p className="text-xs text-gray-600 mt-1 break-words">{alert.message}</p>
                       </div>
                       {!alert.isRead && (
-                        <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
+                        <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1" />
                       )}
                     </div>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Clock size={12} className="text-gray-400" />
+                    <div className="flex items-center gap-1.5 sm:gap-2 mt-2">
+                      <Clock size={12} className="text-gray-400 flex-shrink-0" />
                       <span className="text-xs text-gray-400">{formatTime(alert.timestamp)}</span>
                     </div>
                   </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -104,34 +104,48 @@ export default function AdminSidebar() {
 
   const filteredMenuItems = menuItems.filter(item => hasPermission(item.permission))
 
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isMobileOpen])
+
   return (
     <>
-      {/* Mobile toggle */}
+      {/* Mobile toggle - positioned to avoid header conflicts */}
       <button
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md"
+        className="lg:hidden fixed top-16 left-3 sm:left-4 z-50 p-2.5 bg-white rounded-lg shadow-lg border border-gray-200 touch-manipulation"
         onClick={() => setIsMobileOpen(!isMobileOpen)}
+        aria-label="Toggle menu"
+        aria-expanded={isMobileOpen}
       >
-        {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
+        {isMobileOpen ? <X size={22} /> : <Menu size={22} />}
       </button>
 
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 z-40 w-64 h-full bg-white border-r border-gray-200
+          fixed top-0 left-0 z-40 w-[280px] sm:w-64 h-full bg-white border-r border-gray-200
           transform transition-transform duration-300 ease-in-out
           ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
-          lg:translate-x-0
+          lg:translate-x-0 lg:w-64
         `}
       >
         <div className="h-full flex flex-col">
           {/* Logo */}
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900">Admin Panel</h2>
-            <p className="text-sm text-gray-500 mt-1">Management Dashboard</p>
+          <div className="p-4 sm:p-6 border-b border-gray-200">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900">Admin Panel</h2>
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">Management Dashboard</p>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto p-4">
+          <nav className="flex-1 overflow-y-auto p-3 sm:p-4">
             <ul className="space-y-1">
               {filteredMenuItems.map((item) => {
                 const isActive = pathname === item.href ||
@@ -143,17 +157,17 @@ export default function AdminSidebar() {
                     <Link
                       href={item.href}
                       className={`
-                        flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
+                        flex items-center gap-3 px-3 py-2.5 sm:py-2 rounded-lg transition-colors touch-manipulation
                         ${isActive
                           ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-700 hover:bg-gray-50'
+                          : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
                         }
                       `}
                       onClick={() => setIsMobileOpen(false)}
                     >
-                      <Icon size={20} />
-                      <span>{item.label}</span>
-                      {isActive && <ChevronRight size={16} className="ml-auto" />}
+                      <Icon size={20} className="flex-shrink-0" />
+                      <span className="text-sm sm:text-base">{item.label}</span>
+                      {isActive && <ChevronRight size={16} className="ml-auto flex-shrink-0" />}
                     </Link>
                   </li>
                 )
@@ -162,16 +176,17 @@ export default function AdminSidebar() {
           </nav>
 
           {/* Footer */}
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-3 sm:p-4 border-t border-gray-200">
             <Link
               href="/"
-              className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+              className="flex items-center gap-2 px-3 py-2.5 sm:py-2 text-gray-600 hover:text-gray-900 transition-colors touch-manipulation rounded-lg hover:bg-gray-50"
+              onClick={() => setIsMobileOpen(false)}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M11 17l-5-5m0 0l5-5m-5 5h12" />
               </svg>
-              Exit Admin
+              <span className="text-sm sm:text-base">Exit Admin</span>
             </Link>
           </div>
         </div>
@@ -180,8 +195,9 @@ export default function AdminSidebar() {
       {/* Mobile overlay */}
       {isMobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-30 bg-black bg-opacity-50"
+          className="lg:hidden fixed inset-0 z-30 bg-black bg-opacity-50 transition-opacity"
           onClick={() => setIsMobileOpen(false)}
+          aria-hidden="true"
         />
       )}
     </>

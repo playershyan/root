@@ -128,9 +128,9 @@ export default function DashboardStatsClient({
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4">
         {[...Array(5)].map((_, index) => (
-          <div key={index} className="bg-white rounded-lg p-6 animate-pulse">
+          <div key={index} className="bg-white rounded-lg p-4 sm:p-6 animate-pulse">
             <div className="h-4 bg-gray-200 rounded w-1/2 mb-2" />
             <div className="h-8 bg-gray-200 rounded w-3/4" />
           </div>
@@ -140,20 +140,20 @@ export default function DashboardStatsClient({
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4">
       {statCards.map((stat) => {
         const Icon = stat.icon
         return (
-          <div key={stat.title} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`p-2 ${stat.bgColor} rounded-lg`}>
-                <Icon size={20} className={stat.iconColor} />
+          <div key={stat.title} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className={`p-2 sm:p-2.5 ${stat.bgColor} rounded-lg`}>
+                <Icon size={18} className={`${stat.iconColor} sm:w-5 sm:h-5`} />
               </div>
-              {stat.urgent && <AlertTriangle size={16} className="text-orange-500" />}
+              {stat.urgent && <AlertTriangle size={16} className="text-orange-500 flex-shrink-0" />}
             </div>
             <div>
-              <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
-              <p className="text-2xl font-bold text-gray-900">{stat.value.toLocaleString()}</p>
+              <p className="text-xs sm:text-sm text-gray-600 mb-1.5 sm:mb-1">{stat.title}</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">{stat.value.toLocaleString()}</p>
               {stat.change !== undefined && stat.change > 0 && (
                 <p className="text-xs text-green-600 mt-1">+{stat.change} today</p>
               )}
