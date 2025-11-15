@@ -11,6 +11,7 @@ export interface SandboxPaymentData {
   customerPhone: string
   scenario?: 'success' | 'failure' | 'delayed' | 'partial'
   delay?: number // Delay in milliseconds for delayed scenario
+  entityType?: 'listing' | 'wanted' // Support both listings and wanted requests
 }
 
 export interface SandboxPaymentResponse {
@@ -104,39 +105,115 @@ export class SandboxPaymentService {
     supabaseClient?: SupabaseClient
   ): Promise<SandboxPaymentResponse> {
     try {
-      // Create promotions for the listing with authenticated client
-      const { error } = await PromotionService.createPromotionBundle(
-        data.listingId,
-        data.promotionTypes,
-        transactionId,
-        supabaseClient
-      )
-
-      if (error) {
-        logger.error('Failed to create promotions in sandbox', error as Error)
-        return {
-          success: false,
-          orderId,
-          transactionId,
-          message: `Payment succeeded but promotion activation failed: ${error.message}`
-        }
+      if (!supabaseClient) {
+        throw new Error('Supabase client is required for payment processing')
       }
 
-      logger.info('Sandbox payment successful', { 
-        orderId, 
-        transactionId, 
-        listingId: data.listingId 
-      })
+      // Handle wanted requests differently (they use is_high_priority instead of promotions table)
+      if (data.entityType === 'wanted') {
+        // For wanted requests, "urgent" promotion sets high priority
+        const hasUrgent = data.promotionTypes.includes('urgent')
+        
+        if (hasUrgent) {
+          // Set high priority for 5 days (urgent promotion duration)
+          const expiresAt = new Date()
+          expiresAt.setDate(expiresAt.getDate() + 5)
+          
+          const { error: updateError } = await supabaseClient
+            .from('wanted_requests')
+            .update({
+              is_high_priority: true,
+              high_priority_until: expiresAt.toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', data.listingId)
 
-      return {
-        success: true,
-        orderId,
-        transactionId,
-        message: 'Payment processed successfully (Sandbox)',
-        paymentData: {
-          amount: PromotionService.calculateBundlePrice(data.promotionTypes),
-          promotionTypes: data.promotionTypes,
-          listingId: data.listingId
+          if (updateError) {
+            logger.error('Failed to set high priority for wanted request', updateError as Error)
+            return {
+              success: false,
+              orderId,
+              transactionId,
+              message: `Payment succeeded but high priority activation failed: ${updateError.message}`
+            }
+          }
+
+          logger.info('Sandbox payment successful for wanted request', { 
+            orderId, 
+            transactionId, 
+            requestId: data.listingId,
+            highPriorityUntil: expiresAt.toISOString()
+          })
+
+          return {
+            success: true,
+            orderId,
+            transactionId,
+            message: 'Payment processed successfully (Sandbox)',
+            paymentData: {
+              amount: PromotionService.calculateBundlePrice(data.promotionTypes),
+              promotionTypes: data.promotionTypes,
+              listingId: data.listingId,
+              entityType: 'wanted'
+            }
+          }
+        } else {
+          // For wanted requests without urgent, just log success (other promotions not yet implemented)
+          logger.info('Sandbox payment successful for wanted request (no urgent)', { 
+            orderId, 
+            transactionId, 
+            requestId: data.listingId 
+          })
+
+          return {
+            success: true,
+            orderId,
+            transactionId,
+            message: 'Payment processed successfully (Sandbox)',
+            paymentData: {
+              amount: PromotionService.calculateBundlePrice(data.promotionTypes),
+              promotionTypes: data.promotionTypes,
+              listingId: data.listingId,
+              entityType: 'wanted'
+            }
+          }
+        }
+      } else {
+        // Handle listings (existing logic)
+        // Create promotions for the listing with authenticated client
+        const { error } = await PromotionService.createPromotionBundle(
+          data.listingId,
+          data.promotionTypes,
+          transactionId,
+          supabaseClient
+        )
+
+        if (error) {
+          logger.error('Failed to create promotions in sandbox', error as Error)
+          return {
+            success: false,
+            orderId,
+            transactionId,
+            message: `Payment succeeded but promotion activation failed: ${error.message}`
+          }
+        }
+
+        logger.info('Sandbox payment successful', { 
+          orderId, 
+          transactionId, 
+          listingId: data.listingId 
+        })
+
+        return {
+          success: true,
+          orderId,
+          transactionId,
+          message: 'Payment processed successfully (Sandbox)',
+          paymentData: {
+            amount: PromotionService.calculateBundlePrice(data.promotionTypes),
+            promotionTypes: data.promotionTypes,
+            listingId: data.listingId
+          }
         }
       }
     } catch (error) {

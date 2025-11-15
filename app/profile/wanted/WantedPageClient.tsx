@@ -39,6 +39,8 @@ interface WantedRequest {
   location: string
   is_reported?: boolean
   rejection_reason?: string
+  is_high_priority?: boolean
+  high_priority_until?: string
 }
 
 interface WantedPageClientProps {
@@ -214,12 +216,23 @@ export default function WantedPageClient({
                         <tr key={request.id} className="hover:bg-gray-50">
                           <td className="px-4 py-4">
                             <div>
-                              <Link
-                                href={`/wanted/${request.id}`}
-                                className="font-medium text-blue-600 hover:text-blue-700"
-                              >
-                                {request.title}
-                              </Link>
+                              <div className="flex items-center gap-2 mb-1">
+                                <Link
+                                  href={`/wanted/${request.id}`}
+                                  className="font-medium text-blue-600 hover:text-blue-700"
+                                >
+                                  {request.title}
+                                </Link>
+                                {/* High Priority Badge */}
+                                {request.is_high_priority && (
+                                  (!request.high_priority_until || new Date(request.high_priority_until) > new Date()) && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 border border-orange-200">
+                                      <span>🚨</span>
+                                      High Priority
+                                    </span>
+                                  )
+                                )}
+                              </div>
                               <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                                 <MapPin className="w-3 h-3" />
                                 {request.location}
@@ -261,12 +274,23 @@ export default function WantedPageClient({
                     <div key={request.id} className="bg-white border rounded-lg shadow-sm">
                       <div className="p-4">
                         <div className="flex items-start justify-between">
-                          <Link
-                            href={`/wanted/${request.id}`}
-                            className="text-sm font-medium text-blue-600 hover:text-blue-700 block line-clamp-2 break-words flex-1"
-                          >
-                            {request.title}
-                          </Link>
+                          <div className="flex-1 min-w-0">
+                            <Link
+                              href={`/wanted/${request.id}`}
+                              className="text-sm font-medium text-blue-600 hover:text-blue-700 block line-clamp-2 break-words"
+                            >
+                              {request.title}
+                            </Link>
+                            {/* High Priority Badge - Mobile */}
+                            {request.is_high_priority && (
+                              (!request.high_priority_until || new Date(request.high_priority_until) > new Date()) && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 border border-orange-200 mt-1">
+                                  <span>🚨</span>
+                                  High Priority
+                                </span>
+                              )
+                            )}
+                          </div>
                           <WantedRequestActions
                             request={request as any}
                             onPause={() => handlePauseResume(request.id, 'pause')}

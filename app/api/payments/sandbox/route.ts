@@ -36,13 +36,18 @@ export async function POST(request: NextRequest) {
       customerName,
       customerPhone,
       scenario = 'success',
-      delay
+      delay,
+      entityType = 'listing',
+      entityId
     } = body
 
+    // Use entityId if provided, otherwise fall back to listingId
+    const targetId = entityId || listingId
+
     // Validate required fields
-    if (!listingId || !promotionTypes || !customerEmail || !customerName || !customerPhone) {
+    if (!targetId || !promotionTypes || !customerEmail || !customerName || !customerPhone) {
       return NextResponse.json(
-        { error: 'Missing required fields: listingId, promotionTypes, customerEmail, customerName, customerPhone' },
+        { error: 'Missing required fields: listingId/entityId, promotionTypes, customerEmail, customerName, customerPhone' },
         { status: 400 }
       )
     }
@@ -58,36 +63,60 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify listing ownership
-    const { data: listing, error: listingError } = await supabase
-      .from('listings')
-      .select('id, user_id')
-      .eq('id', listingId)
-      .single()
+    // Verify ownership based on entity type
+    if (entityType === 'wanted') {
+      const { data: wantedRequest, error: wantedError } = await supabase
+        .from('wanted_requests')
+        .select('id, user_id')
+        .eq('id', targetId)
+        .single()
 
-    if (listingError || !listing) {
-      return NextResponse.json(
-        { error: 'Listing not found' },
-        { status: 404 }
-      )
-    }
+      if (wantedError || !wantedRequest) {
+        return NextResponse.json(
+          { error: 'Wanted request not found' },
+          { status: 404 }
+        )
+      }
 
-    if (listing.user_id !== user.id) {
-      return NextResponse.json(
-        { error: 'You do not have permission to promote this listing' },
-        { status: 403 }
-      )
+      if (wantedRequest.user_id !== user.id) {
+        return NextResponse.json(
+          { error: 'You do not have permission to promote this wanted request' },
+          { status: 403 }
+        )
+      }
+    } else {
+      // Verify listing ownership
+      const { data: listing, error: listingError } = await supabase
+        .from('listings')
+        .select('id, user_id')
+        .eq('id', targetId)
+        .single()
+
+      if (listingError || !listing) {
+        return NextResponse.json(
+          { error: 'Listing not found' },
+          { status: 404 }
+        )
+      }
+
+      if (listing.user_id !== user.id) {
+        return NextResponse.json(
+          { error: 'You do not have permission to promote this listing' },
+          { status: 403 }
+        )
+      }
     }
 
     // Process sandbox payment with authenticated client
     const result = await SandboxPaymentService.processPayment({
-      listingId,
+      listingId: targetId,
       promotionTypes: promotionTypes as PromotionType[],
       customerEmail,
       customerName,
       customerPhone,
       scenario,
-      delay
+      delay,
+      entityType: entityType as 'listing' | 'wanted'
     }, supabase)
 
     if (result.success) {

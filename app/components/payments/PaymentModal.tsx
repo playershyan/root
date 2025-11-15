@@ -117,6 +117,8 @@ export default function PaymentModal({
           customerName: customerInfo.name,
           customerPhone: customerInfo.phone,
           scenario: 'success', // Always use success for production sandbox
+          entityType: entityType,
+          entityId: entityId || targetId
         }),
       })
 

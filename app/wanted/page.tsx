@@ -84,7 +84,13 @@ export default async function WantedRequestsPage({ searchParams }: PageProps) {
       budget: request.max_budget || request.min_budget || 0
     }
 
-    if (request.is_high_priority) {
+    // Check if high priority is active (not expired)
+    const isHighPriorityActive = request.is_high_priority && (
+      !request.high_priority_until || 
+      new Date(request.high_priority_until) > new Date()
+    )
+
+    if (isHighPriorityActive) {
       return <UrgentWantedCard key={request.id} request={requestWithBudget} />
     }
 

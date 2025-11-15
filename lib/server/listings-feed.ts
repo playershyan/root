@@ -60,8 +60,13 @@ async function fetchListingsFeed(filters: ListingsFeedFilters, excludeFeaturedId
   // Exclude featured listings that are shown at the top (first 2 spots)
   // Only exclude on page 1 to avoid duplicates
   if (page === 1 && excludeFeaturedIds && excludeFeaturedIds.length > 0) {
+    // Filter out any invalid UUIDs before using them
+    const validIds = excludeFeaturedIds.filter(id => 
+      id && typeof id === 'string' && id.length > 0 && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
+    )
+    
     // Use filter to exclude featured listing IDs
-    for (const id of excludeFeaturedIds) {
+    for (const id of validIds) {
       query = query.neq('id', id)
     }
   }

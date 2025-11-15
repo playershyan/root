@@ -110,7 +110,11 @@ export default async function ListingsPage(props: ListingsPageProps) {
   const promoted = await getPromotedSlots(dbFilters.vehicleType ?? null)
   
   // Get IDs of featured listings to exclude from regular feed (first 2 spots)
-  const excludeFeaturedIds = promoted.featured.slice(0, 2).map(listing => listing.id)
+  // Filter out any undefined or invalid IDs
+  const excludeFeaturedIds = promoted.featured
+    .slice(0, 2)
+    .map(listing => listing.id)
+    .filter((id): id is string => Boolean(id) && typeof id === 'string' && id.length > 0)
 
   const [initialFeed] = await Promise.all([
     getListingsFeed(dbFilters, excludeFeaturedIds.length > 0 ? excludeFeaturedIds : undefined)
