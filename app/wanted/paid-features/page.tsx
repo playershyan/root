@@ -8,14 +8,13 @@ import { toast } from 'sonner'
 import PaymentModal from '@/app/components/payments/PaymentModal'
 import { PromotionType } from '@/lib/services/promotionService'
 
-export default function AdPaidFeatures() {
+export default function WantedPaidFeatures() {
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([])
   const searchParams = useSearchParams()
   const router = useRouter()
   const [isNewPost, setIsNewPost] = useState(false)
-  const [loading, setLoading] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
-  const listingId = searchParams.get('listing')
+  const requestId = searchParams.get('request')
   
   useEffect(() => {
     // Check if coming from new post flow
@@ -31,10 +30,10 @@ export default function AdPaidFeatures() {
       duration: '7 days',
       icon: 'fas fa-arrow-up',
       color: 'bg-blue-500',
-      description: 'Push your ad to the top of listings daily and achieve maximum visibility with up to 10 times more views than regular ads.',
+      description: 'Push your wanted request to the top of listings daily for maximum visibility.',
       benefits: [
         'Daily repositioning to top of listings',
-        'Up to 10x more views than standard ads',
+        'Up to 10x more views than standard requests',
         'Automatic daily refresh cycle',
         'Stays active for full promotion duration'
       ]
@@ -46,13 +45,12 @@ export default function AdPaidFeatures() {
       duration: '7 days',
       icon: 'fas fa-crown',
       color: 'bg-purple-600',
-      description: 'Secure a top position at the beginning of every category page with enhanced design and guaranteed visibility.',
+      description: 'Secure a top position at the beginning of every category page with enhanced design.',
       benefits: [
         'Reserved top slots at page beginning',
-        'Larger ad size with enhanced visibility',
+        'Larger request size with enhanced visibility',
         'Distinctive golden highlighting',
-        'Up to 5x more engagement than regular ads',
-        'Equal rotation with other top ads'
+        'Up to 5x more engagement than regular requests'
       ]
     },
     {
@@ -62,11 +60,11 @@ export default function AdPaidFeatures() {
       duration: '5 days',
       icon: 'fas fa-exclamation-triangle',
       color: 'bg-red-500',
-      description: 'Mark your ad as urgent to communicate immediate selling intent and attract buyers looking for quick deals.',
+      description: 'Mark your request as urgent to communicate immediate buying intent.',
       benefits: [
-        'Bright red urgent marker on your ad',
-        'Dedicated urgent filter for buyers',
-        'Perfect for quick sales and clearance',
+        'Bright red urgent marker on your request',
+        'Dedicated urgent filter for sellers',
+        'Perfect for urgent purchases',
         'Combines effectively with other promotions'
       ]
     },
@@ -77,14 +75,13 @@ export default function AdPaidFeatures() {
       duration: '7 days',
       icon: 'fas fa-star',
       color: 'bg-yellow-500',
-      description: 'The pinnacle of ad promotion! Featured ads get exclusive placement in the top 2 spots of relevant categories and homepage visibility with premium formatting.',
+      description: 'The pinnacle of request promotion! Featured requests get exclusive placement in the top 2 spots.',
       benefits: [
         'Exclusive top 2 spots in relevant categories',
         'Featured placement on site homepage',
-        'Premium ad format with enhanced design',
+        'Premium request format with enhanced design',
         'Maximum exposure across the entire platform',
-        'Up to 15x more views than regular ads',
-        'Priority customer support'
+        'Up to 15x more views than regular requests'
       ]
     }
   ]
@@ -104,8 +101,8 @@ export default function AdPaidFeatures() {
   }
 
   const handlePayment = () => {
-    if (!listingId) {
-      toast.error('No listing ID provided')
+    if (!requestId) {
+      toast.error('No wanted request ID provided')
       return
     }
 
@@ -121,7 +118,7 @@ export default function AdPaidFeatures() {
   const handlePaymentSuccess = () => {
     // Success - redirect to profile with success message
     const featuresParam = selectedFeatures.join(',')
-    router.push(`/profile?tab=listings&payment=success&features=${featuresParam}&type=listing`)
+    router.push(`/profile?tab=wanted&payment=success&features=${featuresParam}&type=wanted`)
   }
 
   // Map feature IDs to PromotionType
@@ -141,10 +138,10 @@ export default function AdPaidFeatures() {
             <div className="flex items-center">
               <i className="fas fa-check-circle text-green-600 text-2xl mr-3"></i>
               <div>
-                <h2 className="text-xl font-bold text-green-800">Ad submitted successfully!</h2>
+                <h2 className="text-xl font-bold text-green-800">Wanted request submitted successfully!</h2>
                 <p className="text-green-700 mt-1">
-                  Congratulations! Your ad has been submitted and is currently under review. It will be visible to thousands of potential buyers once approved. 
-                  Maximize your selling potential with our powerful promotion features below.
+                  Congratulations! Your wanted request has been submitted and is currently under review. 
+                  Maximize your buying potential with our powerful promotion features below.
                 </p>
               </div>
             </div>
@@ -154,16 +151,16 @@ export default function AdPaidFeatures() {
         {/* Page Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Supercharge Your Ad with Premium Promotions
+            Supercharge Your Wanted Request with Premium Promotions
           </h1>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Get more views, more inquiries, and sell faster with our proven promotion features. 
-            Choose the right combination to maximize your ad's performance.
+            Get more responses, more visibility, and find your perfect vehicle faster with our proven promotion features. 
+            Choose the right combination to maximize your request's performance.
           </p>
           {isNewPost && (
             <p className="text-sm text-blue-600 mt-4 font-medium">
               <i className="fas fa-info-circle mr-1"></i>
-              You can always apply these features later from My Profile → My Listings
+              You can always apply these features later from My Profile → My Wanted Requests
             </p>
           )}
         </div>
@@ -231,7 +228,7 @@ export default function AdPaidFeatures() {
           </h3>
           <div className="grid md:grid-cols-3 gap-4">
             <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-semibold text-gray-900 mb-2">Quick Sale</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">Quick Find</h4>
               <p className="text-sm text-gray-600 mb-2">Boost + Urgent</p>
               <p className="text-lg font-bold text-blue-600">Rs. 1,400</p>
               <p className="text-xs text-gray-500">Save Rs. 200</p>
@@ -271,7 +268,7 @@ export default function AdPaidFeatures() {
 
             <div className="flex space-x-4">
               <Link 
-                href="/listings"
+                href="/wanted"
                 className="btn-quaternary"
               >
                 Skip for Now
@@ -281,7 +278,6 @@ export default function AdPaidFeatures() {
                 <button
                   className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={handlePayment}
-                  disabled={loading}
                 >
                   <i className="fas fa-credit-card mr-2"></i>
                   Proceed to Payment
@@ -306,17 +302,19 @@ export default function AdPaidFeatures() {
       </div>
 
       {/* Payment Modal */}
-      {listingId && (
+      {requestId && (
         <PaymentModal
           isOpen={showPaymentModal}
           onClose={() => setShowPaymentModal(false)}
-          listingId={listingId}
+          listingId={requestId} // Using listingId prop for compatibility, but entityId will override
           selectedFeatures={getPromotionTypes()}
           totalAmount={getTotalPrice()}
           onSuccess={handlePaymentSuccess}
-          entityType="listing"
+          entityType="wanted"
+          entityId={requestId}
         />
       )}
     </div>
   )
 }
+

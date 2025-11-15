@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
-import { X, CreditCard, Smartphone } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { X, CreditCard, Smartphone, TestTube, AlertCircle } from 'lucide-react'
 import { PayHerePaymentForm } from '@/lib/payments/payhereService'
 import { PromotionType } from '@/lib/services/promotionService'
 import { validatePhone } from '@/lib/errorHandling'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { toast } from 'sonner'
 
 interface PaymentModalProps {
   isOpen: boolean
@@ -16,6 +17,8 @@ interface PaymentModalProps {
   selectedFeatures: PromotionType[]
   totalAmount: number
   onSuccess?: () => void
+  entityType?: 'listing' | 'wanted' // Support both listings and wanted requests
+  entityId?: string // For wanted requests, use requestId instead of listingId
 }
 
 export default function PaymentModal({
@@ -24,9 +27,12 @@ export default function PaymentModal({
   listingId,
   selectedFeatures,
   totalAmount,
-  onSuccess
+  onSuccess,
+  entityType = 'listing',
+  entityId
 }: PaymentModalProps) {
-  const [paymentMethod] = useState<'payhere'>('payhere')
+  const [paymentMethod, setPaymentMethod] = useState<'payhere' | 'sandbox'>('payhere')
+  const [sandboxEnabled, setSandboxEnabled] = useState(false)
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
     email: '',
@@ -34,6 +40,30 @@ export default function PaymentModal({
   })
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Check if sandbox is enabled
+  useEffect(() => {
+    // Check if sandbox mode is available (client-side check)
+    const checkSandbox = async () => {
+      try {
+        const response = await fetch('/api/payments/sandbox/check', { method: 'GET' })
+        if (response.ok) {
+          const data = await response.json()
+          setSandboxEnabled(data.enabled || false)
+        }
+      } catch (error) {
+        // Sandbox check failed, assume disabled
+        setSandboxEnabled(false)
+      }
+    }
+    
+    if (isOpen) {
+      checkSandbox()
+    }
+  }, [isOpen])
+
+  // Use entityId if provided, otherwise fall back to listingId
+  const targetId = entityId || listingId
 
 
   if (!isOpen) return null
@@ -67,6 +97,46 @@ export default function PaymentModal({
     if (!validateForm()) return
     // PayHere form will handle the submission
     setLoading(true)
+  }
+
+  const handleSandboxPayment = async () => {
+    if (!validateForm()) return
+    
+    setLoading(true)
+    
+    try {
+      const response = await fetch('/api/payments/sandbox', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          listingId: targetId,
+          promotionTypes: selectedFeatures,
+          customerEmail: customerInfo.email,
+          customerName: customerInfo.name,
+          customerPhone: customerInfo.phone,
+          scenario: 'success', // Always use success for production sandbox
+        }),
+      })
+
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        toast.success('Payment processed successfully (Sandbox)')
+        if (onSuccess) {
+          onSuccess()
+        }
+        onClose()
+      } else {
+        toast.error(result.message || 'Payment failed (Sandbox)')
+      }
+    } catch (error) {
+      toast.error('Error processing sandbox payment')
+      console.error('Sandbox payment error:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const featureLabels: Record<PromotionType, string> = {
@@ -167,18 +237,47 @@ export default function PaymentModal({
                   type="radio"
                   name="paymentMethod"
                   value="payhere"
-                  checked={true}
-                  readOnly
+                  checked={paymentMethod === 'payhere'}
+                  onChange={() => setPaymentMethod('payhere')}
                   className="mr-3 w-5 h-5"
                 />
                 <Smartphone className="w-5 h-5 mr-3 text-green-600" />
-                <div>
+                <div className="flex-1">
                   <div className="font-medium">PayHere (Recommended)</div>
                   <div className="text-sm text-gray-500">Local payment gateway - Cards, Mobile, Banking</div>
                 </div>
               </label>
 
+              {sandboxEnabled && (
+                <label className="flex items-center p-4 border-2 border-yellow-300 rounded-lg cursor-pointer hover:bg-yellow-50 min-h-touch active:scale-95 transition-transform bg-yellow-50/50">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="sandbox"
+                    checked={paymentMethod === 'sandbox'}
+                    onChange={() => setPaymentMethod('sandbox')}
+                    className="mr-3 w-5 h-5"
+                  />
+                  <TestTube className="w-5 h-5 mr-3 text-yellow-600" />
+                  <div className="flex-1">
+                    <div className="font-medium flex items-center gap-2">
+                      Sandbox Mode (Testing)
+                      <span className="text-xs bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded">TEST</span>
+                    </div>
+                    <div className="text-sm text-gray-600">Test payment without real charges</div>
+                  </div>
+                </label>
+              )}
             </div>
+
+            {sandboxEnabled && paymentMethod === 'sandbox' && (
+              <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-2">
+                <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-yellow-800">
+                  <strong>Sandbox Mode:</strong> This will create real promotions in the database but won't charge any money. Use this for testing purposes only.
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Payment Buttons */}
@@ -186,7 +285,7 @@ export default function PaymentModal({
             {paymentMethod === 'payhere' && (
               <PayHerePaymentForm
                 paymentData={{
-                  listingId,
+                  listingId: targetId,
                   promotionTypes: selectedFeatures,
                   customerEmail: customerInfo.email,
                   customerName: customerInfo.name,
@@ -197,12 +296,32 @@ export default function PaymentModal({
               />
             )}
 
+            {paymentMethod === 'sandbox' && (
+              <Button
+                onClick={handleSandboxPayment}
+                disabled={loading}
+                className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-3 px-6 rounded-lg"
+              >
+                {loading ? (
+                  <>
+                    <span className="animate-spin mr-2">⏳</span>
+                    Processing Sandbox Payment...
+                  </>
+                ) : (
+                  <>
+                    <TestTube className="w-5 h-5 mr-2 inline" />
+                    Test Payment (Sandbox)
+                  </>
+                )}
+              </Button>
+            )}
 
             <Button
               onClick={onClose}
               variant="outline"
               size="default"
               className="w-full"
+              disabled={loading}
             >
               Cancel
             </Button>

@@ -15,6 +15,7 @@ export interface WantedRequestInput {
   max_year?: number | string
   location?: string
   phone?: string
+  whatsapp?: string
   fuel_type?: string
   transmission?: string
   max_mileage?: number | string
@@ -213,6 +214,7 @@ export function sanitizeWantedRequest(input: WantedRequestInput): WantedRequestI
     customModel: sanitizeString(input.customModel),
     location: sanitizeString(input.location),
     phone: sanitizeString(input.phone),
+    whatsapp: sanitizeString(input.whatsapp) || undefined,
     fuel_type: sanitizeString(input.fuel_type) || undefined,
     transmission: sanitizeString(input.transmission) || undefined,
     // Numbers are parsed and validated, not sanitized

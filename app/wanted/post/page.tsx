@@ -36,6 +36,8 @@ interface FormData {
   max_year: string
   location: string
   phone: string
+  whatsapp: string
+  whatsappSameAsPhone: boolean
   fuel_type: string
   transmission: string
   max_mileage: string
@@ -49,7 +51,7 @@ export default function PostWantedPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, loading: authLoading } = useAuth()
-  const { profile, loading: profileLoading, getPhoneNumber } = useUserProfile()
+  const { profile, loading: profileLoading, getPhoneNumber, getWhatsAppNumber } = useUserProfile()
   const { toasts, showError, showSuccess, removeToast } = useToast()
   const [loading, setLoading] = useState(false)
   const [highPriority, setHighPriority] = useState(false)
@@ -131,6 +133,17 @@ export default function PostWantedPage() {
               phoneNumber = '0' + phoneNumber.substring(3).replace(/\s/g, '')
             }
 
+            // Parse WhatsApp number - convert to local format (0XXXXXXXXX)
+            let whatsappNumber = data.whatsapp || ''
+            if (whatsappNumber.startsWith('+94 ')) {
+              whatsappNumber = '0' + whatsappNumber.replace('+94 ', '').replace(/\s/g, '')
+            } else if (whatsappNumber.startsWith('+94')) {
+              whatsappNumber = '0' + whatsappNumber.substring(3).replace(/\s/g, '')
+            }
+
+            // Determine if WhatsApp should be same as phone
+            const whatsappSameAsPhone = !whatsappNumber || whatsappNumber === phoneNumber
+
             // Set flag before updating form data to prevent cascading clears
             editDataLoadedRef.current = true
 
@@ -148,6 +161,8 @@ export default function PostWantedPage() {
               max_year: data.max_year ? data.max_year.toString() : '',
               location: city,
               phone: phoneNumber,
+              whatsapp: whatsappSameAsPhone ? phoneNumber : whatsappNumber,
+              whatsappSameAsPhone: whatsappSameAsPhone,
               fuel_type: data.fuel_type || '',
               transmission: data.transmission || '',
               max_mileage: data.max_mileage ? data.max_mileage.toString() : ''
@@ -175,19 +190,29 @@ export default function PostWantedPage() {
     }
   }, [isEditMode, editId, user, router])
 
-  // Auto-populate phone number from user profile
+  // Auto-populate phone number and WhatsApp from user profile
   useEffect(() => {
-    if (!profileLoading && profile && !formData.phone && !isEditMode) {
+    if (!profileLoading && profile && !isEditMode) {
       const phoneNumber = getPhoneNumber()
+      const whatsappNumber = getWhatsAppNumber()
 
-      if (phoneNumber) {
+      if (phoneNumber || whatsappNumber) {
         setFormData(prev => ({
           ...prev,
-          phone: phoneNumber
+          phone: prev.phone || phoneNumber, // Only populate if empty
+          whatsapp: prev.whatsapp || whatsappNumber || phoneNumber, // Populate WhatsApp, fallback to phone
+          whatsappSameAsPhone: prev.whatsappSameAsPhone !== false ? (whatsappNumber === phoneNumber || !whatsappNumber) : prev.whatsappSameAsPhone
         }))
       }
     }
-  }, [profile, profileLoading, getPhoneNumber, isEditMode])
+  }, [profile, profileLoading, getPhoneNumber, getWhatsAppNumber, isEditMode])
+
+  // Auto-update WhatsApp when phone changes and checkbox is checked
+  useEffect(() => {
+    if (formData.whatsappSameAsPhone) {
+      setFormData(prev => ({ ...prev, whatsapp: prev.phone }))
+    }
+  }, [formData.phone, formData.whatsappSameAsPhone])
   
   const currentYear = new Date().getFullYear()
   const minYear = 1990
@@ -226,6 +251,8 @@ export default function PostWantedPage() {
     max_year: '',
     location: '',
     phone: '',
+    whatsapp: '',
+    whatsappSameAsPhone: true,
     fuel_type: '',
     transmission: '',
     max_mileage: ''
@@ -463,6 +490,7 @@ export default function PostWantedPage() {
       max_year: formData.max_year,
       location: locationString,
       phone: formData.phone,
+      whatsapp: formData.whatsappSameAsPhone ? formData.phone : formData.whatsapp || null,
       fuel_type: formData.fuel_type || null,
       transmission: formData.transmission || null,
       max_mileage: formData.max_mileage || null
@@ -1056,6 +1084,44 @@ export default function PostWantedPage() {
                 </div>
                 <p className="text-xs text-gray-500 mt-1">Enter 10-digit Sri Lankan mobile number (e.g., 0771234567)</p>
                 {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+              </div>
+
+              {/* WhatsApp */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  WhatsApp Number
+                </label>
+                <label className="flex items-center mb-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.whatsappSameAsPhone}
+                    onChange={(e) => setFormData(prev => ({ ...prev, whatsappSameAsPhone: e.target.checked }))}
+                    className="mr-2 h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                  />
+                  <span className="text-sm text-gray-700">Same as phone number</span>
+                </label>
+                <div className="flex items-center gap-2">
+                  <span className="px-4 py-3 border border-gray-300 rounded-l-lg bg-gray-50 text-gray-700 font-medium">
+                    +94
+                  </span>
+                  <input
+                    type="tel"
+                    placeholder="77 123 4567"
+                    maxLength={10}
+                    disabled={formData.whatsappSameAsPhone}
+                    className={`flex-1 px-4 py-3 border rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${
+                      errors.whatsapp ? 'border-red-500' : 'border-gray-300'
+                    } ${formData.whatsappSameAsPhone ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                    value={formData.whatsapp}
+                    onChange={(e) => {
+                      // Only allow digits
+                      const value = e.target.value.replace(/\D/g, '')
+                      setFormData({ ...formData, whatsapp: value })
+                      if (errors.whatsapp) setErrors({ ...errors, whatsapp: '' })
+                    }}
+                  />
+                </div>
+                {errors.whatsapp && <p className="text-red-500 text-sm mt-1">{errors.whatsapp}</p>}
               </div>
 
               {/* Preview Section */}

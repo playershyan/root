@@ -157,6 +157,9 @@ SENTRY_PROJECT=autotrader-lk
 ENABLE_PROMOTIONS=true
 ENABLE_ROTATION_SYSTEM=true
 ENABLE_PAYMENT_PROCESSING=true
+
+# Payment Sandbox (Development/Testing Only)
+PAYMENT_SANDBOX_MODE=true  # Set to false in production
 ```
 
 ## 7️⃣ **Domain & Hosting Setup**

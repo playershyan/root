@@ -71,6 +71,10 @@ export async function PUT(request: NextRequest) {
 
     const now = new Date()
     const formattedPhone = formatPhoneNumber(sanitizedInput.phone || '')
+    // Format WhatsApp number (use phone if whatsapp not provided)
+    const formattedWhatsApp = sanitizedInput.whatsapp 
+      ? formatPhoneNumber(sanitizedInput.whatsapp, '94')
+      : formattedPhone
     const generatedTitle = generateWantedRequestTitle(sanitizedInput)
 
     // Prepare update data
@@ -89,6 +93,7 @@ export async function PUT(request: NextRequest) {
       max_year: sanitizedInput.max_year ? parseInt(String(sanitizedInput.max_year), 10) : null,
       location: sanitizedInput.location || '',
       phone: formattedPhone,
+      whatsapp: formattedWhatsApp || null,
       fuel_type: sanitizedInput.fuel_type || null,
       transmission: sanitizedInput.transmission || null,
       max_mileage: sanitizedInput.max_mileage ? parseInt(String(sanitizedInput.max_mileage), 10) : null,

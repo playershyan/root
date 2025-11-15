@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
       max_year,
       location,
       phone,
+      whatsapp,
       fuel_type,
       transmission,
       max_mileage
@@ -61,6 +62,7 @@ export async function POST(request: NextRequest) {
       max_year,
       location,
       phone,
+      whatsapp,
       fuel_type,
       transmission,
       max_mileage
@@ -78,6 +80,10 @@ export async function POST(request: NextRequest) {
 
     // Format phone number (Sri Lankan format only)
     const formattedPhone = formatPhoneNumber(sanitized.phone || '', '94')
+    // Format WhatsApp number (use phone if whatsapp not provided)
+    const formattedWhatsApp = sanitized.whatsapp 
+      ? formatPhoneNumber(sanitized.whatsapp, '94')
+      : formattedPhone
 
     // Generate title if not provided
     const finalTitle = title || generateWantedRequestTitle(sanitized)
@@ -118,6 +124,7 @@ export async function POST(request: NextRequest) {
       max_year: parseInt(String(sanitized.max_year)) || null,
       location: sanitized.location || '',
       phone: formattedPhone,
+      whatsapp: formattedWhatsApp || null,
       fuel_type: sanitized.fuel_type || null,
       transmission: sanitized.transmission || null,
       max_mileage: sanitized.max_mileage ? parseInt(String(sanitized.max_mileage)) : null,

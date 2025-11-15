@@ -286,20 +286,20 @@ export default function EnhancedPostVehiclePage() {
 
   // Auto-populate phone numbers from user profile
   useEffect(() => {
-    if (!profileLoading && profile && !formData.phone && !formData.whatsapp) {
+    if (!profileLoading && profile && !isEditMode) {
       const phoneNumber = getPhoneNumber()
       const whatsappNumber = getWhatsAppNumber()
       
       if (phoneNumber || whatsappNumber) {
         setFormData(prev => ({
           ...prev,
-          phone: phoneNumber,
-          whatsapp: whatsappNumber,
-          email: profile.email || prev.email
+          phone: prev.phone || phoneNumber, // Only populate if empty
+          whatsapp: prev.whatsapp || whatsappNumber, // Only populate if empty
+          email: prev.email || profile.email || ''
         }))
       }
     }
-  }, [profile, profileLoading, getPhoneNumber, getWhatsAppNumber])
+  }, [profile, profileLoading, getPhoneNumber, getWhatsAppNumber, isEditMode])
   
   // Close dropdown when clicking outside
   useEffect(() => {
