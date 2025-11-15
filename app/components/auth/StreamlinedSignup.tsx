@@ -87,7 +87,8 @@ export default function StreamlinedSignup({
   const handleBack = () => {
     switch (currentStep) {
       case 'phone-input':
-        setCurrentStep('main')
+        // Go back to AuthModal's main view instead of StreamlinedSignup's internal main
+        onBack()
         break
       case 'otp-verify':
         setCurrentStep('phone-input')

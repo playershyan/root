@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { authConfig } from '@/lib/config/auth.config'
 import { validatePhone } from '@/lib/errorHandling'
 import { formatPhoneForStorage } from '@/lib/utils/phoneFormatter'
+import { useRecaptcha } from '@/lib/hooks/useRecaptcha'
 import type { PhoneAuthProps, AuthResult } from './types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -35,6 +36,7 @@ export default function PhoneAuthForm({
 
   const { refreshUser } = useAuth()
   const router = useRouter()
+  const { getToken, isEnabled: recaptchaEnabled } = useRecaptcha()
 
   if (!authConfig.phone.enabled) {
     return null
@@ -72,6 +74,37 @@ export default function PhoneAuthForm({
     setNameError('')
     
     try {
+      // Get reCAPTCHA token for login flows (required by API)
+      // Note: API requires reCAPTCHA token for login flows even if not enabled on client
+      let recaptchaToken: string | null = null
+      if (type === 'login') {
+        if (recaptchaEnabled) {
+          try {
+            recaptchaToken = await getToken('phone_otp')
+            if (!recaptchaToken) {
+              setError('reCAPTCHA failed. Try again later')
+              setLoading(false)
+              return
+            }
+          } catch (recaptchaError) {
+            logger.error('reCAPTCHA token generation failed', recaptchaError as Error, {
+              component: 'PhoneAuthForm',
+              action: 'handleSubmit'
+            })
+            setError('reCAPTCHA failed. Try again later')
+            setLoading(false)
+            return
+          }
+        } else {
+          // reCAPTCHA not enabled on client, but API requires it for login
+          // This indicates a configuration issue - try anyway or show helpful error
+          logger.warn('reCAPTCHA not enabled but required for login', {
+            component: 'PhoneAuthForm',
+            action: 'handleSubmit'
+          })
+        }
+      }
+
       // Use our custom API endpoint that uses Text.lk service instead of Supabase
       // isRegistration: true for register, false for login
       const response = await fetch('/api/auth/send-phone-otp', {
@@ -81,7 +114,7 @@ export default function PhoneAuthForm({
         },
         body: JSON.stringify({
           phoneNumber: fullPhone,
-          recaptchaToken: '', // Add reCAPTCHA if needed
+          recaptchaToken: recaptchaToken || '',
           isRegistration: type === 'register'
         }),
       })
@@ -100,8 +133,11 @@ export default function PhoneAuthForm({
       } else {
         const errorMessage = result.error || 'Failed to send OTP'
         
-        // Handle "unsupported phone provider" error from Supabase
-        if (errorMessage.toLowerCase().includes('unsupported phone provider') || 
+        // Handle specific error cases
+        if (errorMessage.toLowerCase().includes('recaptcha verification required') || 
+            errorMessage.toLowerCase().includes('recaptcha')) {
+          setError('reCAPTCHA failed. Try again later')
+        } else if (errorMessage.toLowerCase().includes('unsupported phone provider') || 
             errorMessage.toLowerCase().includes('phone provider')) {
           setError('SMS service is not configured for your region. Please contact support.')
         } else {
