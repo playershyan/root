@@ -6,6 +6,8 @@ import type { WantedFilters } from './utils/getWantedRequests'
 import SearchBar from './components/SearchBar'
 import FilterPanel from './components/FilterPanel'
 import LoadMoreButton from './components/LoadMoreButton'
+import MobileFilterButton from './components/MobileFilterButton'
+import FilterBadges from './components/FilterBadges'
 import UrgentWantedCard from '@/app/components/wantedRequests/UrgentWantedCard'
 import RegularWantedCard from '@/app/components/wantedRequests/RegularWantedCard'
 
@@ -123,6 +125,11 @@ export default async function WantedRequestsPage({ searchParams }: PageProps) {
           {/* Quick Search */}
           <div className="max-w-2xl mb-4">
             <div className="flex gap-2">
+              <MobileFilterButton 
+                makes={MAKES}
+                makeModels={MAKE_MODELS}
+                allModels={ALL_MODELS}
+              />
               <Suspense fallback={<div className="flex-1 h-12 bg-gray-200 rounded-full animate-pulse" />}>
                 <SearchBar />
               </Suspense>
@@ -138,6 +145,11 @@ export default async function WantedRequestsPage({ searchParams }: PageProps) {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        {/* Filter Badges - Mobile */}
+        <div className="lg:hidden mb-4">
+          <FilterBadges />
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Filters Sidebar */}
           <div className="hidden lg:block lg:col-span-1">
@@ -152,6 +164,10 @@ export default async function WantedRequestsPage({ searchParams }: PageProps) {
 
           {/* Results Grid */}
           <div className="lg:col-span-3">
+            {/* Filter Badges - Desktop */}
+            <div className="hidden lg:block mb-4">
+              <FilterBadges />
+            </div>
             {requests.length > 0 ? (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

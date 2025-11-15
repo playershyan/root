@@ -66,7 +66,7 @@ export default function GoogleSignInButton({
   }
 
   const buttonSize = size === 'small' ? 'sm' : size === 'large' ? 'lg' : 'default'
-  const buttonVariant = variant === 'outlined' || variant === 'default' ? 'outline' : 'ghost'
+  const buttonVariant = variant === 'primary-outline' ? 'primary-outline' : variant === 'outlined' || variant === 'default' ? 'outline' : 'ghost'
 
   return (
     <Button

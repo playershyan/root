@@ -139,11 +139,37 @@ export default function AuthModal({
 
           {/* Streamlined Registration Options */}
           <div className="space-y-3">
-            {/* Phone Registration - Primary */}
+            {/* Google Registration */}
+            {enabledMethods.includes('google') && (
+              <GoogleSignInButton
+                onSuccess={handleAuthSuccess}
+                onError={handleAuthError}
+                loading={loading}
+                variant="primary-outline"
+                className="w-full"
+                text="Continue with Google"
+              />
+            )}
+
+            {/* Email Registration */}
+            {enabledMethods.includes('email') && (
+              <Button
+                onClick={() => setCurrentView('email')}
+                variant="outline"
+                size="default"
+                className="w-full gap-3"
+                disabled={loading}
+              >
+                <Mail className="w-5 h-5" />
+                <span>Continue with Email</span>
+              </Button>
+            )}
+
+            {/* Phone Registration */}
             {enabledMethods.includes('phone') && (
               <Button
                 onClick={() => setCurrentView('streamlined-signup')}
-                variant="primary-outline"
+                variant="outline"
                 size="default"
                 className="w-full gap-3"
                 disabled={loading}
@@ -151,18 +177,6 @@ export default function AuthModal({
                 <Phone className="w-5 h-5" />
                 <span>Continue with Phone</span>
               </Button>
-            )}
-
-            {/* Google Registration - Secondary */}
-            {enabledMethods.includes('google') && (
-              <GoogleSignInButton
-                onSuccess={handleAuthSuccess}
-                onError={handleAuthError}
-                loading={loading}
-                variant="outlined"
-                className="w-full"
-                text="Continue with Google"
-              />
             )}
           </div>
 
@@ -200,27 +214,13 @@ export default function AuthModal({
 
         {/* Login Options */}
         <div className="space-y-3">
-          {/* Phone Auth */}
-          {enabledMethods.includes('phone') && (
-            <Button
-              onClick={() => setCurrentView('phone')}
-              variant="primary-outline"
-              size="default"
-              className="w-full gap-3"
-              disabled={loading}
-            >
-              <Phone className="w-5 h-5" />
-              <span>Login with Phone</span>
-            </Button>
-          )}
-
           {/* Google Auth */}
           {enabledMethods.includes('google') && (
             <GoogleSignInButton
               onSuccess={handleAuthSuccess}
               onError={handleAuthError}
               loading={loading}
-              variant="outlined"
+              variant="primary-outline"
               className="w-full"
               text="Login with Google"
             />
@@ -237,6 +237,20 @@ export default function AuthModal({
             >
               <Mail className="w-5 h-5" />
               <span>Login with Email</span>
+            </Button>
+          )}
+
+          {/* Phone Auth */}
+          {enabledMethods.includes('phone') && (
+            <Button
+              onClick={() => setCurrentView('phone')}
+              variant="outline"
+              size="default"
+              className="w-full gap-3"
+              disabled={loading}
+            >
+              <Phone className="w-5 h-5" />
+              <span>Login with Phone</span>
             </Button>
           )}
         </div>
