@@ -5,7 +5,7 @@ export async function register() {
 
     Sentry.init({
       dsn: process.env.NEXT_PUBLIC_SENTRY_DSN || "https://e84ef31faaf542b8de73f959d2db5b17@o4509934043725824.ingest.us.sentry.io/4509934048837632",
-      
+
       // Adjust this value in production, or use tracesSampler for greater control
       tracesSampleRate: 1.0,
 
@@ -36,6 +36,13 @@ export async function register() {
         return event;
       },
     });
+
+    // Initialize metrics API if available
+    if (typeof Sentry.metrics !== 'undefined') {
+      console.log('[Sentry] Metrics API initialized');
+    } else {
+      console.warn('[Sentry] Metrics API not available in this SDK version');
+    }
   }
 
   if (process.env.NEXT_RUNTIME === 'edge') {

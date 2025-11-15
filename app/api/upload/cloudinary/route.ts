@@ -8,8 +8,18 @@ import { getAuthenticatedSupabase } from '@/lib/server/getAuthenticatedSupabase'
 
 export async function POST(request: NextRequest) {
   const requestStart = performance.now()
-  performanceMonitor.incrementCounter('uploads.cloudinary.requests', 1, { method: 'POST' })
-  logger.api.request('POST', '/api/upload/cloudinary')
+
+  try {
+    performanceMonitor.incrementCounter('uploads.cloudinary.requests', 1, { method: 'POST' })
+  } catch (metricsError) {
+    console.warn('Failed to increment upload counter:', metricsError)
+  }
+
+  try {
+    logger.api.request('POST', '/api/upload/cloudinary')
+  } catch (logError) {
+    console.warn('Failed to log API request:', logError)
+  }
 
   const finish = (
     outcome: 'success' | 'failure',
@@ -19,14 +29,28 @@ export async function POST(request: NextRequest) {
     try {
       const durationMs = Math.round(performance.now() - requestStart)
       const logContext = { ...context, durationMs }
-      performanceMonitor.trackApiResponseTime('/api/upload/cloudinary', durationMs)
-      performanceMonitor.incrementCounter(`uploads.cloudinary.${outcome}`, 1, { method: 'POST' })
 
-      if (outcome === 'success') {
-        logger.api.success('POST', '/api/upload/cloudinary', durationMs, logContext)
-      } else {
-        const reason = context.reason || 'Request failed'
-        logger.api.error('POST', '/api/upload/cloudinary', new Error(reason), logContext)
+      try {
+        performanceMonitor.trackApiResponseTime('/api/upload/cloudinary', durationMs)
+      } catch (metricsError) {
+        console.warn('Failed to track API response time:', metricsError)
+      }
+
+      try {
+        performanceMonitor.incrementCounter(`uploads.cloudinary.${outcome}`, 1, { method: 'POST' })
+      } catch (metricsError) {
+        console.warn('Failed to increment outcome counter:', metricsError)
+      }
+
+      try {
+        if (outcome === 'success') {
+          logger.api.success('POST', '/api/upload/cloudinary', durationMs, logContext)
+        } else {
+          const reason = context.reason || 'Request failed'
+          logger.api.error('POST', '/api/upload/cloudinary', new Error(reason), logContext)
+        }
+      } catch (logError) {
+        console.warn('Failed to log API outcome:', logError)
       }
     } catch (finishError) {
       // If logging/monitoring fails, don't let it break the response
@@ -53,11 +77,21 @@ export async function POST(request: NextRequest) {
     const authStart = performance.now()
     const { user, error: authError } = await getAuthenticatedSupabase({ request })
     const authDuration = performance.now() - authStart
-    logger.db.query('supabase.auth.getUser', {
-      durationMs: Math.round(authDuration),
-      endpoint: 'upload-cloudinary'
-    })
-    performanceMonitor.trackDatabaseQuery('supabase.auth.getUser', authDuration)
+
+    try {
+      logger.db.query('supabase.auth.getUser', {
+        durationMs: Math.round(authDuration),
+        endpoint: 'upload-cloudinary'
+      })
+    } catch (logError) {
+      console.warn('Failed to log DB query:', logError)
+    }
+
+    try {
+      performanceMonitor.trackDatabaseQuery('supabase.auth.getUser', authDuration)
+    } catch (metricsError) {
+      console.warn('Failed to track DB query:', metricsError)
+    }
 
     if (authError || !user) {
       return finish('failure', NextResponse.json({ error: 'Unauthorized' }, { status: 401 }), {
@@ -201,12 +235,21 @@ export async function POST(request: NextRequest) {
     }
 
     const uploadDuration = performance.now() - uploadStart
-    logger.info('Cloudinary upload batch completed', {
-      durationMs: Math.round(uploadDuration),
-      fileCount: files.length,
-      userId: user.id
-    })
-    performanceMonitor.incrementCounter('uploads.cloudinary.files', files.length, { stage: 'processed' })
+    try {
+      logger.info('Cloudinary upload batch completed', {
+        durationMs: Math.round(uploadDuration),
+        fileCount: files.length,
+        userId: user.id
+      })
+    } catch (logError) {
+      console.warn('Failed to log upload completion:', logError)
+    }
+
+    try {
+      performanceMonitor.incrementCounter('uploads.cloudinary.files', files.length, { stage: 'processed' })
+    } catch (metricsError) {
+      console.warn('Failed to track uploaded files:', metricsError)
+    }
 
     // Check for upload failures
     const failedUploads = uploadResults.filter(result => !result.success)
@@ -214,7 +257,11 @@ export async function POST(request: NextRequest) {
     const successfulUploads = uploadResults.filter(result => result.success)
 
     if (successfulUploads.length === 0) {
-      performanceMonitor.incrementCounter('uploads.cloudinary.failures', failedUploads.length, { type: 'cloudinary' })
+      try {
+        performanceMonitor.incrementCounter('uploads.cloudinary.failures', failedUploads.length, { type: 'cloudinary' })
+      } catch (metricsError) {
+        console.warn('Failed to track upload failures:', metricsError)
+      }
       return finish('failure', NextResponse.json({ 
         error: 'All uploads failed',
         details: failedUploads.map(f => f.error).join(', '),
@@ -242,7 +289,12 @@ export async function POST(request: NextRequest) {
       gallery: result.public_id ? CloudinaryService.getGalleryUrl(result.public_id) : null,
     }))
 
-    performanceMonitor.incrementCounter('uploads.cloudinary.files', successfulUploads.length, { stage: 'succeeded' })
+    try {
+      performanceMonitor.incrementCounter('uploads.cloudinary.files', successfulUploads.length, { stage: 'succeeded' })
+    } catch (metricsError) {
+      console.warn('Failed to track successful uploads:', metricsError)
+    }
+
     return finish('success', NextResponse.json({ 
       success: true,
       images: uploadedImages,
@@ -296,24 +348,52 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   const requestStart = performance.now()
-  performanceMonitor.incrementCounter('uploads.cloudinary.requests', 1, { method: 'DELETE' })
-  logger.api.request('DELETE', '/api/upload/cloudinary')
+
+  try {
+    performanceMonitor.incrementCounter('uploads.cloudinary.requests', 1, { method: 'DELETE' })
+  } catch (metricsError) {
+    console.warn('Failed to increment delete counter:', metricsError)
+  }
+
+  try {
+    logger.api.request('DELETE', '/api/upload/cloudinary')
+  } catch (logError) {
+    console.warn('Failed to log API request:', logError)
+  }
 
   const finish = (
     outcome: 'success' | 'failure',
     response: NextResponse,
     context: Record<string, any> = {}
   ) => {
-    const durationMs = Math.round(performance.now() - requestStart)
-    const logContext = { ...context, durationMs }
-    performanceMonitor.trackApiResponseTime('/api/upload/cloudinary', durationMs)
-    performanceMonitor.incrementCounter(`uploads.cloudinary.${outcome}`, 1, { method: 'DELETE' })
+    try {
+      const durationMs = Math.round(performance.now() - requestStart)
+      const logContext = { ...context, durationMs }
 
-    if (outcome === 'success') {
-      logger.api.success('DELETE', '/api/upload/cloudinary', durationMs, logContext)
-    } else {
-      const reason = context.reason || 'Request failed'
-      logger.api.error('DELETE', '/api/upload/cloudinary', new Error(reason), logContext)
+      try {
+        performanceMonitor.trackApiResponseTime('/api/upload/cloudinary', durationMs)
+      } catch (metricsError) {
+        console.warn('Failed to track API response time:', metricsError)
+      }
+
+      try {
+        performanceMonitor.incrementCounter(`uploads.cloudinary.${outcome}`, 1, { method: 'DELETE' })
+      } catch (metricsError) {
+        console.warn('Failed to increment outcome counter:', metricsError)
+      }
+
+      try {
+        if (outcome === 'success') {
+          logger.api.success('DELETE', '/api/upload/cloudinary', durationMs, logContext)
+        } else {
+          const reason = context.reason || 'Request failed'
+          logger.api.error('DELETE', '/api/upload/cloudinary', new Error(reason), logContext)
+        }
+      } catch (logError) {
+        console.warn('Failed to log API outcome:', logError)
+      }
+    } catch (finishError) {
+      console.error('Error in finish() helper:', finishError)
     }
 
     return response
@@ -324,11 +404,21 @@ export async function DELETE(request: NextRequest) {
     const authStart = performance.now()
     const { supabase, user, error: authError } = await getAuthenticatedSupabase({ request })
     const authDuration = performance.now() - authStart
-    logger.db.query('supabase.auth.getUser', {
-      durationMs: Math.round(authDuration),
-      endpoint: 'upload-cloudinary-delete'
-    })
-    performanceMonitor.trackDatabaseQuery('supabase.auth.getUser', authDuration)
+
+    try {
+      logger.db.query('supabase.auth.getUser', {
+        durationMs: Math.round(authDuration),
+        endpoint: 'upload-cloudinary-delete'
+      })
+    } catch (logError) {
+      console.warn('Failed to log DB query:', logError)
+    }
+
+    try {
+      performanceMonitor.trackDatabaseQuery('supabase.auth.getUser', authDuration)
+    } catch (metricsError) {
+      console.warn('Failed to track DB query:', metricsError)
+    }
     
     if (authError || !user) {
       return finish('failure', NextResponse.json({ error: 'Unauthorized' }, { status: 401 }), {
@@ -365,15 +455,25 @@ export async function DELETE(request: NextRequest) {
       })
     }
 
-    performanceMonitor.incrementCounter('uploads.cloudinary.deletions', 1, { outcome: 'success' })
+    try {
+      performanceMonitor.incrementCounter('uploads.cloudinary.deletions', 1, { outcome: 'success' })
+    } catch (metricsError) {
+      console.warn('Failed to track deletion:', metricsError)
+    }
+
     return finish('success', NextResponse.json({ success: true }), { publicId, userId: user.id })
 
   } catch (error: any) {
-    logger.error('Cloudinary delete error', error)
-    return finish('failure', NextResponse.json({ 
+    try {
+      logger.error('Cloudinary delete error', error)
+    } catch (logError) {
+      console.error('Failed to log delete error:', logError, 'Original error:', error)
+    }
+
+    return finish('failure', NextResponse.json({
       error: 'Internal server error',
-      details: error.message 
-    }, { status: 500 }), { reason: error.message })
+      details: error?.message || 'Unknown error'
+    }, { status: 500 }), { reason: error?.message || 'unknown' })
   }
 }
 

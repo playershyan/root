@@ -16,26 +16,31 @@ export class PerformanceMonitor {
 
   // Track API response times
   trackApiResponseTime(endpoint: string, responseTime: number) {
-    if (!this.metrics.has(endpoint)) {
-      this.metrics.set(endpoint, [])
-    }
-    
-    const times = this.metrics.get(endpoint)!
-    times.push(responseTime)
-    
-    // Keep only last 100 measurements
-    if (times.length > 100) {
-      times.shift()
-    }
+    try {
+      if (!this.metrics.has(endpoint)) {
+        this.metrics.set(endpoint, [])
+      }
 
-    // Alert on slow responses
-    if (responseTime > 5000) { // 5 seconds
-      this.alertSlowResponse(endpoint, responseTime)
-    }
+      const times = this.metrics.get(endpoint)!
+      times.push(responseTime)
 
-    // Update Sentry metrics
-    Sentry.setMeasurement('api.response_time', responseTime)
-    Sentry.setTag('api.endpoint', endpoint)
+      // Keep only last 100 measurements
+      if (times.length > 100) {
+        times.shift()
+      }
+
+      // Alert on slow responses
+      if (responseTime > 5000) { // 5 seconds
+        this.alertSlowResponse(endpoint, responseTime)
+      }
+
+      // Update Sentry metrics
+      Sentry.setMeasurement('api.response_time', responseTime)
+      Sentry.setTag('api.endpoint', endpoint)
+    } catch (error) {
+      // Silently ignore Sentry errors
+      console.warn('Failed to track API response time:', error)
+    }
   }
 
   // Get average response time for endpoint
@@ -48,24 +53,35 @@ export class PerformanceMonitor {
 
   // Track database query performance
   trackDatabaseQuery(query: string, duration: number) {
-    const queryType = this.extractQueryType(query)
-    
-    // Report to Sentry
-    Sentry.setMeasurement('db.query_duration', duration)
-    Sentry.setTag('db.query_type', queryType)
+    try {
+      const queryType = this.extractQueryType(query)
 
-    // Alert on slow queries
-    if (duration > 1000) { // 1 second
-      this.alertSlowQuery(queryType, duration)
+      // Report to Sentry
+      Sentry.setMeasurement('db.query_duration', duration)
+      Sentry.setTag('db.query_type', queryType)
+
+      // Alert on slow queries
+      if (duration > 1000) { // 1 second
+        this.alertSlowQuery(queryType, duration)
+      }
+    } catch (error) {
+      // Silently ignore Sentry errors
+      console.warn('Failed to track database query:', error)
     }
   }
 
   // Track user actions
   trackUserAction(action: string, userId?: string) {
-    if (typeof Sentry.metrics !== 'undefined') {
-      Sentry.metrics.increment('user.actions', 1, {
-        tags: { action, authenticated: userId ? 'true' : 'false' }
-      })
+    try {
+      if (typeof Sentry !== 'undefined' &&
+          Sentry.metrics &&
+          typeof Sentry.metrics.increment === 'function') {
+        Sentry.metrics.increment('user.actions', 1, {
+          tags: { action, authenticated: userId ? 'true' : 'false' }
+        })
+      }
+    } catch (error) {
+      // Silently ignore Sentry metrics errors - graceful degradation
     }
   }
 
@@ -74,8 +90,15 @@ export class PerformanceMonitor {
     const current = this.counters.get(metric) || 0
     this.counters.set(metric, current + value)
 
-    if (typeof Sentry.metrics !== 'undefined') {
-      Sentry.metrics.increment(metric, value, { tags })
+    try {
+      // Check if Sentry.metrics exists and has the increment method
+      if (typeof Sentry !== 'undefined' &&
+          Sentry.metrics &&
+          typeof Sentry.metrics.increment === 'function') {
+        Sentry.metrics.increment(metric, value, { tags })
+      }
+    } catch (error) {
+      // Silently ignore Sentry metrics errors - graceful degradation
     }
   }
 
@@ -85,26 +108,40 @@ export class PerformanceMonitor {
 
   // Track errors
   trackError(error: Error, context: Record<string, any> = {}) {
-    Sentry.captureException(error, {
-      tags: context.tags,
-      extra: context.extra,
-      level: 'error'
-    })
+    try {
+      if (typeof Sentry !== 'undefined' && Sentry.captureException) {
+        Sentry.captureException(error, {
+          tags: context.tags,
+          extra: context.extra,
+          level: 'error'
+        })
 
-    if (typeof Sentry.metrics !== 'undefined') {
-      Sentry.metrics.increment('errors.total', 1, {
-        tags: { 
-          type: error.constructor.name,
-          ...context.tags 
+        if (Sentry.metrics && typeof Sentry.metrics.increment === 'function') {
+          Sentry.metrics.increment('errors.total', 1, {
+            tags: {
+              type: error.constructor.name,
+              ...context.tags
+            }
+          })
         }
-      })
+      }
+    } catch (sentryError) {
+      // Fallback to console if Sentry fails
+      console.error('Failed to track error with Sentry:', sentryError)
+      console.error('Original error:', error)
     }
   }
 
   // Business metrics
   trackBusinessMetric(metric: string, value: number, tags: Record<string, string> = {}) {
-    if (typeof Sentry.metrics !== 'undefined') {
-      Sentry.metrics.gauge(`business.${metric}`, value, { tags })
+    try {
+      if (typeof Sentry !== 'undefined' &&
+          Sentry.metrics &&
+          typeof Sentry.metrics.gauge === 'function') {
+        Sentry.metrics.gauge(`business.${metric}`, value, { tags })
+      }
+    } catch (error) {
+      // Silently ignore Sentry metrics errors - graceful degradation
     }
   }
 
