@@ -17,7 +17,7 @@ export default function Footer() {
               alt="VERA logo"
               width={500}
               height={500}
-              className="h-[72px] w-auto"
+              className="h-8 w-auto"
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-4xl mx-auto">
