@@ -162,6 +162,103 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export async function DELETE(request: NextRequest) {
+  try {
+    const headersList = headers()
+    const authorization = headersList.get('authorization')
+    
+    if (!authorization?.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
+
+    // Verify user
+    const token = authorization.replace('Bearer ', '')
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { item_type, item_id } = body
+
+    if (!item_type || !item_id) {
+      return NextResponse.json({ 
+        error: 'Missing required fields: item_type and item_id' 
+      }, { status: 400 })
+    }
+
+    const validTypes = ['listing', 'wanted_request', 'message']
+    if (!validTypes.includes(item_type)) {
+      return NextResponse.json({ error: 'Invalid item_type' }, { status: 400 })
+    }
+
+    // Determine table name
+    const tableName = item_type === 'listing' ? 'listings' : 
+                      item_type === 'wanted_request' ? 'wanted_requests' : 
+                      'messages'
+
+    // Verify ownership and that item is in bin
+    const { data: item, error: fetchError } = await supabase
+      .from(tableName)
+      .select('id, user_id, status')
+      .eq('id', item_id)
+      .single()
+
+    if (fetchError || !item) {
+      return NextResponse.json({ error: 'Item not found' }, { status: 404 })
+    }
+
+    if (item.user_id !== user.id) {
+      return NextResponse.json({ 
+        error: 'You do not have permission to delete this item' 
+      }, { status: 403 })
+    }
+
+    if (item.status !== 'deleted') {
+      return NextResponse.json({ 
+        error: 'Item must be in bin before permanent deletion' 
+      }, { status: 400 })
+    }
+
+    // Permanently delete the item
+    const { error: deleteError } = await supabase
+      .from(tableName)
+      .delete()
+      .eq('id', item_id)
+      .eq('user_id', user.id)
+
+    if (deleteError) {
+      logger.error('Error permanently deleting item', deleteError as Error)
+      return NextResponse.json({ 
+        error: 'Failed to permanently delete item' 
+      }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Item permanently deleted',
+      item_type,
+      item_id
+    })
+
+  } catch (error) {
+    logger.error('Unexpected error in DELETE bin item', error as Error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
 function getNextStepsMessage(itemType: string, status: string): string {
   switch (itemType) {
     case 'listing':

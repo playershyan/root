@@ -16,14 +16,24 @@ import { logger } from '@/lib/utils/logger'
 
 export interface BinItem {
   id: string
-  item_id: string
   item_type: 'listing' | 'wanted_request'
   deleted_at: string
-  title: string
-  description?: string
-  price?: number
-  location?: string
-  image_url?: string
+  listing?: {
+    id: string
+    title: string
+    price: number
+    location: string
+    primary_image_url?: string
+    image_url?: string
+    image_urls?: string[]
+  }
+  wanted_request?: {
+    id: string
+    title: string
+    min_budget?: number
+    max_budget?: number
+    location: string
+  }
 }
 
 export interface GetBinItemsResult {
@@ -86,25 +96,30 @@ export async function getBinItems(
     // Combine and format items
     const listingItems: BinItem[] = (deletedListings || []).map(listing => ({
       id: `listing-${listing.id}`,
-      item_id: listing.id,
       item_type: 'listing' as const,
       deleted_at: listing.deleted_at!,
-      title: listing.title || 'Untitled Listing',
-      description: listing.description,
-      price: listing.price,
-      location: listing.location,
-      image_url: listing.primary_image_url || listing.image_url
+      listing: {
+        id: listing.id,
+        title: listing.title || 'Untitled Listing',
+        price: listing.price || 0,
+        location: listing.location || 'Unknown',
+        primary_image_url: listing.primary_image_url,
+        image_url: listing.image_url,
+        image_urls: listing.primary_image_url || listing.image_url ? [listing.primary_image_url || listing.image_url!] : []
+      }
     }))
 
     const wantedItems: BinItem[] = (deletedWantedRequests || []).map(wanted => ({
       id: `wanted-${wanted.id}`,
-      item_id: wanted.id,
       item_type: 'wanted_request' as const,
       deleted_at: wanted.deleted_at!,
-      title: wanted.title || 'Untitled Request',
-      description: wanted.description,
-      price: wanted.max_budget || wanted.min_budget,
-      location: wanted.location
+      wanted_request: {
+        id: wanted.id,
+        title: wanted.title || 'Untitled Request',
+        min_budget: wanted.min_budget,
+        max_budget: wanted.max_budget,
+        location: wanted.location || 'Unknown'
+      }
     }))
 
     // Combine and sort by deleted_at

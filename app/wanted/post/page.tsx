@@ -249,12 +249,18 @@ export default function PostWantedPage() {
       return
     }
 
+    // Also skip if we're in edit mode during initial load
+    if (isEditMode && !formData.vehicleType) {
+      return
+    }
+
     const models = getModelOptions()
     // Clear model if it's not in the new make's models
-    if (formData.model && formData.model !== 'Other' && !models.includes(formData.model)) {
+    // But skip this check if we just loaded edit data (models might not be populated yet)
+    if (formData.model && formData.model !== 'Other' && models.length > 0 && !models.includes(formData.model)) {
       setFormData(prev => ({ ...prev, model: '', customModel: '' }))
     }
-  }, [formData.make, formData.vehicleType])
+  }, [formData.make, formData.vehicleType, isEditMode])
 
   // Generate title from make and model
   const generateTitle = () => {
@@ -456,6 +462,7 @@ export default function PostWantedPage() {
           .update({
             title: title,
             description: formData.description.trim() || null,
+            vehicle_type: formData.vehicleType || null,
             min_budget: formData.min_budget ? parseFloat(formData.min_budget) : null,
             max_budget: formData.max_budget ? parseFloat(formData.max_budget) : null,
             make: formData.make === 'Other' ? (formData.customMake || 'Other') : (formData.make || null),

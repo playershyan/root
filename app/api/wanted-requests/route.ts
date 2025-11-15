@@ -239,10 +239,10 @@ export async function GET(request: NextRequest) {
     // Apply sorting
     switch (sortBy) {
       case 'budget-high':
-        query = query.order('max_budget', { ascending: false, nullsLast: true })
+        query = query.order('max_budget', { ascending: false, nullsFirst: false })
         break
       case 'budget-low':
-        query = query.order('min_budget', { ascending: true, nullsLast: true })
+        query = query.order('min_budget', { ascending: true, nullsFirst: false })
         break
       case 'urgency':
         query = query.order('is_high_priority', { ascending: false })
