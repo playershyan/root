@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { logger } from '@/lib/utils/logger'
 
@@ -7,7 +8,55 @@ export async function POST(request: Request) {
   try {
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
-    const { userId, username, phoneNumber } = await request.json()
+    let { userId, username, phoneNumber } = await request.json()
+
+    // For registration, userId will be null - we need to create the user first
+    if (!userId && username && phoneNumber) {
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+
+      if (!serviceRoleKey || !supabaseUrl) {
+        const missing = !serviceRoleKey ? 'SUPABASE_SERVICE_ROLE_KEY' : 'NEXT_PUBLIC_SUPABASE_URL'
+        logger.error('Service role key or URL not configured', new Error(`Missing: ${missing}`))
+        return NextResponse.json({ 
+          error: 'Server configuration error',
+          details: `Missing required environment variable: ${missing}`
+        }, { status: 500 })
+      }
+
+      // Use service role client to create user
+      const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      })
+
+      // Create user in Supabase auth with phone number
+      // Note: Supabase requires either email or phone for user creation
+      // We'll create with phone number as the primary identifier
+      const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
+        phone: phoneNumber,
+        phone_confirmed: true, // Phone is already verified via OTP
+        user_metadata: {
+          phone: phoneNumber,
+          username: username.toLowerCase()
+        }
+      })
+
+      if (authError || !authData.user) {
+        logger.error('Error creating auth user', authError as Error, {
+          phoneNumber,
+          username
+        })
+        return NextResponse.json({
+          error: 'Failed to create user account'
+        }, { status: 500 })
+      }
+
+      userId = authData.user.id
+      logger.info('Created auth user for registration', { userId, phoneNumber, username })
+    }
 
     if (!userId || !username || !phoneNumber) {
       return NextResponse.json({
@@ -87,8 +136,33 @@ export async function POST(request: Request) {
       }
     }
 
+    // If we created a new user, also update the phone_verifications record with the user_id
+    if (userId && !existingProfile) {
+      // Update phone_verifications to link the user_id
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+      
+      if (serviceRoleKey && supabaseUrl) {
+        const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false
+          }
+        })
+
+        // Update phone_verifications to link to this user
+        await adminClient
+          .from('phone_verifications')
+          .update({ user_id: userId })
+          .eq('phone_number', phoneNumber)
+          .eq('verified', true)
+          .is('user_id', null)
+      }
+    }
+
     return NextResponse.json({
       success: true,
+      userId: userId,
       message: 'Account created successfully'
     })
 
