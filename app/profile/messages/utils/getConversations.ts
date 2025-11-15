@@ -16,33 +16,13 @@ import { logger } from '@/lib/utils/logger'
 export interface Conversation {
   id: string
   listing_id?: string
-  wanted_request_id?: string
-  participant_ids: string[]
-  last_message?: string
-  last_message_at?: string
+  listing_title?: string
+  listing_image_url?: string | null
+  last_message_preview?: string | null
+  last_message_at?: string | null
   unread_count: number
-  created_at: string
-  
-  // Participant info
-  other_user?: {
-    id: string
-    name?: string
-    avatar_url?: string
-  }
-  
-  // Item info
-  listing?: {
-    id: string
-    title: string
-    price: number
-    image_url?: string
-  }
-  
-  wanted_request?: {
-    id: string
-    title: string
-    max_budget?: number
-  }
+  other_user_name?: string
+  other_user_avatar?: string | null
 }
 
 export interface GetConversationsResult {
@@ -66,31 +46,32 @@ export async function getConversations(
       cookies: () => cookieStore 
     })
 
-    // Get total unread count
-    const { data: unreadData } = await supabase
-      .from('conversations')
-      .select('unread_count')
-      .contains('participant_ids', [userId])
-
-    const totalUnread = unreadData?.reduce((sum, conv) => sum + (conv.unread_count || 0), 0) || 0
-
-    // Get paginated conversations
     const from = (page - 1) * limit
     const to = from + limit - 1
 
     const { data, error, count } = await supabase
-      .from('conversations')
+      .from('conversation_details')
       .select(`
         id,
         listing_id,
-        wanted_request_id,
-        participant_ids,
-        last_message,
+        listing_title,
+        listing_image_url,
+        buyer_id,
+        seller_id,
         last_message_at,
-        unread_count,
-        created_at
+        last_message_preview,
+        buyer_unread_count,
+        seller_unread_count,
+        buyer_archived,
+        seller_archived,
+        buyer_name,
+        buyer_avatar_url,
+        seller_name,
+        seller_avatar_url
       `, { count: 'exact' })
-      .contains('participant_ids', [userId])
+      .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
+      .eq('is_active', true)
+      .or('buyer_archived.eq.false,seller_archived.eq.false')
       .order('last_message_at', { ascending: false })
       .range(from, to)
 
@@ -109,76 +90,27 @@ export async function getConversations(
       }
     }
 
-    // Enrich conversations with participant and item data
-    const enrichedConversations = await Promise.all(
-      (data || []).map(async (conv) => {
-        // Get other participant
-        const otherUserId = conv.participant_ids.find(id => id !== userId)
-        
-        let otherUser = undefined
-        if (otherUserId) {
-          const { data: profileData } = await supabase
-            .from('user_profiles')
-            .select('id, full_name, display_name, avatar_url')
-            .eq('user_id', otherUserId)
-            .single()
-          
-          if (profileData) {
-            otherUser = {
-              id: profileData.id,
-              name: profileData.display_name || profileData.full_name || 'User',
-              avatar_url: profileData.avatar_url
-            }
-          }
-        }
+    const transformedConversations: Conversation[] = (data || []).map(conv => {
+      const isBuyer = conv.buyer_id === userId
+      return {
+        id: conv.id,
+        listing_id: conv.listing_id || undefined,
+        listing_title: conv.listing_title || undefined,
+        listing_image_url: conv.listing_image_url || null,
+        last_message_preview: conv.last_message_preview || null,
+        last_message_at: conv.last_message_at || null,
+        unread_count: isBuyer ? (conv.buyer_unread_count || 0) : (conv.seller_unread_count || 0),
+        other_user_name: isBuyer ? (conv.seller_name || 'Unknown User') : (conv.buyer_name || 'Unknown User'),
+        other_user_avatar: isBuyer ? (conv.seller_avatar_url || null) : (conv.buyer_avatar_url || null)
+      }
+    })
 
-        // Get listing data if applicable
-        let listing = undefined
-        if (conv.listing_id) {
-          const { data: listingData } = await supabase
-            .from('listings')
-            .select('id, title, price, primary_image_url, image_url')
-            .eq('id', conv.listing_id)
-            .single()
-          
-          if (listingData) {
-            listing = {
-              id: listingData.id,
-              title: listingData.title,
-              price: listingData.price,
-              image_url: listingData.primary_image_url || listingData.image_url
-            }
-          }
-        }
-
-        // Get wanted request data if applicable
-        let wanted_request = undefined
-        if (conv.wanted_request_id) {
-          const { data: wantedData } = await supabase
-            .from('wanted_requests')
-            .select('id, title, max_budget')
-            .eq('id', conv.wanted_request_id)
-            .single()
-          
-          if (wantedData) {
-            wanted_request = wantedData
-          }
-        }
-
-        return {
-          ...conv,
-          other_user: otherUser,
-          listing,
-          wanted_request
-        }
-      })
-    )
-
+    const totalUnread = transformedConversations.reduce((sum, conv) => sum + (conv.unread_count || 0), 0)
     const totalCount = count || 0
     const hasMore = (page * limit) < totalCount
 
     return {
-      conversations: enrichedConversations,
+      conversations: transformedConversations,
       totalCount,
       unreadCount: totalUnread,
       hasMore

@@ -31,11 +31,11 @@ interface Conversation {
   id: string
   listing_title?: string
   listing_id?: string
-  listing_image_url?: string
+  listing_image_url?: string | null
   other_user_name?: string
-  other_user_avatar?: string
-  last_message_preview?: string
-  last_message_at?: string
+  other_user_avatar?: string | null
+  last_message_preview?: string | null
+  last_message_at?: string | null
   unread_count: number
 }
 

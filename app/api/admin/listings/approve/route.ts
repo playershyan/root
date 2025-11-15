@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
 import { withRateLimit, rateLimiters } from '@/lib/middleware/rateLimiter'
 import { processWantedRequestMatching } from '@/lib/services/wantedMatching'
 import { incr } from '@/lib/security/metrics'
 import { AuditEvents } from '@/lib/utils/audit'
+import { getServiceRoleClient } from '@/lib/supabase/serviceRoleClient'
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,8 +24,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Permission denied' }, { status: 403 })
     }
 
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const supabase = getServiceRoleClient()
     const { listingId, approvalNotes } = await request.json()
 
     if (!listingId) {
