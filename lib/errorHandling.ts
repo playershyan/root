@@ -89,9 +89,31 @@ export const validateEmail = (email: string) => {
   return emailRegex.test(email)
 }
 
-export const validatePhone = (phone: string) => {
-  const phoneRegex = /^(\+94|0)?[0-9]{9}$/
-  if (!phoneRegex.test(phone.replace(/\s/g, ''))) {
+export const validatePhone = (phone: string): boolean => {
+  // Remove all spaces, dashes, and parentheses
+  const cleaned = phone.replace(/[\s\-\(\)]/g, '')
+  
+  // Sri Lankan phone number patterns:
+  // - Local format: 0xxxxxxxxx (10 digits starting with 0) - e.g., 0771234567
+  // - International without +: 94xxxxxxxxx (11 digits starting with 94) - e.g., 94771234567
+  // - International with +: +94xxxxxxxxx (12 chars starting with +94) - e.g., +94771234567
+  // - Bare 9 digits: xxxxxxxxx (9 digits) - e.g., 771234567 (will be formatted by service)
+  const sriLankanPatterns = [
+    /^0[0-9]{9}$/,           // Local format: 0771234567
+    /^94[0-9]{9}$/,          // Without +: 94771234567
+    /^\+94[0-9]{9}$/,        // With +: +94771234567
+    /^[0-9]{9}$/,            // Bare 9 digits: 771234567 (acceptable, will be formatted)
+  ]
+  
+  return sriLankanPatterns.some(pattern => pattern.test(cleaned))
+}
+
+/**
+ * Validate phone number and throw error if invalid
+ * Use this when you want to throw errors in validation flows
+ */
+export const validatePhoneOrThrow = (phone: string): void => {
+  if (!validatePhone(phone)) {
     throw new Error('Please enter a valid Sri Lankan phone number')
   }
 }

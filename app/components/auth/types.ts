@@ -11,6 +11,7 @@ export interface AuthResult {
   user?: any;
   requiresEmailVerification?: boolean;
   requiresPhoneVerification?: boolean;
+  email?: string; // Email address for verification
 }
 
 export interface AuthButtonProps {

@@ -6,10 +6,11 @@
 import { logger } from '@/lib/utils/logger'
 
 interface SMSOptions {
-  to: string
+  to: string | string[] // Single number or comma-separated string, or array of numbers
   message: string
   senderId?: string
-  scheduleTime?: string
+  scheduleTime?: string // RFC3339 format (Y-m-d H:i)
+  dltTemplateId?: string
 }
 
 interface SMSResponse {
@@ -32,7 +33,7 @@ export class TextLKService {
 
   constructor() {
     this.apiKey = process.env.TEXTLK_API_KEY || ''
-    this.senderId = process.env.TEXTLK_SENDER_ID || 'VERAVERIFY1'
+    this.senderId = process.env.TEXTLK_SENDER_ID || 'TextLKDemo'
 
     if (!this.apiKey && process.env.NODE_ENV === 'production') {
       logger.warn('Text.lk API key not configured. SMS will not be sent.', new Error('Missing API key'))
@@ -80,16 +81,34 @@ export class TextLKService {
         }
       }
 
-      // Format phone number for Sri Lanka
-      let formattedPhone = this.formatPhoneNumber(options.to)
+      // Format phone number(s) for Sri Lanka
+      let formattedRecipients: string
+      
+      if (Array.isArray(options.to)) {
+        // If array, format each and join with comma
+        formattedRecipients = options.to.map(num => this.formatPhoneNumber(num)).join(',')
+      } else if (typeof options.to === 'string' && options.to.includes(',')) {
+        // If already comma-separated string, format each number
+        formattedRecipients = options.to.split(',').map(num => this.formatPhoneNumber(num.trim())).join(',')
+      } else {
+        // Single number
+        formattedRecipients = this.formatPhoneNumber(options.to as string)
+      }
 
       // Prepare request body
-      const requestBody = {
-        recipient: formattedPhone,
+      const requestBody: any = {
+        recipient: formattedRecipients,
         sender_id: options.senderId || this.senderId,
         type: 'plain',
-        message: options.message,
-        ...(options.scheduleTime && { schedule_time: options.scheduleTime })
+        message: options.message
+      }
+
+      // Add optional parameters
+      if (options.scheduleTime) {
+        requestBody.schedule_time = options.scheduleTime
+      }
+      if (options.dltTemplateId) {
+        requestBody.dlt_template_id = options.dltTemplateId
       }
 
       // Send SMS via Text.lk API
@@ -106,7 +125,7 @@ export class TextLKService {
       const result: TextLKResponse = await response.json()
 
       if (result.status === 'success') {
-        logger.info('SMS sent successfully', { phone: formattedPhone, messageId: result.data?.uid })
+        logger.info('SMS sent successfully', { recipients: formattedRecipients, messageId: result.data?.uid })
 
         // Extract message ID from response if available
         const messageId = result.data?.uid || result.data?.message_id || 'unknown'
@@ -217,7 +236,263 @@ export class TextLKService {
   }
 
   /**
+   * Get message details by UID
+   */
+  async getMessage(uid: string): Promise<any | null> {
+    try {
+      if (!this.apiKey) {
+        return null
+      }
+
+      const response = await fetch(`${this.baseUrl}/sms/${uid}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      })
+
+      const result: TextLKResponse = await response.json()
+
+      if (result.status === 'success' && result.data) {
+        return result.data
+      }
+
+      return null
+    } catch (error) {
+      logger.error('Error fetching message', error as Error)
+      return null
+    }
+  }
+
+  /**
+   * Get all messages with optional pagination
+   */
+  async getAllMessages(page: number = 1): Promise<any | null> {
+    try {
+      if (!this.apiKey) {
+        return null
+      }
+
+      const response = await fetch(`${this.baseUrl}/sms?page=${page}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      })
+
+      const result: TextLKResponse = await response.json()
+
+      if (result.status === 'success' && result.data) {
+        return result.data
+      }
+
+      return null
+    } catch (error) {
+      logger.error('Error fetching messages', error as Error)
+      return null
+    }
+  }
+
+  /**
+   * Get messages with filters (date range, type, direction, timezone)
+   */
+  async getMessagesFiltered(filters: {
+    startDate: string // YYYY-MM-DD HH:MM:SS
+    endDate: string // YYYY-MM-DD HH:MM:SS
+    smsType?: 'plain' | 'unicode' | 'voice' | 'mms' | 'whatsapp' | 'otp' | 'viber'
+    direction?: 'outgoing' | 'incoming' | 'api'
+    timezone?: string // IANA timezone, e.g., Asia/Hong_Kong
+    page?: number
+  }): Promise<any | null> {
+    try {
+      if (!this.apiKey) {
+        return null
+      }
+
+      // Build query parameters
+      const params = new URLSearchParams({
+        start_date: filters.startDate,
+        end_date: filters.endDate
+      })
+
+      if (filters.smsType) {
+        params.append('sms_type', filters.smsType)
+      }
+      if (filters.direction) {
+        params.append('direction', filters.direction)
+      }
+      if (filters.timezone) {
+        params.append('timezone', filters.timezone)
+      }
+      if (filters.page) {
+        params.append('page', filters.page.toString())
+      }
+
+      const response = await fetch(`${this.baseUrl}/sms?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      })
+
+      const result: TextLKResponse = await response.json()
+
+      if (result.status === 'success' && result.data) {
+        return result.data
+      }
+
+      return null
+    } catch (error) {
+      logger.error('Error fetching filtered messages', error as Error)
+      return null
+    }
+  }
+
+  /**
+   * Send campaign using contact list
+   */
+  async sendCampaign(options: {
+    contactListId: string | string[] // Single ID or comma-separated string, or array of IDs
+    message: string
+    senderId?: string
+    scheduleTime?: string // RFC3339 format (Y-m-d H:i)
+    dltTemplateId?: string
+  }): Promise<SMSResponse> {
+    try {
+      // Check if Text.lk is configured
+      if (!this.apiKey) {
+        // In development, log the message
+        if (process.env.NODE_ENV === 'development') {
+          logger.debug('Campaign (Dev Mode - Text.lk)', {
+            contactListId: options.contactListId,
+            message: options.message,
+            senderId: options.senderId || this.senderId
+          })
+          return { success: true, messageId: 'dev-mode-' + Date.now() }
+        }
+
+        return {
+          success: false,
+          error: 'SMS service not configured'
+        }
+      }
+
+      // Format contact list ID(s)
+      let formattedContactLists: string
+      
+      if (Array.isArray(options.contactListId)) {
+        formattedContactLists = options.contactListId.join(',')
+      } else if (typeof options.contactListId === 'string' && options.contactListId.includes(',')) {
+        // Already comma-separated, just trim
+        formattedContactLists = options.contactListId.split(',').map(id => id.trim()).join(',')
+      } else {
+        formattedContactLists = options.contactListId as string
+      }
+
+      // Prepare request body
+      const requestBody: any = {
+        contact_list_id: formattedContactLists,
+        sender_id: options.senderId || this.senderId,
+        type: 'plain',
+        message: options.message
+      }
+
+      // Add optional parameters
+      if (options.scheduleTime) {
+        requestBody.schedule_time = options.scheduleTime
+      }
+      if (options.dltTemplateId) {
+        requestBody.dlt_template_id = options.dltTemplateId
+      }
+
+      // Send campaign via Text.lk API
+      const response = await fetch(`${this.baseUrl}/sms/campaign`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      })
+
+      const result: TextLKResponse = await response.json()
+
+      if (result.status === 'success') {
+        logger.info('Campaign sent successfully', { contactLists: formattedContactLists, data: result.data })
+
+        // Extract campaign ID from response if available
+        const campaignId = result.data?.uid || result.data?.campaign_id || 'unknown'
+
+        return {
+          success: true,
+          messageId: campaignId,
+          data: result.data
+        }
+      } else {
+        logger.error('Text.lk Campaign error', new Error(result.message || 'Campaign send failed'))
+        return {
+          success: false,
+          error: result.message || 'Failed to send campaign'
+        }
+      }
+    } catch (error) {
+      logger.error('Text.lk Campaign error', error as Error)
+
+      if (error instanceof Error) {
+        return {
+          success: false,
+          error: error.message
+        }
+      }
+
+      return {
+        success: false,
+        error: 'Failed to send campaign'
+      }
+    }
+  }
+
+  /**
+   * Get campaign details by UID
+   */
+  async getCampaign(uid: string): Promise<any | null> {
+    try {
+      if (!this.apiKey) {
+        return null
+      }
+
+      const response = await fetch(`${this.baseUrl}/campaign/${uid}/view`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      })
+
+      const result: TextLKResponse = await response.json()
+
+      if (result.status === 'success' && result.data) {
+        return result.data
+      }
+
+      return null
+    } catch (error) {
+      logger.error('Error fetching campaign', error as Error)
+      return null
+    }
+  }
+
+  /**
    * Get account balance (useful for monitoring)
+   * Note: This endpoint might not be available in the API - placeholder implementation
    */
   async getBalance(): Promise<number | null> {
     try {

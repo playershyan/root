@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { X, CreditCard, Smartphone } from 'lucide-react'
 import { PayHerePaymentForm } from '@/lib/payments/payhereService'
 import { PromotionType } from '@/lib/services/promotionService'
+import { validatePhone } from '@/lib/errorHandling'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -50,8 +51,11 @@ export default function PaymentModal({
     }
     if (!customerInfo.phone.trim()) {
       newErrors.phone = 'Phone number is required'
-    } else if (!/^0\d{9}$/.test(customerInfo.phone)) {
-      newErrors.phone = 'Invalid Sri Lankan phone number'
+    } else {
+      const cleanedPhone = customerInfo.phone.replace(/[^0-9]/g, '')
+      if (!validatePhone(cleanedPhone)) {
+        newErrors.phone = 'Invalid Sri Lankan phone number (e.g., 0771234567 or 771234567)'
+      }
     }
 
     setErrors(newErrors)

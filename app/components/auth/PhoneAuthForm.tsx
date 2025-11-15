@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
 import { authConfig } from '@/lib/config/auth.config'
-import { signInWithOTP } from '@/lib/auth'
 import { validatePhone } from '@/lib/errorHandling'
 import { formatPhoneForStorage } from '@/lib/utils/phoneFormatter'
 import type { PhoneAuthProps, AuthResult } from './types'
@@ -45,29 +44,47 @@ export default function PhoneAuthForm({
 
     if (loading || externalLoading || disabled) return
 
-    // Format phone for storage (Sri Lankan format only - country code + number without zero)
-    const fullPhone = formatPhoneForStorage(phone, '94')
     const trimmedName = name.trim()
 
     if (!trimmedName) {
       setNameError('Full name is required')
       return
     }
+
+    // Validate phone number before formatting (accepts with or without leading 0)
+    // User can enter: 0771234567 or 771234567
+    const cleanedPhone = phone.replace(/[^0-9]/g, '')
     
-    if (!validatePhone(fullPhone)) {
-      const errorMessage = 'Please enter a valid phone number'
+    if (!validatePhone(cleanedPhone)) {
+      const errorMessage = 'Please enter a valid phone number (e.g., 0771234567 or 771234567)'
       setError(errorMessage)
       onError?.(errorMessage)
       return
     }
 
+    // Format phone for storage (Sri Lankan format only - country code + number without zero)
+    const fullPhone = formatPhoneForStorage(cleanedPhone, '94')
+
     setLoading(true)
     setError('')
     
     try {
-      const result = await signInWithOTP(fullPhone)
-      
-      if (result.success) {
+      // Use our custom API endpoint that uses Text.lk service instead of Supabase
+      const response = await fetch('/api/auth/send-phone-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phoneNumber: fullPhone,
+          recaptchaToken: '', // Add reCAPTCHA if needed
+          isRegistration: true
+        }),
+      })
+
+      const result = await response.json()
+
+      if (result.success || response.ok) {
         // Phone OTP requires verification step
         onVerificationRequired?.({ phone: fullPhone, name: trimmedName })
         const authResult: AuthResult = { 
@@ -76,8 +93,16 @@ export default function PhoneAuthForm({
         }
         onSuccess?.(authResult)
       } else {
-        const errorMessage = result.error?.message || 'Failed to send OTP'
-        setError(errorMessage)
+        const errorMessage = result.error || 'Failed to send OTP'
+        
+        // Handle "unsupported phone provider" error from Supabase
+        if (errorMessage.toLowerCase().includes('unsupported phone provider') || 
+            errorMessage.toLowerCase().includes('phone provider')) {
+          setError('SMS service is not configured for your region. Please contact support.')
+        } else {
+          setError(errorMessage)
+        }
+        
         onError?.(errorMessage)
       }
     } catch (error) {
@@ -140,13 +165,13 @@ export default function PhoneAuthForm({
               value={phone}
               onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))}
               className={error ? 'border-red-500 focus-visible:ring-red-500' : ''}
-            placeholder="77 123 4567"
+              placeholder="771234567 or 0771234567"
               maxLength={10}
               disabled={loading || externalLoading || disabled}
             />
           </div>
           <p className="text-sm text-muted-foreground">
-            Enter your 10-digit Sri Lankan mobile number. We'll send you a verification code via SMS
+            Enter your Sri Lankan mobile number (9 or 10 digits). We'll send you a verification code via SMS
           </p>
         </div>
 
@@ -161,6 +186,7 @@ export default function PhoneAuthForm({
             disabled ||
             !phone.trim() ||
             phone.replace(/[^0-9]/g, '').length < 9 ||
+            phone.replace(/[^0-9]/g, '').length > 10 ||
             !name.trim()
           }
         >

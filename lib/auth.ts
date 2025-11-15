@@ -119,12 +119,12 @@ export async function signUp(
   password: string,
   name?: string,
   phone?: string
-): Promise<{ success: boolean; error?: AuthError; user?: any }> {
+): Promise<{ success: boolean; error?: AuthError; user?: any; requiresEmailVerification?: boolean }> {
   try {
     // Get the current site URL for email redirect
     const siteUrl = typeof window !== 'undefined'
       ? window.location.origin
-      : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+      : process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://vera.lk'
 
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -153,6 +153,16 @@ export async function signUp(
           name,
           created_at: new Date().toISOString()
         })
+      
+      // Check if email verification is required
+      // Supabase returns user with email_confirmed_at as null if verification is required
+      const requiresEmailVerification = !data.user.email_confirmed_at
+      
+      return { 
+        success: true, 
+        user: data.user,
+        requiresEmailVerification 
+      }
     }
 
     return { success: true, user: data.user }
@@ -160,6 +170,36 @@ export async function signUp(
     return {
       success: false,
       error: { message: 'Failed to create account. Please try again.' }
+    }
+  }
+}
+
+export async function resendEmailVerification(
+  email: string
+): Promise<{ success: boolean; error?: AuthError }> {
+  try {
+    // Get the current site URL for email redirect (same as signup)
+    const siteUrl = typeof window !== 'undefined'
+      ? window.location.origin
+      : process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://vera.lk'
+
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+      options: {
+        emailRedirectTo: `${siteUrl}/api/auth/callback`
+      }
+    })
+    
+    if (error) {
+      return { success: false, error: { message: error.message, code: error.code } }
+    }
+    
+    return { success: true }
+  } catch (error) {
+    return { 
+      success: false, 
+      error: { message: 'Failed to resend email. Please try again.' }
     }
   }
 }
@@ -201,7 +241,7 @@ export async function signInWithGoogle(): Promise<{ success: boolean; error?: Au
     if (typeof window !== 'undefined') {
       redirectTo = window.location.origin
     } else {
-      redirectTo = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001'
+      redirectTo = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://vera.lk'
     }
 
     const callbackUrl = `${redirectTo}/auth/callback?redirectTo=${encodeURIComponent(redirectPath)}`

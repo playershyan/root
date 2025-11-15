@@ -10,11 +10,12 @@ import PhoneAuthForm from './PhoneAuthForm'
 import OTPVerification from './OTPVerification'
 import SimpleForgotPassword from './SimpleForgotPassword'
 import StreamlinedSignup from './StreamlinedSignup'
+import EmailVerificationSent from './EmailVerificationSent'
 import type { AuthModalProps, AuthResult } from './types'
 import { Button } from '@/components/ui/button'
 import { logger } from '@/lib/utils/logger'
 
-type AuthView = 'main' | 'email' | 'phone' | 'otp-verify' | 'forgot-password' | 'streamlined-signup'
+type AuthView = 'main' | 'email' | 'phone' | 'otp-verify' | 'forgot-password' | 'streamlined-signup' | 'email-verification-sent'
 
 export default function AuthModal({
   isOpen,
@@ -34,6 +35,7 @@ export default function AuthModal({
   const [loading, setLoading] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const [resetEmail, setResetEmail] = useState('')
+  const [verificationEmail, setVerificationEmail] = useState('')
 
   // Reset state when modal closes
   useEffect(() => {
@@ -43,13 +45,21 @@ export default function AuthModal({
       setVerificationData({})
       setLoading(false)
       setSuccessMessage('')
+      setVerificationEmail('')
     }
   }, [isOpen, initialView])
 
   const handleAuthSuccess = (result: AuthResult) => {
     if (result.requiresEmailVerification) {
-      setSuccessMessage('Please check your email to verify your account.')
-      setTimeout(() => onClose(), 3000)
+      // Show email verification sent view instead of closing
+      if (result.email) {
+        setVerificationEmail(result.email)
+        setCurrentView('email-verification-sent')
+      } else {
+        // Fallback if email not provided
+        setSuccessMessage('Please check your email to verify your account.')
+        setTimeout(() => onClose(), 3000)
+      }
     } else if (result.requiresPhoneVerification) {
       // Already handled by phone form
     } else {
@@ -107,8 +117,30 @@ export default function AuthModal({
   const handleResendOTP = async () => {
     // Re-trigger OTP send based on verification data
     if (verificationData.phone) {
-      const { signInWithOTP } = await import('@/lib/auth')
-      await signInWithOTP(verificationData.phone)
+      try {
+        // Use our custom API endpoint that uses Text.lk service instead of Supabase
+        const response = await fetch('/api/auth/send-phone-otp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            phoneNumber: verificationData.phone,
+            recaptchaToken: '', // Add reCAPTCHA if needed
+            isRegistration: true
+          }),
+        })
+
+        const result = await response.json()
+        if (result.success) {
+          // Show success message to user
+          setSuccessMessage('Verification code resent successfully')
+        } else {
+          setSuccessMessage(result.error || 'Failed to resend code')
+        }
+      } catch (error) {
+        setSuccessMessage('Failed to resend verification code')
+      }
     }
     // Add email OTP resend logic when implemented
   }
@@ -372,6 +404,21 @@ export default function AuthModal({
             onBack={() => setCurrentView('main')}
             onSuccess={handleAuthSuccess}
             initialStep="phone-input"
+          />
+        )
+
+      case 'email-verification-sent':
+        return (
+          <EmailVerificationSent
+            email={verificationEmail}
+            onResend={() => {
+              // Resend handled by component
+            }}
+            onEditEmail={() => {
+              setCurrentView('email')
+              setAuthType('register')
+            }}
+            onClose={onClose}
           />
         )
 

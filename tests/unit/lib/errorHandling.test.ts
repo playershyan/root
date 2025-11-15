@@ -235,18 +235,35 @@ describe('validateEmail', () => {
 })
 
 describe('validatePhone', () => {
+  it('should return true for valid Sri Lankan phone numbers', () => {
+    expect(validatePhone('+94771234567')).toBe(true)
+    expect(validatePhone('0771234567')).toBe(true)
+    expect(validatePhone('771234567')).toBe(true)
+    expect(validatePhone('+94 77 123 4567')).toBe(true)
+    expect(validatePhone('94771234567')).toBe(true)
+  })
+
+  it('should return false for invalid phone numbers', () => {
+    expect(validatePhone('123')).toBe(false)
+    expect(validatePhone('invalid')).toBe(false)
+    expect(validatePhone('+1234567890')).toBe(false)
+    expect(validatePhone('')).toBe(false)
+  })
+})
+
+describe('validatePhoneOrThrow', () => {
   it('should not throw for valid Sri Lankan phone numbers', () => {
-    expect(() => validatePhone('+94771234567')).not.toThrow()
-    expect(() => validatePhone('0771234567')).not.toThrow()
-    expect(() => validatePhone('771234567')).not.toThrow()
-    expect(() => validatePhone('+94 77 123 4567')).not.toThrow()
+    expect(() => validatePhoneOrThrow('+94771234567')).not.toThrow()
+    expect(() => validatePhoneOrThrow('0771234567')).not.toThrow()
+    expect(() => validatePhoneOrThrow('771234567')).not.toThrow()
+    expect(() => validatePhoneOrThrow('+94 77 123 4567')).not.toThrow()
   })
 
   it('should throw for invalid phone numbers', () => {
-    expect(() => validatePhone('123')).toThrow('Please enter a valid Sri Lankan phone number')
-    expect(() => validatePhone('invalid')).toThrow('Please enter a valid Sri Lankan phone number')
-    expect(() => validatePhone('+1234567890')).toThrow('Please enter a valid Sri Lankan phone number')
-    expect(() => validatePhone('')).toThrow('Please enter a valid Sri Lankan phone number')
+    expect(() => validatePhoneOrThrow('123')).toThrow('Please enter a valid Sri Lankan phone number')
+    expect(() => validatePhoneOrThrow('invalid')).toThrow('Please enter a valid Sri Lankan phone number')
+    expect(() => validatePhoneOrThrow('+1234567890')).toThrow('Please enter a valid Sri Lankan phone number')
+    expect(() => validatePhoneOrThrow('')).toThrow('Please enter a valid Sri Lankan phone number')
   })
 })
 

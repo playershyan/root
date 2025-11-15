@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { APIError } from '../errorHandling'
+import { APIError, validatePhone } from '../errorHandling'
 import { logger } from '@/lib/utils/logger'
 
 export interface APIErrorResponse {
@@ -259,8 +259,9 @@ export const validators = {
 
   phoneNumber: (value: any): string | null => {
     if (!value) return null
-    const phoneRegex = /^(\+94|0)?[0-9]{9}$/
-    return phoneRegex.test(value.replace(/\s/g, '')) ? null : 'Invalid phone number format'
+    // Use the centralized validatePhone function for consistency
+    const cleaned = String(value).replace(/[\s\-\(\)]/g, '')
+    return validatePhone(cleaned) ? null : 'Invalid phone number format'
   },
 
   url: (value: any): string | null => {

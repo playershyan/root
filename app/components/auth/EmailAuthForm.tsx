@@ -118,18 +118,27 @@ export default function EmailAuthForm({
         }
 
         result = await signUp(email, password, name)
+        
+        // Check if email verification is required
+        if (result.success && result.requiresEmailVerification) {
+          const authResult: AuthResult = {
+            success: true,
+            requiresEmailVerification: true,
+            user: result.user,
+            email: email
+          }
+          onSuccess?.(authResult)
+          setLoading(false)
+          return
+        }
       } else {
         result = await signInWithPassword(email, password)
       }
       
       if (result.success) {
-        if (result.requiresEmailVerification) {
-          const authResult: AuthResult = {
-            success: true,
-            requiresEmailVerification: true,
-            user: result.user
-          }
-          onSuccess?.(authResult)
+        // Email verification already handled above for registration
+        if (type === 'register' && result.requiresEmailVerification) {
+          // Already handled above, should not reach here
         } else {
           await refreshUser()
           const authResult: AuthResult = { success: true, user: result.user }
