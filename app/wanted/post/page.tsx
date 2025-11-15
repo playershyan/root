@@ -80,6 +80,26 @@ export default function PostWantedPage() {
   const [selectedDistrict, setSelectedDistrict] = useState<string>('')
   const [availableCities, setAvailableCities] = useState<string[]>([])
   
+  const [formData, setFormData] = useState<FormData>({
+    description: '',
+    vehicleType: '',
+    min_budget: '',
+    max_budget: '',
+    make: '',
+    customMake: '',
+    model: '',
+    customModel: '',
+    min_year: '',
+    max_year: '',
+    location: '',
+    phone: '',
+    whatsapp: '',
+    whatsappSameAsPhone: true,
+    fuel_type: '',
+    transmission: '',
+    max_mileage: ''
+  })
+  
   // Check authentication status and redirect if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
@@ -230,11 +250,11 @@ export default function PostWantedPage() {
 
   // Store original phone when form data changes (for edit mode)
   useEffect(() => {
-    if (isEditMode && formData.phone && !originalPhone) {
+    if (isEditMode && formData && formData.phone && !originalPhone) {
       setOriginalPhone(formData.phone)
       setPhoneVerified(true) // Pre-verified for edit mode
     }
-  }, [isEditMode, formData.phone, originalPhone])
+  }, [isEditMode, formData, originalPhone])
 
   // Auto-update WhatsApp when phone changes and checkbox is checked
   useEffect(() => {
@@ -267,25 +287,6 @@ export default function PostWantedPage() {
     // Display with one decimal place if not a whole number
     return millions % 1 === 0 ? `${millions}M` : `${millions.toFixed(1)}M`
   }
-  const [formData, setFormData] = useState<FormData>({
-    description: '',
-    vehicleType: '',
-    min_budget: '',
-    max_budget: '',
-    make: '',
-    customMake: '',
-    model: '',
-    customModel: '',
-    min_year: '',
-    max_year: '',
-    location: '',
-    phone: '',
-    whatsapp: '',
-    whatsappSameAsPhone: true,
-    fuel_type: '',
-    transmission: '',
-    max_mileage: ''
-  })
 
   // Helper functions to get makes and models based on vehicle type
   const getMakeOptions = () => {

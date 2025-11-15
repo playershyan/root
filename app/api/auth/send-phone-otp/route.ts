@@ -22,6 +22,10 @@ export async function POST(request: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     
     const { phoneNumber, recaptchaToken, isRegistration } = await request.json()
+    
+    if (!phoneNumber) {
+      return NextResponse.json({ error: 'Phone number is required' }, { status: 400 })
+    }
 
     logger.debug('Send OTP request', { isRegistration, hasRecaptchaToken: !!recaptchaToken })
 

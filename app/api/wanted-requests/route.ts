@@ -78,6 +78,73 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    // Get user's profile to check if phone changed
+    const { data: userProfile, error: profileError } = await supabase
+      .from('profiles')
+      .select('phone')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError) {
+      logger.error('Error fetching user profile', profileError as Error)
+    }
+
+    // Check if phone number changed
+    const phoneChanged = sanitized.phone && userProfile?.phone && sanitized.phone !== userProfile.phone
+
+    // If phone changed, require OTP verification
+    if (phoneChanged && !body.phoneOtpCode) {
+      return NextResponse.json({
+        error: 'OTP verification required for phone number change',
+        requiresOTP: true
+      }, { status: 400 })
+    }
+
+    // If phone changed, verify OTP
+    if (phoneChanged && body.phoneOtpCode) {
+      const { data: otpRecord, error: otpError } = await supabase
+        .from('phone_verifications')
+        .select('*')
+        .eq('phone_number', sanitized.phone)
+        .eq('otp_code', body.phoneOtpCode)
+        .eq('verified', false)
+        .eq('user_id', user.id)
+        .gte('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false })
+        .single()
+
+      if (otpError || !otpRecord) {
+        logger.error('OTP verification failed for wanted request', otpError as Error, {
+          phone: sanitized.phone,
+          userId: user.id
+        })
+        return NextResponse.json({
+          error: 'Invalid or expired verification code. Please request a new code.',
+          requiresOTP: true
+        }, { status: 400 })
+      }
+
+      // Check attempt limit
+      if (otpRecord.attempts >= 3) {
+        return NextResponse.json({
+          error: 'Too many verification attempts. Please request a new code.',
+          requiresOTP: true
+        }, { status: 400 })
+      }
+
+      // Increment attempt counter and mark as verified
+      await supabase
+        .from('phone_verifications')
+        .update({
+          attempts: (otpRecord.attempts || 0) + 1,
+          verified: true,
+          verified_at: new Date().toISOString()
+        })
+        .eq('id', otpRecord.id)
+
+      logger.info('Phone OTP verified for wanted request', { userId: user.id, phone: sanitized.phone })
+    }
+
     // Format phone number (Sri Lankan format only)
     const formattedPhone = formatPhoneNumber(sanitized.phone || '', '94')
     // Format WhatsApp number (use phone if whatsapp not provided)
