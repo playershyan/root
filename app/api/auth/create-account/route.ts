@@ -25,11 +25,29 @@ export async function POST(request: Request) {
       }
 
       // Format phone number to E.164 format for Supabase (must start with +)
-      // phoneNumber comes as "94771234567" (from formatPhoneForStorage)
-      // E.164 format requires "+94771234567"
-      let e164PhoneNumber = phoneNumber
-      if (!e164PhoneNumber.startsWith('+')) {
-        e164PhoneNumber = `+${e164PhoneNumber}`
+      // phoneNumber might come in various formats:
+      // - Local format: "0783607777" (starts with 0)
+      // - International without +: "94783607777" (starts with country code)
+      // - International with +: "+94783607777" (already E.164)
+      // We need to convert to E.164: "+94783607777"
+      let e164PhoneNumber = phoneNumber.trim()
+      
+      // Remove any non-numeric characters except +
+      const cleanPhone = e164PhoneNumber.replace(/[^\d+]/g, '')
+      
+      // Convert to E.164 format
+      if (cleanPhone.startsWith('+')) {
+        // Already has +, use as is
+        e164PhoneNumber = cleanPhone
+      } else if (cleanPhone.startsWith('0')) {
+        // Local format (e.g., 0783607777) -> convert to +94783607777
+        e164PhoneNumber = `+94${cleanPhone.substring(1)}`
+      } else if (cleanPhone.startsWith('94')) {
+        // International format without + (e.g., 94783607777) -> add +
+        e164PhoneNumber = `+${cleanPhone}`
+      } else {
+        // Assume Sri Lankan number without country code (e.g., 783607777)
+        e164PhoneNumber = `+94${cleanPhone}`
       }
 
       // Use service role client to create user
