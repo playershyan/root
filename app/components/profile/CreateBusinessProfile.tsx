@@ -38,10 +38,6 @@ export default function CreateBusinessProfile({
       newErrors.business_name = 'Business name is required'
     }
     
-    if (formData.website && !formData.website.match(/^https?:\/\/.+/)) {
-      newErrors.website = 'Please enter a valid URL starting with http:// or https://'
-    }
-    
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -126,11 +122,10 @@ export default function CreateBusinessProfile({
                 </Label>
                 <Input
                   id="website"
-                  type="url"
-                  inputMode="url"
+                  type="text"
                   value={formData.website}
                   onChange={(e) => setFormData({...formData, website: e.target.value})}
-                  placeholder="https://yourbusiness.com"
+                  placeholder="yourbusiness.lk"
                   className={errors.website ? 'border-red-300' : ''}
                   disabled={loading}
                 />

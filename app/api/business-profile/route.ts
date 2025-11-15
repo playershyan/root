@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
           profile_image_url,
           is_active: true,
           is_paused: false,
-          is_verified: false,
+          is_verified: true,
           deleted_at: null,
           updated_at: new Date().toISOString()
         })
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
           profile_image_url,
           is_active: true,
           is_paused: false,
-          is_verified: false
+          is_verified: true
         })
         .select(`
           id, user_id, business_name, description, website, address,

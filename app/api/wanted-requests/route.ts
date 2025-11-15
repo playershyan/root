@@ -6,6 +6,10 @@ import { validateWantedRequest, sanitizeWantedRequest, formatPhoneNumber, genera
 import { incr } from '@/lib/security/metrics'
 import { logger } from '@/lib/utils/logger'
 
+// TEMPORARY CONFIGURATION: Auto-approve wanted requests (bypass admin moderation)
+// Set to false to require admin approval before wanted requests go live
+const AUTO_APPROVE_WANTED_REQUESTS = true
+
 export async function POST(request: NextRequest) {
   try {
     // Apply rate limiting (5 requests per 15 minutes per user)
@@ -117,8 +121,9 @@ export async function POST(request: NextRequest) {
       fuel_type: sanitized.fuel_type || null,
       transmission: sanitized.transmission || null,
       max_mileage: sanitized.max_mileage ? parseInt(String(sanitized.max_mileage)) : null,
-      status: 'pending',
-      is_active: false
+      // Auto-approval status (controlled by AUTO_APPROVE_WANTED_REQUESTS flag)
+      status: AUTO_APPROVE_WANTED_REQUESTS ? 'active' : 'pending',
+      is_active: AUTO_APPROVE_WANTED_REQUESTS
     }
 
     // Insert into database
@@ -146,7 +151,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       request: newRequest,
-      message: 'Wanted request created successfully and is pending approval'
+      message: AUTO_APPROVE_WANTED_REQUESTS 
+        ? 'Wanted request created successfully and is now live'
+        : 'Wanted request created successfully and is pending approval'
     }, { status: 201 })
 
   } catch (error: any) {

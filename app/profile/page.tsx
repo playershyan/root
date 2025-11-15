@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import {
-  User, Shield, Bell, Car, Heart, Search, MessageSquare,
+  User, Shield, Bell, Car, Search,
   Trash2, Building2, ChevronRight
 } from 'lucide-react'
 import { getProfileStats } from './utils/getProfileStats'
@@ -60,18 +60,6 @@ export default async function ProfileLandingPage() {
           href: '/profile/wanted', 
           icon: Search,
           badge: stats.wanted_count > 0 ? stats.wanted_count : undefined
-        },
-        { 
-          title: 'Favorites', 
-          href: '/profile/favorites', 
-          icon: Heart,
-          badge: stats.favorites_count > 0 ? stats.favorites_count : undefined
-        },
-        {
-          title: 'Messages',
-          href: '/profile/messages',
-          icon: MessageSquare,
-          badge: stats.unread_count > 0 ? stats.unread_count : undefined
         }
       ]
     }

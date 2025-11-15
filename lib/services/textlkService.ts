@@ -32,10 +32,15 @@ export class TextLKService {
 
   constructor() {
     this.apiKey = process.env.TEXTLK_API_KEY || ''
-    this.senderId = process.env.TEXTLK_SENDER_ID || 'vera.lk'
+    this.senderId = process.env.TEXTLK_SENDER_ID || 'VERAVERIFY1'
 
     if (!this.apiKey && process.env.NODE_ENV === 'production') {
       logger.warn('Text.lk API key not configured. SMS will not be sent.', new Error('Missing API key'))
+    }
+
+    // Validate sender ID length (Text.lk maximum 11 characters)
+    if (this.senderId.length > 11 && process.env.NODE_ENV === 'production') {
+      logger.warn('Sender ID must be maximum 11 characters for Text.lk', new Error('Invalid sender ID'))
     }
   }
 

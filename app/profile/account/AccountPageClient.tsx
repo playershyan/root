@@ -45,12 +45,9 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
   const [showCreateProfile, setShowCreateProfile] = useState(false)
   
   const [formData, setFormData] = useState({
-    fullName: initialProfile?.full_name || '',
-    displayName: initialProfile?.display_name || '',
+    displayName: initialProfile?.full_name || initialProfile?.display_name || '',
     phone: initialProfile?.phone || '',
-    whatsapp: initialProfile?.whatsapp || '',
-    location: initialProfile?.location || '',
-    bio: initialProfile?.bio || ''
+    whatsapp: initialProfile?.whatsapp || ''
   })
 
   const {
@@ -73,12 +70,9 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: formData.fullName,
-          display_name: formData.displayName,
+          name: formData.displayName,
           phone: formData.phone,
-          whatsapp: formData.whatsapp,
-          location: formData.location,
-          bio: formData.bio
+          whatsapp: formData.whatsapp
         }),
       })
 
@@ -180,12 +174,9 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
                     onClick={() => {
                       setIsEditing(false)
                       setFormData({
-                        fullName: initialProfile?.full_name || '',
-                        displayName: initialProfile?.display_name || '',
+                        displayName: initialProfile?.full_name || initialProfile?.display_name || '',
                         phone: initialProfile?.phone || '',
-                        whatsapp: initialProfile?.whatsapp || '',
-                        location: initialProfile?.location || '',
-                        bio: initialProfile?.bio || ''
+                        whatsapp: initialProfile?.whatsapp || ''
                       })
                     }}
                   >
@@ -231,56 +222,20 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
                 {isEditing ? (
                   <form className="space-y-4">
                     <div>
-                      <Label htmlFor="fullName">Full Name</Label>
-                      <Input
-                        id="fullName"
-                        value={formData.fullName}
-                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                        placeholder="Enter your full name"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="displayName">Display Name (Optional)</Label>
+                      <Label htmlFor="displayName">Display Name</Label>
                       <Input
                         id="displayName"
                         value={formData.displayName}
                         onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-                        placeholder="Enter display name"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="bio">Bio (Optional)</Label>
-                      <Input
-                        id="bio"
-                        value={formData.bio}
-                        onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                        placeholder="Tell us about yourself"
+                        placeholder="Enter your display name"
                       />
                     </div>
                   </form>
                 ) : (
-                  <>
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Full Name</label>
-                      <p className="mt-1 text-gray-900">{initialProfile?.full_name || 'Not set'}</p>
-                    </div>
-
-                    {initialProfile?.display_name && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Display Name</label>
-                        <p className="mt-1 text-gray-900">{initialProfile.display_name}</p>
-                      </div>
-                    )}
-
-                    {initialProfile?.bio && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Bio</label>
-                        <p className="mt-1 text-gray-600">{initialProfile.bio}</p>
-                      </div>
-                    )}
-                  </>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Display Name</label>
+                    <p className="mt-1 text-gray-900">{initialProfile?.full_name || initialProfile?.display_name || 'Not set'}</p>
+                  </div>
                 )}
               </div>
             </div>
@@ -311,16 +266,6 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
                     placeholder="+94 XX XXX XXXX"
                   />
                 </div>
-
-                <div>
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    placeholder="Colombo, Sri Lanka"
-                  />
-                </div>
               </div>
             ) : (
               <div className="space-y-4">
@@ -332,35 +277,21 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
                   </div>
                 </div>
 
-                {initialProfile?.phone && (
-                  <div className="flex items-center gap-3 py-2">
-                    <Phone className="w-5 h-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Phone</p>
-                      <p className="text-gray-900">{initialProfile.phone}</p>
-                    </div>
+                <div className="flex items-center gap-3 py-2">
+                  <Phone className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Phone</p>
+                    <p className="text-gray-900">{initialProfile?.phone || 'Not set'}</p>
                   </div>
-                )}
+                </div>
 
-                {initialProfile?.whatsapp && (
-                  <div className="flex items-center gap-3 py-2">
-                    <Phone className="w-5 h-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">WhatsApp</p>
-                      <p className="text-gray-900">{initialProfile.whatsapp}</p>
-                    </div>
+                <div className="flex items-center gap-3 py-2">
+                  <Phone className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">WhatsApp</p>
+                    <p className="text-gray-900">{initialProfile?.whatsapp || 'Not set'}</p>
                   </div>
-                )}
-
-                {initialProfile?.location && (
-                  <div className="flex items-center gap-3 py-2">
-                    <MapPin className="w-5 h-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Location</p>
-                      <p className="text-gray-900">{initialProfile.location}</p>
-                    </div>
-                  </div>
-                )}
+                </div>
               </div>
             )}
           </div>
@@ -369,7 +300,7 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-semibold mb-4">Account Statistics</h2>
             
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="text-center p-4 bg-blue-50 rounded-lg">
                 <p className="text-2xl font-bold text-blue-600">{stats.total_listings}</p>
                 <p className="text-sm text-gray-600">Listings</p>
@@ -377,14 +308,6 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
               <div className="text-center p-4 bg-green-50 rounded-lg">
                 <p className="text-2xl font-bold text-green-600">{stats.total_wanted_requests}</p>
                 <p className="text-sm text-gray-600">Requests</p>
-              </div>
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <p className="text-2xl font-bold text-purple-600">{stats.total_favorites}</p>
-                <p className="text-sm text-gray-600">Favorites</p>
-              </div>
-              <div className="text-center p-4 bg-orange-50 rounded-lg">
-                <p className="text-2xl font-bold text-orange-600">{stats.total_messages}</p>
-                <p className="text-sm text-gray-600">Messages</p>
               </div>
             </div>
           </div>
