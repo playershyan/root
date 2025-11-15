@@ -94,15 +94,24 @@ class Logger {
         try {
           // Dynamic import to avoid issues if Sentry is not configured
           const Sentry = require('@sentry/nextjs')
+          
+          // According to Sentry docs: Use logger.error for log messages, captureException for exceptions
           if (error instanceof Error) {
+            // Capture exception first (creates an error event)
             Sentry.captureException(error, {
               extra: {
                 message,
                 ...context
               }
             })
+            // Also log as structured log for correlation
+            Sentry.logger.error(message, {
+              ...context,
+              errorName: error.name,
+              errorMessage: error.message
+            })
           } else {
-            // Log as a message with error details
+            // Log as a structured log message with error details
             Sentry.logger.error(message, {
               ...context,
               errorDetails: error
