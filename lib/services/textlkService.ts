@@ -29,7 +29,7 @@ interface TextLKResponse {
 export class TextLKService {
   private apiKey: string
   private senderId: string
-  private baseUrl: string = 'https://app.text.lk/api/v3'
+  private baseUrl: string = 'https://app.text.lk/api/http'
 
   constructor() {
     this.apiKey = process.env.TEXTLK_API_KEY || ''
@@ -95,8 +95,9 @@ export class TextLKService {
         formattedRecipients = this.formatPhoneNumber(options.to as string)
       }
 
-      // Prepare request body
+      // Prepare request body (HTTP API uses api_token in body, not Authorization header)
       const requestBody: any = {
+        api_token: this.apiKey,
         recipient: formattedRecipients,
         sender_id: options.senderId || this.senderId,
         type: 'plain',
@@ -111,11 +112,10 @@ export class TextLKService {
         requestBody.dlt_template_id = options.dltTemplateId
       }
 
-      // Send SMS via Text.lk API
+      // Send SMS via Text.lk HTTP API
       const response = await fetch(`${this.baseUrl}/sms/send`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
@@ -213,13 +213,14 @@ export class TextLKService {
         return null
       }
 
+      // HTTP API: api_token in request body for GET requests
       const response = await fetch(`${this.baseUrl}/sms/${messageId}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json'
-        }
+        },
+        body: JSON.stringify({ api_token: this.apiKey })
       })
 
       const result: TextLKResponse = await response.json()
@@ -244,13 +245,14 @@ export class TextLKService {
         return null
       }
 
+      // HTTP API: api_token in request body for GET requests
       const response = await fetch(`${this.baseUrl}/sms/${uid}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json'
-        }
+        },
+        body: JSON.stringify({ api_token: this.apiKey })
       })
 
       const result: TextLKResponse = await response.json()
@@ -275,10 +277,10 @@ export class TextLKService {
         return null
       }
 
-      const response = await fetch(`${this.baseUrl}/sms?page=${page}`, {
+      // HTTP API: api_token in query params for GET requests with query params
+      const response = await fetch(`${this.baseUrl}/sms?page=${page}&api_token=${encodeURIComponent(this.apiKey)}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         }
@@ -332,10 +334,11 @@ export class TextLKService {
         params.append('page', filters.page.toString())
       }
 
+      // HTTP API: api_token in query params for GET requests with query params
+      params.append('api_token', this.apiKey)
       const response = await fetch(`${this.baseUrl}/sms?${params.toString()}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         }
@@ -395,8 +398,9 @@ export class TextLKService {
         formattedContactLists = options.contactListId as string
       }
 
-      // Prepare request body
+      // Prepare request body (HTTP API uses api_token in body, not Authorization header)
       const requestBody: any = {
+        api_token: this.apiKey,
         contact_list_id: formattedContactLists,
         sender_id: options.senderId || this.senderId,
         type: 'plain',
@@ -411,11 +415,10 @@ export class TextLKService {
         requestBody.dlt_template_id = options.dltTemplateId
       }
 
-      // Send campaign via Text.lk API
+      // Send campaign via Text.lk HTTP API
       const response = await fetch(`${this.baseUrl}/sms/campaign`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
@@ -468,13 +471,14 @@ export class TextLKService {
         return null
       }
 
+      // HTTP API: api_token in request body for GET requests
       const response = await fetch(`${this.baseUrl}/campaign/${uid}/view`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json'
-        }
+        },
+        body: JSON.stringify({ api_token: this.apiKey })
       })
 
       const result: TextLKResponse = await response.json()
@@ -502,13 +506,14 @@ export class TextLKService {
 
       // Note: Text.lk API endpoint for balance might vary
       // This is a placeholder - check their documentation for the actual endpoint
+      // HTTP API: api_token in request body for GET requests
       const response = await fetch(`${this.baseUrl}/balance`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json'
-        }
+        },
+        body: JSON.stringify({ api_token: this.apiKey })
       })
 
       const result: TextLKResponse = await response.json()
