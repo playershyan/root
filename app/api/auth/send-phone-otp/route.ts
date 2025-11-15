@@ -49,8 +49,17 @@ export async function POST(request: NextRequest) {
             persistSession: false
           }
         })
+        logger.debug('Using service role client for registration', { hasServiceRoleKey: true })
       } else {
-        logger.warn('Service role key not configured. Registration OTP may fail RLS check.')
+        const missing = !serviceRoleKey ? 'SUPABASE_SERVICE_ROLE_KEY' : 'NEXT_PUBLIC_SUPABASE_URL'
+        logger.error('Service role key or URL not configured', new Error(`Missing: ${missing}`), {
+          hasServiceRoleKey: !!serviceRoleKey,
+          hasSupabaseUrl: !!supabaseUrl
+        })
+        return NextResponse.json({ 
+          error: 'Server configuration error',
+          details: `Missing required environment variable: ${missing}. Please configure SUPABASE_SERVICE_ROLE_KEY in Vercel.`
+        }, { status: 500 })
       }
     }
 
@@ -154,8 +163,29 @@ export async function POST(request: NextRequest) {
       })
 
     if (insertError) {
-      logger.error('Error storing OTP', insertError as Error)
-      return NextResponse.json({ error: 'Failed to generate OTP' }, { status: 500 })
+      // Supabase errors are objects with message, code, details, hint properties
+      const errorMsg = typeof insertError === 'string' 
+        ? insertError 
+        : (insertError as any)?.message || 'Database insert failed'
+      const errorCode = (insertError as any)?.code || 'INSERT_ERROR'
+      const errorDetails = (insertError as any)?.details || (insertError as any)?.hint
+      
+      logger.error('Error storing OTP', new Error(errorMsg), {
+        error: insertError,
+        errorCode,
+        errorDetails,
+        phoneNumber,
+        userId,
+        isRegistration,
+        hasServiceRoleKey: !!serviceRoleKey
+      })
+      
+      return NextResponse.json({ 
+        error: 'Failed to generate OTP',
+        details: errorMsg,
+        code: errorCode,
+        hint: errorDetails
+      }, { status: 500 })
     }
 
     // Update profile with temp phone number (only for existing users)
@@ -198,7 +228,20 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    logger.error('Send phone OTP error', error as Error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorStack = error instanceof Error ? error.stack : undefined
+    
+    logger.error('Send phone OTP error', error as Error, {
+      error: errorMessage,
+      stack: errorStack,
+      isRegistration,
+      hasPhoneNumber: !!phoneNumber
+    })
+    
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+      message: 'Failed to send OTP. Please try again.'
+    }, { status: 500 })
   }
 }
