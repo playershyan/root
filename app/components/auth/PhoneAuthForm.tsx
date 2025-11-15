@@ -82,7 +82,7 @@ export default function PhoneAuthForm({
           try {
             recaptchaToken = await getToken('phone_otp')
             if (!recaptchaToken) {
-              setError('reCAPTCHA failed. Try again later')
+              setError('reCAPTCHA failed. Please refresh the page and try again')
               setLoading(false)
               return
             }
@@ -91,7 +91,7 @@ export default function PhoneAuthForm({
               component: 'PhoneAuthForm',
               action: 'handleSubmit'
             })
-            setError('reCAPTCHA failed. Try again later')
+            setError('reCAPTCHA failed. Please refresh the page and try again')
             setLoading(false)
             return
           }
@@ -136,7 +136,7 @@ export default function PhoneAuthForm({
         // Handle specific error cases
         if (errorMessage.toLowerCase().includes('recaptcha verification required') || 
             errorMessage.toLowerCase().includes('recaptcha')) {
-          setError('reCAPTCHA failed. Try again later')
+          setError('reCAPTCHA failed. Please refresh the page and try again')
         } else if (errorMessage.toLowerCase().includes('unsupported phone provider') || 
             errorMessage.toLowerCase().includes('phone provider')) {
           setError('SMS service is not configured for your region. Please contact support.')
