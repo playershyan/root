@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { logger } from '@/lib/utils/logger'
 
@@ -17,18 +18,55 @@ export async function POST(request: NextRequest) {
     }
 
     // For registration flow, verify OTP without requiring authentication
+    // Use service role client to bypass RLS (records have user_id = null)
     if (isRegistration) {
-      // Find the OTP record
-      const { data: otpRecord, error: otpError } = await supabase
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+
+      if (!serviceRoleKey || !supabaseUrl) {
+        const missing = !serviceRoleKey ? 'SUPABASE_SERVICE_ROLE_KEY' : 'NEXT_PUBLIC_SUPABASE_URL'
+        logger.error('Service role key or URL not configured', new Error(`Missing: ${missing}`), {
+          hasServiceRoleKey: !!serviceRoleKey,
+          hasSupabaseUrl: !!supabaseUrl
+        })
+        return NextResponse.json({ 
+          error: 'Server configuration error',
+          details: `Missing required environment variable: ${missing}. Please configure SUPABASE_SERVICE_ROLE_KEY in Vercel.`
+        }, { status: 500 })
+      }
+
+      // Create service role client to bypass RLS for registration verification
+      const dbClient = createClient(supabaseUrl, serviceRoleKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      })
+
+      logger.debug('Using service role client for registration verification', { 
+        hasServiceRoleKey: true,
+        phoneNumber 
+      })
+
+      // Find the OTP record (with null user_id for registration)
+      const { data: otpRecord, error: otpError } = await dbClient
         .from('phone_verifications')
         .select('*')
         .eq('phone_number', phoneNumber)
         .eq('otp_code', otpCode)
         .eq('verified', false)
+        .is('user_id', null) // Only match records with null user_id (registration)
         .gte('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false }) // Get most recent
         .single()
 
       if (otpError || !otpRecord) {
+        logger.debug('OTP verification failed', {
+          error: otpError,
+          hasRecord: !!otpRecord,
+          phoneNumber,
+          isRegistration
+        })
         return NextResponse.json({
           error: 'Invalid or expired verification code'
         }, { status: 400 })
@@ -41,8 +79,20 @@ export async function POST(request: NextRequest) {
         }, { status: 400 })
       }
 
+      // Increment attempt counter before verification
+      const { error: attemptError } = await dbClient
+        .from('phone_verifications')
+        .update({
+          attempts: (otpRecord.attempts || 0) + 1
+        })
+        .eq('id', otpRecord.id)
+
+      if (attemptError) {
+        logger.error('Error updating attempt count', attemptError as Error)
+      }
+
       // Mark OTP as verified
-      const { error: updateError } = await supabase
+      const { error: updateError } = await dbClient
         .from('phone_verifications')
         .update({
           verified: true,
@@ -51,17 +101,19 @@ export async function POST(request: NextRequest) {
         .eq('id', otpRecord.id)
 
       if (updateError) {
-        logger.error('Error updating OTP record', updateError as Error)
+        logger.error('Error updating OTP record', updateError as Error, {
+          otpRecordId: otpRecord.id,
+          phoneNumber
+        })
         return NextResponse.json({
           error: 'Verification failed'
         }, { status: 500 })
       }
 
-      // Create a temporary user session or return user ID for account creation
-      // For now, return success with user ID from OTP record
+      // Return success - user_id will be null for registration (account not created yet)
       return NextResponse.json({
         success: true,
-        userId: otpRecord.user_id,
+        userId: otpRecord.user_id, // Will be null for registration
         message: 'Phone number verified successfully'
       })
     }
