@@ -30,15 +30,67 @@ export async function POST(request: NextRequest) {
     let userId: string | null = null
     let dbClient = supabase // Use regular client by default
 
+    // For login flow, find user by phone number (user is not authenticated yet)
     if (!isRegistration) {
-      // Original flow - require authentication for existing users
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-      if (authError || !user) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      // Use service role client to find user by phone number
+      if (!serviceRoleKey || !supabaseUrl) {
+        const missing = !serviceRoleKey ? 'SUPABASE_SERVICE_ROLE_KEY' : 'NEXT_PUBLIC_SUPABASE_URL'
+        logger.error('Service role key or URL not configured for login', new Error(`Missing: ${missing}`), {
+          hasServiceRoleKey: !!serviceRoleKey,
+          hasSupabaseUrl: !!supabaseUrl
+        })
+        return NextResponse.json({ 
+          error: 'Server configuration error',
+          details: `Missing required environment variable: ${missing}. Please configure SUPABASE_SERVICE_ROLE_KEY in Vercel.`
+        }, { status: 500 })
       }
 
-      userId = user.id
+      const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      })
+
+      // Format phone number to E.164 for Supabase auth lookup
+      let e164PhoneNumber = phoneNumber.trim()
+      const cleanPhone = e164PhoneNumber.replace(/[^\d+]/g, '')
+      
+      if (cleanPhone.startsWith('+')) {
+        e164PhoneNumber = cleanPhone
+      } else if (cleanPhone.startsWith('0')) {
+        e164PhoneNumber = `+94${cleanPhone.substring(1)}`
+      } else if (cleanPhone.startsWith('94')) {
+        e164PhoneNumber = `+${cleanPhone}`
+      } else {
+        e164PhoneNumber = `+94${cleanPhone}`
+      }
+
+      // Find user by phone number using admin API
+      const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers()
+      
+      if (listError) {
+        logger.error('Error listing users for login OTP', listError as Error, { phoneNumber })
+        return NextResponse.json({ error: 'Failed to find user' }, { status: 500 })
+      }
+
+      // Find user matching this phone number
+      const matchingUser = users?.find(user => 
+        user.phone === e164PhoneNumber || 
+        user.phone === phoneNumber ||
+        user.user_metadata?.phone === phoneNumber
+      )
+
+      if (!matchingUser) {
+        logger.debug('User not found for login OTP', { phoneNumber, e164PhoneNumber })
+        return NextResponse.json({
+          error: 'No account found with this phone number. Please sign up first.'
+        }, { status: 404 })
+      }
+
+      userId = matchingUser.id
+      dbClient = adminClient // Use admin client for database operations
+      logger.debug('Found user for login OTP', { userId, phoneNumber })
     } else {
       // For registration, use service role client to bypass RLS
       // This allows inserting records with null user_id

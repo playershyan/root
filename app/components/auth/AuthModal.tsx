@@ -360,6 +360,7 @@ export default function AuthModal({
               Back
             </Button>
             <PhoneAuthForm
+              type={authType}
               onSuccess={handleAuthSuccess}
               onError={handleAuthError}
               onVerificationRequired={handlePhoneVerificationRequired}

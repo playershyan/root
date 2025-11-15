@@ -25,6 +25,7 @@ export interface AuthButtonProps {
 }
 
 export interface PhoneAuthProps extends AuthButtonProps {
+  type?: 'login' | 'register';
   countryCode?: string;
   onCountryChange?: (countryCode: string) => void;
 }

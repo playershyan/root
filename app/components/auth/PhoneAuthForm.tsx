@@ -17,6 +17,7 @@ interface PhoneAuthFormProps extends PhoneAuthProps {
 }
 
 export default function PhoneAuthForm({
+  type = 'register',
   loading: externalLoading = false,
   disabled = false,
   className = '',
@@ -46,7 +47,8 @@ export default function PhoneAuthForm({
 
     const trimmedName = name.trim()
 
-    if (!trimmedName) {
+    // Only require name for registration, not for login
+    if (type === 'register' && !trimmedName) {
       setNameError('Full name is required')
       return
     }
@@ -67,9 +69,11 @@ export default function PhoneAuthForm({
 
     setLoading(true)
     setError('')
+    setNameError('')
     
     try {
       // Use our custom API endpoint that uses Text.lk service instead of Supabase
+      // isRegistration: true for register, false for login
       const response = await fetch('/api/auth/send-phone-otp', {
         method: 'POST',
         headers: {
@@ -78,7 +82,7 @@ export default function PhoneAuthForm({
         body: JSON.stringify({
           phoneNumber: fullPhone,
           recaptchaToken: '', // Add reCAPTCHA if needed
-          isRegistration: true
+          isRegistration: type === 'register'
         }),
       })
 
@@ -86,7 +90,8 @@ export default function PhoneAuthForm({
 
       if (result.success || response.ok) {
         // Phone OTP requires verification step
-        onVerificationRequired?.({ phone: fullPhone, name: trimmedName })
+        // Only pass name if it was provided (for registration)
+        onVerificationRequired?.({ phone: fullPhone, name: trimmedName || undefined })
         const authResult: AuthResult = { 
           success: true, 
           requiresPhoneVerification: true 
@@ -127,28 +132,30 @@ export default function PhoneAuthForm({
           </div>
         )}
 
-        <div className="space-y-2">
-          <Label htmlFor="fullName">
-            Full Name
-          </Label>
-          <Input
-            id="fullName"
-            type="text"
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value)
-              if (nameError) setNameError('')
-            }}
-            className={nameError ? 'border-red-500 focus-visible:ring-red-500' : ''}
-            placeholder="Enter your full name"
-            disabled={loading || externalLoading || disabled}
-          />
-          {nameError && (
-            <p className="text-sm text-red-600">
-              {nameError}
-            </p>
-          )}
-        </div>
+        {type === 'register' && (
+          <div className="space-y-2">
+            <Label htmlFor="fullName">
+              Full Name
+            </Label>
+            <Input
+              id="fullName"
+              type="text"
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value)
+                if (nameError) setNameError('')
+              }}
+              className={nameError ? 'border-red-500 focus-visible:ring-red-500' : ''}
+              placeholder="Enter your full name"
+              disabled={loading || externalLoading || disabled}
+            />
+            {nameError && (
+              <p className="text-sm text-red-600">
+                {nameError}
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="phone">
@@ -187,7 +194,7 @@ export default function PhoneAuthForm({
             !phone.trim() ||
             phone.replace(/[^0-9]/g, '').length < 9 ||
             phone.replace(/[^0-9]/g, '').length > 10 ||
-            !name.trim()
+            (type === 'register' && !name.trim())
           }
         >
           {loading || externalLoading ? (
