@@ -45,13 +45,96 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     logger.debug('PUT /api/profiles - Received data', { hasData: !!body })
 
-    const { name, phone, location, bio, avatar_url, language } = body
+    const { name, phone, whatsapp, phoneOtpCode, location, bio, avatar_url, language } = body
+
+    // Get current profile to check if phone changed
+    const { data: currentProfile, error: fetchError } = await supabase
+      .from('profiles')
+      .select('phone')
+      .eq('id', user.id)
+      .single()
+
+    if (fetchError) {
+      logger.error('Error fetching current profile', fetchError as Error)
+      return NextResponse.json({ error: 'Failed to fetch profile', success: false }, { status: 500 })
+    }
+
+    // Check if phone number changed
+    const phoneChanged = phone && phone !== currentProfile?.phone
+
+    // If phone changed, require OTP verification
+    if (phoneChanged) {
+      if (!phoneOtpCode) {
+        return NextResponse.json({
+          error: 'OTP verification required for phone number change',
+          requiresOTP: true
+        }, { status: 400 })
+      }
+
+      // Verify OTP directly in database
+      const { data: otpRecord, error: otpError } = await supabase
+        .from('phone_verifications')
+        .select('*')
+        .eq('phone_number', phone)
+        .eq('otp_code', phoneOtpCode)
+        .eq('verified', false)
+        .eq('user_id', user.id)
+        .gte('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false })
+        .single()
+
+      if (otpError || !otpRecord) {
+        logger.error('OTP verification failed for profile update', otpError as Error, {
+          phone,
+          userId: user.id,
+          hasRecord: !!otpRecord
+        })
+        return NextResponse.json({
+          error: 'Invalid or expired verification code. Please request a new code.',
+          requiresOTP: true
+        }, { status: 400 })
+      }
+
+      // Check attempt limit
+      if (otpRecord.attempts >= 3) {
+        return NextResponse.json({
+          error: 'Too many verification attempts. Please request a new code.',
+          requiresOTP: true
+        }, { status: 400 })
+      }
+
+      // Increment attempt counter
+      await supabase
+        .from('phone_verifications')
+        .update({ attempts: (otpRecord.attempts || 0) + 1 })
+        .eq('id', otpRecord.id)
+
+      // Mark OTP as verified
+      const { error: updateError } = await supabase
+        .from('phone_verifications')
+        .update({
+          verified: true,
+          verified_at: new Date().toISOString()
+        })
+        .eq('id', otpRecord.id)
+
+      if (updateError) {
+        logger.error('Error updating OTP record', updateError as Error)
+        return NextResponse.json({
+          error: 'Verification failed',
+          requiresOTP: true
+        }, { status: 500 })
+      }
+
+      logger.info('Phone OTP verified for profile update', { userId: user.id, phone })
+    }
 
     const { data: profile, error } = await supabase
       .from('profiles')
       .update({
         name,
         phone,
+        whatsapp,
         location,
         bio,
         avatar_url,
@@ -59,7 +142,7 @@ export async function PUT(request: NextRequest) {
         updated_at: new Date().toISOString()
       })
       .eq('id', user.id)
-      .select('id, name, email, phone, avatar_url, location, language, bio')
+      .select('id, name, email, phone, whatsapp, avatar_url, location, language, bio')
       .single()
 
     if (error) {

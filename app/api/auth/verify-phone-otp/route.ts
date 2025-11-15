@@ -9,12 +9,102 @@ export async function POST(request: NextRequest) {
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
-    const { phoneNumber, otpCode, isRegistration } = await request.json()
+    const { phoneNumber, otpCode, isRegistration, isPhoneUpdate } = await request.json()
 
     if (!phoneNumber || !otpCode) {
       return NextResponse.json({
         error: 'Phone number and OTP code are required'
       }, { status: 400 })
+    }
+
+    // Handle authenticated user phone updates (for profile/listing/wanted updates)
+    if (isPhoneUpdate) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      
+      if (authError || !user) {
+        return NextResponse.json({
+          error: 'Authentication required for phone updates'
+        }, { status: 401 })
+      }
+
+      // Format phone number
+      let e164PhoneNumber = phoneNumber.trim()
+      const cleanPhone = e164PhoneNumber.replace(/[^\d+]/g, '')
+      
+      if (cleanPhone.startsWith('+')) {
+        e164PhoneNumber = cleanPhone
+      } else if (cleanPhone.startsWith('0')) {
+        e164PhoneNumber = `+94${cleanPhone.substring(1)}`
+      } else if (cleanPhone.startsWith('94')) {
+        e164PhoneNumber = `+${cleanPhone}`
+      } else {
+        e164PhoneNumber = `+94${cleanPhone}`
+      }
+
+      // Find OTP record for this user and phone
+      const { data: otpRecord, error: otpError } = await supabase
+        .from('phone_verifications')
+        .select('*')
+        .eq('phone_number', phoneNumber)
+        .eq('otp_code', otpCode)
+        .eq('verified', false)
+        .eq('user_id', user.id) // Must match authenticated user
+        .gte('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false })
+        .single()
+
+      if (otpError || !otpRecord) {
+        logger.debug('OTP verification failed for phone update', {
+          error: otpError,
+          hasRecord: !!otpRecord,
+          phoneNumber,
+          userId: user.id
+        })
+        return NextResponse.json({
+          error: 'Invalid or expired verification code'
+        }, { status: 400 })
+      }
+
+      // Check attempt limit
+      if (otpRecord.attempts >= 3) {
+        return NextResponse.json({
+          error: 'Too many verification attempts. Please request a new code.'
+        }, { status: 400 })
+      }
+
+      // Increment attempt counter
+      await supabase
+        .from('phone_verifications')
+        .update({ attempts: (otpRecord.attempts || 0) + 1 })
+        .eq('id', otpRecord.id)
+
+      // Mark OTP as verified
+      const { error: updateError } = await supabase
+        .from('phone_verifications')
+        .update({
+          verified: true,
+          verified_at: new Date().toISOString()
+        })
+        .eq('id', otpRecord.id)
+
+      if (updateError) {
+        logger.error('Error updating OTP record for phone update', updateError as Error)
+        return NextResponse.json({
+          error: 'Verification failed'
+        }, { status: 500 })
+      }
+
+      logger.info('Phone OTP verified for update', {
+        userId: user.id,
+        phoneNumber
+      })
+
+      return NextResponse.json({
+        success: true,
+        userId: user.id,
+        message: 'Phone number verified successfully',
+        verified: true
+      })
     }
 
     // For registration flow, verify OTP without requiring authentication

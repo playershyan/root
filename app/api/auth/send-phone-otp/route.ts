@@ -92,26 +92,36 @@ export async function POST(request: NextRequest) {
       dbClient = adminClient // Use admin client for database operations
       logger.debug('Found user for login OTP', { userId, phoneNumber })
     } else {
-      // For registration, use service role client to bypass RLS
-      // This allows inserting records with null user_id
-      if (serviceRoleKey && supabaseUrl) {
-        dbClient = createClient(supabaseUrl, serviceRoleKey, {
-          auth: {
-            autoRefreshToken: false,
-            persistSession: false
-          }
-        })
-        logger.debug('Using service role client for registration', { hasServiceRoleKey: true })
+      // Check if user is authenticated (for phone updates in profile/listings/wanted)
+      const { data: { user: authenticatedUser }, error: authError } = await supabase.auth.getUser()
+      
+      if (authenticatedUser && !authError) {
+        // Authenticated user updating phone (profile/listings/wanted)
+        userId = authenticatedUser.id
+        dbClient = supabase // Use regular client for authenticated users
+        logger.debug('Using authenticated user for phone update OTP', { userId, phoneNumber })
       } else {
-        const missing = !serviceRoleKey ? 'SUPABASE_SERVICE_ROLE_KEY' : 'NEXT_PUBLIC_SUPABASE_URL'
-        logger.error('Service role key or URL not configured', new Error(`Missing: ${missing}`), {
-          hasServiceRoleKey: !!serviceRoleKey,
-          hasSupabaseUrl: !!supabaseUrl
-        })
-        return NextResponse.json({ 
-          error: 'Server configuration error',
-          details: `Missing required environment variable: ${missing}. Please configure SUPABASE_SERVICE_ROLE_KEY in Vercel.`
-        }, { status: 500 })
+        // For registration, use service role client to bypass RLS
+        // This allows inserting records with null user_id
+        if (serviceRoleKey && supabaseUrl) {
+          dbClient = createClient(supabaseUrl, serviceRoleKey, {
+            auth: {
+              autoRefreshToken: false,
+              persistSession: false
+            }
+          })
+          logger.debug('Using service role client for registration', { hasServiceRoleKey: true })
+        } else {
+          const missing = !serviceRoleKey ? 'SUPABASE_SERVICE_ROLE_KEY' : 'NEXT_PUBLIC_SUPABASE_URL'
+          logger.error('Service role key or URL not configured', new Error(`Missing: ${missing}`), {
+            hasServiceRoleKey: !!serviceRoleKey,
+            hasSupabaseUrl: !!supabaseUrl
+          })
+          return NextResponse.json({ 
+            error: 'Server configuration error',
+            details: `Missing required environment variable: ${missing}. Please configure SUPABASE_SERVICE_ROLE_KEY in Vercel.`
+          }, { status: 500 })
+        }
       }
     }
 

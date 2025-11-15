@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
       .select(`
         id, title, price, location, make, model, year, mileage,
         fuel_type, transmission, body_type, status, negotiable,
-        pricing_type, description, seller_id, primary_image_url,
+        pricing_type, description, user_id, primary_image_url,
         image_urls, created_at, updated_at, is_sold, views
       `)
       .eq('status', status)

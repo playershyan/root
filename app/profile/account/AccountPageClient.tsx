@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
+import { useState, FormEvent, useEffect } from 'react'
 import { ArrowLeft, Camera, User, Mail, Phone, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -13,6 +13,9 @@ import { useBusinessProfile } from '@/app/hooks/useBusinessProfile'
 import BusinessProfileManagement from '@/app/components/profile/BusinessProfileManagement'
 import CreateBusinessProfile from '@/app/components/profile/CreateBusinessProfile'
 import { CreateBusinessProfileData } from '@/lib/types/businessProfile'
+import PhoneVerificationModal from '@/app/components/PhoneVerificationModal'
+import { usePhoneVerification } from '@/lib/hooks/usePhoneVerification'
+import { checkPhoneChanged } from '@/lib/utils/phoneVerification'
 
 interface ProfileData {
   name?: string
@@ -42,12 +45,30 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [showCreateProfile, setShowCreateProfile] = useState(false)
+  const [showVerificationModal, setShowVerificationModal] = useState(false)
+  const [pendingPhone, setPendingPhone] = useState<string>('')
+  const [pendingOtpCode, setPendingOtpCode] = useState<string>('')
+  const [originalPhone, setOriginalPhone] = useState<string>(initialProfile?.phone || '')
+  
+  const { sendOTP, verifyOTP, isSending, isVerifying } = usePhoneVerification({ purpose: 'profile' })
   
   const [formData, setFormData] = useState({
     displayName: initialProfile?.name || '',
     phone: initialProfile?.phone || '',
     whatsapp: initialProfile?.whatsapp || ''
   })
+
+  // Update original phone when profile changes
+  useEffect(() => {
+    if (initialProfile?.phone) {
+      setOriginalPhone(initialProfile.phone)
+      setFormData(prev => ({
+        ...prev,
+        phone: initialProfile.phone || prev.phone,
+        whatsapp: initialProfile.whatsapp || prev.whatsapp
+      }))
+    }
+  }, [initialProfile?.phone, initialProfile?.whatsapp])
 
   const {
     businessProfile,
@@ -60,6 +81,28 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
+
+    // Check if phone number changed
+    const phoneChanged = checkPhoneChanged(originalPhone, formData.phone)
+
+    // If phone changed, show verification modal first
+    if (phoneChanged && formData.phone) {
+      setPendingPhone(formData.phone)
+      // Send OTP automatically when opening modal
+      const result = await sendOTP(formData.phone)
+      if (result.success) {
+        setShowVerificationModal(true)
+      } else {
+        toast.error(result.error || 'Failed to send OTP. Please try again.')
+      }
+      return
+    }
+
+    // No phone change or phone is empty, proceed with update
+    await submitProfileUpdate()
+  }
+
+  const submitProfileUpdate = async () => {
     setIsLoading(true)
 
     try {
@@ -71,12 +114,24 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
         body: JSON.stringify({
           name: formData.displayName,
           phone: formData.phone,
-          whatsapp: formData.whatsapp
+          whatsapp: formData.whatsapp,
+          phoneOtpCode: pendingOtpCode || undefined
         }),
       })
 
       if (!response.ok) {
         const errorData = await response.json()
+        if (errorData.requiresOTP) {
+          // If OTP required but not provided, show modal
+          setPendingPhone(formData.phone)
+          const result = await sendOTP(formData.phone)
+          if (result.success) {
+            setShowVerificationModal(true)
+          } else {
+            toast.error(result.error || 'Failed to send OTP. Please try again.')
+          }
+          return
+        }
         throw new Error(errorData.error || 'Failed to update profile')
       }
 
@@ -84,6 +139,9 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
       if (result.success) {
         toast.success('Profile updated successfully!')
         setIsEditing(false)
+        setShowVerificationModal(false)
+        setPendingOtpCode('')
+        setOriginalPhone(formData.phone)
         router.refresh()
       } else {
         throw new Error(result.error || 'Failed to update profile')
@@ -93,6 +151,29 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
       toast.error(`Failed to update profile: ${error instanceof Error ? error.message : 'Try again later.'}`)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleVerificationComplete = async (verifiedPhone: string, otpCode: string) => {
+    setPendingOtpCode(otpCode)
+    // Verify OTP first
+    const verifyResult = await verifyOTP(verifiedPhone, otpCode)
+    
+    if (verifyResult.success && verifyResult.verified) {
+      // OTP verified, now submit the profile update
+      await submitProfileUpdate()
+    } else {
+      toast.error(verifyResult.error || 'Invalid OTP code. Please try again.')
+    }
+  }
+
+  const handleResendOTP = async () => {
+    if (!pendingPhone) return
+    const result = await sendOTP(pendingPhone)
+    if (result.success) {
+      toast.success('OTP sent successfully!')
+    } else {
+      toast.error(result.error || 'Failed to resend OTP. Please try again.')
     }
   }
 
@@ -340,6 +421,20 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
           </div>
         </div>
       </div>
+
+      {/* Phone Verification Modal */}
+      <PhoneVerificationModal
+        phone={pendingPhone}
+        isOpen={showVerificationModal}
+        onVerified={handleVerificationComplete}
+        onCancel={() => {
+          setShowVerificationModal(false)
+          setPendingPhone('')
+          setPendingOtpCode('')
+        }}
+        purpose="profile"
+        onResend={handleResendOTP}
+      />
     </div>
   )
 }

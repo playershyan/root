@@ -22,6 +22,9 @@ import { toast } from 'sonner'
 import { Toast } from '@/app/components/notifications/Toast'
 import { logger } from '@/lib/utils/logger'
 import { Lightbulb } from 'lucide-react'
+import PhoneVerificationModal from '@/app/components/PhoneVerificationModal'
+import { usePhoneVerification } from '@/lib/hooks/usePhoneVerification'
+import { checkPhoneChanged } from '@/lib/utils/phoneVerification'
 
 interface FormData {
   description: string
@@ -55,6 +58,15 @@ export default function PostWantedPage() {
   const { toasts, showError, showSuccess, removeToast } = useToast()
   const [loading, setLoading] = useState(false)
   const [highPriority, setHighPriority] = useState(false)
+  
+  // Phone verification state
+  const [showVerificationModal, setShowVerificationModal] = useState(false)
+  const [pendingPhone, setPendingPhone] = useState<string>('')
+  const [pendingOtpCode, setPendingOtpCode] = useState<string>('')
+  const [originalPhone, setOriginalPhone] = useState<string>('')
+  const [phoneVerified, setPhoneVerified] = useState(false)
+  
+  const { sendOTP, verifyOTP } = usePhoneVerification({ purpose: 'wanted' })
 
   // Detect edit mode
   const isEditMode = searchParams.get('edit') !== null
@@ -168,6 +180,12 @@ export default function PostWantedPage() {
               max_mileage: data.max_mileage ? data.max_mileage.toString() : ''
             })
 
+            // Store original phone for comparison
+            if (phoneNumber) {
+              setOriginalPhone(phoneNumber)
+              setPhoneVerified(true) // Pre-verified for edit mode
+            }
+
             // Set district if found
             if (district) {
               setSelectedDistrict(district)
@@ -197,15 +215,26 @@ export default function PostWantedPage() {
       const whatsappNumber = getWhatsAppNumber()
 
       if (phoneNumber || whatsappNumber) {
+        const populatedPhone = phoneNumber || ''
         setFormData(prev => ({
           ...prev,
           phone: prev.phone || phoneNumber, // Only populate if empty
           whatsapp: prev.whatsapp || whatsappNumber || phoneNumber, // Populate WhatsApp, fallback to phone
           whatsappSameAsPhone: prev.whatsappSameAsPhone !== false ? (whatsappNumber === phoneNumber || !whatsappNumber) : prev.whatsappSameAsPhone
         }))
+        // Store original phone for comparison
+        setOriginalPhone(populatedPhone)
       }
     }
   }, [profile, profileLoading, getPhoneNumber, getWhatsAppNumber, isEditMode])
+
+  // Store original phone when form data changes (for edit mode)
+  useEffect(() => {
+    if (isEditMode && formData.phone && !originalPhone) {
+      setOriginalPhone(formData.phone)
+      setPhoneVerified(true) // Pre-verified for edit mode
+    }
+  }, [isEditMode, formData.phone, originalPhone])
 
   // Auto-update WhatsApp when phone changes and checkbox is checked
   useEffect(() => {
@@ -469,6 +498,27 @@ export default function PostWantedPage() {
       return
     }
 
+    // Check if phone number changed (and not already verified)
+    const phoneChanged = checkPhoneChanged(originalPhone, formData.phone)
+    const needsVerification = phoneChanged && formData.phone && !phoneVerified
+
+    if (needsVerification) {
+      // Show verification modal
+      setPendingPhone(formData.phone)
+      const result = await sendOTP(formData.phone)
+      if (result.success) {
+        setShowVerificationModal(true)
+      } else {
+        showError(result.error || 'Failed to send OTP. Please try again.', 5000)
+      }
+      return
+    }
+
+    // Proceed with submission
+    await submitWantedRequest()
+  }
+
+  const submitWantedRequest = async () => {
     setLoading(true)
 
     const locationString = formData.location && selectedDistrict
@@ -491,6 +541,7 @@ export default function PostWantedPage() {
       location: locationString,
       phone: formData.phone,
       whatsapp: formData.whatsappSameAsPhone ? formData.phone : formData.whatsapp || null,
+      phoneOtpCode: pendingOtpCode || undefined, // Include OTP if phone changed
       fuel_type: formData.fuel_type || null,
       transmission: formData.transmission || null,
       max_mileage: formData.max_mileage || null
@@ -523,6 +574,14 @@ export default function PostWantedPage() {
         }
 
         showSuccess('Wanted request updated successfully!', 2000)
+        // Reset verification state
+        setShowVerificationModal(false)
+        setPendingOtpCode('')
+        setPendingPhone('')
+        setPhoneVerified(false)
+        if (formData.phone) {
+          setOriginalPhone(formData.phone)
+        }
         setTimeout(() => router.push('/profile?updated=wanted-request'), 1000)
       } else {
         const response = await fetch('/api/wanted-requests', {
@@ -557,6 +616,15 @@ export default function PostWantedPage() {
 
         showSuccess('Wanted request created successfully! Redirecting...', 2000)
 
+        // Reset verification state
+        setShowVerificationModal(false)
+        setPendingOtpCode('')
+        setPendingPhone('')
+        setPhoneVerified(false)
+        if (formData.phone) {
+          setOriginalPhone(formData.phone)
+        }
+
         setTimeout(() => {
           const requestId = result.request?.id
           handlePostCreationRedirect(requestId)
@@ -571,6 +639,31 @@ export default function PostWantedPage() {
       showError('Error posting request. Please try again.', 4000)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleVerificationComplete = async (verifiedPhone: string, otpCode: string) => {
+    setPendingOtpCode(otpCode)
+    // Verify OTP first
+    const verifyResult = await verifyOTP(verifiedPhone, otpCode)
+    
+    if (verifyResult.success && verifyResult.verified) {
+      // OTP verified, now submit the wanted request
+      setPhoneVerified(true)
+      setShowVerificationModal(false)
+      await submitWantedRequest()
+    } else {
+      showError(verifyResult.error || 'Invalid OTP code. Please try again.', 4000)
+    }
+  }
+
+  const handleResendOTP = async () => {
+    if (!pendingPhone) return
+    const result = await sendOTP(pendingPhone)
+    if (result.success) {
+      showSuccess('OTP sent successfully!', 3000)
+    } else {
+      showError(result.error || 'Failed to resend OTP. Please try again.', 4000)
     }
   }
 
@@ -1245,6 +1338,21 @@ export default function PostWantedPage() {
           <Toast key={toast.id} {...toast} onClose={removeToast} />
         ))}
       </div>
+
+      {/* Phone Verification Modal */}
+      <PhoneVerificationModal
+        phone={pendingPhone}
+        isOpen={showVerificationModal}
+        onVerified={handleVerificationComplete}
+        onCancel={() => {
+          setShowVerificationModal(false)
+          setPendingPhone('')
+          setPendingOtpCode('')
+          setPhoneVerified(false)
+        }}
+        purpose="wanted"
+        onResend={handleResendOTP}
+      />
     </div>
   )
 }

@@ -33,6 +33,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { compressImageFile } from '@/lib/utils/image-compression'
 import { logger } from '@/lib/utils/logger'
 import { buildListingDescription } from '@/lib/services/descriptionBuilder'
+import PhoneVerificationModal from '@/app/components/PhoneVerificationModal'
+import { usePhoneVerification } from '@/lib/hooks/usePhoneVerification'
+import { checkPhoneChanged } from '@/lib/utils/phoneVerification'
 
 // Lazy load form components (Phase 2 optimization)
 import type { DescriptionGeneratorRef } from '@/app/components/vehicle-forms/DescriptionGenerator'
@@ -113,6 +116,15 @@ export default function EnhancedPostVehiclePage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const vehicleDropdownRef = useRef<HTMLDivElement>(null)
   const descriptionGeneratorRef = useRef<DescriptionGeneratorRef>(null)
+  
+  // Phone verification state
+  const [showVerificationModal, setShowVerificationModal] = useState(false)
+  const [pendingPhone, setPendingPhone] = useState<string>('')
+  const [pendingOtpCode, setPendingOtpCode] = useState<string>('')
+  const [originalPhone, setOriginalPhone] = useState<string>('')
+  const [phoneVerified, setPhoneVerified] = useState(false)
+  
+  const { sendOTP, verifyOTP } = usePhoneVerification({ purpose: 'listing' })
 
   // Detect edit mode
   const isEditMode = searchParams.get('edit') !== null
@@ -226,6 +238,12 @@ export default function EnhancedPostVehiclePage() {
           // Set the form data
           setFormData(editFormData)
 
+          // Store original phone for comparison
+          if (listing.phone) {
+            setOriginalPhone(listing.phone)
+            setPhoneVerified(true)
+          }
+
           // Set location dropdowns
           if (listing.district) {
             setSelectedDistrict(listing.district)
@@ -291,15 +309,25 @@ export default function EnhancedPostVehiclePage() {
       const whatsappNumber = getWhatsAppNumber()
       
       if (phoneNumber || whatsappNumber) {
+        const populatedPhone = phoneNumber || ''
         setFormData(prev => ({
           ...prev,
           phone: prev.phone || phoneNumber, // Only populate if empty
           whatsapp: prev.whatsapp || whatsappNumber, // Only populate if empty
           email: prev.email || profile.email || ''
         }))
+        // Store original phone for comparison
+        setOriginalPhone(populatedPhone)
       }
     }
   }, [profile, profileLoading, getPhoneNumber, getWhatsAppNumber, isEditMode])
+
+  // Store original phone when form data changes (for edit mode)
+  useEffect(() => {
+    if (isEditMode && formData.phone && !originalPhone) {
+      setOriginalPhone(formData.phone)
+    }
+  }, [isEditMode, formData.phone, originalPhone])
   
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -859,6 +887,27 @@ const getUploadUserId = (): string => {
   const handleSubmit = async () => {
     if (!validateForm()) return
     
+    // Check if phone number changed (and not already verified)
+    const phoneChanged = checkPhoneChanged(originalPhone, formData.phone)
+    const needsVerification = phoneChanged && formData.phone && !phoneVerified
+
+    if (needsVerification) {
+      // Show verification modal
+      setPendingPhone(formData.phone)
+      const result = await sendOTP(formData.phone)
+      if (result.success) {
+        setShowVerificationModal(true)
+      } else {
+        showError(result.error || 'Failed to send OTP. Please try again.', 5000)
+      }
+      return
+    }
+
+    // Proceed with submission
+    await submitListing()
+  }
+
+  const submitListing = async () => {
     setLoading(true)
     try {
       // Check if user is authenticated
@@ -1020,7 +1069,8 @@ const getUploadUserId = (): string => {
             phone: formData.phone, // Send raw phone, API will format
             whatsapp: formData.whatsapp, // Send raw whatsapp, API will format
             email: listingData.email,
-            imageUrls: listingData.image_urls || []
+            imageUrls: listingData.image_urls || [],
+            phoneOtpCode: pendingOtpCode || undefined // Include OTP if phone changed
           })
         })
 
@@ -1076,6 +1126,14 @@ const getUploadUserId = (): string => {
 
         localStorage.removeItem('vehiclePostDraft')
         showSuccess('Listing created successfully! Redirecting...', 2000)
+        // Reset verification state
+        setShowVerificationModal(false)
+        setPendingOtpCode('')
+        setPendingPhone('')
+        setPhoneVerified(false)
+        if (formData.phone) {
+          setOriginalPhone(formData.phone)
+        }
         // Redirect to paid features page with success message
         setTimeout(() => {
           if (result.listing && result.listing.id) {
@@ -1091,6 +1149,31 @@ const getUploadUserId = (): string => {
       showError(errorMessage, 7000)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleVerificationComplete = async (verifiedPhone: string, otpCode: string) => {
+    setPendingOtpCode(otpCode)
+    // Verify OTP first
+    const verifyResult = await verifyOTP(verifiedPhone, otpCode)
+    
+    if (verifyResult.success && verifyResult.verified) {
+      // OTP verified, now submit the listing
+      setPhoneVerified(true)
+      setShowVerificationModal(false)
+      await submitListing()
+    } else {
+      showError(verifyResult.error || 'Invalid OTP code. Please try again.', 5000)
+    }
+  }
+
+  const handleResendOTP = async () => {
+    if (!pendingPhone) return
+    const result = await sendOTP(pendingPhone)
+    if (result.success) {
+      showSuccess('OTP sent successfully!', 3000)
+    } else {
+      showError(result.error || 'Failed to resend OTP. Please try again.', 5000)
     }
   }
   
@@ -1556,6 +1639,21 @@ const getUploadUserId = (): string => {
         
       </div>
       <ToastContainer toasts={toasts} onClose={removeToast} />
+
+      {/* Phone Verification Modal */}
+      <PhoneVerificationModal
+        phone={pendingPhone}
+        isOpen={showVerificationModal}
+        onVerified={handleVerificationComplete}
+        onCancel={() => {
+          setShowVerificationModal(false)
+          setPendingPhone('')
+          setPendingOtpCode('')
+          setPhoneVerified(false)
+        }}
+        purpose="listing"
+        onResend={handleResendOTP}
+      />
     </div>
   )
 }

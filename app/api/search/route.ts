@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
         fuel_type, transmission, body_type, negotiable, pricing_type,
         image_url, primary_image_url, image_urls,
         is_featured, is_top_spot, is_boosted, is_urgent, boost_score,
-        created_at, views, seller_id
+        created_at, views, user_id
       `, { count: 'exact' })
       .eq('is_sold', false)
 
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
         image_urls: listing.image_urls,
         created_at: listing.created_at,
         views: listing.views,
-        seller_id: listing.seller_id
+        user_id: listing.user_id
       }
 
       // Only add promotion fields if they're active
