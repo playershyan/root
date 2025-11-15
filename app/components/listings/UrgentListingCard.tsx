@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { MapPin, Calendar, Eye, AlertTriangle, Phone, MessageCircle, Car, Camera, Gauge, Fuel } from 'lucide-react'
-import OptimizedImage from '@/components/ui/OptimizedImage'
+import { Heart, Handshake, ImageIcon, ChevronLeft, ChevronRight, Car, Calendar, Activity, Fuel, Settings, MapPin, Phone, Mail } from 'lucide-react'
+import PriceDisplay from '@/app/components/PriceDisplay'
+import PromotionBadges from './PromotionBadges'
 import FavoriteButton from '@/app/components/FavoriteButton'
 import { Button } from '@/components/ui/button'
-import { CARD_CONSTANTS, PROMOTION_COLORS, getCardClasses } from './card-design-system'
+import OptimizedImage from '@/components/ui/OptimizedImage'
 
 // Lazy load modals (Phase 2 optimization)
 const ContactModal = dynamic(() => import('@/app/components/modals/ContactModal'))
@@ -35,188 +36,210 @@ interface UrgentListingCardProps {
     phone?: string
     whatsapp?: string
     user_id: string
+    pricing_type?: string
+    negotiable?: boolean
+    asking_price?: number
+    monthly_payment?: number
   }
 }
 
 export default function UrgentListingCard({ listing }: UrgentListingCardProps) {
-  const [imageError, setImageError] = useState(false)
+  const images = listing.image_urls || []
   const [showContactModal, setShowContactModal] = useState(false)
   const [showConversationModal, setShowConversationModal] = useState(false)
+  const [activeImageIndex, setActiveImageIndex] = useState(0)
+  const [imageLoading, setImageLoading] = useState(false)
+  const [imageError, setImageError] = useState(false)
 
-  const formatPrice = (price: number) => {
-    return `Rs. ${price.toLocaleString()}`
+  const handleImageNavigate = (direction: 'prev' | 'next') => {
+    if (direction === 'prev') {
+      setActiveImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))
+    } else {
+      setActiveImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))
+    }
   }
-
-  const formatMileage = (mileage?: number) => {
-    if (!mileage) return 'N/A'
-    return `${mileage.toLocaleString()} km`
-  }
-
-  const getTimeAgo = (date: string) => {
-    const now = new Date()
-    const created = new Date(date)
-    const diffInHours = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60))
-    
-    if (diffInHours < 1) return 'Now'
-    if (diffInHours < 24) return `${diffInHours}h ago`
-    const diffInDays = Math.floor(diffInHours / 24)
-    if (diffInDays === 1) return 'Yesterday'
-    if (diffInDays < 30) return `${diffInDays} days ago`
-    const diffInMonths = Math.floor(diffInDays / 30)
-    if (diffInMonths === 1) return '1 month ago'
-    return `${diffInMonths} months ago`
-  }
-
-  const primaryImage = listing.image_urls?.[0] || listing.image_url
-  const imageCount = listing.image_urls?.length || 0
-  const colors = PROMOTION_COLORS.urgent
 
   return (
-    <div className={getCardClasses('urgent')}>
-      {/* Urgent Pulse Animation */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${CARD_CONSTANTS.overlay.urgent} animate-pulse pointer-events-none`}></div>
-
-      {/* Urgent Banner */}
-      <div className={`absolute top-0 left-0 right-0 ${colors.badge} text-white px-3 sm:px-4 py-1.5 sm:py-2 z-20`}>
-        <div className="flex items-center justify-center gap-1.5 sm:gap-2">
-          <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4 animate-bounce" />
-          <span className="text-xs sm:text-sm font-bold tracking-wide">URGENT SALE</span>
-          <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4 animate-bounce" />
-        </div>
-      </div>
-
-      {/* Clickable Link Area */}
-      <Link
-        href={`/listings/${listing.id}`}
-        prefetch={true}
-        className="block"
-      >
+    <>
+    <Link
+      href={`/listings/${listing.id}`}
+      prefetch={true}
+      className="block"
+    >
+      <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100 group cursor-pointer">
         {/* Image Section */}
-        <div className={`relative ${CARD_CONSTANTS.imageHeight.promoted} bg-gray-100 mt-8 sm:mt-10`}>
-          {!imageError && primaryImage ? (
+        <div className="relative h-48 bg-gray-200 rounded-t-lg overflow-hidden group">
+        {/* Finance Badge */}
+        {listing.pricing_type === 'finance' && (
+          <div className="absolute top-2 right-12 z-10 bg-amber-500 text-white px-2 py-1 rounded text-xs font-semibold shadow-sm">
+            <Handshake className="mr-1 inline" size={12} />
+            Finance
+          </div>
+        )}
+
+        {/* Image Display */}
+        {images.length > 0 ? (
+          <>
             <OptimizedImage
-              src={primaryImage}
+              src={images[activeImageIndex]}
               alt={listing.title}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
-              onError={() => setImageError(true)}
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              quality="listing"
-              watermark={true}
+              className="object-cover transition-transform group-hover:scale-105"
               priority={false}
+              quality="listing"
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              watermark={true}
+              onLoad={() => setImageLoading(false)}
+              onError={() => {
+                setImageError(true)
+                setImageLoading(false)
+              }}
             />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-50 to-red-100">
-              <Car className="text-red-400" size={48} />
-            </div>
-          )}
-
-          {/* Image count */}
-          {imageCount > 1 && (
-            <div className="absolute top-2 right-2 bg-red-600/90 text-white px-2 py-0.5 sm:py-1 rounded text-xs flex items-center gap-1">
-              <Camera className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-              <span>{imageCount}</span>
-            </div>
-          )}
-
-          {/* Red Overlay Gradient */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-red-600/20 to-transparent h-12 sm:h-16"></div>
-        </div>
-
-        {/* Content Section */}
-        <div className={`${CARD_CONSTANTS.padding.promoted} bg-gradient-to-br from-white to-red-50/20`}>
-          {/* Title */}
-          <h3 className={`font-bold ${CARD_CONSTANTS.titleSize.urgent} ${colors.text} ${colors.hover} mb-2 line-clamp-2 transition-colors`}>
-            {listing.title}
-          </h3>
-
-          {/* Vehicle Details */}
-          <div className="flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
-            <span className="flex items-center gap-1">
-              <Calendar className="w-3 h-3 text-red-500" />
-              <span>{listing.year}</span>
-            </span>
-            {listing.mileage && (
-              <span className="flex items-center gap-1">
-                <Gauge className="text-red-500 w-3 h-3" />
-                <span className="truncate">{formatMileage(listing.mileage)}</span>
-              </span>
+            {imageLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100/80">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
             )}
-            {listing.fuel_type && (
-              <span className="flex items-center gap-1">
-                <Fuel className="text-red-500 w-3 h-3" />
-                <span className="truncate">{listing.fuel_type}</span>
-              </span>
+            {imageError && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-500 text-sm flex-col">
+                <ImageIcon size={32} className="mb-2" />
+                <p>Image unavailable</p>
+              </div>
             )}
-          </div>
 
-          {/* Location and Date */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 gap-1 sm:gap-0">
-            <div className="flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-red-500 flex-shrink-0" />
-              <span className="truncate">{listing.location}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
-              <span>{getTimeAgo(listing.created_at)}</span>
-            </div>
+            {/* Image Navigation */}
+            {images.length > 1 && (
+              <>
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    handleImageNavigate('prev')
+                  }}
+                  variant="ghost"
+                  size="icon"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+                >
+                  <ChevronLeft size={16} />
+                </Button>
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    handleImageNavigate('next')
+                  }}
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+                >
+                  <ChevronRight size={16} />
+                </Button>
+                <div className="absolute bottom-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
+                  {activeImageIndex + 1}/{images.length}
+                </div>
+              </>
+            )}
+          </>
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+            <Car size={48} className="mb-2" />
+            <span className="text-sm">No images</span>
           </div>
+        )}
 
-          {/* Price Section */}
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <div className={`font-bold ${CARD_CONSTANTS.priceSize.urgent} text-red-600`}>
-              {formatPrice(listing.price)}
-            </div>
-
-            {/* Views */}
-            <div className="flex items-center gap-1 text-xs text-gray-500">
-              <Eye className="w-3 h-3" />
-              <span className="hidden sm:inline">{listing.views || 0} views</span>
-              <span className="sm:hidden">{listing.views || 0}</span>
-            </div>
-          </div>
-
-          {/* Urgent Action Buttons */}
-          <div className="flex gap-2 pt-2 sm:pt-3 border-t border-red-100">
-            <Button
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                setShowContactModal(true)
-              }}
-              size="sm"
-              className={`flex-1 ${colors.button} text-white gap-1 sm:gap-2 text-xs sm:text-sm`}
-            >
-              <Phone className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Call Now</span>
-              <span className="sm:hidden">Call</span>
-            </Button>
-            <Button
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                setShowConversationModal(true)
-              }}
-              size="sm"
-              className={`flex-1 ${colors.buttonOutline} border-2 gap-1 sm:gap-2 text-xs sm:text-sm`}
-            >
-              <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span>Message</span>
-            </Button>
-          </div>
+        {/* Save Button */}
+        <div className="absolute top-2 right-2 z-20">
+          <FavoriteButton
+            listingId={listing.id}
+            size="small"
+            className="bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm"
+          />
         </div>
-      </Link>
-
-      {/* Favorite Button */}
-      <div className="absolute top-11 sm:top-14 right-2 sm:right-3 z-10">
-        <FavoriteButton
-          listingId={listing.id}
-          className="bg-white/90 hover:bg-white shadow-lg w-8 h-8 sm:w-10 sm:h-10"
-        />
       </div>
 
-      {/* Contact Modal */}
-      <ContactModal
+      {/* Content Section */}
+      <div className="p-4 hover:bg-gray-50 transition-colors">
+        <div className="space-y-3">
+          {/* Title with Urgent Badge */}
+          <div className="flex items-start gap-2">
+            <h3 className="font-semibold text-lg text-gray-900 line-clamp-2 hover:text-blue-600 transition-colors flex-1 min-w-0">
+              {listing.title}
+            </h3>
+            <div className="flex-shrink-0">
+              <PromotionBadges listing={{ is_urgent: true }} size="small" showLabels={true} />
+            </div>
+          </div>
+
+          {/* Price */}
+          <PriceDisplay
+            pricingType={listing.pricing_type as 'cash' | 'finance'}
+            price={listing.price}
+            negotiable={listing.negotiable}
+            askingPrice={listing.asking_price}
+            monthlyPayment={listing.monthly_payment}
+            variant="card"
+          />
+
+          {/* Vehicle Details */}
+          <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-1">
+              <Calendar className="text-blue-500 w-4 h-4" />
+              <span>{listing.year}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Activity className="text-gray-500 w-4 h-4" />
+              <span>{listing.mileage?.toLocaleString() || 'N/A'} km</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Fuel className="text-green-500 w-4 h-4" />
+              <span>{listing.fuel_type || 'N/A'}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Settings className="text-purple-500 w-4 h-4" />
+              <span>{listing.transmission || 'N/A'}</span>
+            </div>
+          </div>
+
+          {/* Location */}
+          <div className="flex items-center gap-2 text-sm text-gray-600 pt-1 border-t border-gray-100">
+            <MapPin className="text-red-500" size={16} />
+            <span>{listing.location}</span>
+          </div>
+        </div>
+        </div>
+
+        {/* Action Footer */}
+        <div className="px-4 pb-4">
+        <div className="flex gap-2">
+          <Button
+            onClick={(e) => {
+              e.preventDefault()
+              setShowContactModal(true)
+            }}
+            variant="primary"
+            size="default"
+            className="flex-1 gap-2"
+          >
+            <Phone size={16} />
+            Call Now
+          </Button>
+          <Button
+            onClick={(e) => {
+              e.preventDefault()
+              setShowConversationModal(true)
+            }}
+            variant="outline"
+            size="default"
+            className="flex-1 border-blue-600 text-blue-600 hover:bg-blue-50 gap-2"
+          >
+            <Mail size={16} />
+            Message
+          </Button>
+        </div>
+      </div>
+      </div>
+    </Link>
+
+    {/* Contact Modal */}
+    <ContactModal
         isOpen={showContactModal}
         onClose={() => setShowContactModal(false)}
         listing={{
@@ -244,10 +267,10 @@ export default function UrgentListingCard({ listing }: UrgentListingCardProps) {
           make: listing.make,
           model: listing.model,
           year: listing.year,
-          primary_image_url: listing.image_urls?.[0] || listing.image_url || listing.primary_image_url,
+          primary_image_url: images[0] || listing.image_url || listing.primary_image_url,
           user_id: listing.user_id
         }}
       />
-    </div>
+    </>
   )
 }

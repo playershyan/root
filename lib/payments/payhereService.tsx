@@ -165,18 +165,24 @@ export class PayHereService {
 }
 
 // React component for PayHere payment form
-export const PayHerePaymentForm = ({ 
-  paymentData, 
-  onSubmit, 
-  className = '' 
+export const PayHerePaymentForm = ({
+  paymentData,
+  onSubmit,
+  className = '',
+  disabled = false
 }: {
   paymentData: PayHerePaymentData
   onSubmit?: () => void
   className?: string
+  disabled?: boolean
 }) => {
   const formData = PayHereService.generatePaymentForm(paymentData)
-  
+
   const handleSubmit = (e: React.FormEvent) => {
+    if (disabled) {
+      e.preventDefault()
+      return
+    }
     if (onSubmit) {
       e.preventDefault()
       onSubmit()
@@ -201,7 +207,8 @@ export const PayHerePaymentForm = ({
       ))}
       <button
         type="submit"
-        className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+        disabled={disabled}
+        className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         Pay with PayHere
       </button>

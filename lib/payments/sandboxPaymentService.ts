@@ -180,6 +180,38 @@ export class SandboxPaymentService {
         }
       } else {
         // Handle listings (existing logic)
+        // Check for existing active promotions before creating new ones
+        const { data: activePromotions, error: checkError } = await supabaseClient
+          .from('promotions')
+          .select('id, promotion_type')
+          .eq('listing_id', data.listingId)
+          .eq('is_active', true)
+          .gt('expires_at', new Date().toISOString())
+
+        if (checkError) {
+          logger.error('Failed to check active promotions', checkError as Error)
+          return {
+            success: false,
+            orderId,
+            transactionId,
+            message: `Failed to check existing promotions: ${checkError.message}`
+          }
+        }
+
+        if (activePromotions && activePromotions.length > 0) {
+          const activeFeatureNames = activePromotions.map(p => p.promotion_type).join(', ')
+          logger.warn('Attempted to add promotion to listing with active features', {
+            listingId: data.listingId,
+            activeFeatures: activeFeatureNames
+          })
+          return {
+            success: false,
+            orderId,
+            transactionId,
+            message: `This listing already has active paid features (${activeFeatureNames}). Only one paid feature can be active at a time.`
+          }
+        }
+
         // Create promotions for the listing with authenticated client
         const { error } = await PromotionService.createPromotionBundle(
           data.listingId,
@@ -198,10 +230,10 @@ export class SandboxPaymentService {
           }
         }
 
-        logger.info('Sandbox payment successful', { 
-          orderId, 
-          transactionId, 
-          listingId: data.listingId 
+        logger.info('Sandbox payment successful', {
+          orderId,
+          transactionId,
+          listingId: data.listingId
         })
 
         return {

@@ -16,12 +16,48 @@ export default function AdPaidFeatures() {
   const [loading, setLoading] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const listingId = searchParams.get('listing')
-  
+  const [hasActivePromotions, setHasActivePromotions] = useState(false)
+  const [checkingPromotions, setCheckingPromotions] = useState(true)
+
   useEffect(() => {
     // Check if coming from new post flow
     const fromNewPost = searchParams.get('new') === 'true'
     setIsNewPost(fromNewPost)
   }, [searchParams])
+
+  useEffect(() => {
+    const checkActivePromotions = async () => {
+      if (!listingId) {
+        setCheckingPromotions(false)
+        return
+      }
+
+      setCheckingPromotions(true)
+      try {
+        const response = await fetch(`/api/promotions/check?listingId=${listingId}`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.hasActivePromotions) {
+            setHasActivePromotions(true)
+            const featureNames = data.activePromotions.map((p: any) => {
+              if (p.promotion_type === 'top_spot') return 'Top Spot'
+              return p.promotion_type.charAt(0).toUpperCase() + p.promotion_type.slice(1)
+            }).join(', ')
+            toast.error('This listing already has active paid features', {
+              description: `Active: ${featureNames}. Only one paid feature can be active at a time.`,
+              duration: 6000
+            })
+          }
+        }
+      } catch (error) {
+        console.error('Error checking active promotions:', error)
+      } finally {
+        setCheckingPromotions(false)
+      }
+    }
+
+    checkActivePromotions()
+  }, [listingId])
 
   const features = [
     {
@@ -114,6 +150,11 @@ export default function AdPaidFeatures() {
       return
     }
 
+    if (hasActivePromotions) {
+      toast.error('Cannot add promotions to a listing with active features')
+      return
+    }
+
     // Open payment modal
     setShowPaymentModal(true)
   }
@@ -157,7 +198,7 @@ export default function AdPaidFeatures() {
             Supercharge Your Ad with Premium Promotions
           </h1>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Get more views, more inquiries, and sell faster with our proven promotion features. 
+            Get more views, more inquiries, and sell faster with our proven promotion features.
             Choose the right combination to maximize your ad's performance.
           </p>
           {isNewPost && (
@@ -167,6 +208,22 @@ export default function AdPaidFeatures() {
             </p>
           )}
         </div>
+
+        {/* Active Promotions Warning */}
+        {hasActivePromotions && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
+            <div className="flex items-start">
+              <i className="fas fa-exclamation-triangle text-red-600 text-2xl mr-3 mt-1"></i>
+              <div>
+                <h2 className="text-xl font-bold text-red-800 mb-2">Active Promotion Already Exists</h2>
+                <p className="text-red-700">
+                  This listing already has active paid features. Only one paid feature can be active at a time.
+                  You cannot add additional promotions until the current one expires.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Features Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -281,10 +338,19 @@ export default function AdPaidFeatures() {
                 <button
                   className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={handlePayment}
-                  disabled={loading}
+                  disabled={loading || hasActivePromotions || checkingPromotions}
                 >
-                  <i className="fas fa-credit-card mr-2"></i>
-                  Proceed to Payment
+                  {checkingPromotions ? (
+                    <>
+                      <i className="fas fa-spinner fa-spin mr-2"></i>
+                      Checking...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-credit-card mr-2"></i>
+                      Proceed to Payment
+                    </>
+                  )}
                 </button>
               )}
             </div>

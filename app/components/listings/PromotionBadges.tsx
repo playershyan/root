@@ -54,10 +54,9 @@ export default function PromotionBadges({
     badges.push(
       <div
         key="urgent"
-        className={`${styles.badge} bg-gradient-to-r from-red-600 to-red-700 text-white rounded-full shadow-lg flex items-center gap-1.5 font-bold animate-pulse border-2 border-red-300`}
+        className={`${styles.badge} bg-red-600 text-white rounded-full shadow-sm flex items-center gap-1 font-medium`}
       >
-        <AlertTriangle className={`${styles.icon} animate-bounce`} />
-        {showLabels && <span className="tracking-wide">URGENT</span>}
+        {showLabels && <span>Urgent</span>}
       </div>
     )
   }
@@ -164,9 +163,8 @@ export function UrgentBadge({ size = 'medium' }: { size?: 'small' | 'medium' | '
   }
 
   return (
-    <div className={`${styles[size]} bg-gradient-to-r from-red-600 to-red-700 text-white rounded-full shadow-lg flex items-center gap-1.5 font-bold animate-pulse border-2 border-red-300`}>
-      <AlertTriangle className={`${size === 'small' ? 'w-3 h-3' : size === 'large' ? 'w-5 h-5' : 'w-4 h-4'} animate-bounce`} />
-      <span className="tracking-wide">URGENT</span>
+    <div className={`${styles[size]} bg-red-600 text-white rounded-full shadow-sm flex items-center gap-1 font-medium`}>
+      <span>Urgent</span>
     </div>
   )
 }

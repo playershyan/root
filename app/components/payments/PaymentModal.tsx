@@ -40,6 +40,8 @@ export default function PaymentModal({
   })
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [hasActivePromotions, setHasActivePromotions] = useState(false)
+  const [checkingPromotions, setCheckingPromotions] = useState(true)
 
   // Check if sandbox is enabled
   useEffect(() => {
@@ -56,11 +58,43 @@ export default function PaymentModal({
         setSandboxEnabled(false)
       }
     }
-    
+
     if (isOpen) {
       checkSandbox()
     }
   }, [isOpen])
+
+  // Check for existing active promotions
+  useEffect(() => {
+    const checkActivePromotions = async () => {
+      if (!isOpen || entityType === 'wanted') {
+        setCheckingPromotions(false)
+        return
+      }
+
+      setCheckingPromotions(true)
+      try {
+        const response = await fetch(`/api/promotions/check?listingId=${targetId}`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.hasActivePromotions) {
+            setHasActivePromotions(true)
+            const featureNames = data.activePromotions.map((p: any) => p.promotion_type).join(', ')
+            toast.error('This listing already has active paid features', {
+              description: `Active: ${featureNames}. Only one paid feature can be active at a time.`,
+              duration: 6000
+            })
+          }
+        }
+      } catch (error) {
+        console.error('Error checking active promotions:', error)
+      } finally {
+        setCheckingPromotions(false)
+      }
+    }
+
+    checkActivePromotions()
+  }, [isOpen, targetId, entityType])
 
   // Use entityId if provided, otherwise fall back to listingId
   const targetId = entityId || listingId
@@ -95,13 +129,21 @@ export default function PaymentModal({
 
   const handlePayHereSubmit = () => {
     if (!validateForm()) return
+    if (hasActivePromotions) {
+      toast.error('Cannot add promotions to a listing with active features')
+      return
+    }
     // PayHere form will handle the submission
     setLoading(true)
   }
 
   const handleSandboxPayment = async () => {
     if (!validateForm()) return
-    
+    if (hasActivePromotions) {
+      toast.error('Cannot add promotions to a listing with active features')
+      return
+    }
+
     setLoading(true)
     
     try {
@@ -299,6 +341,15 @@ export default function PaymentModal({
 
           {/* Payment Buttons */}
           <div className="space-y-3">
+            {hasActivePromotions && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-red-800">
+                  <strong>Cannot proceed:</strong> This listing already has active paid features. Only one paid feature can be active at a time. Please wait for the current promotion to expire.
+                </div>
+              </div>
+            )}
+
             {paymentMethod === 'payhere' && (
               <PayHerePaymentForm
                 paymentData={{
@@ -310,19 +361,25 @@ export default function PaymentModal({
                 }}
                 onSubmit={handlePayHereSubmit}
                 className="w-full"
+                disabled={hasActivePromotions || checkingPromotions}
               />
             )}
 
             {paymentMethod === 'sandbox' && (
               <Button
                 onClick={handleSandboxPayment}
-                disabled={loading}
-                className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-3 px-6 rounded-lg"
+                disabled={loading || hasActivePromotions || checkingPromotions}
+                className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-3 px-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>
                     <span className="animate-spin mr-2">⏳</span>
                     Processing Sandbox Payment...
+                  </>
+                ) : checkingPromotions ? (
+                  <>
+                    <span className="animate-spin mr-2">⏳</span>
+                    Checking promotions...
                   </>
                 ) : (
                   <>

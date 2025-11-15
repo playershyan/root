@@ -614,7 +614,7 @@ export default function ListingsPageClient({
               )}
 
               {/* Other Promoted Sections - Only when vehicle type filter is applied */}
-              {localFilters.vehicleType && (promoted.top_spot.length > 0 || promoted.boosted.length > 0 || promoted.urgent.length > 0) && (
+              {localFilters.vehicleType && (promoted.top_spot.length > 0 || promoted.boosted.length > 0) && (
                 <div className="space-y-3 sm:space-y-4">
                   {promoted.top_spot.length > 0 && (
                     <div className={SECTION_STYLES.topSpot}>
@@ -653,28 +653,6 @@ export default function ListingsPageClient({
                         listing={{
                           ...listing,
                           is_boosted: true,
-                          user_id: listing.user_id ?? 'unknown',
-                          image_urls: listing.image_urls ?? []
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {promoted.urgent.length > 0 && (
-                <div className={SECTION_STYLES.urgent}>
-                  <h2 className="mb-2 sm:mb-3 text-base sm:text-lg font-semibold text-red-800 flex items-center gap-1.5 sm:gap-2">
-                    <AlertCircle className="text-red-500 w-4 h-4 sm:w-5 sm:h-5" />
-                    <span>Urgent Deals</span>
-                  </h2>
-                  <div className={GRID_LAYOUTS.promoted}>
-                    {promoted.urgent.map((listing) => (
-                      <UrgentListingCard
-                        key={listing.id}
-                        listing={{
-                          ...listing,
-                          is_urgent: true,
                           user_id: listing.user_id ?? 'unknown',
                           image_urls: listing.image_urls ?? []
                         }}

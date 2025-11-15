@@ -105,6 +105,33 @@ export async function POST(request: NextRequest) {
           { status: 403 }
         )
       }
+
+      // Check for existing active promotions on listing
+      const { data: activePromotions, error: promotionError } = await supabase
+        .from('promotions')
+        .select('id, promotion_type')
+        .eq('listing_id', targetId)
+        .eq('is_active', true)
+        .gt('expires_at', new Date().toISOString())
+
+      if (promotionError) {
+        logger.error('Error checking active promotions', promotionError as Error)
+        return NextResponse.json(
+          { error: 'Failed to check existing promotions' },
+          { status: 500 }
+        )
+      }
+
+      if (activePromotions && activePromotions.length > 0) {
+        const activeFeatureNames = activePromotions.map(p => p.promotion_type).join(', ')
+        return NextResponse.json(
+          {
+            error: 'This listing already has active paid features',
+            detail: `Active features: ${activeFeatureNames}. Only one paid feature can be active at a time.`
+          },
+          { status: 409 }
+        )
+      }
     }
 
     // Process sandbox payment with authenticated client

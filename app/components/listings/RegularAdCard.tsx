@@ -98,10 +98,17 @@ export default function RegularAdCard({
       <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100 group cursor-pointer">
         {/* Image Section */}
         <div className="relative h-48 bg-gray-200 rounded-t-lg overflow-hidden group">
-        {/* Promotion Badges */}
-        {(listing.is_featured || listing.is_top_spot || listing.is_boosted || listing.is_urgent) && (
+        {/* Promotion Badges (excluding urgent - shown next to title) */}
+        {(listing.is_featured || listing.is_top_spot || listing.is_boosted) && (
           <div className="absolute top-2 left-2 z-10">
-            <PromotionBadges listing={listing} size="small" />
+            <PromotionBadges
+              listing={{
+                is_featured: listing.is_featured,
+                is_top_spot: listing.is_top_spot,
+                is_boosted: listing.is_boosted
+              }}
+              size="small"
+            />
           </div>
         )}
         
@@ -193,10 +200,17 @@ export default function RegularAdCard({
       {/* Content Section */}
       <div className="p-4 hover:bg-gray-50 transition-colors">
         <div className="space-y-3">
-          {/* Title */}
-          <h3 className="font-semibold text-lg text-gray-900 line-clamp-2 hover:text-blue-600 transition-colors">
-            {listing.title}
-          </h3>
+          {/* Title with Urgent Badge */}
+          <div className="flex items-start gap-2">
+            <h3 className="font-semibold text-lg text-gray-900 line-clamp-2 hover:text-blue-600 transition-colors flex-1 min-w-0">
+              {listing.title}
+            </h3>
+            {listing.is_urgent && (
+              <div className="flex-shrink-0">
+                <PromotionBadges listing={{ is_urgent: true }} size="small" showLabels={true} />
+              </div>
+            )}
+          </div>
           
           {/* Price */}
           <PriceDisplay

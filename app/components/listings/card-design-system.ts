@@ -132,7 +132,7 @@ export const SECTION_STYLES = {
   featured: 'rounded-lg sm:rounded-xl border border-yellow-200 bg-yellow-50 p-3 sm:p-4',
   topSpot: 'rounded-lg sm:rounded-xl border border-purple-200 bg-purple-50 p-3 sm:p-4',
   boosted: 'rounded-lg sm:rounded-xl border border-blue-200 bg-blue-50 p-3 sm:p-4',
-  urgent: 'rounded-lg sm:rounded-xl border border-red-200 bg-red-50 p-3 sm:p-4',
+  urgent: 'rounded-lg sm:rounded-xl border border-gray-200 bg-white p-3 sm:p-4',
   regular: 'rounded-lg sm:rounded-xl border border-gray-200 bg-white p-3 sm:p-4 lg:p-6',
 } as const
 

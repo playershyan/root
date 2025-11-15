@@ -188,7 +188,7 @@ export default function FeaturedAdCard({ listing, promotionType }: FeaturedAdCar
             {/* Price Section */}
             <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3">
               <div className="flex-1 min-w-0">
-                <div className={`font-bold ${CARD_CONSTANTS.priceSize[priority]} ${listing.is_urgent ? 'text-red-600' : colors.text}`}>
+                <div className={`font-bold ${CARD_CONSTANTS.priceSize[priority]} ${colors.text}`}>
                   {formatPrice(listing.price)}
                 </div>
 
