@@ -365,6 +365,13 @@ export default function AuthModal({
               onError={handleAuthError}
               onVerificationRequired={handlePhoneVerificationRequired}
               loading={loading}
+              allowedMethods={allowedMethods}
+              onSwitchToEmail={() => setCurrentView('email')}
+              onSwitchToGoogle={() => {
+                // Trigger Google sign-in by switching to main view
+                // The Google button will be available there
+                setCurrentView('main')
+              }}
             />
           </div>
         )
