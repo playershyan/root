@@ -1,5 +1,6 @@
 import { PromotionService, PromotionType } from '@/lib/services/promotionService'
 import { logger } from '@/lib/utils/logger'
+import { randomUUID } from 'crypto'
 
 export interface SandboxPaymentData {
   listingId: string
@@ -42,8 +43,10 @@ export class SandboxPaymentService {
    * Process a sandbox payment
    */
   static async processPayment(data: SandboxPaymentData): Promise<SandboxPaymentResponse> {
+    // Generate a readable order ID for logging/tracking
     const orderId = `SANDBOX-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
-    const transactionId = `TXN-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+    // Generate a proper UUID for payment_id (required by database)
+    const transactionId = randomUUID()
     
     const scenario = data.scenario || 'success'
     
