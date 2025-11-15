@@ -1,12 +1,18 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { logger } from '@/lib/utils/logger'
 import { toast } from 'sonner'
-import PaymentModal from '@/app/components/payments/PaymentModal'
 import { PromotionType } from '@/lib/services/promotionService'
+
+// Dynamically import PaymentModal to avoid initialization order issues
+const PaymentModal = dynamic(() => import('@/app/components/payments/PaymentModal'), {
+  ssr: false,
+  loading: () => null
+})
 
 export default function AdPaidFeatures() {
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([])
@@ -18,6 +24,14 @@ export default function AdPaidFeatures() {
   const listingId = searchParams.get('listing')
   const [hasActivePromotions, setHasActivePromotions] = useState(false)
   const [checkingPromotions, setCheckingPromotions] = useState(true)
+
+  // Preload PaymentModal when features are selected (performance optimization)
+  useEffect(() => {
+    if (selectedFeatures.length > 0 && listingId) {
+      // Preload the modal chunk in the background
+      import('@/app/components/payments/PaymentModal')
+    }
+  }, [selectedFeatures.length, listingId])
 
   useEffect(() => {
     // Check if coming from new post flow
