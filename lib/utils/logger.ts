@@ -43,9 +43,16 @@ class Logger {
     if (this.shouldLog('info')) {
       if (this.isDevelopment) {
         console.info(this.formatMessage('info', message, context))
+      } else {
+        // In production, send to Sentry
+        try {
+          const Sentry = require('@sentry/nextjs')
+          Sentry.logger.info(message, context || {})
+        } catch (e) {
+          // Sentry not available, fall back to console
+          console.info(this.formatMessage('info', message, context))
+        }
       }
-      // In production, you might want to send to a logging service
-      // e.g., Sentry, DataDog, CloudWatch, etc.
     }
   }
 
@@ -53,8 +60,16 @@ class Logger {
     if (this.shouldLog('warn')) {
       if (this.isDevelopment) {
         console.warn(this.formatMessage('warn', message, context))
+      } else {
+        // In production, send to Sentry
+        try {
+          const Sentry = require('@sentry/nextjs')
+          Sentry.logger.warn(message, context || {})
+        } catch (e) {
+          // Sentry not available, fall back to console
+          console.warn(this.formatMessage('warn', message, context))
+        }
       }
-      // In production, send to monitoring service
     }
   }
 
@@ -74,10 +89,30 @@ class Logger {
         if (error instanceof Error && error.stack) {
           console.error(error.stack)
         }
+      } else {
+        // In production, send to Sentry
+        try {
+          // Dynamic import to avoid issues if Sentry is not configured
+          const Sentry = require('@sentry/nextjs')
+          if (error instanceof Error) {
+            Sentry.captureException(error, {
+              extra: {
+                message,
+                ...context
+              }
+            })
+          } else {
+            // Log as a message with error details
+            Sentry.logger.error(message, {
+              ...context,
+              errorDetails: error
+            })
+          }
+        } catch (e) {
+          // Sentry not available, fall back to console
+          console.error(this.formatMessage('error', message, errorContext))
+        }
       }
-      
-      // In production, send to error monitoring service
-      // e.g., Sentry.captureException(error, { extra: context })
     }
   }
 

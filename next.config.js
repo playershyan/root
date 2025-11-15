@@ -71,6 +71,8 @@ const nextConfig = {
   optimizeFonts: true,
   experimental: {
     optimizeCss: true, // Enable CSS optimization
+    // Enable instrumentation for Sentry
+    instrumentationHook: true,
   },
   webpack: (config, { isServer }) => {
     // Exclude README and other non-JS files from node_modules
