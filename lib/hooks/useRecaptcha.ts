@@ -41,14 +41,17 @@ export function useRecaptcha() {
 
   /**
    * Get reCAPTCHA token for a specific action
+   * @param action - The reCAPTCHA action name
+   * @param options - Options for token generation
+   * @param options.forceFresh - Force a fresh token (skip cache) - use this for critical operations like login
    */
-  const getToken = async (action: string): Promise<string | null> => {
+  const getToken = async (action: string, options?: { forceFresh?: boolean }): Promise<string | null> => {
     if (!recaptchaClient.isEnabled()) {
       return null;
     }
 
     try {
-      return await recaptchaClient.getToken(action);
+      return await recaptchaClient.getToken(action, options);
     } catch (err) {
       logger.error(`reCAPTCHA token generation failed for action "${action}"`, err as Error);
       return null;

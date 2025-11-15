@@ -90,19 +90,30 @@ export class RecaptchaClient {
    * Execute reCAPTCHA and get token for specific action.
    * Consumes any prefetched token first. When a cached token is used,
    * the next token is prefetched in the background.
+   * 
+   * @param action - The reCAPTCHA action name
+   * @param options - Options for token generation
+   * @param options.skipPrefetch - Skip prefetching next token
+   * @param options.forceFresh - Force a fresh token (skip cache) - use this for critical operations like login
    */
-  public async getToken(action: string, options: { skipPrefetch?: boolean } = {}): Promise<string | null> {
+  public async getToken(action: string, options: { skipPrefetch?: boolean; forceFresh?: boolean } = {}): Promise<string | null> {
     if (!this.siteKey) {
       logger.warn('reCAPTCHA not configured, skipping token generation', new Error('Missing site key'));
       return null;
     }
 
-    const cached = this.consumePrefetchedToken(action);
-    if (cached) {
-      if (!options.skipPrefetch) {
-        this.preloadToken(action).catch(err => logger.debug('reCAPTCHA preload refresh failed', { action, error: err instanceof Error ? err.message : String(err) }));
+    // If forceFresh is true, skip cache and always get a new token
+    if (!options.forceFresh) {
+      const cached = this.consumePrefetchedToken(action);
+      if (cached) {
+        if (!options.skipPrefetch) {
+          this.preloadToken(action).catch(err => logger.debug('reCAPTCHA preload refresh failed', { action, error: err instanceof Error ? err.message : String(err) }));
+        }
+        return cached;
       }
-      return cached;
+    } else {
+      // Clear any cached token for this action when forcing fresh
+      this.prefetchedTokens.delete(action);
     }
 
     const token = await this.requestToken(action);

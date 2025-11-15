@@ -86,17 +86,23 @@ export default function PhoneAuthForm({
     try {
       // Get reCAPTCHA token for login flows (required by API)
       // Note: API requires reCAPTCHA token for login flows even if not enabled on client
+      // IMPORTANT: Always get a fresh token (don't use cache) to avoid expired token errors
       let recaptchaToken: string | null = null
       if (type === 'login') {
         if (recaptchaEnabled) {
           try {
-            recaptchaToken = await getToken('phone_otp')
+            // Get a fresh token immediately before making the API request
+            // Force fresh token (skip cache) to avoid expired token errors
+            // reCAPTCHA tokens have limited validity and should be used immediately
+            recaptchaToken = await getToken('phone_otp', { forceFresh: true })
             if (!recaptchaToken) {
               setIsRecaptchaError(true)
               setError('reCAPTCHA failed. Please refresh the page and try again')
               setLoading(false)
               return
             }
+            
+            // Immediately use the token - make API request right away to minimize expiration risk
           } catch (recaptchaError) {
             logger.error('reCAPTCHA token generation failed', recaptchaError as Error, {
               component: 'PhoneAuthForm',
@@ -116,6 +122,9 @@ export default function PhoneAuthForm({
           })
         }
       }
+
+      // Important: Make the API request immediately after getting the token
+      // This minimizes the time between token generation and API verification
 
       // Use our custom API endpoint that uses Text.lk service instead of Supabase
       // isRegistration: true for register, false for login
