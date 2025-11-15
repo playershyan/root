@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { verifyRecaptcha, captchaGuardFailJson } from '@/lib/security/recaptcha'
 import { textlkService } from '@/lib/services/textlkService'
@@ -15,18 +16,22 @@ export async function POST(request: NextRequest) {
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
+    // For registration, use service role client to bypass RLS
+    // For existing users, use regular client with user authentication
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    
     const { phoneNumber, recaptchaToken, isRegistration } = await request.json()
 
     logger.debug('Send OTP request', { isRegistration, hasRecaptchaToken: !!recaptchaToken })
 
-    // For registration flow, create a temporary user record if needed
-    let userId: string
+    // For registration flow, we don't have a user yet, so use null for user_id
+    // For existing users, get the authenticated user ID
+    let userId: string | null = null
+    let dbClient = supabase // Use regular client by default
 
-    if (isRegistration) {
-      // Generate a temporary user ID for registration
-      userId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    } else {
-      // Original flow - require authentication
+    if (!isRegistration) {
+      // Original flow - require authentication for existing users
       const { data: { user }, error: authError } = await supabase.auth.getUser()
 
       if (authError || !user) {
@@ -34,6 +39,19 @@ export async function POST(request: NextRequest) {
       }
 
       userId = user.id
+    } else {
+      // For registration, use service role client to bypass RLS
+      // This allows inserting records with null user_id
+      if (serviceRoleKey && supabaseUrl) {
+        dbClient = createClient(supabaseUrl, serviceRoleKey, {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false
+          }
+        })
+      } else {
+        logger.warn('Service role key not configured. Registration OTP may fail RLS check.')
+      }
     }
 
     if (!phoneNumber) {
@@ -67,18 +85,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Check for rate limiting (max 3 OTPs per hour per user/phone)
+    // Use dbClient (service role for registration, regular for existing users)
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
-    let rateLimitQuery = supabase
+    let rateLimitQuery = dbClient
       .from('phone_verifications')
       .select('id')
       .gte('created_at', oneHourAgo)
+      .eq('phone_number', phoneNumber)
 
-    if (isRegistration) {
-      // For registration, limit by phone number
-      rateLimitQuery = rateLimitQuery.eq('phone_number', phoneNumber)
+    // For registration, check by phone number only (user_id will be null)
+    // For existing users, also filter by user_id if available
+    if (!isRegistration && userId) {
+      rateLimitQuery = rateLimitQuery.or(`user_id.eq.${userId},user_id.is.null`)
     } else {
-      // For existing users, limit by user ID
-      rateLimitQuery = rateLimitQuery.eq('user_id', userId)
+      // For registration, check by phone number only
+      rateLimitQuery = rateLimitQuery.is('user_id', null)
     }
 
     const { data: recentOtps, error: countError } = await rateLimitQuery
@@ -98,27 +119,33 @@ export async function POST(request: NextRequest) {
     const otp = generateOTP()
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes from now
 
-    // Delete any existing unverified OTPs for this user/phone
+    // Delete any existing unverified OTPs for this phone number
+    // Use dbClient (service role for registration, regular for existing users)
+    const deleteQuery = dbClient
+      .from('phone_verifications')
+      .delete()
+      .eq('phone_number', phoneNumber)
+      .eq('verified', false)
+    
     if (isRegistration) {
-      await supabase
-        .from('phone_verifications')
-        .delete()
-        .eq('phone_number', phoneNumber)
-        .eq('verified', false)
+      // For registration, delete records with null user_id for this phone
+      await deleteQuery.is('user_id', null)
+    } else if (userId) {
+      // For existing users, delete records matching this user_id or null
+      await deleteQuery.or(`user_id.eq.${userId},user_id.is.null`)
     } else {
-      await supabase
-        .from('phone_verifications')
-        .delete()
-        .eq('user_id', userId)
-        .eq('phone_number', phoneNumber)
-        .eq('verified', false)
+      // Fallback: just delete by phone number
+      await deleteQuery
     }
 
     // Store OTP in database
-    const { error: insertError } = await supabase
+    // For registration: user_id is null (will be set when user is created)
+    // For existing users: user_id is the authenticated user's ID
+    // Use dbClient (service role for registration bypasses RLS)
+    const { error: insertError } = await dbClient
       .from('phone_verifications')
       .insert({
-        user_id: userId,
+        user_id: userId, // null for registration, user ID for existing users
         phone_number: phoneNumber,
         otp_code: otp,
         expires_at: expiresAt.toISOString(),
