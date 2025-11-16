@@ -5,6 +5,7 @@ import { cookies } from 'next/headers'
 import { logger } from '@/lib/utils/logger'
 import { normalizeSriLankaPhone, isValidSriLankanPhone, toE164 } from '@/lib/utils/phoneFormatter'
 import { findUserByPhone } from '@/lib/auth/phoneLookup'
+import { generateSupabaseTokens } from '@/lib/auth/jwt'
 
 export async function POST(request: NextRequest) {
   try {
@@ -371,73 +372,43 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
 
-    // Create session using temporary password approach
+    // Generate Supabase-compatible JWT tokens for custom phone auth
     try {
-      // Generate a temporary secure password
-      const tempPassword = `temp_${matchingUser.id}_${Date.now()}_${Math.random().toString(36)}`
-
-      // If user doesn't have email, set a placeholder email (required for signInWithPassword)
-      const userEmail = matchingUser.email || `${matchingUser.phone.replace('+', '')}@phone.local`
-
-      // Update user with password and ensure they have an email
-      const { error: updateError } = await adminClient.auth.admin.updateUserById(matchingUser.id, {
-        password: tempPassword,
-        ...((!matchingUser.email) && { email: userEmail, email_confirm: true })
-      })
-
-      if (updateError) {
-        logger.error('Failed to set temporary password', updateError as Error, {
-          userId: matchingUser.id,
-          errorDetails: updateError
-        })
-
-        return NextResponse.json({
-          success: true,
-          userId: matchingUser.id,
-          message: 'Phone verified but session creation failed',
-          requiresClientSession: true
-        })
-      }
-
-      // Sign in with the temporary password to create session
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: userEmail,
-        password: tempPassword
-      })
-
-      if (signInError || !signInData.session) {
-        logger.error('Failed to sign in with temporary password', signInError as Error, {
-          userId: matchingUser.id
-        })
-
-        return NextResponse.json({
-          success: true,
-          userId: matchingUser.id,
-          message: 'Phone verified but session creation failed',
-          requiresClientSession: true
-        })
-      }
+      const tokens = generateSupabaseTokens(
+        matchingUser.id,
+        matchingUser.email,
+        matchingUser.phone
+      )
 
       logger.info('Session created successfully for login', {
         userId: matchingUser.id,
-        phoneNumber
+        phoneNumber,
+        expiresAt: new Date(tokens.expires_at * 1000).toISOString()
       })
 
       return NextResponse.json({
         success: true,
         userId: matchingUser.id,
         message: 'Login successful',
-        user: signInData.user,
+        user: {
+          id: matchingUser.id,
+          phone: matchingUser.phone,
+          email: matchingUser.email,
+          user_metadata: matchingUser.user_metadata
+        },
         session: {
-          access_token: signInData.session.access_token,
-          refresh_token: signInData.session.refresh_token,
-          expires_at: signInData.session.expires_at
+          access_token: tokens.access_token,
+          refresh_token: tokens.refresh_token,
+          expires_at: tokens.expires_at,
+          expires_in: tokens.expires_in,
+          token_type: tokens.token_type
         }
       })
 
     } catch (sessionError) {
-      logger.error('Error creating session for login', sessionError as Error, {
-        userId: matchingUser.id
+      logger.error('Error generating JWT tokens for login', sessionError as Error, {
+        userId: matchingUser.id,
+        errorMessage: (sessionError as Error).message
       })
 
       return NextResponse.json({
