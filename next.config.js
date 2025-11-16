@@ -107,10 +107,14 @@ const nextConfig = {
   },
 }
 
-// Only apply Sentry if configured
-const useSentry = process.env.SENTRY_ORG && process.env.SENTRY_PROJECT;
+// Only apply Sentry webpack plugin if explicitly enabled AND configured.
+// This lets us isolate Sentry bundler issues without disabling the SDK itself.
+const sentryBundlerEnabled =
+  process.env.SENTRY_BUNDLER_ENABLED === 'true' &&
+  process.env.SENTRY_ORG &&
+  process.env.SENTRY_PROJECT;
 
-if (useSentry) {
+if (sentryBundlerEnabled) {
   const sentryWebpackPluginOptions = {
     // For all available options, see:
     // https://github.com/getsentry/sentry-webpack-plugin#options
@@ -150,4 +154,3 @@ if (useSentry) {
 } else {
   module.exports = nextConfig;
 }
-
