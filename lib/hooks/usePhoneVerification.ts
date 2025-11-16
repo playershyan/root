@@ -37,7 +37,11 @@ export function usePhoneVerification(options: UsePhoneVerificationOptions = {}):
       // Format phone for API
       const formattedPhone = formatPhoneForStorage(phone, '94')
 
-      // Call send OTP API (for existing users, isRegistration = false)
+      // Call send OTP API for authenticated updates (profile / listing / wanted)
+      // These are NOT login or first-time registration flows, so we use
+      // isRegistration = true to take the "registration/update" branch on
+      // the API route, which in turn detects the authenticated user and
+      // treats this as a phone update (no login lookup, no reCAPTCHA).
       const response = await fetch('/api/auth/send-phone-otp', {
         method: 'POST',
         headers: {
@@ -46,7 +50,7 @@ export function usePhoneVerification(options: UsePhoneVerificationOptions = {}):
         body: JSON.stringify({
           phoneNumber: formattedPhone,
           recaptchaToken: recaptchaToken,
-          isRegistration: false // For profile/listing/wanted updates, user is already authenticated
+          isRegistration: true // Authenticated profile/listing/wanted phone updates
         })
       })
 
