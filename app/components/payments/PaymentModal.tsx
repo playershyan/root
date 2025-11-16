@@ -43,6 +43,9 @@ export default function PaymentModal({
   const [hasActivePromotions, setHasActivePromotions] = useState(false)
   const [checkingPromotions, setCheckingPromotions] = useState(true)
 
+  // Use entityId if provided, otherwise fall back to listingId
+  const targetId = entityId || listingId
+
   // Check if sandbox is enabled
   useEffect(() => {
     // Check if sandbox mode is available (client-side check)
@@ -95,9 +98,6 @@ export default function PaymentModal({
 
     checkActivePromotions()
   }, [isOpen, targetId, entityType])
-
-  // Use entityId if provided, otherwise fall back to listingId
-  const targetId = entityId || listingId
 
 
   if (!isOpen) return null
