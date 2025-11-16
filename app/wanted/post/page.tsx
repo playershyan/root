@@ -21,10 +21,8 @@ import { useToast } from '@/app/components/notifications/useToast'
 import { toast } from 'sonner'
 import { Toast } from '@/app/components/notifications/Toast'
 import { logger } from '@/lib/utils/logger'
-import { Lightbulb } from 'lucide-react'
-import PhoneVerificationModal from '@/app/components/PhoneVerificationModal'
-import { usePhoneVerification } from '@/lib/hooks/usePhoneVerification'
-import { checkPhoneChanged } from '@/lib/utils/phoneVerification'
+import { Lightbulb, Edit } from 'lucide-react'
+import EditPhoneModal from '@/app/components/EditPhoneModal'
 
 interface FormData {
   description: string
@@ -58,15 +56,10 @@ export default function PostWantedPage() {
   const { toasts, showError, showSuccess, removeToast } = useToast()
   const [loading, setLoading] = useState(false)
   const [highPriority, setHighPriority] = useState(false)
-  
-  // Phone verification state
-  const [showVerificationModal, setShowVerificationModal] = useState(false)
-  const [pendingPhone, setPendingPhone] = useState<string>('')
-  const [pendingOtpCode, setPendingOtpCode] = useState<string>('')
-  const [originalPhone, setOriginalPhone] = useState<string>('')
-  const [phoneVerified, setPhoneVerified] = useState(false)
-  
-  const { sendOTP, verifyOTP } = usePhoneVerification({ purpose: 'wanted' })
+
+  // Phone verification modals
+  const [showEditPhoneModal, setShowEditPhoneModal] = useState(false)
+  const [showEditWhatsAppModal, setShowEditWhatsAppModal] = useState(false)
 
   // Detect edit mode
   const isEditMode = searchParams.get('edit') !== null
@@ -499,22 +492,6 @@ export default function PostWantedPage() {
       return
     }
 
-    // Check if phone number changed (and not already verified)
-    const phoneChanged = checkPhoneChanged(originalPhone, formData.phone)
-    const needsVerification = phoneChanged && formData.phone && !phoneVerified
-
-    if (needsVerification) {
-      // Show verification modal
-      setPendingPhone(formData.phone)
-      const result = await sendOTP(formData.phone)
-      if (result.success) {
-        setShowVerificationModal(true)
-      } else {
-        showError(result.error || 'Failed to send OTP. Please try again.', 5000)
-      }
-      return
-    }
-
     // Proceed with submission
     await submitWantedRequest()
   }
@@ -643,29 +620,16 @@ export default function PostWantedPage() {
     }
   }
 
-  const handleVerificationComplete = async (verifiedPhone: string, otpCode: string) => {
-    setPendingOtpCode(otpCode)
-    // Verify OTP first
-    const verifyResult = await verifyOTP(verifiedPhone, otpCode)
-    
-    if (verifyResult.success && verifyResult.verified) {
-      // OTP verified, now submit the wanted request
-      setPhoneVerified(true)
-      setShowVerificationModal(false)
-      await submitWantedRequest()
-    } else {
-      showError(verifyResult.error || 'Invalid OTP code. Please try again.', 4000)
-    }
+  const handlePhoneVerified = (newPhone: string) => {
+    setFormData(prev => ({ ...prev, phone: newPhone }))
+    setShowEditPhoneModal(false)
+    showSuccess('Phone number verified and updated!', 3000)
   }
 
-  const handleResendOTP = async () => {
-    if (!pendingPhone) return
-    const result = await sendOTP(pendingPhone)
-    if (result.success) {
-      showSuccess('OTP sent successfully!', 3000)
-    } else {
-      showError(result.error || 'Failed to resend OTP. Please try again.', 4000)
-    }
+  const handleWhatsAppVerified = (newWhatsApp: string) => {
+    setFormData(prev => ({ ...prev, whatsapp: newWhatsApp }))
+    setShowEditWhatsAppModal(false)
+    showSuccess('WhatsApp number verified and updated!', 3000)
   }
 
   const formatPreviewBudget = () => {
@@ -1151,71 +1115,59 @@ export default function PostWantedPage() {
               </div>
 
               {/* Phone */}
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Phone Number <span className="text-red-500">*</span>
-                </label>
-                <div className="flex items-center gap-2">
-                  <span className="px-4 py-3 border border-gray-300 rounded-l-lg bg-gray-50 text-gray-700 font-medium">
-                    +94
-                  </span>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="77 123 4567"
-                    maxLength={10}
-                    className={`flex-1 px-4 py-3 border rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${
-                      errors.phone ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    value={formData.phone}
-                    onChange={(e) => {
-                      // Only allow digits
-                      const value = e.target.value.replace(/\D/g, '')
-                      setFormData({ ...formData, phone: value })
-                      if (errors.phone) setErrors({ ...errors, phone: '' })
-                    }}
-                  />
+              <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-gray-50">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Phone Number <span className="text-red-500">*</span>
+                  </label>
+                  <p className="text-gray-900 mt-1">{formData.phone ? `+94 ${formData.phone}` : 'Not set'}</p>
+                  {errors.phone && <p className="text-red-600 text-sm mt-1">{errors.phone}</p>}
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Enter 10-digit Sri Lankan mobile number (e.g., 0771234567)</p>
-                {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+                <button
+                  type="button"
+                  onClick={() => setShowEditPhoneModal(true)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"
+                >
+                  <Edit className="w-4 h-4" />
+                  {formData.phone ? 'Edit' : 'Add'}
+                </button>
               </div>
 
               {/* WhatsApp */}
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  WhatsApp Number
-                </label>
-                <label className="flex items-center mb-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.whatsappSameAsPhone}
-                    onChange={(e) => setFormData(prev => ({ ...prev, whatsappSameAsPhone: e.target.checked }))}
-                    className="mr-2 h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
-                  />
-                  <span className="text-sm text-gray-700">Same as phone number</span>
-                </label>
-                <div className="flex items-center gap-2">
-                  <span className="px-4 py-3 border border-gray-300 rounded-l-lg bg-gray-50 text-gray-700 font-medium">
-                    +94
-                  </span>
-                  <input
-                    type="tel"
-                    placeholder="77 123 4567"
-                    maxLength={10}
-                    disabled={formData.whatsappSameAsPhone}
-                    className={`flex-1 px-4 py-3 border rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${
-                      errors.whatsapp ? 'border-red-500' : 'border-gray-300'
-                    } ${formData.whatsappSameAsPhone ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                    value={formData.whatsapp}
-                    onChange={(e) => {
-                      // Only allow digits
-                      const value = e.target.value.replace(/\D/g, '')
-                      setFormData({ ...formData, whatsapp: value })
-                      if (errors.whatsapp) setErrors({ ...errors, whatsapp: '' })
-                    }}
-                  />
+              <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-gray-50">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700">WhatsApp Number</label>
+                  <label className="flex items-center mt-1 mb-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.whatsappSameAsPhone}
+                      onChange={(e) => {
+                        const checked = e.target.checked
+                        setFormData(prev => ({
+                          ...prev,
+                          whatsappSameAsPhone: checked,
+                          whatsapp: checked ? prev.phone : prev.whatsapp
+                        }))
+                      }}
+                      className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <span className="text-sm text-gray-600">Same as phone number</span>
+                  </label>
+                  {!formData.whatsappSameAsPhone && (
+                    <p className="text-gray-900">{formData.whatsapp ? `+94 ${formData.whatsapp}` : 'Not set'}</p>
+                  )}
+                  {errors.whatsapp && <p className="text-red-600 text-sm mt-1">{errors.whatsapp}</p>}
                 </div>
-                {errors.whatsapp && <p className="text-red-500 text-sm mt-1">{errors.whatsapp}</p>}
+                {!formData.whatsappSameAsPhone && (
+                  <button
+                    type="button"
+                    onClick={() => setShowEditWhatsAppModal(true)}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"
+                  >
+                    <Edit className="w-4 h-4" />
+                    {formData.whatsapp ? 'Edit' : 'Add'}
+                  </button>
+                )}
               </div>
 
               {/* Preview Section */}
@@ -1340,19 +1292,22 @@ export default function PostWantedPage() {
         ))}
       </div>
 
-      {/* Phone Verification Modal */}
-      <PhoneVerificationModal
-        phone={pendingPhone}
-        isOpen={showVerificationModal}
-        onVerified={handleVerificationComplete}
-        onCancel={() => {
-          setShowVerificationModal(false)
-          setPendingPhone('')
-          setPendingOtpCode('')
-          setPhoneVerified(false)
-        }}
+      {/* Edit Phone Modal */}
+      <EditPhoneModal
+        currentPhone={formData.phone}
+        isOpen={showEditPhoneModal}
+        onVerified={handlePhoneVerified}
+        onCancel={() => setShowEditPhoneModal(false)}
         purpose="wanted"
-        onResend={handleResendOTP}
+      />
+
+      {/* Edit WhatsApp Modal */}
+      <EditPhoneModal
+        currentPhone={formData.whatsapp}
+        isOpen={showEditWhatsAppModal}
+        onVerified={handleWhatsAppVerified}
+        onCancel={() => setShowEditWhatsAppModal(false)}
+        purpose="wanted"
       />
     </div>
   )

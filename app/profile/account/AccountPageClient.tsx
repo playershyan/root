@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, FormEvent, useEffect } from 'react'
-import { ArrowLeft, Camera, User, Mail, Phone, MapPin } from 'lucide-react'
+import { ArrowLeft, Camera, User, Mail, Phone, MapPin, Edit } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -13,9 +13,7 @@ import { useBusinessProfile } from '@/app/hooks/useBusinessProfile'
 import BusinessProfileManagement from '@/app/components/profile/BusinessProfileManagement'
 import CreateBusinessProfile from '@/app/components/profile/CreateBusinessProfile'
 import { CreateBusinessProfileData } from '@/lib/types/businessProfile'
-import PhoneVerificationModal from '@/app/components/PhoneVerificationModal'
-import { usePhoneVerification } from '@/lib/hooks/usePhoneVerification'
-import { checkPhoneChanged } from '@/lib/utils/phoneVerification'
+import EditPhoneModal from '@/app/components/EditPhoneModal'
 
 interface ProfileData {
   name?: string
@@ -45,30 +43,26 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [showCreateProfile, setShowCreateProfile] = useState(false)
-  const [showVerificationModal, setShowVerificationModal] = useState(false)
-  const [pendingPhone, setPendingPhone] = useState<string>('')
-  const [pendingOtpCode, setPendingOtpCode] = useState<string>('')
-  const [originalPhone, setOriginalPhone] = useState<string>(initialProfile?.phone || '')
-  
-  const { sendOTP, verifyOTP, isSending, isVerifying } = usePhoneVerification({ purpose: 'profile' })
-  
+  const [showEditPhoneModal, setShowEditPhoneModal] = useState(false)
+  const [showEditWhatsAppModal, setShowEditWhatsAppModal] = useState(false)
+
   const [formData, setFormData] = useState({
     displayName: initialProfile?.name || '',
     phone: initialProfile?.phone || '',
     whatsapp: initialProfile?.whatsapp || ''
   })
 
-  // Update original phone when profile changes
+  // Update form when profile changes
   useEffect(() => {
-    if (initialProfile?.phone) {
-      setOriginalPhone(initialProfile.phone)
+    if (initialProfile) {
       setFormData(prev => ({
         ...prev,
+        displayName: initialProfile.name || prev.displayName,
         phone: initialProfile.phone || prev.phone,
         whatsapp: initialProfile.whatsapp || prev.whatsapp
       }))
     }
-  }, [initialProfile?.phone, initialProfile?.whatsapp])
+  }, [initialProfile?.name, initialProfile?.phone, initialProfile?.whatsapp])
 
   const {
     businessProfile,
@@ -81,28 +75,6 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-
-    // Check if phone number changed
-    const phoneChanged = checkPhoneChanged(originalPhone, formData.phone)
-
-    // If phone changed, show verification modal first
-    if (phoneChanged && formData.phone) {
-      setPendingPhone(formData.phone)
-      // Send OTP automatically when opening modal
-      const result = await sendOTP(formData.phone)
-      if (result.success) {
-        setShowVerificationModal(true)
-      } else {
-        toast.error(result.error || 'Failed to send OTP. Please try again.')
-      }
-      return
-    }
-
-    // No phone change or phone is empty, proceed with update
-    await submitProfileUpdate()
-  }
-
-  const submitProfileUpdate = async () => {
     setIsLoading(true)
 
     try {
@@ -114,24 +86,12 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
         body: JSON.stringify({
           name: formData.displayName,
           phone: formData.phone,
-          whatsapp: formData.whatsapp,
-          phoneOtpCode: pendingOtpCode || undefined
+          whatsapp: formData.whatsapp
         }),
       })
 
       if (!response.ok) {
         const errorData = await response.json()
-        if (errorData.requiresOTP) {
-          // If OTP required but not provided, show modal
-          setPendingPhone(formData.phone)
-          const result = await sendOTP(formData.phone)
-          if (result.success) {
-            setShowVerificationModal(true)
-          } else {
-            toast.error(result.error || 'Failed to send OTP. Please try again.')
-          }
-          return
-        }
         throw new Error(errorData.error || 'Failed to update profile')
       }
 
@@ -139,9 +99,6 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
       if (result.success) {
         toast.success('Profile updated successfully!')
         setIsEditing(false)
-        setShowVerificationModal(false)
-        setPendingOtpCode('')
-        setOriginalPhone(formData.phone)
         router.refresh()
       } else {
         throw new Error(result.error || 'Failed to update profile')
@@ -154,27 +111,16 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
     }
   }
 
-  const handleVerificationComplete = async (verifiedPhone: string, otpCode: string) => {
-    setPendingOtpCode(otpCode)
-    // Verify OTP first
-    const verifyResult = await verifyOTP(verifiedPhone, otpCode)
-    
-    if (verifyResult.success && verifyResult.verified) {
-      // OTP verified, now submit the profile update
-      await submitProfileUpdate()
-    } else {
-      toast.error(verifyResult.error || 'Invalid OTP code. Please try again.')
-    }
+  const handlePhoneVerified = (newPhone: string) => {
+    setFormData(prev => ({ ...prev, phone: newPhone }))
+    setShowEditPhoneModal(false)
+    toast.success('Phone number verified and updated!')
   }
 
-  const handleResendOTP = async () => {
-    if (!pendingPhone) return
-    const result = await sendOTP(pendingPhone)
-    if (result.success) {
-      toast.success('OTP sent successfully!')
-    } else {
-      toast.error(result.error || 'Failed to resend OTP. Please try again.')
-    }
+  const handleWhatsAppVerified = (newWhatsApp: string) => {
+    setFormData(prev => ({ ...prev, whatsapp: newWhatsApp }))
+    setShowEditWhatsAppModal(false)
+    toast.success('WhatsApp number verified and updated!')
   }
 
   const handleCreateBusinessProfile = async (data: CreateBusinessProfileData) => {
@@ -324,56 +270,50 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
           {/* Contact Information */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-semibold mb-4">Contact Information</h2>
-            
-            {isEditing ? (
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="+94 XX XXX XXXX"
-                  />
-                </div>
 
-                <div>
-                  <Label htmlFor="whatsapp">WhatsApp</Label>
-                  <Input
-                    id="whatsapp"
-                    value={formData.whatsapp}
-                    onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
-                    placeholder="+94 XX XXX XXXX"
-                  />
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 py-2">
+                <Mail className="w-5 h-5 text-gray-400" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-700">Email</p>
+                  <p className="text-gray-900">{email}</p>
                 </div>
               </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 py-2">
-                  <Mail className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Email</p>
-                    <p className="text-gray-900">{email}</p>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-3 py-2">
-                  <Phone className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Phone</p>
-                    <p className="text-gray-900">{initialProfile?.phone || 'Not set'}</p>
-                  </div>
+              <div className="flex items-center gap-3 py-2">
+                <Phone className="w-5 h-5 text-gray-400" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-700">Phone</p>
+                  <p className="text-gray-900">{formData.phone || 'Not set'}</p>
                 </div>
-
-                <div className="flex items-center gap-3 py-2">
-                  <Phone className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">WhatsApp</p>
-                    <p className="text-gray-900">{initialProfile?.whatsapp || 'Not set'}</p>
-                  </div>
-                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowEditPhoneModal(true)}
+                  className="gap-2"
+                >
+                  <Edit className="w-4 h-4" />
+                  Edit
+                </Button>
               </div>
-            )}
+
+              <div className="flex items-center gap-3 py-2">
+                <Phone className="w-5 h-5 text-gray-400" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-700">WhatsApp</p>
+                  <p className="text-gray-900">{formData.whatsapp || 'Not set'}</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowEditWhatsAppModal(true)}
+                  className="gap-2"
+                >
+                  <Edit className="w-4 h-4" />
+                  Edit
+                </Button>
+              </div>
+            </div>
           </div>
 
           {/* Account Stats */}
@@ -422,18 +362,22 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
         </div>
       </div>
 
-      {/* Phone Verification Modal */}
-      <PhoneVerificationModal
-        phone={pendingPhone}
-        isOpen={showVerificationModal}
-        onVerified={handleVerificationComplete}
-        onCancel={() => {
-          setShowVerificationModal(false)
-          setPendingPhone('')
-          setPendingOtpCode('')
-        }}
+      {/* Edit Phone Modal */}
+      <EditPhoneModal
+        currentPhone={formData.phone}
+        isOpen={showEditPhoneModal}
+        onVerified={handlePhoneVerified}
+        onCancel={() => setShowEditPhoneModal(false)}
         purpose="profile"
-        onResend={handleResendOTP}
+      />
+
+      {/* Edit WhatsApp Modal */}
+      <EditPhoneModal
+        currentPhone={formData.whatsapp}
+        isOpen={showEditWhatsAppModal}
+        onVerified={handleWhatsAppVerified}
+        onCancel={() => setShowEditWhatsAppModal(false)}
+        purpose="profile"
       />
     </div>
   )

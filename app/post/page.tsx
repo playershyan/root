@@ -8,7 +8,7 @@ import { useAuth } from '@/app/contexts/AuthContext'
 import {
   Car, Camera, MapPin, Phone, CreditCard, CheckCircle,
   AlertCircle, Upload, X, Sparkles, ChevronRight,
-  FileText, User, Image as ImageIcon, Star
+  FileText, User, Image as ImageIcon, Star, Edit
 } from 'lucide-react'
 import { formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
 import {
@@ -33,9 +33,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { compressImageFile } from '@/lib/utils/image-compression'
 import { logger } from '@/lib/utils/logger'
 import { buildListingDescription } from '@/lib/services/descriptionBuilder'
-import PhoneVerificationModal from '@/app/components/PhoneVerificationModal'
-import { usePhoneVerification } from '@/lib/hooks/usePhoneVerification'
-import { checkPhoneChanged } from '@/lib/utils/phoneVerification'
+import EditPhoneModal from '@/app/components/EditPhoneModal'
 
 // Lazy load form components (Phase 2 optimization)
 import type { DescriptionGeneratorRef } from '@/app/components/vehicle-forms/DescriptionGenerator'
@@ -116,15 +114,10 @@ export default function EnhancedPostVehiclePage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const vehicleDropdownRef = useRef<HTMLDivElement>(null)
   const descriptionGeneratorRef = useRef<DescriptionGeneratorRef>(null)
-  
-  // Phone verification state
-  const [showVerificationModal, setShowVerificationModal] = useState(false)
-  const [pendingPhone, setPendingPhone] = useState<string>('')
-  const [pendingOtpCode, setPendingOtpCode] = useState<string>('')
-  const [originalPhone, setOriginalPhone] = useState<string>('')
-  const [phoneVerified, setPhoneVerified] = useState(false)
-  
-  const { sendOTP, verifyOTP } = usePhoneVerification({ purpose: 'listing' })
+
+  // Phone verification modals
+  const [showEditPhoneModal, setShowEditPhoneModal] = useState(false)
+  const [showEditWhatsAppModal, setShowEditWhatsAppModal] = useState(false)
 
   // Detect edit mode
   const isEditMode = searchParams.get('edit') !== null
@@ -886,22 +879,6 @@ const getUploadUserId = (): string => {
   
   const handleSubmit = async () => {
     if (!validateForm()) return
-    
-    // Check if phone number changed (and not already verified)
-    const phoneChanged = checkPhoneChanged(originalPhone, formData.phone)
-    const needsVerification = phoneChanged && formData.phone && !phoneVerified
-
-    if (needsVerification) {
-      // Show verification modal
-      setPendingPhone(formData.phone)
-      const result = await sendOTP(formData.phone)
-      if (result.success) {
-        setShowVerificationModal(true)
-      } else {
-        showError(result.error || 'Failed to send OTP. Please try again.', 5000)
-      }
-      return
-    }
 
     // Proceed with submission
     await submitListing()
@@ -1152,29 +1129,16 @@ const getUploadUserId = (): string => {
     }
   }
 
-  const handleVerificationComplete = async (verifiedPhone: string, otpCode: string) => {
-    setPendingOtpCode(otpCode)
-    // Verify OTP first
-    const verifyResult = await verifyOTP(verifiedPhone, otpCode)
-    
-    if (verifyResult.success && verifyResult.verified) {
-      // OTP verified, now submit the listing
-      setPhoneVerified(true)
-      setShowVerificationModal(false)
-      await submitListing()
-    } else {
-      showError(verifyResult.error || 'Invalid OTP code. Please try again.', 5000)
-    }
+  const handlePhoneVerified = (newPhone: string) => {
+    setFormData(prev => ({ ...prev, phone: newPhone }))
+    setShowEditPhoneModal(false)
+    showSuccess('Phone number verified and updated!', 3000)
   }
 
-  const handleResendOTP = async () => {
-    if (!pendingPhone) return
-    const result = await sendOTP(pendingPhone)
-    if (result.success) {
-      showSuccess('OTP sent successfully!', 3000)
-    } else {
-      showError(result.error || 'Failed to resend OTP. Please try again.', 5000)
-    }
+  const handleWhatsAppVerified = (newWhatsApp: string) => {
+    setFormData(prev => ({ ...prev, whatsapp: newWhatsApp }))
+    setShowEditWhatsAppModal(false)
+    showSuccess('WhatsApp number verified and updated!', 3000)
   }
   
   const getModelOptions = () => {
@@ -1545,69 +1509,67 @@ const getUploadUserId = (): string => {
             <div className="border-t border-gray-200 pt-8">
               <div className="mb-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Contact Information</h2>
+                <p className="text-sm text-gray-600">Buyers will use this information to contact you about this listing.</p>
               </div>
-              
-              <div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="phone">Phone Number <span className="text-red-500">*</span></Label>
-                    <div className="flex items-center gap-2">
-                      <span className="h-12 px-4 flex items-center border border-gray-300 rounded-l-lg bg-gray-50 text-gray-700 font-medium">
-                        +94
-                      </span>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, '')
-                          setFormData(prev => ({ ...prev, phone: value }))
-                        }}
-                        placeholder="77 123 4567"
-                        maxLength={10}
-                        className={`flex-1 rounded-l-none ${errors.phone ? 'border-red-300' : ''}`}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">Enter 10-digit Sri Lankan mobile number (e.g., 0771234567)</p>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-gray-50">
+                  <div className="flex-1">
+                    <Label className="text-sm font-medium text-gray-700">Phone Number <span className="text-red-500">*</span></Label>
+                    <p className="text-gray-900 mt-1">{formData.phone ? `+94 ${formData.phone}` : 'Not set'}</p>
                     {errors.phone && <p className="text-red-600 text-sm mt-1">{errors.phone}</p>}
                   </div>
-                  
-                  <div>
-                    <Label htmlFor="whatsapp">WhatsApp Number</Label>
-                    <label className="flex items-center mb-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowEditPhoneModal(true)}
+                    className="gap-2"
+                  >
+                    <Edit className="w-4 h-4" />
+                    {formData.phone ? 'Edit' : 'Add'}
+                  </Button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-gray-50">
+                  <div className="flex-1">
+                    <Label className="text-sm font-medium text-gray-700">WhatsApp Number</Label>
+                    <label className="flex items-center mt-1 mb-2">
                       <input
                         type="checkbox"
                         checked={formData.whatsappSameAsPhone}
-                        onChange={(e) => setFormData(prev => ({ ...prev, whatsappSameAsPhone: e.target.checked }))}
-                        className="mr-2 h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
-                      />
-                      <span className="text-sm text-gray-700">Same as phone number</span>
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <span className="h-12 px-4 flex items-center border border-gray-300 rounded-l-lg bg-gray-50 text-gray-700 font-medium">
-                        +94
-                      </span>
-                      <Input
-                        id="whatsapp"
-                        type="tel"
-                        name="whatsapp"
-                        value={formData.whatsapp}
                         onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, '')
-                          setFormData(prev => ({ ...prev, whatsapp: value }))
+                          const checked = e.target.checked
+                          setFormData(prev => ({
+                            ...prev,
+                            whatsappSameAsPhone: checked,
+                            whatsapp: checked ? prev.phone : prev.whatsapp
+                          }))
                         }}
-                        placeholder="77 123 4567"
-                        maxLength={10}
-                        disabled={formData.whatsappSameAsPhone}
-                        className={`flex-1 rounded-l-none ${errors.whatsapp ? 'border-red-300' : ''}`}
+                        className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                       />
-                    </div>
+                      <span className="text-sm text-gray-600">Same as phone number</span>
+                    </label>
+                    {!formData.whatsappSameAsPhone && (
+                      <p className="text-gray-900">{formData.whatsapp ? `+94 ${formData.whatsapp}` : 'Not set'}</p>
+                    )}
                     {errors.whatsapp && <p className="text-red-600 text-sm mt-1">{errors.whatsapp}</p>}
                   </div>
+                  {!formData.whatsappSameAsPhone && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowEditWhatsAppModal(true)}
+                      className="gap-2"
+                    >
+                      <Edit className="w-4 h-4" />
+                      {formData.whatsapp ? 'Edit' : 'Add'}
+                    </Button>
+                  )}
                 </div>
               </div>
-              
+
             </div>
 
             {/* Submit Button */}
@@ -1640,19 +1602,22 @@ const getUploadUserId = (): string => {
       </div>
       <ToastContainer toasts={toasts} onClose={removeToast} />
 
-      {/* Phone Verification Modal */}
-      <PhoneVerificationModal
-        phone={pendingPhone}
-        isOpen={showVerificationModal}
-        onVerified={handleVerificationComplete}
-        onCancel={() => {
-          setShowVerificationModal(false)
-          setPendingPhone('')
-          setPendingOtpCode('')
-          setPhoneVerified(false)
-        }}
+      {/* Edit Phone Modal */}
+      <EditPhoneModal
+        currentPhone={formData.phone}
+        isOpen={showEditPhoneModal}
+        onVerified={handlePhoneVerified}
+        onCancel={() => setShowEditPhoneModal(false)}
         purpose="listing"
-        onResend={handleResendOTP}
+      />
+
+      {/* Edit WhatsApp Modal */}
+      <EditPhoneModal
+        currentPhone={formData.whatsapp}
+        isOpen={showEditWhatsAppModal}
+        onVerified={handleWhatsAppVerified}
+        onCancel={() => setShowEditWhatsAppModal(false)}
+        purpose="listing"
       />
     </div>
   )
