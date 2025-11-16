@@ -70,18 +70,68 @@ export async function POST(request: Request) {
         }
       })
 
-      if (authError || !authData.user) {
-        logger.error('Error creating auth user', authError as Error, {
-          phoneNumber,
-          username
-        })
-        return NextResponse.json({
-          error: 'Failed to create user account'
-        }, { status: 500 })
-      }
+      if (authError || !authData?.user) {
+        const authErrorMessage = (authError as any)?.message || 'Unknown Supabase auth error'
 
-      userId = authData.user.id
-      logger.info('Created auth user for registration', { userId, phoneNumber, username })
+        // Handle the case where a user with this phone already exists.
+        // Supabase may return messages like "User already registered" or a duplicate key error.
+        if (
+          authErrorMessage.toLowerCase().includes('already registered') ||
+          authErrorMessage.toLowerCase().includes('duplicate key value') ||
+          authErrorMessage.toLowerCase().includes('users_phone_key')
+        ) {
+          try {
+            // Attempt to find existing user by phone and reuse their id
+            const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers()
+
+            if (listError) {
+              logger.error('Error listing users after duplicate phone error', listError as Error, {
+                phoneNumber,
+                username
+              })
+            } else {
+              const existingUser = users?.find(user =>
+                user.phone === e164PhoneNumber ||
+                user.phone === phoneNumber ||
+                user.user_metadata?.phone === phoneNumber
+              )
+
+              if (existingUser) {
+                userId = existingUser.id
+                logger.info('Using existing auth user for registration', {
+                  userId,
+                  phoneNumber,
+                  username
+                })
+              }
+            }
+          } catch (lookupError) {
+            logger.error('Error looking up existing auth user after duplicate phone error', lookupError as Error, {
+              phoneNumber,
+              username
+            })
+          }
+
+          // If we successfully resolved a userId above, continue the flow instead of failing
+          if (!userId) {
+            return NextResponse.json({
+              error: 'An account with this phone number already exists. Please log in instead.'
+            }, { status: 409 })
+          }
+        } else {
+          logger.error('Error creating auth user', authError as Error, {
+            phoneNumber,
+            username,
+            authErrorMessage
+          })
+          return NextResponse.json({
+            error: 'Failed to create user account'
+          }, { status: 500 })
+        }
+      } else {
+        userId = authData.user.id
+        logger.info('Created auth user for registration', { userId, phoneNumber, username })
+      }
     }
 
     if (!userId || !username || !phoneNumber) {
