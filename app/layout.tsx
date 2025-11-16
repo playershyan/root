@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { Suspense } from 'react'
+import * as Sentry from '@sentry/nextjs'
 import './globals.css'
 import Header from './components/header'
 import Footer from './components/Footer'
@@ -20,12 +21,17 @@ const inter = Inter({
   fallback: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif']
 })
 
-export const metadata: Metadata = {
-  title: 'VERA - Verified Exchange & Resource Assistant',
-  description: 'Sri Lanka\'s trusted marketplace for vehicles, properties, tech, and more. Verified listings powered by AI.',
-  icons: {
-    icon: '/V (3).svg',
-  },
+export function generateMetadata(): Metadata {
+  return {
+    title: 'VERA - Verified Exchange & Resource Assistant',
+    description: 'Sri Lanka\'s trusted marketplace for vehicles, properties, tech, and more. Verified listings powered by AI.',
+    icons: {
+      icon: '/V (3).svg',
+    },
+    other: {
+      ...Sentry.getTraceData()
+    },
+  }
 }
 
 export default function RootLayout({
