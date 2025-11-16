@@ -3,13 +3,14 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { Heart, MapPin, Calendar, Eye, Star, Crown, Gauge, Fuel, Settings, Phone, Mail, ArrowUp, AlertTriangle } from 'lucide-react'
+import { Heart, Handshake, ImageIcon, ChevronLeft, ChevronRight, Car, Calendar, Activity, Fuel, Settings, MapPin, Phone, Mail } from 'lucide-react'
+import PriceDisplay from '@/app/components/PriceDisplay'
 import PromotionBadges from './PromotionBadges'
-import ImageCarousel from '@/components/ui/ImageCarousel'
+import FavoriteButton from '@/app/components/FavoriteButton'
 import { Button } from '@/components/ui/button'
-import { CARD_CONSTANTS, PROMOTION_COLORS, getCardClasses } from './card-design-system'
+import OptimizedImage from '@/components/ui/OptimizedImage'
 
-// Lazy load modals (Phase 2 optimization)
+// Lazy load modals
 const ContactModal = dynamic(() => import('@/app/components/modals/ContactModal'))
 const ConversationModal = dynamic(() => import('@/app/components/modals/ConversationModal'))
 
@@ -28,240 +29,266 @@ interface FeaturedAdCardProps {
     image_url?: string
     image_urls?: string[]
     primary_image_url?: string
-    created_at: string
-    views?: number
-    is_boosted?: boolean
-    is_urgent?: boolean
+    pricing_type?: string
+    negotiable?: boolean
+    asking_price?: number
+    monthly_payment?: number
+    isPromoted?: boolean
+    promotionType?: string
     phone?: string
     whatsapp?: string
     user_id: string
+    // Promotion flags
+    is_featured?: boolean
+    is_top_spot?: boolean
+    is_boosted?: boolean
+    is_urgent?: boolean
   }
-  promotionType: 'featured' | 'top_spot'
+  showPromotionBadge?: boolean
+  activeImageIndex?: number
+  onImageNavigate?: (direction: 'prev' | 'next') => void
+  imageLoading?: boolean
+  imageError?: boolean
+  onImageLoad?: () => void
+  onImageError?: () => void
+  promotionType?: 'featured' | 'top_spot'
 }
 
-export default function FeaturedAdCard({ listing, promotionType }: FeaturedAdCardProps) {
-  const priority = promotionType
-  const [isFavorite, setIsFavorite] = useState(false)
-  const [imageError, setImageError] = useState(false)
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+export default function FeaturedAdCard({
+  listing,
+  showPromotionBadge = false,
+  activeImageIndex = 0,
+  onImageNavigate,
+  imageLoading = false,
+  imageError = false,
+  onImageLoad,
+  onImageError,
+  promotionType
+}: FeaturedAdCardProps) {
+  const images = listing.image_urls || []
   const [showContactModal, setShowContactModal] = useState(false)
   const [showConversationModal, setShowConversationModal] = useState(false)
 
-  const images = listing.image_urls || (listing.image_url ? [listing.image_url] : [])
-  const hasMultipleImages = images.length > 1
+  const getPromotionBadge = () => {
+    // Show promotion badges if any promotion flag is set (excluding featured)
+    if (listing.is_top_spot || listing.is_boosted || listing.is_urgent) {
+      return <PromotionBadges listing={listing} size="small" />
+    }
 
-  const formatPrice = (price: number) => {
-    return `Rs. ${price.toLocaleString()}`
+    // Legacy support for old promotion system
+    if (showPromotionBadge && listing.isPromoted) {
+      switch (listing.promotionType) {
+        case 'urgent':
+          return <PromotionBadges listing={{ is_urgent: true }} size="small" />
+        case 'boost':
+          return <PromotionBadges listing={{ is_boosted: true }} size="small" />
+        default:
+          return null
+      }
+    }
+
+    return null
   }
-
-  const formatMileage = (mileage?: number) => {
-    if (!mileage) return 'N/A'
-    return `${mileage.toLocaleString()} km`
-  }
-
-  const getTimeAgo = (date: string) => {
-    const now = new Date()
-    const created = new Date(date)
-    const diffInHours = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60))
-    
-    if (diffInHours < 1) return 'Now'
-    if (diffInHours < 24) return `${diffInHours}h ago`
-    const diffInDays = Math.floor(diffInHours / 24)
-    if (diffInDays === 1) return 'Yesterday'
-    if (diffInDays < 30) return `${diffInDays} days ago`
-    const diffInMonths = Math.floor(diffInDays / 30)
-    if (diffInMonths === 1) return '1 month ago'
-    return `${diffInMonths} months ago`
-  }
-
-  const handleImageError = () => {
-    setImageError(true)
-  }
-
-  const nextImage = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setCurrentImageIndex((prev) => (prev + 1) % images.length)
-  }
-
-  const prevImage = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
-  }
-
-  const colors = priority === 'featured' ? PROMOTION_COLORS.featured : PROMOTION_COLORS.topSpot
-  const cardClass = priority === 'featured' ? getCardClasses('featured') : getCardClasses('topSpot')
 
   return (
+    <>
     <Link
       href={`/listings/${listing.id}`}
       prefetch={true}
+      className="block"
     >
-      <div className={cardClass}>
-        {/* Overlay gradient */}
-        <div className={`absolute inset-0 bg-gradient-to-br ${priority === 'featured' ? CARD_CONSTANTS.overlay.featured : CARD_CONSTANTS.overlay.topSpot} pointer-events-none`}></div>
-
-        {/* Premium Badge */}
-        <div className={`absolute ${CARD_CONSTANTS.badgePosition.left} z-20 ${colors.badge} text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-lg flex items-center gap-1.5 sm:gap-2`}>
-          {priority === 'featured' ? (
-            <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-white" />
-          ) : (
-            <Crown className="w-3 h-3 sm:w-4 sm:h-4" />
-          )}
-          <span className="text-xs sm:text-sm font-bold">{priority === 'featured' ? 'FEATURED' : 'TOP SPOT'}</span>
-        </div>
-
-        <div className="flex flex-col lg:flex-row">
-          {/* Image Section */}
-          <div className={`relative ${priority === 'featured' ? 'lg:w-2/5' : 'lg:w-1/3'} ${CARD_CONSTANTS.imageHeight.featured} lg:h-auto`}>
-            <ImageCarousel
-              images={images}
-              alt={listing.title}
-              className="w-full h-full"
-              priority={priority === 'featured'}
-              showThumbnails={false}
+      <div className="bg-gradient-to-br from-blue-50/30 to-white rounded-lg shadow-md hover:shadow-xl transition-all border-2 border-blue-500 group cursor-pointer">
+        {/* Image Section */}
+        <div className="relative h-48 bg-gray-200 rounded-t-lg overflow-hidden group">
+        {/* Promotion Badges (excluding urgent and featured - shown next to title) */}
+        {(listing.is_top_spot || listing.is_boosted) && (
+          <div className="absolute top-2 left-2 z-10">
+            <PromotionBadges
+              listing={{
+                is_top_spot: listing.is_top_spot,
+                is_boosted: listing.is_boosted
+              }}
+              size="small"
             />
-
-            {/* Promotion Badges Overlay */}
-            <div className="absolute bottom-2 left-2 z-10">
-              <PromotionBadges listing={listing} size="small" />
-            </div>
           </div>
+        )}
 
-          {/* Content Section */}
-          <div className={`flex-1 ${CARD_CONSTANTS.padding.featured}`}>
-            <div className="flex justify-between items-start mb-2 sm:mb-3">
-              <div className="flex-1 min-w-0 pr-2">
-                <h3 className={`font-bold ${colors.text} ${colors.hover} mb-2 line-clamp-2 ${CARD_CONSTANTS.titleSize[priority]}`}>
-                  {listing.title}
-                </h3>
-                
-                {/* Vehicle Details */}
-                <div className="flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
-                    <span className="hidden xs:inline">{listing.year}</span>
-                    <span className="xs:hidden">{listing.year}</span>
-                  </span>
-                  {listing.mileage && (
-                    <span className="flex items-center gap-1">
-                      <Gauge className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
-                      <span className="truncate">{formatMileage(listing.mileage)}</span>
-                    </span>
-                  )}
-                  {listing.fuel_type && (
-                    <span className="flex items-center gap-1">
-                      <Fuel className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
-                      <span className="truncate">{listing.fuel_type}</span>
-                    </span>
-                  )}
-                  {listing.transmission && (
-                    <span className="flex items-center gap-1">
-                      <Settings className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
-                      <span className="truncate">{listing.transmission}</span>
-                    </span>
-                  )}
-                </div>
+        {/* Finance Badge */}
+        {listing.pricing_type === 'finance' && (
+          <div className="absolute top-2 right-12 z-10 bg-amber-500 text-white px-2 py-1 rounded text-xs font-semibold shadow-sm">
+            <Handshake className="mr-1 inline" size={12} />
+            Finance
+          </div>
+        )}
 
-                {/* Location */}
-                <div className="flex items-center gap-1 sm:gap-2 text-gray-600 mb-2 sm:mb-3">
-                  <MapPin className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm truncate">{listing.location}</span>
-                </div>
-              </div>
-
-              {/* Favorite Button */}
-              <Button
-                onClick={(e) => {
-                  e.preventDefault()
-                  setIsFavorite(!isFavorite)
-                }}
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0"
-              >
-                <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
-              </Button>
-            </div>
-
-            {/* Price Section */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <div className={`font-bold ${CARD_CONSTANTS.priceSize[priority]} ${colors.text}`}>
-                  {formatPrice(listing.price)}
-                </div>
-
-                {/* Stats */}
-                <div className="flex flex-wrap gap-2 sm:gap-4 mt-1 sm:mt-2 text-xs text-gray-500">
-                  <span className="flex items-center gap-1">
-                    <Eye className="w-3 h-3" />
-                    <span className="hidden sm:inline">{listing.views || 0} views</span>
-                    <span className="sm:hidden">{listing.views || 0}</span>
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    {getTimeAgo(listing.created_at)}
-                  </span>
-                </div>
-              </div>
-
-              {/* CTA Buttons for Featured Ads */}
-              {priority === 'featured' && (
-                <div className="flex gap-2 w-full sm:w-auto">
-                  <Button
-                    onClick={(e) => {
-                      e.preventDefault()
-                      setShowContactModal(true)
-                    }}
-                    className={`${colors.button} text-white gap-1.5 sm:gap-2 flex-1 sm:flex-initial text-xs sm:text-sm`}
-                    size="sm"
-                  >
-                    <Phone className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span>Call</span>
-                  </Button>
-                  <Button
-                    onClick={(e) => {
-                      e.preventDefault()
-                      setShowConversationModal(true)
-                    }}
-                    className={`${colors.buttonOutline} border-2 gap-1.5 sm:gap-2 flex-1 sm:flex-initial text-xs sm:text-sm`}
-                    size="sm"
-                    variant="outline"
-                  >
-                    <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span>Message</span>
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            {/* Additional Promotions */}
-            {priority === 'featured' && (
-              <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200">
-                <div className="flex flex-wrap items-center gap-2">
-                  {listing.is_boosted && (
-                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium inline-flex items-center gap-1">
-                      <ArrowUp className="w-3 h-3" />Boosted
-                    </span>
-                  )}
-                  {listing.is_urgent && (
-                    <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium inline-flex items-center gap-1">
-                      <AlertTriangle className="w-3 h-3" />Urgent
-                    </span>
-                  )}
-                  <span className="text-xs text-gray-500 ml-auto hidden sm:inline">
-                    Premium • Verified
-                  </span>
-                </div>
+        {/* Image Display */}
+        {images.length > 0 ? (
+          <>
+            <OptimizedImage
+              src={images[activeImageIndex]}
+              alt={listing.title}
+              fill
+              className="object-cover transition-transform group-hover:scale-105"
+              priority={false}
+              quality="listing"
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              watermark={true}
+              onLoad={onImageLoad}
+              onError={() => {
+                onImageError?.()
+              }}
+            />
+            {imageLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100/80">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
             )}
+            {imageError && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-500 text-sm flex-col">
+                <ImageIcon size={32} className="mb-2" />
+                <p>Image unavailable</p>
+              </div>
+            )}
+
+            {/* Image Navigation */}
+            {images.length > 1 && onImageNavigate && (
+              <>
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    onImageNavigate('prev')
+                  }}
+                  variant="ghost"
+                  size="icon"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+                >
+                  <ChevronLeft size={16} />
+                </Button>
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    onImageNavigate('next')
+                  }}
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+                >
+                  <ChevronRight size={16} />
+                </Button>
+                <div className="absolute bottom-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
+                  {activeImageIndex + 1}/{images.length}
+                </div>
+              </>
+            )}
+          </>
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+            <Car size={48} className="mb-2" />
+            <span className="text-sm">No images</span>
           </div>
+        )}
+
+        {/* Save Button */}
+        <div className="absolute top-2 right-2 z-20">
+          <FavoriteButton
+            listingId={listing.id}
+            size="small"
+            className="bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm"
+          />
         </div>
       </div>
 
-      {/* Contact Modal */}
-      <ContactModal
+      {/* Content Section */}
+      <div className="p-4 hover:bg-blue-50/50 transition-colors">
+        <div className="space-y-3">
+          {/* Title with Featured and Urgent Badge */}
+          <div className="flex items-start gap-2">
+            <h3 className="font-semibold text-lg text-gray-900 line-clamp-2 hover:text-blue-600 transition-colors flex-1 min-w-0">
+              {listing.title}
+            </h3>
+            <div className="flex-shrink-0 flex items-center gap-2">
+              {/* Gold Featured Badge */}
+              <span className="bg-gradient-to-r from-yellow-400 to-amber-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
+                FEATURED
+              </span>
+              {listing.is_urgent && (
+                <PromotionBadges listing={{ is_urgent: true }} size="small" showLabels={true} />
+              )}
+            </div>
+          </div>
+
+          {/* Price */}
+          <PriceDisplay
+            pricingType={listing.pricing_type as 'cash' | 'finance'}
+            price={listing.price}
+            negotiable={listing.negotiable}
+            askingPrice={listing.asking_price}
+            monthlyPayment={listing.monthly_payment}
+            variant="card"
+          />
+
+          {/* Vehicle Details */}
+          <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-1">
+              <Calendar className="text-blue-500 w-4 h-4" />
+              <span>{listing.year}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Activity className="text-gray-500 w-4 h-4" />
+              <span>{listing.mileage?.toLocaleString() || 'N/A'} km</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Fuel className="text-green-500 w-4 h-4" />
+              <span>{listing.fuel_type || 'N/A'}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Settings className="text-purple-500 w-4 h-4" />
+              <span>{listing.transmission || 'N/A'}</span>
+            </div>
+          </div>
+
+          {/* Location */}
+          <div className="flex items-center gap-2 text-sm text-gray-600 pt-1 border-t border-gray-100">
+            <MapPin className="text-red-500" size={16} />
+            <span>{listing.location}</span>
+          </div>
+        </div>
+        </div>
+
+        {/* Action Footer */}
+        <div className="px-4 pb-4">
+        <div className="flex gap-2">
+          <Button
+            onClick={(e) => {
+              e.preventDefault()
+              setShowContactModal(true)
+            }}
+            variant="primary"
+            size="default"
+            className="flex-1 gap-2 bg-blue-600 hover:bg-blue-700"
+          >
+            <Phone size={16} />
+            Call Now
+          </Button>
+          <Button
+            onClick={(e) => {
+              e.preventDefault()
+              setShowConversationModal(true)
+            }}
+            variant="outline"
+            size="default"
+            className="flex-1 border-blue-600 text-blue-600 hover:bg-blue-50 gap-2"
+          >
+            <Mail size={16} />
+            Message
+          </Button>
+        </div>
+      </div>
+      </div>
+    </Link>
+
+    {/* Contact Modal */}
+    <ContactModal
         isOpen={showContactModal}
         onClose={() => setShowContactModal(false)}
         listing={{
@@ -293,6 +320,6 @@ export default function FeaturedAdCard({ listing, promotionType }: FeaturedAdCar
           user_id: listing.user_id
         }}
       />
-    </Link>
+    </>
   )
 }

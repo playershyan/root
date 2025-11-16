@@ -139,12 +139,9 @@ export default function AdPaidFeatures() {
     }
   ]
 
+  // Allow selecting only one feature at a time
   const toggleFeature = (featureId: string) => {
-    setSelectedFeatures(prev =>
-      prev.includes(featureId)
-        ? prev.filter(id => id !== featureId)
-        : [...prev, featureId]
-    )
+    setSelectedFeatures(prev => (prev.includes(featureId) ? [] : [featureId]))
   }
 
   const getTotalPrice = () => {

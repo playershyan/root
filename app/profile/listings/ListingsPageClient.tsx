@@ -375,9 +375,13 @@ export default function ListingsPageClient({
                                 <Button
                                   asChild
                                   size="default"
-                                  className="bg-amber-500 hover:bg-amber-600 text-white gap-2"
+                                  className="bg-amber-500 hover:bg-amber-600 text-white gap-2 disabled:bg-gray-300 disabled:text-gray-500"
+                                  disabled={getActivePromotions(listing).length > 0}
                                 >
-                                  <Link href={`/post/paid-features?listing=${listing.id}`}>
+                                  <Link
+                                    href={getActivePromotions(listing).length > 0 ? '#' : `/post/paid-features?listing=${listing.id}`}
+                                    aria-disabled={getActivePromotions(listing).length > 0}
+                                  >
                                     <Zap className="w-4 h-4" />
                                     Boost
                                   </Link>
@@ -478,9 +482,13 @@ export default function ListingsPageClient({
                                 <Button
                                   asChild
                                   size="default"
-                                  className="w-full mt-2 bg-amber-500 hover:bg-amber-600 text-white"
+                                  className="w-full mt-2 bg-amber-500 hover:bg-amber-600 text-white disabled:bg-gray-300 disabled:text-gray-500"
+                                  disabled={getActivePromotions(listing).length > 0}
                                 >
-                                  <Link href={`/post/paid-features?listing=${listing.id}`}>
+                                  <Link
+                                    href={getActivePromotions(listing).length > 0 ? '#' : `/post/paid-features?listing=${listing.id}`}
+                                    aria-disabled={getActivePromotions(listing).length > 0}
+                                  >
                                     Boost
                                   </Link>
                                 </Button>

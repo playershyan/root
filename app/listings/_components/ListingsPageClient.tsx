@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { Filter, Search, Star, Crown, Zap, AlertCircle } from 'lucide-react'
+import { Filter, Search } from 'lucide-react'
 import FeaturedAdCard from '@/app/components/listings/FeaturedAdCard'
 import TopSpotCard from '@/app/components/listings/TopSpotCard'
 import BoostedCard from '@/app/components/listings/BoostedCard'
@@ -590,90 +590,18 @@ export default function ListingsPageClient({
                 </div>
               )}
 
-              {/* Featured Listings - Always at the top (first 2 spots) */}
-              {promoted.featured.length > 0 && (
-                <div className={SECTION_STYLES.featured}>
-                  <h2 className="mb-2 sm:mb-3 text-base sm:text-lg font-semibold text-yellow-800 flex items-center gap-1.5 sm:gap-2">
-                    <Star className="text-yellow-500 fill-yellow-500 w-4 h-4 sm:w-5 sm:h-5" />
-                    <span>Featured Listings</span>
-                  </h2>
-                  <div className={GRID_LAYOUTS.featured}>
-                    {promoted.featured.slice(0, 2).map((listing) => (
-                      <FeaturedAdCard
-                        key={listing.id}
-                        promotionType="featured"
-                        listing={{
-                          ...listing,
-                          user_id: listing.user_id ?? 'unknown',
-                          image_urls: listing.image_urls ?? []
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Other Promoted Sections - Only when vehicle type filter is applied */}
-              {localFilters.vehicleType && (promoted.top_spot.length > 0 || promoted.boosted.length > 0) && (
-                <div className="space-y-3 sm:space-y-4">
-                  {promoted.top_spot.length > 0 && (
-                    <div className={SECTION_STYLES.topSpot}>
-                      <h2 className="mb-2 sm:mb-3 text-base sm:text-lg font-semibold text-purple-800 flex items-center gap-1.5 sm:gap-2">
-                        <Crown className="text-purple-500 w-4 h-4 sm:w-5 sm:h-5" />
-                        <span>Top Spot Listings</span>
-                      </h2>
-                      <div className={GRID_LAYOUTS.promoted}>
-                        {promoted.top_spot.map((listing) => (
-                          <TopSpotCard
-                            key={listing.id}
-                            listing={{
-                              ...listing,
-                              is_top_spot: true,
-                              user_id: listing.user_id ?? 'unknown',
-                              image_urls: listing.image_urls ?? []
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {promoted.boosted.length > 0 && (
-                <div className={SECTION_STYLES.boosted}>
-                  <h2 className="mb-2 sm:mb-3 text-base sm:text-lg font-semibold text-blue-800 flex items-center gap-1.5 sm:gap-2">
-                    <Zap className="text-blue-500 w-4 h-4 sm:w-5 sm:h-5" />
-                    <span>Boosted Listings</span>
-                  </h2>
-                  <div className={GRID_LAYOUTS.promoted}>
-                    {promoted.boosted.map((listing) => (
-                      <BoostedCard
-                        key={listing.id}
-                        listing={{
-                          ...listing,
-                          is_boosted: true,
-                          user_id: listing.user_id ?? 'unknown',
-                          image_urls: listing.image_urls ?? []
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Main Listings */}
+              {/* All Listings - Unified container */}
               <div className={SECTION_STYLES.regular}>
                 <div className="mb-3 sm:mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                   <h2 className="text-base sm:text-lg font-semibold text-gray-900">
-                    Vehicle Listings
+                    All Listings
                   </h2>
                   <span className="text-xs sm:text-sm text-gray-500">
                     Page {pagination.page} of {Math.max(pagination.totalPages, 1)}
                   </span>
                 </div>
 
-                {listings.length === 0 ? (
+                {listings.length === 0 && promoted.featured.length === 0 && promoted.top_spot.length === 0 && promoted.boosted.length === 0 ? (
                   <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 sm:py-12 text-center px-4">
                     <Search size={48} className="text-gray-300 mx-auto sm:w-16 sm:h-16" />
                     <p className="mt-3 sm:mt-4 text-base sm:text-lg font-semibold text-gray-700">No vehicles found</p>
@@ -686,6 +614,11 @@ export default function ListingsPageClient({
                   </div>
                 ) : (
                   <div className={GRID_LAYOUTS.regular}>
+                    {/* Render promoted listings first */}
+                    {promoted.featured.map((listing) => renderListingCard(listing))}
+                    {promoted.top_spot.map((listing) => renderListingCard(listing))}
+                    {promoted.boosted.map((listing) => renderListingCard(listing))}
+                    {/* Then render regular listings */}
                     {listings.map((listing) => renderListingCard(listing))}
                   </div>
                 )}
