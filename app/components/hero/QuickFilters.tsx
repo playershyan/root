@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import SmartLocationSearch from './SmartLocationSearch'
+import HeroLocationPopup from './HeroLocationPopup'
+import HomeLocationQuickAccess from './HomeLocationQuickAccess'
 import { getVehicleCategories, getMakesByCategory } from '@/lib/constants/vehicleData'
 import { Button } from '@/components/ui/button'
 
@@ -106,9 +107,15 @@ export default function QuickFilters({
 
       </div>
 
-      {/* Location Filter */}
+      {/* Location Filter - popup with districts and cities */}
       <div className="mt-4">
-        <SmartLocationSearch
+        <HeroLocationPopup
+          selectedLocation={selectedLocation}
+          onLocationChange={setSelectedLocation}
+        />
+
+        {/* Always-visible quick access links below the location filter */}
+        <HomeLocationQuickAccess
           selectedLocation={selectedLocation}
           onLocationChange={setSelectedLocation}
         />

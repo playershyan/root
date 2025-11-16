@@ -105,7 +105,21 @@ export default function LocationFilter({
             {selectedLocation ? `Location: ${selectedLocation}` : 'Select Location'}
           </span>
           {variant === 'listings' ? (
-            <span>{expanded ? '▲' : '▼'}</span>
+            <span className="text-gray-400 text-xs flex items-center">
+              <svg
+                className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </span>
           ) : (
             <span className={`text-gray-400 text-sm transition-transform ${expanded ? 'rotate-180' : ''}`}>
               ▼
@@ -151,7 +165,7 @@ export default function LocationFilter({
                   : "max-h-64 overflow-y-auto border rounded-md p-2 bg-gray-50"))
           }>
             {!searchQuery ? (
-              /* Default view - Popular Locations + All Districts */
+              /* Default view - All of Sri Lanka + All Districts */
               <div>
                 {/* All of Sri Lanka Option */}
                 <div
@@ -169,66 +183,6 @@ export default function LocationFilter({
                     </svg>
                   )}
                 </div>
-
-                {/* Popular Locations Section */}
-                {(() => {
-                  const popularLocations = getPopularLocations()
-                  const hasPopular = popularLocations.districts.length > 0 || popularLocations.cities.length > 0
-
-                  return hasPopular ? (
-                    <div className="mb-4 pb-3 border-b-2 border-gray-200">
-                      <div className={`flex items-center gap-2 mb-3 pb-1.5 ${isCompact ? 'pl-3' : 'pl-0'}`}>
-                        <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                        </svg>
-                        <p className="text-xs font-bold text-gray-700 uppercase tracking-wider">Popular Locations</p>
-                      </div>
-                      {/* Popular Districts */}
-                      {popularLocations.districts.map(district => (
-                        <div
-                          key={`popular-district-${district.id}`}
-                          onClick={() => handleLocationSelect(district.name)}
-                          className={`py-2 pr-2 rounded cursor-pointer hover:bg-gray-50 transition-colors mb-1 ${
-                            isCompact ? 'pl-3' : 'pl-0'
-                          } ${
-                            selectedLocation === district.name ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'
-                          }`}
-                        >
-                          <div className="flex flex-col text-left">
-                            <span className="text-sm">{district.name}</span>
-                            {(district.name_si || district.name_ta) && (
-                              <span className="text-xs text-gray-500 mt-0.5">
-                                {[district.name_si, district.name_ta].filter(Boolean).join(' • ')}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                      {/* Popular Cities */}
-                      {popularLocations.cities.map(city => (
-                        <div
-                          key={`popular-city-${city.id}`}
-                          onClick={() => handleLocationSelect(city.name)}
-                          className={`py-2 pr-2 rounded cursor-pointer hover:bg-gray-50 transition-colors mb-1 ${
-                            isCompact ? 'pl-3' : 'pl-0'
-                          } ${
-                            selectedLocation === city.name ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600'
-                          }`}
-                        >
-                          <div className="flex flex-col text-left">
-                            <span className="text-sm">{city.name}</span>
-                            {(city.name_si || city.name_ta) && (
-                              <span className="text-xs text-gray-500 mt-0.5">
-                                {[city.name_si, city.name_ta].filter(Boolean).join(' • ')}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : null
-                })()}
-
                 {/* All Districts Header */}
                 <div className={`flex items-center justify-between mb-3 pb-1.5 ${isCompact ? 'pl-3' : 'pl-0'}`}>
                   <p className="text-xs font-bold text-gray-700 uppercase tracking-wider">All Districts</p>
