@@ -3,7 +3,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { logger } from '@/lib/utils/logger'
-import { normalizeSriLankaPhone, isValidSriLankanPhone, toE164 } from '@/lib/utils/phoneFormatter'
+import { normalizeSriLankaPhone, isValidSriLankanPhone } from '@/lib/utils/phoneFormatter'
 
 export async function POST(request: Request) {
   try {
@@ -25,7 +25,8 @@ export async function POST(request: Request) {
         }, { status: 500 })
       }
 
-      // Normalize phone number to canonical format, then convert to E.164 for Supabase
+      // Normalize phone number to canonical format
+      // NOTE: Supabase Admin API strips + prefix, so it stores as 94XXXXXXXXX
       const normalizedPhone = normalizeSriLankaPhone(phoneNumber)
 
       if (!isValidSriLankanPhone(normalizedPhone)) {
@@ -33,8 +34,6 @@ export async function POST(request: Request) {
           error: 'Invalid phone number format. Please use Sri Lankan format (e.g., 0771234567)'
         }, { status: 400 })
       }
-
-      const e164PhoneNumber = toE164(normalizedPhone)
 
       // Use service role client to create user
       const adminClient = createClient(supabaseUrl, serviceRoleKey, {
@@ -45,10 +44,9 @@ export async function POST(request: Request) {
       })
 
       // Create user in Supabase auth with phone number
-      // Note: Supabase requires either email or phone for user creation
-      // We'll create with phone number as the primary identifier in E.164 format
+      // NOTE: Supabase Admin API will strip + prefix and store as 94XXXXXXXXX
       const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
-        phone: e164PhoneNumber,
+        phone: normalizedPhone, // Pass canonical format directly
         phone_confirmed: true, // Phone is already verified via OTP
         user_metadata: {
           phone: phoneNumber, // Store original format in metadata
@@ -77,17 +75,16 @@ export async function POST(request: Request) {
               })
             } else {
               const existingUser = users?.find(user =>
-                user.phone === e164PhoneNumber ||
-                user.phone === phoneNumber ||
+                user.phone === normalizedPhone ||
                 user.user_metadata?.phone === phoneNumber
               )
 
               if (existingUser) {
                 userId = existingUser.id
 
-                // Update phone to E.164 format and confirm it
+                // Confirm phone for existing user
                 const { error: updateError } = await adminClient.auth.admin.updateUserById(existingUser.id, {
-                  phone: e164PhoneNumber,
+                  phone: normalizedPhone,
                   phone_confirm: true
                 })
 
@@ -96,9 +93,9 @@ export async function POST(request: Request) {
                     userId: existingUser.id
                   })
                 } else {
-                  logger.info('Updated phone and confirmed for existing user', {
+                  logger.info('Confirmed phone for existing user', {
                     userId: existingUser.id,
-                    phone: e164PhoneNumber
+                    phone: normalizedPhone
                   })
                 }
 
@@ -134,27 +131,12 @@ export async function POST(request: Request) {
         }
       } else {
         userId = authData.user.id
-        logger.info('Created auth user for registration', { userId, phoneNumber, username })
-
-        // CRITICAL FIX: Supabase admin.createUser() may strip the + prefix from E.164 phone
-        // Verify and correct the phone format immediately after creation
-        if (authData.user.phone !== e164PhoneNumber) {
-          logger.warn('Phone format mismatch after user creation, correcting', {
-            userId,
-            stored: authData.user.phone,
-            expected: e164PhoneNumber
-          })
-
-          const { error: phoneFixError } = await adminClient.auth.admin.updateUserById(userId, {
-            phone: e164PhoneNumber
-          })
-
-          if (phoneFixError) {
-            logger.error('Failed to correct phone format', phoneFixError as Error, { userId })
-          } else {
-            logger.info('Corrected phone format to E.164', { userId, phone: e164PhoneNumber })
-          }
-        }
+        logger.info('Created auth user for registration', {
+          userId,
+          phoneNumber,
+          username,
+          storedPhone: authData.user.phone
+        })
       }
     }
 

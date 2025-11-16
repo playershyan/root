@@ -11,8 +11,8 @@ interface UserLookupResult {
  * Helper to find a Supabase auth user by phone number using the admin client.
  *
  * - Normalizes the input phone to canonical format (94XXXXXXXXX)
- * - Converts to E.164 format for Supabase auth lookup (+94XXXXXXXXX)
- * - Matches ONLY E.164 format in auth.users table (standardized format)
+ * - Searches for canonical format since Supabase Admin API strips + prefix
+ * - NOTE: Supabase stores phone as 94XXXXXXXXX, NOT +94XXXXXXXXX (API strips +)
  */
 export async function findUserByPhone(
   adminClient: SupabaseClient,
@@ -27,13 +27,9 @@ export async function findUserByPhone(
       return { user: null, error: 'Invalid phone number' }
     }
 
-    // Convert to E.164 for Supabase auth lookup
-    const e164 = `+${normalizedPhone}` // +94XXXXXXXXX
-
     logger.debug('Looking up user by phone', {
       original: phoneNumber,
-      normalized: normalizedPhone,
-      e164
+      normalized: normalizedPhone
     })
 
     const { data, error } = await adminClient.auth.admin.listUsers()
@@ -47,16 +43,16 @@ export async function findUserByPhone(
 
     const users = data?.users || []
 
-    // Match ONLY by E.164 format - standardized phone storage
+    // Match by canonical format - Supabase Admin API strips + prefix
+    // So it stores 94XXXXXXXXX, not +94XXXXXXXXX
     const matchingUser = users.find((user: any) => {
-      return user.phone === e164
+      return user.phone === normalizedPhone
     })
 
     if (!matchingUser) {
       logger.debug('No auth user found by phone', {
         phoneNumber,
         normalizedPhone,
-        e164,
         totalUsers: users.length
       })
       return { user: null, error: 'User not found' }
