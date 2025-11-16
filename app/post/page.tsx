@@ -136,6 +136,8 @@ export default function EnhancedPostVehiclePage() {
   const [imagesUploading, setImagesUploading] = useState(false)
   const [imagePreviews, setImagePreviews] = useState<Array<{ url: string; type: 'local' | 'remote'; file?: File }>>([])
   const [mounted, setMounted] = useState(false)
+  const [originalPhone, setOriginalPhone] = useState<string>('')
+  const [phoneVerified, setPhoneVerified] = useState<boolean>(false)
   
   // Check authentication status and redirect if not logged in
   useEffect(() => {

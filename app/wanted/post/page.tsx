@@ -72,6 +72,8 @@ export default function PostWantedPage() {
   const editDataLoadedRef = useRef(false)
   const [selectedDistrict, setSelectedDistrict] = useState<string>('')
   const [availableCities, setAvailableCities] = useState<string[]>([])
+  const [originalPhone, setOriginalPhone] = useState<string>('')
+  const [phoneVerified, setPhoneVerified] = useState<boolean>(false)
   
   const [formData, setFormData] = useState<FormData>({
     description: '',
