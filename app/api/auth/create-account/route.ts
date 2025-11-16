@@ -85,18 +85,20 @@ export async function POST(request: Request) {
               if (existingUser) {
                 userId = existingUser.id
 
-                // Update phone_confirmed for existing user (BUG #5 fix)
+                // Update phone to E.164 format and confirm it
                 const { error: updateError } = await adminClient.auth.admin.updateUserById(existingUser.id, {
+                  phone: e164PhoneNumber,
                   phone_confirm: true
                 })
 
                 if (updateError) {
-                  logger.error('Error updating phone_confirmed for existing user', updateError as Error, {
+                  logger.error('Error updating phone for existing user', updateError as Error, {
                     userId: existingUser.id
                   })
                 } else {
-                  logger.info('Updated phone_confirmed for existing user', {
-                    userId: existingUser.id
+                  logger.info('Updated phone and confirmed for existing user', {
+                    userId: existingUser.id,
+                    phone: e164PhoneNumber
                   })
                 }
 
@@ -133,6 +135,26 @@ export async function POST(request: Request) {
       } else {
         userId = authData.user.id
         logger.info('Created auth user for registration', { userId, phoneNumber, username })
+
+        // CRITICAL FIX: Supabase admin.createUser() may strip the + prefix from E.164 phone
+        // Verify and correct the phone format immediately after creation
+        if (authData.user.phone !== e164PhoneNumber) {
+          logger.warn('Phone format mismatch after user creation, correcting', {
+            userId,
+            stored: authData.user.phone,
+            expected: e164PhoneNumber
+          })
+
+          const { error: phoneFixError } = await adminClient.auth.admin.updateUserById(userId, {
+            phone: e164PhoneNumber
+          })
+
+          if (phoneFixError) {
+            logger.error('Failed to correct phone format', phoneFixError as Error, { userId })
+          } else {
+            logger.info('Corrected phone format to E.164', { userId, phone: e164PhoneNumber })
+          }
+        }
       }
     }
 
