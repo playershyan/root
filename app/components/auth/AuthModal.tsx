@@ -67,30 +67,24 @@ export default function AuthModal({
       // Already handled by phone form
     } else {
       // Successful auth
-      // Provide explicit feedback and then close + redirect
+      // For registration flows, show a long-lived toast telling the user to log in
       if (authType === 'register') {
-        setSuccessMessage('Profile created successfully. Redirecting to your account...')
-      } else {
-        setSuccessMessage('Logged in successfully. Redirecting...')
+        showSuccess('Profile created successfully. Please log in.', 3000)
       }
 
-      // Also show a toast notification for better UX
-      showSuccess(authType === 'register' ? 'Profile created successfully' : 'Logged in successfully')
+      // Close modal and delegate navigation to existing callbacks / router logic
+      onClose()
 
+      // Small delay to ensure modal close animation completes
       setTimeout(() => {
-        onClose()
-
-        // Small delay to ensure modal close animation completes
-        setTimeout(() => {
-          if (onAuthSuccess) {
-            // Custom callback provided - execute it (prevents default redirect)
-            onAuthSuccess()
-          } else {
-            // No callback - default behavior is redirect to profile
-            router.push(authConfig.redirectUrls.afterLogin)
-          }
-        }, 100)
-      }, 1200)
+        if (onAuthSuccess) {
+          // Custom callback provided - execute it (prevents default redirect)
+          onAuthSuccess()
+        } else {
+          // Default behavior remains: redirect to afterLogin
+          router.push(authConfig.redirectUrls.afterLogin)
+        }
+      }, 100)
     }
   }
 
@@ -192,7 +186,7 @@ export default function AuthModal({
                 onSuccess={handleAuthSuccess}
                 onError={handleAuthError}
                 loading={loading}
-                variant="primary-outline"
+                variant="outlined"
                 className="w-full"
                 text="Continue with Google"
               />
@@ -267,7 +261,7 @@ export default function AuthModal({
               onSuccess={handleAuthSuccess}
               onError={handleAuthError}
               loading={loading}
-              variant="primary-outline"
+              variant="outlined"
               className="w-full"
               text="Login with Google"
             />
