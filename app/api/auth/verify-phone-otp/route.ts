@@ -75,7 +75,24 @@ export async function POST(request: NextRequest) {
           timestamp: new Date().toISOString()
         })
 
-        // More specific error message
+        // If we got a PostgREST "no rows" style error (very common when the OTP
+        // doesn't match or is expired), treat this as an invalid/expired code,
+        // not as a server error.
+        const otpErrorCode = (otpError as any)?.code
+        if (!otpRecord && otpError && (otpErrorCode === 'PGRST116' || otpErrorCode === 'PGRST123')) {
+          return NextResponse.json({
+            error: 'Invalid or expired verification code'
+          }, { status: 400 })
+        }
+
+        // Generic "no record found" case (no otpRecord, but otpError may or may not be set)
+        if (!otpRecord) {
+          return NextResponse.json({
+            error: 'Invalid or expired verification code'
+          }, { status: 400 })
+        }
+
+        // Any other error with a record present is a true server/database error
         if (otpError) {
           logger.error('Database error during OTP verification', otpError as Error, {
             phoneNumber
@@ -84,10 +101,6 @@ export async function POST(request: NextRequest) {
             error: 'Verification failed. Please try again.'
           }, { status: 500 })
         }
-
-        return NextResponse.json({
-          error: 'Invalid or expired verification code'
-        }, { status: 400 })
       }
 
       // Check attempt limit
