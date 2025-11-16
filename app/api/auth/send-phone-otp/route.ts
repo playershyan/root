@@ -182,12 +182,14 @@ export async function POST(request: NextRequest) {
       .gte('created_at', oneHourAgo)
       .eq('phone_number', phoneNumber)
 
-    // For registration, check by phone number only (user_id will be null)
-    // For existing users, also filter by user_id if available
-    if (!isRegistration && userId) {
+    // Distinguish between true registration (no user yet) and authenticated updates
+    const isRegistrationWithoutUser = isRegistration && !userId
+
+    // For authenticated users (profile/listing/wanted updates), include both their user_id
+    // and any legacy/null records for this phone. For true registration, only null user_id.
+    if (userId && !isRegistrationWithoutUser) {
       rateLimitQuery = rateLimitQuery.or(`user_id.eq.${userId},user_id.is.null`)
     } else {
-      // For registration, check by phone number only
       rateLimitQuery = rateLimitQuery.is('user_id', null)
     }
 
@@ -208,23 +210,23 @@ export async function POST(request: NextRequest) {
     const otp = generateOTP()
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes from now
 
-    // Delete any existing unverified OTPs for this phone number
+    // Delete any existing unverified OTPs for this phone number to avoid unique constraint
     // Use dbClient (service role for registration, regular for existing users)
-    const deleteQuery = dbClient
+    const deleteBaseQuery = dbClient
       .from('phone_verifications')
       .delete()
       .eq('phone_number', phoneNumber)
       .eq('verified', false)
     
-    if (isRegistration) {
-      // For registration, delete records with null user_id for this phone
-      await deleteQuery.is('user_id', null)
-    } else if (userId) {
-      // For existing users, delete records matching this user_id or null
-      await deleteQuery.or(`user_id.eq.${userId},user_id.is.null`)
+    if (userId && !isRegistrationWithoutUser) {
+      // Authenticated updates: remove any pending records for this user or null user_id
+      await deleteBaseQuery.or(`user_id.eq.${userId},user_id.is.null`)
+    } else if (isRegistrationWithoutUser) {
+      // True registration: only remove records with null user_id
+      await deleteBaseQuery.is('user_id', null)
     } else {
       // Fallback: just delete by phone number
-      await deleteQuery
+      await deleteBaseQuery
     }
 
     // Store OTP in database
