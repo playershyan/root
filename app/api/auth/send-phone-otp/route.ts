@@ -256,22 +256,39 @@ export async function POST(request: NextRequest) {
     }
 
     if (insertError) {
-      // Supabase errors are objects with message, code, details, hint properties
+      // Supabase errors are objects with message, code, details, hint, constraint properties
+      const errorObj = insertError as any
       const errorMsg = typeof insertError === 'string' 
         ? insertError 
-        : (insertError as any)?.message || 'Database insert failed'
-      const errorCode = (insertError as any)?.code || 'INSERT_ERROR'
-      const errorDetails = (insertError as any)?.details || (insertError as any)?.hint
-      
+        : errorObj?.message || 'Database insert failed'
+      const errorCode = errorObj?.code || 'INSERT_ERROR'
+      const errorDetails = errorObj?.details || errorObj?.hint
+      const constraint = errorObj?.constraint as string | undefined
+
       logger.error('Error storing OTP', new Error(errorMsg), {
         error: insertError,
         errorCode,
         errorDetails,
+        constraint,
         phoneNumber,
         userId,
         isRegistration,
         hasServiceRoleKey: !!serviceRoleKey
       })
+
+      // If the unique_pending_verification constraint is hit, it usually means
+      // this number already has a pending or completed verification entry.
+      // Return a clear, user-facing message instead of a generic 500.
+      if (
+        errorCode === '23505' &&
+        (constraint === 'unique_pending_verification' ||
+          (typeof errorDetails === 'string' && errorDetails.includes('unique_pending_verification')))
+      ) {
+        return NextResponse.json({
+          error: 'This number is already verified or an OTP was already sent.',
+          code: errorCode
+        }, { status: 400 })
+      }
       
       return NextResponse.json({ 
         error: 'Failed to generate OTP',
