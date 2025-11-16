@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Check, X, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,6 +30,7 @@ export default function UsernameCreation({
   const [username, setUsername] = useState('')
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>('idle')
   const [error, setError] = useState('')
+  const supabase = useMemo(() => createClientComponentClient(), [])
 
   // Format phone number for display
   const formatPhoneForDisplay = (phone: string) => {
@@ -176,6 +178,21 @@ export default function UsernameCreation({
       const result = await response.json()
 
       if (result.success) {
+        // If the server returned a session, hydrate the client-side Supabase auth state
+        if (result.session?.access_token && result.session?.refresh_token) {
+          try {
+            await supabase.auth.setSession({
+              access_token: result.session.access_token,
+              refresh_token: result.session.refresh_token
+            })
+          } catch (sessionError) {
+            logger.error('Failed to set client session after account creation', sessionError as Error, {
+              component: 'UsernameCreation',
+              action: 'handleSubmit'
+            })
+          }
+        }
+
         // Account created successfully
         // If session was created server-side, it's already in cookies
         // The onAccountCreated callback will refresh the auth state

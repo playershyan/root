@@ -14,6 +14,8 @@ import EmailVerificationSent from './EmailVerificationSent'
 import type { AuthModalProps, AuthResult } from './types'
 import { Button } from '@/components/ui/button'
 import { logger } from '@/lib/utils/logger'
+import { useToast } from '@/app/components/notifications/useToast'
+import { ToastContainer } from '@/app/components/notifications/ToastContainer'
 
 type AuthView = 'main' | 'email' | 'phone' | 'otp-verify' | 'forgot-password' | 'streamlined-signup' | 'email-verification-sent'
 
@@ -36,6 +38,7 @@ export default function AuthModal({
   const [successMessage, setSuccessMessage] = useState('')
   const [resetEmail, setResetEmail] = useState('')
   const [verificationEmail, setVerificationEmail] = useState('')
+  const { toasts, showSuccess, removeToast } = useToast()
 
   // Reset state when modal closes
   useEffect(() => {
@@ -63,19 +66,31 @@ export default function AuthModal({
     } else if (result.requiresPhoneVerification) {
       // Already handled by phone form
     } else {
-      // Successful auth, close modal
-      onClose()
+      // Successful auth
+      // Provide explicit feedback and then close + redirect
+      if (authType === 'register') {
+        setSuccessMessage('Profile created successfully. Redirecting to your account...')
+      } else {
+        setSuccessMessage('Logged in successfully. Redirecting...')
+      }
 
-      // Small delay to ensure modal close animation completes
+      // Also show a toast notification for better UX
+      showSuccess(authType === 'register' ? 'Profile created successfully' : 'Logged in successfully')
+
       setTimeout(() => {
-        if (onAuthSuccess) {
-          // Custom callback provided - execute it (prevents default redirect)
-          onAuthSuccess()
-        } else {
-          // No callback - default behavior is redirect to profile
-          router.push(authConfig.redirectUrls.afterLogin)
-        }
-      }, 100)
+        onClose()
+
+        // Small delay to ensure modal close animation completes
+        setTimeout(() => {
+          if (onAuthSuccess) {
+            // Custom callback provided - execute it (prevents default redirect)
+            onAuthSuccess()
+          } else {
+            // No callback - default behavior is redirect to profile
+            router.push(authConfig.redirectUrls.afterLogin)
+          }
+        }, 100)
+      }, 1200)
     }
   }
 
@@ -312,7 +327,7 @@ export default function AuthModal({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Check Your Email</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Success</h3>
           <p className="text-gray-600">{successMessage}</p>
         </div>
       )
@@ -438,27 +453,30 @@ export default function AuthModal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          {/* Header with close button */}
-          <div className="flex justify-between items-center mb-6">
-            <div /> {/* Spacer */}
-            <Button
-              onClick={onClose}
-              variant="ghost"
-              size="icon"
-              className="text-gray-400 hover:text-gray-600"
-              aria-label="Close modal"
-            >
-              <X size={24} />
-            </Button>
-          </div>
+    <>
+      <ToastContainer toasts={toasts} onClose={removeToast} />
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+          <div className="p-6">
+            {/* Header with close button */}
+            <div className="flex justify-between items-center mb-6">
+              <div /> {/* Spacer */}
+              <Button
+                onClick={onClose}
+                variant="ghost"
+                size="icon"
+                className="text-gray-400 hover:text-gray-600"
+                aria-label="Close modal"
+              >
+                <X size={24} />
+              </Button>
+            </div>
 
-          {/* Content */}
-          {renderCurrentView()}
+            {/* Content */}
+            {renderCurrentView()}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }
