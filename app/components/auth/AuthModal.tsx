@@ -67,12 +67,14 @@ export default function AuthModal({
       // Already handled by phone form
     } else {
       // Successful auth
-      // For registration flows, show a long-lived toast telling the user to log in
       if (authType === 'register') {
+        // Registration completed: show success UI and toast, but do NOT auto-close
+        setSuccessMessage('Profile created successfully. Please log in.')
         showSuccess('Profile created successfully. Please log in.', 3000)
+        return
       }
 
-      // Close modal and delegate navigation to existing callbacks / router logic
+      // Login flow: close modal and delegate navigation to existing callbacks / router logic
       onClose()
 
       // Small delay to ensure modal close animation completes
