@@ -371,94 +371,67 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
 
-    // Create a session for the user after OTP verification
-    // Use Admin API to generate magic link which contains session tokens
+    // Create session using temporary password approach
     try {
-      // Generate magic link (contains access & refresh tokens)
-      const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
-        type: 'magiclink',
-        email: matchingUser.email || `${matchingUser.id}@temp.placeholder`,
-        options: {
-          redirectTo: '/'
-        }
+      // Generate a temporary secure password
+      const tempPassword = `temp_${matchingUser.id}_${Date.now()}_${Math.random().toString(36)}`
+
+      // If user doesn't have email, set a placeholder email (required for signInWithPassword)
+      const userEmail = matchingUser.email || `${matchingUser.phone.replace('+', '')}@phone.local`
+
+      // Update user with password and ensure they have an email
+      const { error: updateError } = await adminClient.auth.admin.updateUserById(matchingUser.id, {
+        password: tempPassword,
+        ...((!matchingUser.email) && { email: userEmail, email_confirm: true })
       })
 
-      if (linkError || !linkData) {
-        logger.error('Error generating session tokens for login', linkError as Error, {
+      if (updateError) {
+        logger.error('Failed to set temporary password', updateError as Error, {
           userId: matchingUser.id,
-          phoneNumber
+          errorDetails: updateError
         })
 
         return NextResponse.json({
           success: true,
           userId: matchingUser.id,
-          message: 'Phone number verified but session creation failed',
-          requiresClientSession: true,
-          sessionError: 'Failed to generate access token'
-        }, { status: 200 })
-      }
-
-      // Extract session tokens from magic link properties
-      const accessToken = linkData.properties.access_token
-      const refreshToken = linkData.properties.refresh_token
-
-      if (!accessToken || !refreshToken) {
-        logger.error('Magic link missing session tokens', new Error('No tokens'), {
-          userId: matchingUser.id,
-          hasAccessToken: !!accessToken,
-          hasRefreshToken: !!refreshToken
+          message: 'Phone verified but session creation failed',
+          requiresClientSession: true
         })
-
-        return NextResponse.json({
-          success: true,
-          userId: matchingUser.id,
-          message: 'Phone number verified but session creation failed',
-          requiresClientSession: true,
-          sessionError: 'Failed to extract tokens'
-        }, { status: 200 })
       }
 
-      // Set session using the generated tokens
-      const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken
+      // Sign in with the temporary password to create session
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: userEmail,
+        password: tempPassword
       })
 
-      if (sessionError || !sessionData?.session) {
-        logger.error('Error setting session for login', sessionError as Error, {
-          userId: matchingUser.id,
-          hasSession: !!sessionData?.session
+      if (signInError || !signInData.session) {
+        logger.error('Failed to sign in with temporary password', signInError as Error, {
+          userId: matchingUser.id
         })
 
-        // Return tokens to client so they can set session manually
         return NextResponse.json({
           success: true,
           userId: matchingUser.id,
-          message: 'Phone number verified successfully',
-          requiresClientSession: true,
-          session: {
-            access_token: accessToken,
-            refresh_token: refreshToken
-          }
+          message: 'Phone verified but session creation failed',
+          requiresClientSession: true
         })
       }
 
-      // Session created successfully!
       logger.info('Session created successfully for login', {
         userId: matchingUser.id,
-        phoneNumber,
-        sessionExpiresAt: sessionData.session.expires_at
+        phoneNumber
       })
 
       return NextResponse.json({
         success: true,
         userId: matchingUser.id,
         message: 'Login successful',
-        user: sessionData.user,
+        user: signInData.user,
         session: {
-          access_token: sessionData.session.access_token,
-          refresh_token: sessionData.session.refresh_token,
-          expires_at: sessionData.session.expires_at
+          access_token: signInData.session.access_token,
+          refresh_token: signInData.session.refresh_token,
+          expires_at: signInData.session.expires_at
         }
       })
 
@@ -470,7 +443,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         userId: matchingUser.id,
-        message: 'Phone number verified but session creation failed',
+        message: 'Phone verified but session creation failed',
         requiresClientSession: true,
         sessionError: (sessionError as Error).message
       }, { status: 200 })
