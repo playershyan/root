@@ -50,7 +50,7 @@ export default async function HomePage() {
       </section>
 
       {/* Featured Listings */}
-      <FeaturedListingsSSR displayCount={3} />
+      <FeaturedListingsSSR displayCount={10} />
 
       {/* Secondary CTA */}
       <section className="py-16 bg-white">
