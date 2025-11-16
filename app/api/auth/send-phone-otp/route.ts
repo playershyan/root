@@ -228,6 +228,17 @@ export async function POST(request: NextRequest) {
         verified: false
       })
 
+    // Log successful OTP creation for debugging
+    if (!insertError) {
+      logger.debug('OTP record created', {
+        userId: userId || 'null',
+        phoneNumber,
+        otpLength: otp.length,
+        expiresAt: expiresAt.toISOString(),
+        isRegistration
+      })
+    }
+
     if (insertError) {
       // Supabase errors are objects with message, code, details, hint properties
       const errorMsg = typeof insertError === 'string' 

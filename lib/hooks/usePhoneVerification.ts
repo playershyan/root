@@ -95,7 +95,7 @@ export function usePhoneVerification(options: UsePhoneVerificationOptions = {}):
       // Format phone for API
       const formattedPhone = formatPhoneForStorage(phone, '94')
 
-      // Call verify OTP API (for existing users, isRegistration = false)
+      // Call verify OTP API with isPhoneUpdate flag for authenticated users
       const response = await fetch('/api/auth/verify-phone-otp', {
         method: 'POST',
         headers: {
@@ -104,7 +104,7 @@ export function usePhoneVerification(options: UsePhoneVerificationOptions = {}):
         body: JSON.stringify({
           phoneNumber: formattedPhone,
           otpCode: otpCode,
-          isRegistration: false // For profile/listing/wanted updates, user is already authenticated
+          isPhoneUpdate: true // For profile/listing/wanted updates, user is already authenticated
         })
       })
 

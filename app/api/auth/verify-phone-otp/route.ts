@@ -17,6 +17,9 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    // Trim OTP code to remove any whitespace
+    const trimmedOtpCode = otpCode.trim()
+
     // Handle authenticated user phone updates (for profile/listing/wanted updates)
     if (isPhoneUpdate) {
       const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -27,26 +30,13 @@ export async function POST(request: NextRequest) {
         }, { status: 401 })
       }
 
-      // Format phone number
-      let e164PhoneNumber = phoneNumber.trim()
-      const cleanPhone = e164PhoneNumber.replace(/[^\d+]/g, '')
-      
-      if (cleanPhone.startsWith('+')) {
-        e164PhoneNumber = cleanPhone
-      } else if (cleanPhone.startsWith('0')) {
-        e164PhoneNumber = `+94${cleanPhone.substring(1)}`
-      } else if (cleanPhone.startsWith('94')) {
-        e164PhoneNumber = `+${cleanPhone}`
-      } else {
-        e164PhoneNumber = `+94${cleanPhone}`
-      }
-
       // Find OTP record for this user and phone
+      // Phone number is already formatted by the client (94XXXXXXXXX format)
       const { data: otpRecord, error: otpError } = await supabase
         .from('phone_verifications')
         .select('*')
         .eq('phone_number', phoneNumber)
-        .eq('otp_code', otpCode)
+        .eq('otp_code', trimmedOtpCode)
         .eq('verified', false)
         .eq('user_id', user.id) // Must match authenticated user
         .gte('expires_at', new Date().toISOString())
@@ -54,12 +44,28 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (otpError || !otpRecord) {
-        logger.debug('OTP verification failed for phone update', {
+        logger.warn('OTP verification failed for phone update', {
           error: otpError,
+          errorCode: (otpError as any)?.code,
+          errorMessage: (otpError as any)?.message,
           hasRecord: !!otpRecord,
           phoneNumber,
-          userId: user.id
+          otpCode: trimmedOtpCode.substring(0, 2) + '****', // Log partial OTP for debugging
+          userId: user.id,
+          timestamp: new Date().toISOString()
         })
+
+        // More specific error message
+        if (otpError) {
+          logger.error('Database error during OTP verification', otpError as Error, {
+            phoneNumber,
+            userId: user.id
+          })
+          return NextResponse.json({
+            error: 'Verification failed. Please try again.'
+          }, { status: 500 })
+        }
+
         return NextResponse.json({
           error: 'Invalid or expired verification code'
         }, { status: 400 })
@@ -94,9 +100,12 @@ export async function POST(request: NextRequest) {
         }, { status: 500 })
       }
 
-      logger.info('Phone OTP verified for update', {
+      logger.info('Phone OTP verified successfully for update', {
         userId: user.id,
-        phoneNumber
+        phoneNumber,
+        otpRecordId: otpRecord.id,
+        attemptCount: otpRecord.attempts + 1,
+        timestamp: new Date().toISOString()
       })
 
       return NextResponse.json({
@@ -143,7 +152,7 @@ export async function POST(request: NextRequest) {
         .from('phone_verifications')
         .select('*')
         .eq('phone_number', phoneNumber)
-        .eq('otp_code', otpCode)
+        .eq('otp_code', trimmedOtpCode)
         .eq('verified', false)
         .is('user_id', null) // Only match records with null user_id (registration)
         .gte('expires_at', new Date().toISOString())
@@ -281,7 +290,7 @@ export async function POST(request: NextRequest) {
       .from('phone_verifications')
       .select('*')
       .eq('phone_number', phoneNumber)
-      .eq('otp_code', otpCode)
+      .eq('otp_code', trimmedOtpCode)
       .eq('verified', false)
       .or(`user_id.eq.${matchingUser.id},user_id.is.null`)
       .gte('expires_at', oneHourAgo)
