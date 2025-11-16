@@ -171,9 +171,20 @@ export default function AdPaidFeatures() {
   }
 
   const handlePaymentSuccess = () => {
-    // Success - redirect to profile with success message
+    // Show immediate success toast
+    const featureNames = selectedFeatures.map(f => {
+      if (f === 'top-spot') return 'Top Spot'
+      return f.charAt(0).toUpperCase() + f.slice(1)
+    }).join(', ')
+
+    toast.success('Payment completed successfully!', {
+      description: `Your listing is now promoted with: ${featureNames}`,
+      duration: 5000
+    })
+
+    // Redirect to profile listings with success message
     const featuresParam = selectedFeatures.join(',')
-    router.push(`/profile?tab=listings&payment=success&features=${featuresParam}&type=listing`)
+    router.push(`/profile/listings?payment=success&features=${featuresParam}&type=listing`)
   }
 
   // Map feature IDs to PromotionType
