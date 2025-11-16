@@ -174,7 +174,7 @@ async function fetchPromotedSlots(filters: Pick<ListingsFeedFilters, 'vehicleTyp
   const parseList = (collection: any): ListingSummary[] => {
     if (!collection || !Array.isArray(collection)) return []
     return collection.map((item: any) => ({
-      id: item.id,
+      id: item.listing_id ?? item.id, // Database returns listing_id for promoted slots
       title: item.title,
       price: item.price,
       make: item.make ?? null,

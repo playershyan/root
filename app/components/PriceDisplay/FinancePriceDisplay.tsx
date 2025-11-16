@@ -8,6 +8,7 @@ interface FinancePriceDisplayProps {
   monthlyPayment?: number
   remainingTerm?: string
   variant?: 'detail' | 'card'
+  colorScheme?: 'blue' | 'gold'
 }
 
 export default function FinancePriceDisplay({
@@ -17,16 +18,21 @@ export default function FinancePriceDisplay({
   askingPrice,
   monthlyPayment,
   remainingTerm,
-  variant = 'detail'
+  variant = 'detail',
+  colorScheme = 'blue'
 }: FinancePriceDisplayProps) {
   const displayBalance = outstandingBalance || price
   const displayAskingPrice = askingPrice || displayBalance
+
+  const priceColorClass = colorScheme === 'gold'
+    ? 'text-amber-600'
+    : 'text-blue-600'
 
   if (variant === 'card') {
     return (
       <div className="mb-3">
         <p className="text-sm text-gray-600 mb-1">Asking Price</p>
-        <p className="text-2xl font-bold text-blue-600">
+        <p className={`text-2xl font-bold ${priceColorClass}`}>
           Rs. {displayAskingPrice.toLocaleString()}
         </p>
         {monthlyPayment && (
@@ -53,7 +59,7 @@ export default function FinancePriceDisplay({
       <div className="space-y-2">
         <div className="flex justify-between items-center">
           <span className="text-sm text-gray-600">Asking Price:</span>
-          <span className="text-3xl font-bold text-blue-600">
+          <span className={`text-3xl font-bold ${priceColorClass}`}>
             Rs. {displayAskingPrice.toLocaleString()}
           </span>
         </div>

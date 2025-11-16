@@ -14,6 +14,7 @@ export interface PriceDisplayProps {
   showFinanceCalculator?: boolean
   calculatedMonthlyPayment?: number | null
   variant?: 'detail' | 'card'
+  colorScheme?: 'blue' | 'gold'
 }
 
 export default function PriceDisplay(props: PriceDisplayProps) {
@@ -28,7 +29,8 @@ export default function PriceDisplay(props: PriceDisplayProps) {
     remainingTerm,
     showFinanceCalculator = true,
     calculatedMonthlyPayment,
-    variant = 'detail'
+    variant = 'detail',
+    colorScheme = 'blue'
   } = props
 
   if (pricingType === 'finance') {
@@ -41,6 +43,7 @@ export default function PriceDisplay(props: PriceDisplayProps) {
         monthlyPayment={monthlyPayment}
         remainingTerm={remainingTerm}
         variant={variant}
+        colorScheme={colorScheme}
       />
     )
   }
@@ -52,6 +55,7 @@ export default function PriceDisplay(props: PriceDisplayProps) {
       showFinanceCalculator={showFinanceCalculator}
       monthlyPayment={calculatedMonthlyPayment}
       variant={variant}
+      colorScheme={colorScheme}
     />
   )
 }

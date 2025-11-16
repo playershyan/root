@@ -256,6 +256,17 @@ export default function ListingsPageClient({
     )
   }
 
+  // Filter out promoted listings from regular listings to avoid duplicates
+  // Note: Urgent listings are NOT filtered - they render in chronological order
+  const filteredListings = useMemo(() => {
+    const promotedIds = new Set([
+      ...promoted.featured.map(l => l.id),
+      ...promoted.top_spot.map(l => l.id),
+      ...promoted.boosted.map(l => l.id)
+    ])
+    return listings.filter(listing => !promotedIds.has(listing.id))
+  }, [listings, promoted])
+
   const activeFilterBadges = useMemo(() => {
     const badges: { label: string; onClear: () => void }[] = []
     if (localFilters.vehicleType) {
@@ -601,7 +612,7 @@ export default function ListingsPageClient({
                   </span>
                 </div>
 
-                {listings.length === 0 && promoted.featured.length === 0 && promoted.top_spot.length === 0 && promoted.boosted.length === 0 ? (
+                {filteredListings.length === 0 && promoted.featured.length === 0 && promoted.top_spot.length === 0 && promoted.boosted.length === 0 ? (
                   <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 sm:py-12 text-center px-4">
                     <Search size={48} className="text-gray-300 mx-auto sm:w-16 sm:h-16" />
                     <p className="mt-3 sm:mt-4 text-base sm:text-lg font-semibold text-gray-700">No vehicles found</p>
@@ -614,12 +625,12 @@ export default function ListingsPageClient({
                   </div>
                 ) : (
                   <div className={GRID_LAYOUTS.regular}>
-                    {/* Render promoted listings first */}
-                    {promoted.featured.map((listing) => renderListingCard(listing))}
+                    {/* Render promoted listings first - top 2 featured positions */}
+                    {promoted.featured.slice(0, 2).map((listing) => renderListingCard(listing))}
                     {promoted.top_spot.map((listing) => renderListingCard(listing))}
                     {promoted.boosted.map((listing) => renderListingCard(listing))}
-                    {/* Then render regular listings */}
-                    {listings.map((listing) => renderListingCard(listing))}
+                    {/* Then render regular listings (includes urgent, sorted by timestamp) */}
+                    {filteredListings.map((listing) => renderListingCard(listing))}
                   </div>
                 )}
 

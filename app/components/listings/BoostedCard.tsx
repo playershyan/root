@@ -3,13 +3,14 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { MapPin, Calendar, Eye, TrendingUp, Star, Crown, Car, Camera, Gauge, Fuel, Phone, Mail } from 'lucide-react'
-import OptimizedImage from '@/components/ui/OptimizedImage'
+import { Heart, Handshake, ImageIcon, ChevronLeft, ChevronRight, Car, Calendar, Activity, Fuel, Settings, MapPin, Phone, Mail, TrendingUp } from 'lucide-react'
+import PriceDisplay from '@/app/components/PriceDisplay'
+import PromotionBadges from './PromotionBadges'
 import FavoriteButton from '@/app/components/FavoriteButton'
 import { Button } from '@/components/ui/button'
-import { CARD_CONSTANTS, PROMOTION_COLORS, getCardClasses } from './card-design-system'
+import OptimizedImage from '@/components/ui/OptimizedImage'
 
-// Lazy load modals (Phase 2 optimization)
+// Lazy load modals
 const ContactModal = dynamic(() => import('@/app/components/modals/ContactModal'))
 const ConversationModal = dynamic(() => import('@/app/components/modals/ConversationModal'))
 
@@ -19,8 +20,8 @@ interface BoostedCardProps {
     title: string
     price: number
     location: string
-    make: string
-    model: string
+    make?: string
+    model?: string
     year: number
     mileage?: number
     fuel_type?: string
@@ -28,242 +29,243 @@ interface BoostedCardProps {
     image_url?: string
     image_urls?: string[]
     primary_image_url?: string
-    created_at: string
-    views?: number
-    is_boosted: true
-    is_featured?: boolean
-    is_top_spot?: boolean
-    boosted_until?: string
+    pricing_type?: string
+    negotiable?: boolean
+    asking_price?: number
+    monthly_payment?: number
+    isPromoted?: boolean
+    promotionType?: string
     phone?: string
     whatsapp?: string
     user_id: string
+    is_featured?: boolean
+    is_top_spot?: boolean
+    is_boosted?: boolean
+    is_urgent?: boolean
   }
+  showPromotionBadge?: boolean
+  activeImageIndex?: number
+  onImageNavigate?: (direction: 'prev' | 'next') => void
+  imageLoading?: boolean
+  imageError?: boolean
+  onImageLoad?: () => void
+  onImageError?: () => void
 }
 
-export default function BoostedCard({ listing }: BoostedCardProps) {
-  const [imageError, setImageError] = useState(false)
+export default function BoostedCard({
+  listing,
+  showPromotionBadge = false,
+  activeImageIndex = 0,
+  onImageNavigate,
+  imageLoading = false,
+  imageError = false,
+  onImageLoad,
+  onImageError
+}: BoostedCardProps) {
+  const images = listing.image_urls || []
   const [showContactModal, setShowContactModal] = useState(false)
   const [showConversationModal, setShowConversationModal] = useState(false)
 
-  const formatPrice = (price: number) => {
-    return `Rs. ${price.toLocaleString()}`
-  }
-
-  const formatMileage = (mileage?: number) => {
-    if (!mileage) return 'N/A'
-    return `${mileage.toLocaleString()} km`
-  }
-
-  const getTimeAgo = (date: string) => {
-    const now = new Date()
-    const created = new Date(date)
-    const diffInHours = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60))
-    
-    if (diffInHours < 1) return 'Now'
-    if (diffInHours < 24) return `${diffInHours}h ago`
-    const diffInDays = Math.floor(diffInHours / 24)
-    if (diffInDays === 1) return 'Yesterday'
-    if (diffInDays < 30) return `${diffInDays} days ago`
-    const diffInMonths = Math.floor(diffInDays / 30)
-    if (diffInMonths === 1) return '1 month ago'
-    return `${diffInMonths} months ago`
-  }
-
-  const primaryImage = listing.image_urls?.[0] || listing.image_url
-  const imageCount = listing.image_urls?.length || 0
-  const colors = PROMOTION_COLORS.boosted
-
   return (
-    <div className={getCardClasses('boosted')}>
-      {/* Blue Accent Line */}
-      <div className="absolute top-0 left-0 right-0 h-0.5 sm:h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
-
-      {/* Overlay gradient */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${CARD_CONSTANTS.overlay.boosted} pointer-events-none`}></div>
-
-      {/* Boost Badge */}
-      <div className={`absolute ${CARD_CONSTANTS.badgePosition.left} z-20 mt-1`}>
-        <div className={`${colors.badge} text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-md flex items-center gap-1 sm:gap-1.5`}>
-          <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-          <span className="text-xs font-bold tracking-wide">BOOSTED</span>
-        </div>
-      </div>
-
-      {/* Additional Badges */}
-      <div className={`absolute ${CARD_CONSTANTS.badgePosition.right} z-20 flex flex-col gap-1 mt-1`}>
-        {listing.is_featured && (
-          <div className={`${PROMOTION_COLORS.featured.badge} text-white px-2 py-0.5 sm:py-1 rounded-full shadow-md flex items-center gap-1`}>
-            <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-white" />
-            <span className="text-xs font-semibold">FEATURED</span>
-          </div>
-        )}
-        {listing.is_top_spot && (
-          <div className={`${PROMOTION_COLORS.topSpot.badge} text-white px-2 py-0.5 sm:py-1 rounded-full shadow-md flex items-center gap-1`}>
-            <Crown className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-            <span className="text-xs font-semibold">TOP</span>
-          </div>
-        )}
-      </div>
-
-      <Link
-        href={`/listings/${listing.id}`}
-        prefetch={true}
-        className="block"
-      >
+    <>
+    <Link
+      href={`/listings/${listing.id}`}
+      prefetch={true}
+      className="block"
+    >
+      <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100 group cursor-pointer">
         {/* Image Section */}
-        <div className={`relative ${CARD_CONSTANTS.imageHeight.promoted} bg-gradient-to-br from-blue-100 to-cyan-100 mt-0.5 sm:mt-1`}>
-          {!imageError && primaryImage ? (
+        <div className="relative h-48 bg-gray-200 rounded-t-lg overflow-hidden group">
+        {/* Promotion Badges (excluding urgent and boosted - shown next to title) */}
+        {(listing.is_featured || listing.is_top_spot) && (
+          <div className="absolute top-2 left-2 z-10">
+            <PromotionBadges
+              listing={{
+                is_featured: listing.is_featured,
+                is_top_spot: listing.is_top_spot
+              }}
+              size="small"
+            />
+          </div>
+        )}
+
+        {/* Finance Badge */}
+        {listing.pricing_type === 'finance' && (
+          <div className="absolute top-2 right-12 z-10 bg-amber-500 text-white px-2 py-1 rounded text-xs font-semibold shadow-sm">
+            <Handshake className="mr-1 inline" size={12} />
+            Finance
+          </div>
+        )}
+
+        {/* Image Display */}
+        {images.length > 0 ? (
+          <>
             <OptimizedImage
-              src={primaryImage}
+              src={images[activeImageIndex]}
               alt={listing.title}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
-              onError={() => setImageError(true)}
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              quality="listing"
-              watermark={true}
+              className="object-cover transition-transform group-hover:scale-105"
               priority={false}
+              quality="listing"
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              watermark={true}
+              onLoad={onImageLoad}
+              onError={() => {
+                onImageError?.()
+              }}
             />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Car className="text-blue-400" size={48} />
-            </div>
-          )}
-
-          {/* Image count */}
-          {imageCount > 1 && (
-            <div className="absolute bottom-2 left-2 bg-blue-600/90 text-white px-2 py-0.5 sm:py-1 rounded text-xs flex items-center gap-1">
-              <Camera className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-              <span>{imageCount}</span>
-            </div>
-          )}
-
-          {/* Boost Indicator - desktop only */}
-          <div className="absolute bottom-2 right-2 bg-blue-600/90 text-white px-2 py-0.5 sm:py-1 rounded text-xs items-center gap-1 hidden sm:flex">
-            <TrendingUp className="w-3 h-3" />
-            <span>Boosted</span>
-          </div>
-
-          {/* Blue Gradient Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-blue-600/5 to-transparent h-12 sm:h-16"></div>
-        </div>
-
-        {/* Content Section */}
-        <div className={`${CARD_CONSTANTS.padding.promoted} bg-gradient-to-br from-white via-blue-50/10 to-cyan-50/10`}>
-          {/* Title */}
-          <h3 className={`font-bold ${CARD_CONSTANTS.titleSize.boosted} ${colors.text} ${colors.hover} mb-2 line-clamp-2 transition-colors`}>
-            {listing.title}
-          </h3>
-
-          {/* Vehicle Details */}
-          <div className="flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
-            <span className="flex items-center gap-1">
-              <Calendar className="w-3 h-3 text-blue-500" />
-              <span>{listing.year}</span>
-            </span>
-            {listing.mileage && (
-              <span className="flex items-center gap-1">
-                <Gauge className="text-blue-500 w-3 h-3" />
-                <span className="truncate">{formatMileage(listing.mileage)}</span>
-              </span>
+            {imageLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100/80">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
             )}
-            {listing.fuel_type && (
-              <span className="flex items-center gap-1">
-                <Fuel className="text-blue-500 w-3 h-3" />
-                <span className="truncate">{listing.fuel_type}</span>
-              </span>
+            {imageError && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-500 text-sm flex-col">
+                <ImageIcon size={32} className="mb-2" />
+                <p>Image unavailable</p>
+              </div>
             )}
+
+            {/* Image Navigation */}
+            {images.length > 1 && onImageNavigate && (
+              <>
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    onImageNavigate('prev')
+                  }}
+                  variant="ghost"
+                  size="icon"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+                >
+                  <ChevronLeft size={16} />
+                </Button>
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    onImageNavigate('next')
+                  }}
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+                >
+                  <ChevronRight size={16} />
+                </Button>
+                <div className="absolute bottom-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
+                  {activeImageIndex + 1}/{images.length}
+                </div>
+              </>
+            )}
+          </>
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+            <Car size={48} className="mb-2" />
+            <span className="text-sm">No images</span>
           </div>
+        )}
 
-          {/* Location and Date */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 gap-1 sm:gap-0">
-            <div className="flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-blue-500 flex-shrink-0" />
-              <span className="truncate">{listing.location}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
-              <span>{getTimeAgo(listing.created_at)}</span>
-            </div>
-          </div>
-
-          {/* Price and Stats */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-2">
-            <div className="flex-1 min-w-0">
-              <div className={`font-bold ${CARD_CONSTANTS.priceSize.boosted} ${colors.text}`}>
-                {formatPrice(listing.price)}
-              </div>
-
-              {/* Stats */}
-              <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
-                <Eye className="w-3 h-3" />
-                <span className="hidden sm:inline">{listing.views || 0} views</span>
-                <span className="sm:hidden">{listing.views || 0}</span>
-              </div>
-            </div>
-
-            {/* Boost Status */}
-            <div className="text-right">
-              <div className="bg-blue-100 text-blue-700 px-2 py-0.5 sm:py-1 rounded text-xs font-semibold flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" />
-                <span>Enhanced</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Boost Benefits */}
-          <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-blue-100">
-            <div className="flex flex-wrap items-center justify-between mb-2 sm:mb-3 gap-1">
-              <span className="text-xs text-blue-700 font-medium flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" />
-                <span className="hidden sm:inline">Increased Visibility</span>
-                <span className="sm:hidden">Boosted</span>
-              </span>
-              <span className="text-xs text-gray-500 hidden sm:inline">
-                More Views
-              </span>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-2">
-              <Button
-                onClick={(e) => {
-                  e.preventDefault()
-                  setShowContactModal(true)
-                }}
-                size="sm"
-                className={`flex-1 ${colors.button} text-white gap-1 text-xs sm:text-sm`}
-              >
-                <Phone className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span>Call</span>
-              </Button>
-              <Button
-                onClick={(e) => {
-                  e.preventDefault()
-                  setShowConversationModal(true)
-                }}
-                variant="outline"
-                size="sm"
-                className={`flex-1 ${colors.buttonOutline} border-2 gap-1 text-xs sm:text-sm`}
-              >
-                <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span>Message</span>
-              </Button>
-            </div>
-          </div>
+        {/* Save Button */}
+        <div className="absolute top-2 right-2 z-20">
+          <FavoriteButton
+            listingId={listing.id}
+            size="small"
+            className="bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm"
+          />
         </div>
-      </Link>
-
-      {/* Favorite Button */}
-      <div className="absolute top-10 sm:top-12 right-3 sm:right-4 z-10">
-        <FavoriteButton
-          listingId={listing.id}
-          className="bg-white/90 hover:bg-white shadow-md border border-blue-200 w-8 h-8 sm:w-10 sm:h-10"
-        />
       </div>
 
-      {/* Contact Modal */}
-      <ContactModal
+      {/* Content Section */}
+      <div className="p-4 hover:bg-gray-50 transition-colors">
+        <div className="space-y-3">
+          {/* Title with Boosted and Urgent Badge */}
+          <div className="flex items-start gap-2">
+            <h3 className="font-semibold text-lg text-gray-900 line-clamp-2 hover:text-blue-600 transition-colors flex-1 min-w-0">
+              {listing.title}
+            </h3>
+            <div className="flex-shrink-0 flex items-center gap-2">
+              {/* Blue/Cyan Boosted Badge */}
+              <span className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md flex items-center gap-1">
+                <TrendingUp className="w-3 h-3" />
+                BOOSTED
+              </span>
+              {listing.is_urgent && (
+                <PromotionBadges listing={{ is_urgent: true }} size="small" showLabels={true} />
+              )}
+            </div>
+          </div>
+
+          {/* Price */}
+          <PriceDisplay
+            pricingType={listing.pricing_type as 'cash' | 'finance'}
+            price={listing.price}
+            negotiable={listing.negotiable}
+            askingPrice={listing.asking_price}
+            monthlyPayment={listing.monthly_payment}
+            variant="card"
+          />
+
+          {/* Vehicle Details */}
+          <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-1">
+              <Calendar className="text-blue-500 w-4 h-4" />
+              <span>{listing.year}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Activity className="text-gray-500 w-4 h-4" />
+              <span>{listing.mileage?.toLocaleString() || 'N/A'} km</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Fuel className="text-green-500 w-4 h-4" />
+              <span>{listing.fuel_type || 'N/A'}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Settings className="text-purple-500 w-4 h-4" />
+              <span>{listing.transmission || 'N/A'}</span>
+            </div>
+          </div>
+
+          {/* Location */}
+          <div className="flex items-center gap-2 text-sm text-gray-600 pt-1 border-t border-gray-100">
+            <MapPin className="text-red-500" size={16} />
+            <span>{listing.location}</span>
+          </div>
+        </div>
+        </div>
+
+        {/* Action Footer */}
+        <div className="px-4 pb-4">
+        <div className="flex gap-2">
+          <Button
+            onClick={(e) => {
+              e.preventDefault()
+              setShowContactModal(true)
+            }}
+            variant="primary"
+            size="default"
+            className="flex-1 gap-2"
+          >
+            <Phone size={16} />
+            Call Now
+          </Button>
+          <Button
+            onClick={(e) => {
+              e.preventDefault()
+              setShowConversationModal(true)
+            }}
+            variant="outline"
+            size="default"
+            className="flex-1 border-blue-600 text-blue-600 hover:bg-blue-50 gap-2"
+          >
+            <Mail size={16} />
+            Message
+          </Button>
+        </div>
+      </div>
+      </div>
+    </Link>
+
+    {/* Contact Modal */}
+    <ContactModal
         isOpen={showContactModal}
         onClose={() => setShowContactModal(false)}
         listing={{
@@ -291,10 +293,10 @@ export default function BoostedCard({ listing }: BoostedCardProps) {
           make: listing.make,
           model: listing.model,
           year: listing.year,
-          primary_image_url: listing.image_urls?.[0] || listing.image_url || listing.primary_image_url,
+          primary_image_url: images[0] || listing.image_url || listing.primary_image_url,
           user_id: listing.user_id
         }}
       />
-    </div>
+    </>
   )
 }

@@ -7,6 +7,7 @@ interface CashPriceDisplayProps {
   showFinanceCalculator?: boolean
   monthlyPayment?: number | null
   variant?: 'detail' | 'card'
+  colorScheme?: 'blue' | 'gold'
 }
 
 export default function CashPriceDisplay({
@@ -14,12 +15,21 @@ export default function CashPriceDisplay({
   negotiable,
   showFinanceCalculator = true,
   monthlyPayment,
-  variant = 'detail'
+  variant = 'detail',
+  colorScheme = 'blue'
 }: CashPriceDisplayProps) {
+  const priceColorClass = colorScheme === 'gold'
+    ? 'text-amber-600'
+    : 'text-blue-600'
+
+  const linkColorClass = colorScheme === 'gold'
+    ? 'text-amber-600 hover:text-amber-700'
+    : 'text-blue-600'
+
   if (variant === 'card') {
     return (
       <div className="mb-3">
-        <p className="text-2xl font-bold text-blue-600">
+        <p className={`text-2xl font-bold ${priceColorClass}`}>
           Rs. {price.toLocaleString()}
         </p>
         {negotiable && (
@@ -33,7 +43,7 @@ export default function CashPriceDisplay({
 
   return (
     <>
-      <p className="text-4xl font-bold text-blue-600">
+      <p className={`text-4xl font-bold ${priceColorClass}`}>
         Rs. {price.toLocaleString()}
       </p>
       {negotiable && (
@@ -44,7 +54,7 @@ export default function CashPriceDisplay({
       {showFinanceCalculator && monthlyPayment && (
         <p className="text-sm text-gray-600 mt-2">
           From Rs. {monthlyPayment.toLocaleString()}/month
-          <Link href="#finance-calculator" className="text-blue-600 hover:underline ml-1">
+          <Link href="#finance-calculator" className={`${linkColorClass} hover:underline ml-1`}>
             Calculate financing →
           </Link>
         </p>

@@ -97,7 +97,7 @@ export default function FeaturedAdCard({
       prefetch={true}
       className="block"
     >
-      <div className="bg-gradient-to-br from-blue-50/30 to-white rounded-lg shadow-md hover:shadow-xl transition-all border-2 border-blue-500 group cursor-pointer">
+      <div className="bg-gradient-to-br from-amber-50/30 to-white rounded-lg shadow-md hover:shadow-xl transition-all border-2 border-amber-500 group cursor-pointer">
         {/* Image Section */}
         <div className="relative h-48 bg-gray-200 rounded-t-lg overflow-hidden group">
         {/* Promotion Badges (excluding urgent and featured - shown next to title) */}
@@ -140,7 +140,7 @@ export default function FeaturedAdCard({
             />
             {imageLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-100/80">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600"></div>
               </div>
             )}
             {imageError && (
@@ -199,11 +199,11 @@ export default function FeaturedAdCard({
       </div>
 
       {/* Content Section */}
-      <div className="p-4 hover:bg-blue-50/50 transition-colors">
+      <div className="p-4 hover:bg-amber-50/50 transition-colors">
         <div className="space-y-3">
           {/* Title with Featured and Urgent Badge */}
           <div className="flex items-start gap-2">
-            <h3 className="font-semibold text-lg text-gray-900 line-clamp-2 hover:text-blue-600 transition-colors flex-1 min-w-0">
+            <h3 className="font-semibold text-lg text-amber-900 line-clamp-2 hover:text-amber-700 transition-colors flex-1 min-w-0">
               {listing.title}
             </h3>
             <div className="flex-shrink-0 flex items-center gap-2">
@@ -225,12 +225,13 @@ export default function FeaturedAdCard({
             askingPrice={listing.asking_price}
             monthlyPayment={listing.monthly_payment}
             variant="card"
+            colorScheme="gold"
           />
 
           {/* Vehicle Details */}
           <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
             <div className="flex items-center gap-1">
-              <Calendar className="text-blue-500 w-4 h-4" />
+              <Calendar className="text-amber-500 w-4 h-4" />
               <span>{listing.year}</span>
             </div>
             <div className="flex items-center gap-1">
@@ -265,7 +266,7 @@ export default function FeaturedAdCard({
             }}
             variant="primary"
             size="default"
-            className="flex-1 gap-2 bg-blue-600 hover:bg-blue-700"
+            className="flex-1 gap-2 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-semibold"
           >
             <Phone size={16} />
             Call Now
@@ -277,7 +278,7 @@ export default function FeaturedAdCard({
             }}
             variant="outline"
             size="default"
-            className="flex-1 border-blue-600 text-blue-600 hover:bg-blue-50 gap-2"
+            className="flex-1 border-2 border-amber-500 text-amber-700 hover:bg-amber-50 gap-2 font-semibold"
           >
             <Mail size={16} />
             Message
