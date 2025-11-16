@@ -47,9 +47,10 @@ export async function findUserByPhone(
 
     const users = data?.users || []
 
-    // Match by E.164 format (Supabase stores phone in E.164)
+    // Match by E.164 format OR normalized format (for legacy users)
+    // Supabase should store phone in E.164 (+94...), but some old users may have it without +
     const matchingUser = users.find((user: any) => {
-      return user.phone === e164
+      return user.phone === e164 || user.phone === normalizedPhone
     })
 
     if (!matchingUser) {
