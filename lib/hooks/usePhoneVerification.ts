@@ -95,6 +95,14 @@ export function usePhoneVerification(options: UsePhoneVerificationOptions = {}):
       // Format phone for API
       const formattedPhone = formatPhoneForStorage(phone, '94')
 
+      logger.debug('Calling verify OTP API', {
+        endpoint: '/api/auth/verify-phone-otp',
+        phoneNumber: formattedPhone,
+        otpCodeLength: otpCode.length,
+        isPhoneUpdate: true,
+        purpose
+      })
+
       // Call verify OTP API with isPhoneUpdate flag for authenticated users
       const response = await fetch('/api/auth/verify-phone-otp', {
         method: 'POST',
@@ -106,6 +114,12 @@ export function usePhoneVerification(options: UsePhoneVerificationOptions = {}):
           otpCode: otpCode,
           isPhoneUpdate: true // For profile/listing/wanted updates, user is already authenticated
         })
+      })
+
+      logger.debug('Verify OTP response received', {
+        status: response.status,
+        ok: response.ok,
+        statusText: response.statusText
       })
 
       const result = await response.json()

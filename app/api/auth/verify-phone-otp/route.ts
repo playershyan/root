@@ -13,11 +13,9 @@ export async function POST(request: NextRequest) {
       phoneNumber,
       isPhoneUpdate,
       isRegistration,
-      hasOtpCode: !!otpCode
+      hasOtpCode: !!otpCode,
+      timestamp: new Date().toISOString()
     })
-
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
     if (!phoneNumber || !otpCode) {
       return NextResponse.json({
@@ -29,6 +27,7 @@ export async function POST(request: NextRequest) {
     const trimmedOtpCode = otpCode.trim()
 
     // Handle authenticated user phone updates (for profile/listing/wanted updates)
+    // Use service role client to avoid session validation issues
     if (isPhoneUpdate) {
       logger.debug('Processing phone update flow', { phoneNumber })
 
@@ -130,6 +129,10 @@ export async function POST(request: NextRequest) {
         verified: true
       })
     }
+
+    // For registration and login flows, we need the regular supabase client
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
     // For registration flow, verify OTP without requiring authentication
     // Use service role client to bypass RLS (records have user_id = null)
