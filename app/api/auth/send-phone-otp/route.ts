@@ -133,7 +133,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Phone number is required' }, { status: 400 })
     }
 
-    // Verify reCAPTCHA to prevent OTP abuse (skip for registration if no token provided)
+    // Determine if there is an authenticated user (profile / listings / wanted flows)
+    // This lets us require reCAPTCHA only for unauthenticated login flows,
+    // while allowing authenticated users to update their phone without CAPTCHA.
+    let isAuthenticatedUser = false
+    try {
+      const { data: { user: authenticatedUser } } = await supabase.auth.getUser()
+      isAuthenticatedUser = !!authenticatedUser
+    } catch {
+      // Ignore errors here; we'll treat as unauthenticated in that case
+      isAuthenticatedUser = false
+    }
+
+    // Verify reCAPTCHA to prevent OTP abuse
+    // - If a token is provided, always verify it.
+    // - If no token and this is an unauthenticated, non-registration (login) flow,
+    //   require CAPTCHA.
     if (recaptchaToken) {
       const forwarded = request.headers.get('x-forwarded-for')
       const ipHeader = forwarded ? forwarded.split(',')[0].trim() : request.headers.get('x-real-ip') || undefined
@@ -145,11 +160,10 @@ export async function POST(request: NextRequest) {
         logger.warn('reCAPTCHA failed', { score: captcha.score })
         return captchaGuardFailJson(0.3)
       }
-    } else if (!isRegistration) {
-      // Require reCAPTCHA for existing user flows
+    } else if (!isRegistration && !isAuthenticatedUser) {
+      // Require reCAPTCHA only for unauthenticated, non-registration (login) flows
       return NextResponse.json({ error: 'reCAPTCHA verification required' }, { status: 400 })
     }
-    // Skip reCAPTCHA for registration flows without token
 
     // Validate phone number format using Text.lk service
     const isValidPhone = textlkService.validatePhoneNumber(phoneNumber)
