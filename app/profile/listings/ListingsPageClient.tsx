@@ -76,6 +76,11 @@ export default function ListingsPageClient({
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false)
   const [paymentMessage, setPaymentMessage] = useState('')
 
+  // Sync state with props when server data refreshes
+  useEffect(() => {
+    setListings(initialListings)
+  }, [initialListings])
+
   // Handle payment success message from URL params
   useEffect(() => {
     const payment = searchParams.get('payment')
@@ -101,10 +106,12 @@ export default function ListingsPageClient({
       url.searchParams.delete('features')
       url.searchParams.delete('type')
       window.history.replaceState({}, '', url)
-      
-      // Refresh data to show updated promotions
-      router.refresh()
-      
+
+      // Refresh data to show updated promotions (with delay to ensure DB update)
+      setTimeout(() => {
+        router.refresh()
+      }, 500)
+
       // Auto-hide after 8 seconds
       setTimeout(() => setShowPaymentSuccess(false), 8000)
     } else if (payment === 'failed') {
@@ -345,7 +352,7 @@ export default function ListingsPageClient({
                                 </Link>
                                 {/* Promotion Badges */}
                                 <div className="flex flex-wrap gap-1 mt-1">
-                                  <PromotionBadges listing={listing} size="small" />
+                                  <PromotionBadges listing={listing} size="small" showLabels={false} />
                                 </div>
                                 {/* Promotion Expiration Info */}
                                 {getActivePromotions(listing).length > 0 && (
@@ -436,7 +443,7 @@ export default function ListingsPageClient({
                                 </Link>
                                 {/* Promotion Badges - Mobile */}
                                 <div className="flex flex-wrap gap-1 mt-1">
-                                  <PromotionBadges listing={listing} size="small" />
+                                  <PromotionBadges listing={listing} size="small" showLabels={false} />
                                 </div>
                               </div>
                               
