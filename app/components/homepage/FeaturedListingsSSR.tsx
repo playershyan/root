@@ -27,22 +27,17 @@ interface FeaturedListingsSSRProps {
   displayCount?: number
 }
 
-// Server-side function to get fair-rotated listings (with caching)
+// Server-side function to get fair-rotated listings using database rotation function
 const getFeaturedListings = unstable_cache(
   async (displayCount: number = 6): Promise<Listing[]> => {
     try {
       const supabase = createServiceSupabaseClient()
-      const { data: listings, error } = await supabase
-        .from('listings')
-        .select(`
-          id, title, price, image_url, image_urls, year, mileage,
-          fuel_type, location, views, created_at, featured_until,
-          boost_score, make, model
-        `)
-        .eq('is_featured', true)
-        .eq('status', 'active')
-        .or(`featured_until.is.null,featured_until.gt.${new Date().toISOString()}`)
-        .order('created_at', { ascending: false })
+
+      // Use optimized rotation function with impression tracking
+      const { data, error } = await supabase.rpc('get_rotated_featured_ads', {
+        p_vehicle_type: null,
+        p_limit: displayCount
+      })
 
       if (error) {
         logger.error('Error fetching featured listings', error, {
@@ -52,21 +47,28 @@ const getFeaturedListings = unstable_cache(
         return []
       }
 
-      if (!listings || listings.length === 0) {
+      if (!data || data.length === 0) {
         return []
       }
 
-      // Simple time-based rotation for server-side rendering
-      const now = new Date()
-      const rotationSeed = Math.floor(now.getTime() / (5 * 60 * 1000)) // Changes every 5 minutes
-      
-      // Apply fair rotation logic
-      const rotatedListings = listings.map((listing: Listing, index: number) => ({
-        ...listing,
-        rotationScore: calculateRotationScore(listing, rotationSeed, index)
-      })).sort((a: any, b: any) => b.rotationScore - a.rotationScore)
-
-      return rotatedListings.slice(0, displayCount)
+      // Map database response to Listing interface
+      return data.map((item: any) => ({
+        id: item.listing_id,
+        title: item.title,
+        price: item.price,
+        image_url: item.primary_image_url,
+        image_urls: item.image_urls,
+        year: item.year,
+        mileage: item.mileage,
+        fuel_type: item.fuel_type,
+        location: item.location,
+        views: 0, // Not returned by rotation function
+        created_at: item.created_at,
+        featured_until: null,
+        boost_score: item.boost_score,
+        make: item.make,
+        model: item.model
+      }))
     } catch (error) {
       logger.error('Error in getFeaturedListings', error as Error, {
         component: 'FeaturedListingsSSR',
@@ -77,27 +79,10 @@ const getFeaturedListings = unstable_cache(
   },
   ['featured-listings'],
   {
-    revalidate: 60, // Cache for 60 seconds
+    revalidate: 30, // Cache for 30 seconds (reduced from 60 for better rotation)
     tags: ['featured-listings']
   }
 )
-
-function calculateRotationScore(listing: Listing, rotationSeed: number, index: number): number {
-  const listingAge = Math.floor((new Date().getTime() - new Date(listing.created_at).getTime()) / (1000 * 60 * 60 * 24))
-  const baseScore = listing.boost_score || 50
-  
-  // Fair exposure bonus for newer listings
-  const fairExposureBonus = listingAge < 7 ? (7 - listingAge) * 10 : 0
-  
-  // Time-based rotation using listing ID and rotation seed
-  const listingHash = parseInt(listing.id.slice(-6), 16) % 1000
-  const rotationBonus = (listingHash + rotationSeed * 17 + index * 7) % 100
-  
-  // Performance bonus based on views
-  const viewsBonus = Math.min((listing.views || 0) / 100, 10)
-  
-  return baseScore + fairExposureBonus + rotationBonus + viewsBonus
-}
 
 const formatPrice = (price: number) => {
   return `Rs. ${price.toLocaleString()}`
@@ -141,17 +126,17 @@ export default async function FeaturedListingsSSR({ displayCount = 6 }: Featured
               href={`/listings/${listing.id}`}
               className="group block"
             >
-              <div className="bg-gradient-to-br from-blue-50 to-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 border-2 border-blue-200 hover:border-blue-400">
+              <div className="relative bg-gradient-to-br from-blue-50 to-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 border-2 border-blue-200 hover:border-blue-400">
                 {/* Featured Badge */}
-                <div className="absolute z-10 top-4 left-4">
-                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
+                <div className="absolute z-10 top-3 left-3 md:top-4 md:left-4">
+                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-2 py-1 md:px-3 md:py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
                     <Star className="w-3 h-3 fill-white" />
                     FEATURED
                   </div>
                 </div>
 
                 {/* Image */}
-                <div className="relative h-48 bg-gray-200 overflow-hidden">
+                <div className="relative h-48 md:h-52 bg-gray-200 overflow-hidden">
                   {listing.image_url || (listing.image_urls && listing.image_urls[0]) ? (
                     <Image
                       src={listing.image_url || listing.image_urls?.[0]}
