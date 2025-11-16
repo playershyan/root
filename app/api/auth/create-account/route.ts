@@ -252,12 +252,13 @@ export async function POST(request: Request) {
 
           const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://vera.lk'
           
-          // Generate a magic link (recovery type) which includes a token hash
+          // Generate a magic link (signup type) which includes a token hash
           const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
-            type: 'recovery',
+            // Use "signup" type so we are not blocked by recovery-specific constraints
+            type: 'signup',
             phone: e164PhoneForSession,
             options: {
-              redirectTo: `${siteUrl}/auth/callback?type=recovery`
+              redirectTo: `${siteUrl}/auth/callback?type=signup`
             }
           })
 
@@ -267,12 +268,12 @@ export async function POST(request: Request) {
             const tokenHash = recoveryUrl.searchParams.get('token_hash')
 
             if (tokenHash) {
-              // Use the regular Supabase client to verify the recovery token and create session
+                // Use the regular Supabase client to verify the signup token and create session
               // This will create a valid session that gets stored in cookies
               const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
                 phone: e164PhoneForSession,
                 token_hash: tokenHash,
-                type: 'recovery'
+                  type: 'signup'
               })
 
               if (!verifyError && verifyData?.session) {
