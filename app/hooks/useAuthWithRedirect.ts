@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-
+import { authConfig } from '@/lib/config/auth.config'
 /**
  * Hook to manage authentication modals with context preservation
  *
@@ -78,9 +78,17 @@ export function useAuthWithRedirect() {
    */
   const handleAuthSuccess = () => {
     if (authCallback) {
+      // Execute any pending post-auth action (redirect or in-page action)
       authCallback()
+      setAuthCallback(null)
+      return
     }
-    setAuthCallback(null)
+
+    // No specific callback registered (e.g. signup from landing page):
+    // fall back to the global "after login" redirect so the user lands
+    // on their account/profile page instead of remaining on the landing.
+    const defaultRedirect = authConfig.redirectUrls.afterLogin
+    router.push(defaultRedirect)
   }
 
   return {
