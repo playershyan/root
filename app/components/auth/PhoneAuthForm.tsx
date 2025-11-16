@@ -64,19 +64,16 @@ export default function PhoneAuthForm({
       return
     }
 
-    // Validate phone number before formatting (accepts with or without leading 0)
-    // User can enter: 0771234567 or 771234567
-    const cleanedPhone = phone.replace(/[^0-9]/g, '')
-    
-    if (!validatePhone(cleanedPhone)) {
+      // Validate phone number before sending (accepts with or without leading 0)
+      // User can enter: 0771234567 or 771234567
+      const cleanedPhone = phone.replace(/[^0-9]/g, '')
+      
+      if (!validatePhone(cleanedPhone)) {
       const errorMessage = 'Please enter a valid phone number (e.g., 0771234567 or 771234567)'
       setError(errorMessage)
       onError?.(errorMessage)
       return
     }
-
-    // Format phone for storage (Sri Lankan format only - country code + number without zero)
-    const fullPhone = formatPhoneForStorage(cleanedPhone, '94')
 
     setLoading(true)
     setError('')
@@ -127,16 +124,15 @@ export default function PhoneAuthForm({
       // This minimizes the time between token generation and API verification
 
       // Use our custom API endpoint that uses Text.lk service instead of Supabase
-      // isRegistration: true for register, false for login
       const response = await fetch('/api/auth/send-phone-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          phoneNumber: fullPhone,
+          phoneNumber: cleanedPhone,
           recaptchaToken: recaptchaToken || '',
-          isRegistration: type === 'register'
+          flow: type === 'register' ? 'register' : 'login'
         }),
       })
 
@@ -145,7 +141,7 @@ export default function PhoneAuthForm({
       if (result.success || response.ok) {
         // Phone OTP requires verification step
         // Only pass name if it was provided (for registration)
-        onVerificationRequired?.({ phone: fullPhone, name: trimmedName || undefined })
+        onVerificationRequired?.({ phone: cleanedPhone, name: trimmedName || undefined })
         const authResult: AuthResult = { 
           success: true, 
           requiresPhoneVerification: true 

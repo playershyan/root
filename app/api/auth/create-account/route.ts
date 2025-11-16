@@ -3,6 +3,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { logger } from '@/lib/utils/logger'
+import { normalizeSriLankaPhone, isValidSriLankanPhone, toE164 } from '@/lib/utils/phoneFormatter'
 
 export async function POST(request: Request) {
   try {
@@ -24,31 +25,16 @@ export async function POST(request: Request) {
         }, { status: 500 })
       }
 
-      // Format phone number to E.164 format for Supabase (must start with +)
-      // phoneNumber might come in various formats:
-      // - Local format: "0783607777" (starts with 0)
-      // - International without +: "94783607777" (starts with country code)
-      // - International with +: "+94783607777" (already E.164)
-      // We need to convert to E.164: "+94783607777"
-      let e164PhoneNumber = phoneNumber.trim()
-      
-      // Remove any non-numeric characters except +
-      const cleanPhone = e164PhoneNumber.replace(/[^\d+]/g, '')
-      
-      // Convert to E.164 format
-      if (cleanPhone.startsWith('+')) {
-        // Already has +, use as is
-        e164PhoneNumber = cleanPhone
-      } else if (cleanPhone.startsWith('0')) {
-        // Local format (e.g., 0783607777) -> convert to +94783607777
-        e164PhoneNumber = `+94${cleanPhone.substring(1)}`
-      } else if (cleanPhone.startsWith('94')) {
-        // International format without + (e.g., 94783607777) -> add +
-        e164PhoneNumber = `+${cleanPhone}`
-      } else {
-        // Assume Sri Lankan number without country code (e.g., 783607777)
-        e164PhoneNumber = `+94${cleanPhone}`
+      // Normalize phone number to canonical format, then convert to E.164 for Supabase
+      const normalizedPhone = normalizeSriLankaPhone(phoneNumber)
+
+      if (!isValidSriLankanPhone(normalizedPhone)) {
+        return NextResponse.json({
+          error: 'Invalid phone number format. Please use Sri Lankan format (e.g., 0771234567)'
+        }, { status: 400 })
       }
+
+      const e164PhoneNumber = toE164(normalizedPhone)
 
       // Use service role client to create user
       const adminClient = createClient(supabaseUrl, serviceRoleKey, {
@@ -98,6 +84,22 @@ export async function POST(request: Request) {
 
               if (existingUser) {
                 userId = existingUser.id
+
+                // Update phone_confirmed for existing user (BUG #5 fix)
+                const { error: updateError } = await adminClient.auth.admin.updateUserById(existingUser.id, {
+                  phone_confirm: true
+                })
+
+                if (updateError) {
+                  logger.error('Error updating phone_confirmed for existing user', updateError as Error, {
+                    userId: existingUser.id
+                  })
+                } else {
+                  logger.info('Updated phone_confirmed for existing user', {
+                    userId: existingUser.id
+                  })
+                }
+
                 logger.info('Using existing auth user for registration', {
                   userId,
                   phoneNumber,
@@ -226,85 +228,59 @@ export async function POST(request: Request) {
           }
         })
 
+        // Normalize phone number for database operations
+        const normalizedPhone = normalizeSriLankaPhone(phoneNumber)
+
         // Update phone_verifications to link to this user
         await adminClient
           .from('phone_verifications')
           .update({ user_id: userId })
-          .eq('phone_number', phoneNumber)
+          .eq('phone_number', normalizedPhone)
           .eq('verified', true)
           .is('user_id', null)
 
         // Create a session to automatically log the user in after registration
         try {
-          // Format phone number to E.164 for session creation
-          let e164PhoneForSession = phoneNumber.trim()
-          const cleanPhone = e164PhoneForSession.replace(/[^\d+]/g, '')
-          
-          if (cleanPhone.startsWith('+')) {
-            e164PhoneForSession = cleanPhone
-          } else if (cleanPhone.startsWith('0')) {
-            e164PhoneForSession = `+94${cleanPhone.substring(1)}`
-          } else if (cleanPhone.startsWith('94')) {
-            e164PhoneForSession = `+${cleanPhone}`
+          // Generate access token using Admin API
+          const { data: tokenData, error: tokenError } = await adminClient.auth.admin.generateAccessToken(userId)
+
+          if (tokenError || !tokenData) {
+            logger.error('Error generating access token for registration', tokenError as Error, {
+              userId,
+              phoneNumber
+            })
           } else {
-            e164PhoneForSession = `+94${cleanPhone}`
-          }
+            // Set session using the generated token
+            const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+              access_token: tokenData.access_token,
+              refresh_token: tokenData.refresh_token
+            })
 
-          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://vera.lk'
-          
-          // Generate a magic link (signup type) which includes a token hash
-          const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
-            // Use "signup" type so we are not blocked by recovery-specific constraints
-            type: 'signup',
-            phone: e164PhoneForSession,
-            options: {
-              redirectTo: `${siteUrl}/auth/callback?type=signup`
-            }
-          })
-
-          if (!linkError && linkData?.properties?.action_link) {
-            // Extract token_hash from the recovery link
-            const recoveryUrl = new URL(linkData.properties.action_link)
-            const tokenHash = recoveryUrl.searchParams.get('token_hash')
-
-            if (tokenHash) {
-                // Use the regular Supabase client to verify the signup token and create session
-              // This will create a valid session that gets stored in cookies
-              const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
-                phone: e164PhoneForSession,
-                token_hash: tokenHash,
-                  type: 'signup'
+            if (sessionError || !sessionData?.session) {
+              logger.error('Error setting session for registration', sessionError as Error, {
+                userId,
+                hasSession: !!sessionData?.session
+              })
+            } else {
+              // Session created successfully!
+              logger.info('Session created successfully for new user registration', {
+                userId,
+                phoneNumber,
+                sessionExpiresAt: sessionData.session.expires_at
               })
 
-              if (!verifyError && verifyData?.session) {
-                // Session created successfully!
-                logger.info('Session created successfully for new user registration', {
-                  userId,
-                  phoneNumber
-                })
-
-                return NextResponse.json({
-                  success: true,
-                  userId: userId,
-                  message: 'Account created successfully',
-                  user: verifyData.user,
-                  session: {
-                    access_token: verifyData.session.access_token,
-                    refresh_token: verifyData.session.refresh_token,
-                    expires_at: verifyData.session.expires_at
-                  }
-                })
-              } else {
-                logger.warn('Failed to create session after account creation', {
-                  verifyError,
-                  hasSession: !!verifyData?.session
-                })
-              }
+              return NextResponse.json({
+                success: true,
+                userId: userId,
+                message: 'Account created successfully',
+                user: sessionData.user,
+                session: {
+                  access_token: sessionData.session.access_token,
+                  refresh_token: sessionData.session.refresh_token,
+                  expires_at: sessionData.session.expires_at
+                }
+              })
             }
-          } else {
-            logger.warn('Failed to generate recovery link after account creation', {
-              linkError
-            })
           }
         } catch (sessionError) {
           logger.error('Error creating session after account creation', sessionError as Error, {

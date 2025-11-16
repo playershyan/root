@@ -64,8 +64,7 @@ export default function PhoneNumberInput({
         },
         body: JSON.stringify({
           phoneNumber: cleanedPhone,
-          recaptchaToken: '', // Add reCAPTCHA if needed
-          isRegistration: true
+          flow: 'register'
         }),
       })
 

@@ -110,7 +110,7 @@ export default function OTPInput({
         body: JSON.stringify({
           phoneNumber,
           otpCode: otpValue,
-          isRegistration: true
+          flow: 'register'
         }),
       })
 
@@ -152,8 +152,7 @@ export default function OTPInput({
         },
         body: JSON.stringify({
           phoneNumber,
-          recaptchaToken: '',
-          isRegistration: true
+          flow: 'register'
         }),
       })
 

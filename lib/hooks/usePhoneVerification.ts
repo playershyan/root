@@ -26,7 +26,7 @@ export function usePhoneVerification(options: UsePhoneVerificationOptions = {}):
     setError(null)
 
     try {
-      // Validate phone number format
+      // Validate phone number format (basic client-side check)
       const isValidPhone = textlkService.validatePhoneNumber(phone)
       if (!isValidPhone) {
         const errorMsg = 'Invalid phone number format. Please use Sri Lankan format (e.g., 0771234567)'
@@ -34,14 +34,10 @@ export function usePhoneVerification(options: UsePhoneVerificationOptions = {}):
         return { success: false, error: errorMsg }
       }
 
-      // Format phone for API
-      const formattedPhone = formatPhoneForStorage(phone, '94')
+      // For updates we send the raw phone (digits) and let the server normalize.
+      const formattedPhone = phone
 
       // Call send OTP API for authenticated updates (profile / listing / wanted)
-      // These are NOT login or first-time registration flows, so we use
-      // isRegistration = true to take the "registration/update" branch on
-      // the API route, which in turn detects the authenticated user and
-      // treats this as a phone update (no login lookup, no reCAPTCHA).
       const response = await fetch('/api/auth/send-phone-otp', {
         method: 'POST',
         headers: {
@@ -49,8 +45,7 @@ export function usePhoneVerification(options: UsePhoneVerificationOptions = {}):
         },
         body: JSON.stringify({
           phoneNumber: formattedPhone,
-          recaptchaToken: recaptchaToken,
-          isRegistration: true // Authenticated profile/listing/wanted phone updates
+          flow: 'phone_update'
         })
       })
 
@@ -96,8 +91,8 @@ export function usePhoneVerification(options: UsePhoneVerificationOptions = {}):
     setError(null)
 
     try {
-      // Format phone for API
-      const formattedPhone = formatPhoneForStorage(phone, '94')
+      // Format phone for API (server handles normalization)
+      const formattedPhone = phone
 
       logger.debug('Calling verify OTP API', {
         endpoint: '/api/auth/verify-phone-otp',
@@ -107,7 +102,7 @@ export function usePhoneVerification(options: UsePhoneVerificationOptions = {}):
         purpose
       })
 
-      // Call verify OTP API with isPhoneUpdate flag for authenticated users
+      // Call verify OTP API with phone_update flow for authenticated users
       const response = await fetch('/api/auth/verify-phone-otp', {
         method: 'POST',
         headers: {
@@ -116,7 +111,7 @@ export function usePhoneVerification(options: UsePhoneVerificationOptions = {}):
         body: JSON.stringify({
           phoneNumber: formattedPhone,
           otpCode: otpCode,
-          isPhoneUpdate: true // For profile/listing/wanted updates, user is already authenticated
+          flow: 'phone_update'
         })
       })
 

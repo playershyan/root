@@ -40,6 +40,90 @@ export function formatPhoneDisplay(phone: string, countryCode: string = '94'): s
 }
 
 /**
+ * Normalizes a Sri Lankan phone number to a canonical storage format.
+ *
+ * Returns digits only, always starting with country code 94, e.g.:
+ * - "0771234567"   -> "94771234567"
+ * - "771234567"    -> "94771234567"
+ * - "+94771234567" -> "94771234567"
+ * - "94771234567"  -> "94771234567"
+ *
+ * CANONICAL FORMAT: 94XXXXXXXXX (11 digits total, no plus, no leading zero)
+ * This is the SINGLE SOURCE OF TRUTH for all phone normalization.
+ */
+export function normalizeSriLankaPhone(input: string): string {
+  if (!input) return ''
+
+  // Keep digits only
+  const digits = input.replace(/\D/g, '')
+
+  if (!digits) return ''
+
+  // Already in canonical format: 94XXXXXXXXX (11 digits)
+  if (digits.startsWith('94') && digits.length === 11) {
+    return digits
+  }
+
+  // Starts with 0 -> remove leading 0 and prepend 94
+  if (digits.startsWith('0') && digits.length === 10) {
+    return `94${digits.substring(1)}`
+  }
+
+  // Just 9 digits (mobile without prefix) -> prepend 94
+  if (digits.length === 9 && !digits.startsWith('0')) {
+    return `94${digits}`
+  }
+
+  // Already has 94 but wrong length -> try to extract 9 digits after 94
+  if (digits.startsWith('94') && digits.length > 11) {
+    return digits.substring(0, 11)
+  }
+
+  // 10 digits starting with non-zero (possibly already has partial prefix)
+  if (digits.length === 10 && !digits.startsWith('0')) {
+    // Could be 94XXXXXXXX (missing one digit) or country code + 9 digits
+    // Assume it's missing the last digit of country code
+    return `94${digits.substring(2)}`
+  }
+
+  // As a last resort, if we have at least 9 digits, take the last 9 and prepend 94
+  if (digits.length >= 9) {
+    const lastNine = digits.substring(digits.length - 9)
+    return `94${lastNine}`
+  }
+
+  // Invalid - return empty to trigger validation error
+  return ''
+}
+
+/**
+ * Validates that a phone number is in correct format.
+ * Use AFTER normalization to verify the result is valid.
+ *
+ * @param normalizedPhone - Phone number that has been through normalizeSriLankaPhone()
+ * @returns true if valid Sri Lankan phone number in canonical format
+ */
+export function isValidSriLankanPhone(normalizedPhone: string): boolean {
+  // Must be exactly 11 digits starting with 94
+  return /^94[0-9]{9}$/.test(normalizedPhone)
+}
+
+/**
+ * Converts normalized phone (94XXXXXXXXX) to E.164 format (+94XXXXXXXXX)
+ * Use this before all Supabase auth API calls.
+ *
+ * @param normalizedPhone - Phone in canonical format (94XXXXXXXXX)
+ * @returns E.164 format (+94XXXXXXXXX)
+ */
+export function toE164(normalizedPhone: string): string {
+  if (!normalizedPhone) return ''
+  // If already has +, return as-is
+  if (normalizedPhone.startsWith('+')) return normalizedPhone
+  // Add + prefix
+  return `+${normalizedPhone}`
+}
+
+/**
  * Formats phone number for WhatsApp URL
  * Removes spaces and ensures country code is present
  */

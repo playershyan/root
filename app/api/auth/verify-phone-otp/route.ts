@@ -3,19 +3,12 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { logger } from '@/lib/utils/logger'
+import { normalizeSriLankaPhone, isValidSriLankanPhone, toE164 } from '@/lib/utils/phoneFormatter'
+import { findUserByPhone } from '@/lib/auth/phoneLookup'
 
 export async function POST(request: NextRequest) {
   try {
-    const { phoneNumber, otpCode, isRegistration, isPhoneUpdate } = await request.json()
-
-    // Log which flow is being requested
-    logger.debug('Verify OTP request received', {
-      phoneNumber,
-      isPhoneUpdate,
-      isRegistration,
-      hasOtpCode: !!otpCode,
-      timestamp: new Date().toISOString()
-    })
+    const { phoneNumber, otpCode, isRegistration, isPhoneUpdate, flow: rawFlow } = await request.json()
 
     if (!phoneNumber || !otpCode) {
       return NextResponse.json({
@@ -23,13 +16,43 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Trim OTP code to remove any whitespace
+    // Normalize phone and derive unified flow for backwards compatibility
+    const normalizedPhone = normalizeSriLankaPhone(phoneNumber)
     const trimmedOtpCode = otpCode.trim()
+
+    // Validate normalized phone format
+    if (!isValidSriLankanPhone(normalizedPhone)) {
+      return NextResponse.json({
+        error: 'Invalid phone number format'
+      }, { status: 400 })
+    }
+
+    let flow: 'register' | 'login' | 'phone_update'
+    if (rawFlow === 'register' || rawFlow === 'login' || rawFlow === 'phone_update') {
+      flow = rawFlow
+    } else if (isPhoneUpdate) {
+      flow = 'phone_update'
+    } else if (typeof isRegistration === 'boolean') {
+      flow = isRegistration ? 'register' : 'login'
+    } else {
+      flow = 'login'
+    }
+
+    // Log which flow is being requested
+    logger.debug('Verify OTP request received', {
+      phoneNumber,
+      normalizedPhone,
+      flow,
+      isPhoneUpdate,
+      isRegistration,
+      hasOtpCode: !!otpCode,
+      timestamp: new Date().toISOString()
+    })
 
     // Handle authenticated user phone updates (for profile/listing/wanted updates)
     // Use service role client to avoid session validation issues
-    if (isPhoneUpdate) {
-      logger.debug('Processing phone update flow', { phoneNumber })
+    if (flow === 'phone_update') {
+      logger.debug('Processing phone update flow', { phoneNumber, normalizedPhone })
 
       // Use service role client to bypass RLS and avoid session validation issues
       const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -55,7 +78,7 @@ export async function POST(request: NextRequest) {
       const { data: otpRecord, error: otpError } = await adminClient
         .from('phone_verifications')
         .select('*')
-        .eq('phone_number', phoneNumber)
+        .eq('phone_number', normalizedPhone)
         .eq('otp_code', trimmedOtpCode)
         .eq('verified', false)
         .not('user_id', 'is', null) // Only phone updates (user_id must exist)
@@ -70,7 +93,7 @@ export async function POST(request: NextRequest) {
           errorCode: (otpError as any)?.code,
           errorMessage: (otpError as any)?.message,
           hasRecord: !!otpRecord,
-          phoneNumber,
+          phoneNumber: normalizedPhone,
           otpCode: trimmedOtpCode.substring(0, 2) + '****', // Log partial OTP for debugging
           timestamp: new Date().toISOString()
         })
@@ -95,7 +118,7 @@ export async function POST(request: NextRequest) {
         // Any other error with a record present is a true server/database error
         if (otpError) {
           logger.error('Database error during OTP verification', otpError as Error, {
-            phoneNumber
+            phoneNumber: normalizedPhone
           })
           return NextResponse.json({
             error: 'Verification failed. Please try again.'
@@ -129,7 +152,7 @@ export async function POST(request: NextRequest) {
 
       logger.info('Phone OTP verified successfully for update', {
         userId: otpRecord.user_id,
-        phoneNumber,
+        phoneNumber: normalizedPhone,
         otpRecordId: otpRecord.id,
         attemptCount: otpRecord.attempts + 1,
         timestamp: new Date().toISOString()
@@ -149,7 +172,7 @@ export async function POST(request: NextRequest) {
 
     // For registration flow, verify OTP without requiring authentication
     // Use service role client to bypass RLS (records have user_id = null)
-    if (isRegistration) {
+    if (flow === 'register') {
       const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 
@@ -175,14 +198,14 @@ export async function POST(request: NextRequest) {
 
       logger.debug('Using service role client for registration verification', { 
         hasServiceRoleKey: true,
-        phoneNumber 
+        phoneNumber: normalizedPhone 
       })
 
       // Find the OTP record (with null user_id for registration)
       const { data: otpRecord, error: otpError } = await dbClient
         .from('phone_verifications')
         .select('*')
-        .eq('phone_number', phoneNumber)
+        .eq('phone_number', normalizedPhone)
         .eq('otp_code', trimmedOtpCode)
         .eq('verified', false)
         .is('user_id', null) // Only match records with null user_id (registration)
@@ -194,8 +217,8 @@ export async function POST(request: NextRequest) {
         logger.debug('OTP verification failed', {
           error: otpError,
           hasRecord: !!otpRecord,
-          phoneNumber,
-          isRegistration
+          phoneNumber: normalizedPhone,
+          flow
         })
         return NextResponse.json({
           error: 'Invalid or expired verification code'
@@ -233,7 +256,7 @@ export async function POST(request: NextRequest) {
       if (updateError) {
         logger.error('Error updating OTP record', updateError as Error, {
           otpRecordId: otpRecord.id,
-          phoneNumber
+          phoneNumber: normalizedPhone
         })
         return NextResponse.json({
           error: 'Verification failed'
@@ -270,37 +293,15 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Format phone number to E.164 for Supabase auth lookup
-    let e164PhoneNumber = phoneNumber.trim()
-    const cleanPhone = e164PhoneNumber.replace(/[^\d+]/g, '')
-    
-    if (cleanPhone.startsWith('+')) {
-      e164PhoneNumber = cleanPhone
-    } else if (cleanPhone.startsWith('0')) {
-      e164PhoneNumber = `+94${cleanPhone.substring(1)}`
-    } else if (cleanPhone.startsWith('94')) {
-      e164PhoneNumber = `+${cleanPhone}`
-    } else {
-      e164PhoneNumber = `+94${cleanPhone}`
-    }
+    // Find user by phone number using shared helper (handles E.164 conversion internally)
+    const { user: matchingUser, error: lookupError } = await findUserByPhone(adminClient as any, normalizedPhone)
 
-    // Find user by phone number using admin API
-    const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers()
-    
-    if (listError) {
-      logger.error('Error listing users for login', listError as Error, { phoneNumber })
-      return NextResponse.json({ error: 'Failed to find user' }, { status: 500 })
-    }
-
-    // Find user matching this phone number
-    const matchingUser = users?.find(user => 
-      user.phone === e164PhoneNumber || 
-      user.phone === phoneNumber ||
-      user.user_metadata?.phone === phoneNumber
-    )
-
-    if (!matchingUser) {
-      logger.debug('User not found for login', { phoneNumber, e164PhoneNumber })
+    if (lookupError || !matchingUser) {
+      logger.debug('User not found for login', {
+        phoneNumber,
+        normalizedPhone,
+        lookupError
+      })
       return NextResponse.json({
         error: 'No account found with this phone number. Please sign up first.'
       }, { status: 404 })
@@ -320,7 +321,7 @@ export async function POST(request: NextRequest) {
     const { data: otpRecord, error: otpError } = await dbClient
       .from('phone_verifications')
       .select('*')
-      .eq('phone_number', phoneNumber)
+      .eq('phone_number', normalizedPhone)
       .eq('otp_code', trimmedOtpCode)
       .eq('verified', false)
       .or(`user_id.eq.${matchingUser.id},user_id.is.null`)
@@ -371,96 +372,65 @@ export async function POST(request: NextRequest) {
     }
 
     // Create a session for the user after OTP verification
-    // Use Supabase Admin API to generate a magic link with recovery type
-    // Then extract token and verify it to create a session
+    // Use Admin API to generate access token, then set session on client
     try {
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://vera.lk'
-      
-      // Generate a magic link (recovery type) which includes a token hash
-      const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
-        type: 'recovery',
-        phone: e164PhoneNumber,
-        options: {
-          redirectTo: `${siteUrl}/auth/callback?type=recovery`
-        }
-      })
+      // Generate access token using Admin API
+      const { data: tokenData, error: tokenError } = await adminClient.auth.admin.generateAccessToken(matchingUser.id)
 
-      if (linkError || !linkData?.properties?.action_link) {
-        logger.error('Error generating recovery link for login', linkError as Error, {
+      if (tokenError || !tokenData) {
+        logger.error('Error generating access token for login', tokenError as Error, {
           userId: matchingUser.id,
-          phoneNumber,
-          e164PhoneNumber
+          phoneNumber
         })
-        
-        // Fallback: Return success - client will need to handle session via another method
+
         return NextResponse.json({
           success: true,
           userId: matchingUser.id,
           message: 'Phone number verified successfully',
           requiresClientSession: true,
-          user: {
-            id: matchingUser.id,
-            phone: matchingUser.phone
-          }
-        })
+          sessionError: 'Failed to generate access token'
+        }, { status: 200 })
       }
 
-      // Extract token_hash from the recovery link
-      // Format: https://.../?token_hash=...&type=recovery
-      const recoveryUrl = new URL(linkData.properties.action_link)
-      const tokenHash = recoveryUrl.searchParams.get('token_hash')
-
-      if (!tokenHash) {
-        logger.error('No token hash in recovery link', new Error('Missing token_hash'), {
-          link: linkData.properties.action_link
-        })
-        return NextResponse.json({
-          success: true,
-          userId: matchingUser.id,
-          message: 'Phone number verified successfully',
-          requiresClientSession: true
-        })
-      }
-
-      // Use the regular Supabase client to verify the recovery token and create session
-      // This will create a valid session that gets stored in cookies
-      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
-        phone: e164PhoneNumber,
-        token_hash: tokenHash,
-        type: 'recovery'
+      // Set session using the generated token
+      const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+        access_token: tokenData.access_token,
+        refresh_token: tokenData.refresh_token
       })
 
-      if (verifyError || !verifyData?.session) {
-        logger.error('Error verifying recovery token for session', verifyError as Error, {
+      if (sessionError || !sessionData?.session) {
+        logger.error('Error setting session for login', sessionError as Error, {
           userId: matchingUser.id,
-          hasSession: !!verifyData?.session
+          hasSession: !!sessionData?.session
         })
-        
-        // Fallback: Return success - session creation failed but OTP is verified
+
+        // Return token to client so they can set session manually
         return NextResponse.json({
           success: true,
           userId: matchingUser.id,
           message: 'Phone number verified successfully',
           requiresClientSession: true,
-          sessionError: 'Failed to create session automatically'
+          access_token: tokenData.access_token,
+          refresh_token: tokenData.refresh_token
         })
       }
 
       // Session created successfully!
       logger.info('Session created successfully for login', {
         userId: matchingUser.id,
-        phoneNumber
+        phoneNumber,
+        sessionExpiresAt: sessionData.session.expires_at
       })
 
       return NextResponse.json({
         success: true,
         userId: matchingUser.id,
         message: 'Login successful',
-        user: verifyData.user,
+        user: sessionData.user,
         session: {
-          access_token: verifyData.session.access_token,
-          refresh_token: verifyData.session.refresh_token,
-          expires_at: verifyData.session.expires_at
+          access_token: sessionData.session.access_token,
+          refresh_token: sessionData.session.refresh_token,
+          expires_at: sessionData.session.expires_at
         }
       })
 
@@ -468,14 +438,14 @@ export async function POST(request: NextRequest) {
       logger.error('Error creating session for login', sessionError as Error, {
         userId: matchingUser.id
       })
-      // Fallback: Return success - client will handle session creation
+
       return NextResponse.json({
         success: true,
         userId: matchingUser.id,
-        message: 'Phone number verified successfully',
+        message: 'Phone number verified but session creation failed',
         requiresClientSession: true,
         sessionError: (sessionError as Error).message
-      })
+      }, { status: 200 })
     }
 
   } catch (error) {

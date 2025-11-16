@@ -5,6 +5,8 @@ import { cookies } from 'next/headers'
 import { verifyRecaptcha, captchaGuardFailJson } from '@/lib/security/recaptcha'
 import { textlkService } from '@/lib/services/textlkService'
 import { logger } from '@/lib/utils/logger'
+import { normalizeSriLankaPhone, isValidSriLankanPhone, toE164 } from '@/lib/utils/phoneFormatter'
+import { findUserByPhone } from '@/lib/auth/phoneLookup'
 
 // Simple OTP generation function
 function generateOTP(): string {
@@ -21,21 +23,50 @@ export async function POST(request: NextRequest) {
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     
-    const { phoneNumber, recaptchaToken, isRegistration } = await request.json()
+    const { phoneNumber, recaptchaToken, isRegistration, isPhoneUpdate, flow: rawFlow } = await request.json()
     
     if (!phoneNumber) {
       return NextResponse.json({ error: 'Phone number is required' }, { status: 400 })
     }
 
-    logger.debug('Send OTP request', { isRegistration, hasRecaptchaToken: !!recaptchaToken })
+    // Normalize phone once for all downstream usage
+    const normalizedPhone = normalizeSriLankaPhone(phoneNumber)
+
+    // Validate normalized phone format
+    if (!isValidSriLankanPhone(normalizedPhone)) {
+      return NextResponse.json({
+        error: 'Invalid phone number format. Please use Sri Lankan format (e.g., 0771234567)'
+      }, { status: 400 })
+    }
+
+    // Derive unified flow value for backwards compatibility
+    // New clients should pass `flow`, old clients use isRegistration/isPhoneUpdate.
+    let flow: 'register' | 'login' | 'phone_update'
+    if (rawFlow === 'register' || rawFlow === 'login' || rawFlow === 'phone_update') {
+      flow = rawFlow
+    } else if (isPhoneUpdate) {
+      flow = 'phone_update'
+    } else if (typeof isRegistration === 'boolean') {
+      flow = isRegistration ? 'register' : 'login'
+    } else {
+      flow = 'login'
+    }
+
+    logger.debug('Send OTP request', {
+      flow,
+      isRegistration,
+      isPhoneUpdate,
+      hasRecaptchaToken: !!recaptchaToken
+    })
 
     // For registration flow, we don't have a user yet, so use null for user_id
     // For existing users, get the authenticated user ID
     let userId: string | null = null
     let dbClient = supabase // Use regular client by default
 
-    // For login flow, find user by phone number (user is not authenticated yet)
-    if (!isRegistration) {
+    // Flow-specific handling
+    if (flow === 'login') {
+      // For login flow, find user by phone number (user is not authenticated yet)
       // Use service role client to find user by phone number
       if (!serviceRoleKey || !supabaseUrl) {
         const missing = !serviceRoleKey ? 'SUPABASE_SERVICE_ROLE_KEY' : 'NEXT_PUBLIC_SUPABASE_URL'
@@ -56,37 +87,15 @@ export async function POST(request: NextRequest) {
         }
       })
 
-      // Format phone number to E.164 for Supabase auth lookup
-      let e164PhoneNumber = phoneNumber.trim()
-      const cleanPhone = e164PhoneNumber.replace(/[^\d+]/g, '')
-      
-      if (cleanPhone.startsWith('+')) {
-        e164PhoneNumber = cleanPhone
-      } else if (cleanPhone.startsWith('0')) {
-        e164PhoneNumber = `+94${cleanPhone.substring(1)}`
-      } else if (cleanPhone.startsWith('94')) {
-        e164PhoneNumber = `+${cleanPhone}`
-      } else {
-        e164PhoneNumber = `+94${cleanPhone}`
-      }
+      // Find user by phone number using shared helper (handles normalization internally)
+      const { user: matchingUser, error: lookupError } = await findUserByPhone(adminClient as any, normalizedPhone)
 
-      // Find user by phone number using admin API
-      const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers()
-      
-      if (listError) {
-        logger.error('Error listing users for login OTP', listError as Error, { phoneNumber })
-        return NextResponse.json({ error: 'Failed to find user' }, { status: 500 })
-      }
-
-      // Find user matching this phone number
-      const matchingUser = users?.find(user => 
-        user.phone === e164PhoneNumber || 
-        user.phone === phoneNumber ||
-        user.user_metadata?.phone === phoneNumber
-      )
-
-      if (!matchingUser) {
-        logger.debug('User not found for login OTP', { phoneNumber, e164PhoneNumber })
+      if (lookupError || !matchingUser) {
+        logger.debug('User not found for login OTP', {
+          phoneNumber,
+          normalizedPhone,
+          lookupError
+        })
         return NextResponse.json({
           error: 'No account found with this phone number. Please sign up first.'
         }, { status: 404 })
@@ -95,61 +104,48 @@ export async function POST(request: NextRequest) {
       userId = matchingUser.id
       dbClient = adminClient // Use admin client for database operations
       logger.debug('Found user for login OTP', { userId, phoneNumber })
-    } else {
-      // Check if user is authenticated (for phone updates in profile/listings/wanted)
+    } else if (flow === 'phone_update') {
+      // Authenticated user updating phone (profile/listings/wanted)
       const { data: { user: authenticatedUser }, error: authError } = await supabase.auth.getUser()
       
-      if (authenticatedUser && !authError) {
-        // Authenticated user updating phone (profile/listings/wanted)
-        userId = authenticatedUser.id
-        dbClient = supabase // Use regular client for authenticated users
-        logger.debug('Using authenticated user for phone update OTP', { userId, phoneNumber })
+      if (authError || !authenticatedUser) {
+        logger.error('Authenticated user required for phone update OTP', authError as Error)
+        return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+      }
+
+      userId = authenticatedUser.id
+      dbClient = supabase // Use regular client for authenticated users
+      logger.debug('Using authenticated user for phone update OTP', { userId, phoneNumber })
+    } else {
+      // Registration flow (no user yet) - use service role client to bypass RLS
+      if (serviceRoleKey && supabaseUrl) {
+        dbClient = createClient(supabaseUrl, serviceRoleKey, {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false
+          }
+        })
+        logger.debug('Using service role client for registration', { hasServiceRoleKey: true })
       } else {
-        // For registration, use service role client to bypass RLS
-        // This allows inserting records with null user_id
-        if (serviceRoleKey && supabaseUrl) {
-          dbClient = createClient(supabaseUrl, serviceRoleKey, {
-            auth: {
-              autoRefreshToken: false,
-              persistSession: false
-            }
-          })
-          logger.debug('Using service role client for registration', { hasServiceRoleKey: true })
-        } else {
-          const missing = !serviceRoleKey ? 'SUPABASE_SERVICE_ROLE_KEY' : 'NEXT_PUBLIC_SUPABASE_URL'
-          logger.error('Service role key or URL not configured', new Error(`Missing: ${missing}`), {
-            hasServiceRoleKey: !!serviceRoleKey,
-            hasSupabaseUrl: !!supabaseUrl
-          })
-          return NextResponse.json({ 
-            error: 'Server configuration error',
-            details: `Missing required environment variable: ${missing}. Please configure SUPABASE_SERVICE_ROLE_KEY in Vercel.`
-          }, { status: 500 })
-        }
+        const missing = !serviceRoleKey ? 'SUPABASE_SERVICE_ROLE_KEY' : 'NEXT_PUBLIC_SUPABASE_URL'
+        logger.error('Service role key or URL not configured', new Error(`Missing: ${missing}`), {
+          hasServiceRoleKey: !!serviceRoleKey,
+          hasSupabaseUrl: !!supabaseUrl
+        })
+        return NextResponse.json({ 
+          error: 'Server configuration error',
+          details: `Missing required environment variable: ${missing}. Please configure SUPABASE_SERVICE_ROLE_KEY in Vercel.`
+        }, { status: 500 })
       }
     }
 
-    if (!phoneNumber) {
-      return NextResponse.json({ error: 'Phone number is required' }, { status: 400 })
-    }
-
-    // Determine if there is an authenticated user (profile / listings / wanted flows)
-    // This lets us require reCAPTCHA only for unauthenticated login flows,
-    // while allowing authenticated users to update their phone without CAPTCHA.
-    let isAuthenticatedUser = false
-    try {
-      const { data: { user: authenticatedUser } } = await supabase.auth.getUser()
-      isAuthenticatedUser = !!authenticatedUser
-    } catch {
-      // Ignore errors here; we'll treat as unauthenticated in that case
-      isAuthenticatedUser = false
-    }
-
     // Verify reCAPTCHA to prevent OTP abuse
-    // - If a token is provided, always verify it.
-    // - If no token and this is an unauthenticated, non-registration (login) flow,
-    //   require CAPTCHA.
-    if (recaptchaToken) {
+    // Only required for login flows; register and phone_update rely on rate limiting.
+    if (flow === 'login') {
+      if (!recaptchaToken) {
+        return NextResponse.json({ error: 'reCAPTCHA verification required' }, { status: 400 })
+      }
+
       const forwarded = request.headers.get('x-forwarded-for')
       const ipHeader = forwarded ? forwarded.split(',')[0].trim() : request.headers.get('x-real-ip') || undefined
       const captcha = await verifyRecaptcha(recaptchaToken, ipHeader)
@@ -160,13 +156,10 @@ export async function POST(request: NextRequest) {
         logger.warn('reCAPTCHA failed', { score: captcha.score })
         return captchaGuardFailJson(0.3)
       }
-    } else if (!isRegistration && !isAuthenticatedUser) {
-      // Require reCAPTCHA only for unauthenticated, non-registration (login) flows
-      return NextResponse.json({ error: 'reCAPTCHA verification required' }, { status: 400 })
     }
 
     // Validate phone number format using Text.lk service
-    const isValidPhone = textlkService.validatePhoneNumber(phoneNumber)
+    const isValidPhone = textlkService.validatePhoneNumber(normalizedPhone)
     if (!isValidPhone) {
       return NextResponse.json({
         error: 'Invalid phone number format. Please use Sri Lankan format (e.g., 0771234567)'
@@ -180,10 +173,10 @@ export async function POST(request: NextRequest) {
       .from('phone_verifications')
       .select('id')
       .gte('created_at', oneHourAgo)
-      .eq('phone_number', phoneNumber)
+      .eq('phone_number', normalizedPhone)
 
     // Distinguish between true registration (no user yet) and authenticated updates
-    const isRegistrationWithoutUser = isRegistration && !userId
+    const isRegistrationWithoutUser = flow === 'register' && !userId
 
     // For authenticated users (profile/listing/wanted updates), include both their user_id
     // and any legacy/null records for this phone. For true registration, only null user_id.
@@ -210,23 +203,29 @@ export async function POST(request: NextRequest) {
     const otp = generateOTP()
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes from now
 
-    // Delete any existing unverified OTPs for this phone number to avoid unique constraint
+    // Delete ANY existing OTPs for this phone number to avoid unique constraint
+    // This includes BOTH verified and unverified records
     // Use dbClient (service role for registration, regular for existing users)
-    const deleteBaseQuery = dbClient
-      .from('phone_verifications')
-      .delete()
-      .eq('phone_number', phoneNumber)
-      .eq('verified', false)
-    
     if (userId && !isRegistrationWithoutUser) {
-      // Authenticated updates: remove any pending records for this user or null user_id
-      await deleteBaseQuery.or(`user_id.eq.${userId},user_id.is.null`)
+      // Authenticated updates: remove ALL records (verified and unverified) for this user + phone
+      await dbClient
+        .from('phone_verifications')
+        .delete()
+        .eq('phone_number', normalizedPhone)
+        .or(`user_id.eq.${userId},user_id.is.null`)
     } else if (isRegistrationWithoutUser) {
-      // True registration: only remove records with null user_id
-      await deleteBaseQuery.is('user_id', null)
+      // True registration: only remove records with null user_id for this phone
+      await dbClient
+        .from('phone_verifications')
+        .delete()
+        .eq('phone_number', normalizedPhone)
+        .is('user_id', null)
     } else {
-      // Fallback: just delete by phone number
-      await deleteBaseQuery
+      // Fallback: delete all records for this phone number
+      await dbClient
+        .from('phone_verifications')
+        .delete()
+        .eq('phone_number', normalizedPhone)
     }
 
     // Store OTP in database
@@ -237,7 +236,7 @@ export async function POST(request: NextRequest) {
       .from('phone_verifications')
       .insert({
         user_id: userId, // null for registration, user ID for existing users
-        phone_number: phoneNumber,
+        phone_number: normalizedPhone,
         otp_code: otp,
         expires_at: expiresAt.toISOString(),
         attempts: 0,
@@ -270,9 +269,9 @@ export async function POST(request: NextRequest) {
         errorCode,
         errorDetails,
         constraint,
-        phoneNumber,
+        phoneNumber: normalizedPhone,
         userId,
-        isRegistration,
+        flow,
         hasServiceRoleKey: !!serviceRoleKey
       })
 
@@ -299,11 +298,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Update profile with temp phone number (only for existing users)
-    if (!isRegistration) {
+    if (flow === 'login' || flow === 'phone_update') {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          temp_phone: phoneNumber,
+          temp_phone: normalizedPhone,
           temp_phone_otp_sent_at: new Date().toISOString()
         })
         .eq('id', userId)
@@ -314,7 +313,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send SMS using Text.lk service
-    const smsResult = await textlkService.sendOTP(phoneNumber, otp)
+    const smsResult = await textlkService.sendOTP(normalizedPhone, otp)
 
     if (!smsResult.success) {
       // Log error but still return success in development mode
@@ -341,10 +340,9 @@ export async function POST(request: NextRequest) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     const errorStack = error instanceof Error ? error.stack : undefined
     
-    logger.error('Send phone OTP error', error as Error, {
+      logger.error('Send phone OTP error', error as Error, {
       error: errorMessage,
       stack: errorStack,
-      isRegistration,
       hasPhoneNumber: !!phoneNumber
     })
     
