@@ -372,13 +372,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Create a session for the user after OTP verification
-    // Use Admin API to generate access token, then set session on client
+    // Use Admin API to generate magic link which contains session tokens
     try {
-      // Generate access token using Admin API
-      const { data: tokenData, error: tokenError } = await adminClient.auth.admin.generateAccessToken(matchingUser.id)
+      // Generate magic link (contains access & refresh tokens)
+      const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+        type: 'magiclink',
+        email: matchingUser.email || `${matchingUser.id}@temp.placeholder`,
+        options: {
+          redirectTo: '/'
+        }
+      })
 
-      if (tokenError || !tokenData) {
-        logger.error('Error generating access token for login', tokenError as Error, {
+      if (linkError || !linkData) {
+        logger.error('Error generating session tokens for login', linkError as Error, {
           userId: matchingUser.id,
           phoneNumber
         })
@@ -386,16 +392,36 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           userId: matchingUser.id,
-          message: 'Phone number verified successfully',
+          message: 'Phone number verified but session creation failed',
           requiresClientSession: true,
           sessionError: 'Failed to generate access token'
         }, { status: 200 })
       }
 
-      // Set session using the generated token
+      // Extract session tokens from magic link properties
+      const accessToken = linkData.properties.access_token
+      const refreshToken = linkData.properties.refresh_token
+
+      if (!accessToken || !refreshToken) {
+        logger.error('Magic link missing session tokens', new Error('No tokens'), {
+          userId: matchingUser.id,
+          hasAccessToken: !!accessToken,
+          hasRefreshToken: !!refreshToken
+        })
+
+        return NextResponse.json({
+          success: true,
+          userId: matchingUser.id,
+          message: 'Phone number verified but session creation failed',
+          requiresClientSession: true,
+          sessionError: 'Failed to extract tokens'
+        }, { status: 200 })
+      }
+
+      // Set session using the generated tokens
       const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-        access_token: tokenData.access_token,
-        refresh_token: tokenData.refresh_token
+        access_token: accessToken,
+        refresh_token: refreshToken
       })
 
       if (sessionError || !sessionData?.session) {
@@ -404,14 +430,16 @@ export async function POST(request: NextRequest) {
           hasSession: !!sessionData?.session
         })
 
-        // Return token to client so they can set session manually
+        // Return tokens to client so they can set session manually
         return NextResponse.json({
           success: true,
           userId: matchingUser.id,
           message: 'Phone number verified successfully',
           requiresClientSession: true,
-          access_token: tokenData.access_token,
-          refresh_token: tokenData.refresh_token
+          session: {
+            access_token: accessToken,
+            refresh_token: refreshToken
+          }
         })
       }
 
