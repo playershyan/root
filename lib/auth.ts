@@ -5,91 +5,137 @@ export interface AuthError {
   code?: string
 }
 
-export async function signInWithOTP(phone: string): Promise<{ success: boolean; error?: AuthError }> {
+/**
+ * Send OTP code to phone number using custom OTP API
+ * Uses our custom phone verification system, not Supabase's built-in SMS
+ */
+export async function sendPhoneOTP(
+  phone: string,
+  flow: 'register' | 'login'
+): Promise<{ success: boolean; error?: AuthError; expiresIn?: number }> {
   try {
-    const { error } = await supabase.auth.signInWithOtp({
-      phone: phone,
-      options: {
-        channel: 'sms'
-      }
+    const response = await fetch('/api/auth/send-phone-otp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        phoneNumber: phone,
+        flow
+      })
     })
 
-    if (error) {
-      return { success: false, error: { message: error.message, code: error.code } }
+    const result = await response.json()
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: {
+          message: result.error || 'Failed to send OTP',
+          code: 'otp_send_failed'
+        }
+      }
     }
 
-    return { success: true }
+    return {
+      success: true,
+      expiresIn: result.expiresIn
+    }
   } catch (error) {
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: { message: 'Failed to send OTP. Please try again.' }
     }
   }
 }
 
+/**
+ * Verify OTP code using custom OTP API
+ * Uses our custom phone verification system, not Supabase's built-in SMS
+ *
+ * For registration flow: Verifies OTP then creates account via /api/auth/create-account
+ * For login flow: Verifies OTP and returns session
+ */
 export async function verifyOTP(
   phone: string,
   token: string,
   name?: string
-): Promise<{ success: boolean; error?: AuthError; user?: any }> {
+): Promise<{ success: boolean; error?: AuthError; user?: any; requiresAccountCreation?: boolean }> {
   try {
-    const { data, error } = await supabase.auth.verifyOtp({
-      phone: phone,
-      token: token,
-      type: 'sms'
+    // First verify the OTP code
+    const verifyResponse = await fetch('/api/auth/verify-phone-otp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        phoneNumber: phone,
+        otpCode: token,
+        flow: 'login' // Try login first
+      })
     })
 
-    if (error) {
-      return { success: false, error: { message: error.message, code: error.code } }
-    }
+    const verifyResult = await verifyResponse.json()
 
-    if (data.user) {
-      const resolvedName =
-        name?.trim() ||
-        data.user.user_metadata?.full_name ||
-        data.user.user_metadata?.name ||
-        null
-
-      const { data: existingProfile } = await supabase
-        .from('profiles')
-        .select('id, name, phone')
-        .eq('id', data.user.id)
-        .single()
-
-      if (!existingProfile) {
-        await supabase.from('profiles').insert({
-          id: data.user.id,
-          phone,
-          name: resolvedName,
-          email: data.user.email,
-          created_at: new Date().toISOString()
-        })
-      } else if (!existingProfile.name || !existingProfile.phone) {
-        const updatePayload: Record<string, string | null> = {}
-        if (!existingProfile.name && resolvedName) {
-          updatePayload.name = resolvedName
+    if (!verifyResponse.ok) {
+      // If login fails and user doesn't exist, they need to register
+      if (verifyResult.error?.includes('No account found') || verifyResult.error?.includes('User not found')) {
+        // Phone was verified but no account exists - need to create account
+        return {
+          success: false,
+          requiresAccountCreation: true,
+          error: {
+            message: 'Phone verified. Please complete registration.',
+            code: 'account_required'
+          }
         }
-        if (!existingProfile.phone && phone) {
-          updatePayload.phone = phone
-        }
+      }
 
-        if (Object.keys(updatePayload).length > 0) {
-          await supabase
-            .from('profiles')
-            .update({
-              ...updatePayload,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', data.user.id)
+      return {
+        success: false,
+        error: {
+          message: verifyResult.error || 'Invalid OTP code',
+          code: 'invalid_otp'
         }
       }
     }
 
-    return { success: true, user: data.user }
+    // If verification succeeded and returned a session, we're done (login flow)
+    if (verifyResult.session) {
+      // Set the session in the client
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: verifyResult.session.access_token,
+        refresh_token: verifyResult.session.refresh_token
+      })
+
+      if (sessionError) {
+        return {
+          success: false,
+          error: {
+            message: 'Failed to set session. Please try again.',
+            code: 'session_error'
+          }
+        }
+      }
+
+      // Get user data
+      const { data: { user } } = await supabase.auth.getUser()
+
+      return { success: true, user }
+    }
+
+    // If no session returned, phone was verified but account needs to be created
+    // This happens in registration flow
+    return {
+      success: true,
+      requiresAccountCreation: true,
+      user: null
+    }
+
   } catch (error) {
-    return { 
-      success: false, 
-      error: { message: 'Invalid OTP. Please try again.' }
+    return {
+      success: false,
+      error: { message: 'Verification failed. Please try again.' }
     }
   }
 }

@@ -12,7 +12,7 @@ interface UserLookupResult {
  *
  * - Normalizes the input phone to canonical format (94XXXXXXXXX)
  * - Converts to E.164 format for Supabase auth lookup (+94XXXXXXXXX)
- * - Matches against user.phone in auth.users table
+ * - Matches ONLY E.164 format in auth.users table (standardized format)
  */
 export async function findUserByPhone(
   adminClient: SupabaseClient,
@@ -47,10 +47,9 @@ export async function findUserByPhone(
 
     const users = data?.users || []
 
-    // Match by E.164 format OR normalized format (for legacy users)
-    // Supabase should store phone in E.164 (+94...), but some old users may have it without +
+    // Match ONLY by E.164 format - standardized phone storage
     const matchingUser = users.find((user: any) => {
-      return user.phone === e164 || user.phone === normalizedPhone
+      return user.phone === e164
     })
 
     if (!matchingUser) {
