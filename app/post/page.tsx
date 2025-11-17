@@ -106,6 +106,7 @@ const initialFormData: FormData = {
 // Feature constants are now in the vehicle-forms types
 
 export default function EnhancedPostVehiclePage() {
+  console.log('[POST PAGE] 🔄 Component render started')
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, loading: authLoading } = useAuth()
@@ -114,6 +115,12 @@ export default function EnhancedPostVehiclePage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const vehicleDropdownRef = useRef<HTMLDivElement>(null)
   const descriptionGeneratorRef = useRef<DescriptionGeneratorRef>(null)
+  console.log('[POST PAGE] 📊 State:', {
+    hasUser: !!user,
+    authLoading,
+    profileLoading,
+    toastsCount: toasts.length
+  })
 
   // Phone verification modals
   const [showEditPhoneModal, setShowEditPhoneModal] = useState(false)
@@ -144,7 +151,9 @@ export default function EnhancedPostVehiclePage() {
   
   // Check authentication status and redirect if not logged in
   useEffect(() => {
+    console.log('[POST PAGE] 🔐 Auth check useEffect', { user: !!user, authLoading })
     if (!authLoading && !user) {
+      console.log('[POST PAGE] ⚠️ Redirecting to login')
       // Pass the redirect URL directly in the URL parameters
       router.push('/?auth=true&redirect=/post')
     }
@@ -302,12 +311,15 @@ export default function EnhancedPostVehiclePage() {
 
   // Auto-populate phone numbers from user profile
   useEffect(() => {
+    console.log('[POST PAGE] 👤 Profile populate useEffect triggered')
     if (!profileLoading && profile && !isEditMode) {
       const phoneNumber = getPhoneNumber()
       const whatsappNumber = getWhatsAppNumber()
-      
+      console.log('[POST PAGE] 📞 Phone data from profile', { phoneNumber, whatsappNumber })
+
       if (phoneNumber || whatsappNumber) {
         const populatedPhone = phoneNumber || ''
+        console.log('[POST PAGE] ✅ Populating form with phone data')
         setFormData(prev => ({
           ...prev,
           phone: prev.phone || phoneNumber, // Only populate if empty
@@ -377,7 +389,13 @@ export default function EnhancedPostVehiclePage() {
   
   // Update WhatsApp when phone changes
   useEffect(() => {
+    console.log('[POST PAGE] 📱 WhatsApp sync useEffect', {
+      whatsappSameAsPhone: formData.whatsappSameAsPhone,
+      phone: formData.phone,
+      whatsapp: formData.whatsapp
+    })
     if (formData.whatsappSameAsPhone) {
+      console.log('[POST PAGE] 🔄 Syncing WhatsApp with phone')
       setFormData(prev => ({ ...prev, whatsapp: prev.phone }))
     }
   }, [formData.phone, formData.whatsappSameAsPhone])
@@ -883,7 +901,11 @@ const getUploadUserId = (): string => {
   }
   
   const handleSubmit = async () => {
-    if (!validateForm()) return
+    console.log('[POST PAGE] 📤 handleSubmit called')
+    if (!validateForm()) {
+      console.log('[POST PAGE] ❌ Form validation failed')
+      return
+    }
 
     // Proceed with submission
     await submitListing()
@@ -1586,7 +1608,10 @@ const getUploadUserId = (): string => {
               <div className="flex flex-col sm:flex-row gap-3 justify-end">
                 <Button
                   type="button"
-                  onClick={() => router.push('/listings')}
+                  onClick={() => {
+                    console.log('[POST PAGE] 🚫 Cancel button clicked - navigating to /listings')
+                    router.push('/listings')
+                  }}
                   variant="outline"
                   size="default"
                   className="order-2 sm:order-1"
@@ -1618,6 +1643,8 @@ const getUploadUserId = (): string => {
         onVerified={handlePhoneVerified}
         onCancel={() => setShowEditPhoneModal(false)}
         purpose="listing"
+        showSuccessToast={showSuccess}
+        showErrorToast={showError}
       />
 
       {/* Edit WhatsApp Modal */}
@@ -1627,6 +1654,8 @@ const getUploadUserId = (): string => {
         onVerified={handleWhatsAppVerified}
         onCancel={() => setShowEditWhatsAppModal(false)}
         purpose="listing"
+        showSuccessToast={showSuccess}
+        showErrorToast={showError}
       />
     </div>
   )
