@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { logger } from '@/lib/utils/logger'
 import { normalizeSriLankaPhone, isValidSriLankanPhone } from '@/lib/utils/phoneFormatter'
+import { generateSupabaseTokens } from '@/lib/auth/jwt'
 
 export async function POST(request: Request) {
   try {
@@ -245,19 +246,26 @@ export async function POST(request: Request) {
 
         // Create a session to automatically log the user in after registration
         try {
-          // Generate access token using Admin API
-          const { data: tokenData, error: tokenError } = await adminClient.auth.admin.generateAccessToken(userId)
+          // Get user data for JWT payload
+          const { data: userData } = await adminClient.auth.admin.getUserById(userId)
 
-          if (tokenError || !tokenData) {
-            logger.error('Error generating access token for registration', tokenError as Error, {
+          if (!userData?.user) {
+            logger.error('Unable to fetch user data for JWT generation', new Error('User not found'), {
               userId,
               phoneNumber
             })
           } else {
-            // Set session using the generated token
+            // Generate Supabase-compatible JWT tokens
+            const tokens = generateSupabaseTokens(
+              userData.user.id,
+              userData.user.email,
+              userData.user.phone
+            )
+
+            // Set session using the generated tokens
             const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-              access_token: tokenData.access_token,
-              refresh_token: tokenData.refresh_token
+              access_token: tokens.access_token,
+              refresh_token: tokens.refresh_token
             })
 
             if (sessionError || !sessionData?.session) {

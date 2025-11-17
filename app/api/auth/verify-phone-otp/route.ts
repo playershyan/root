@@ -380,6 +380,40 @@ export async function POST(request: NextRequest) {
         matchingUser.phone
       )
 
+      // Set the session in Supabase to register it in the sessions table
+      const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token
+      })
+
+      if (sessionError || !sessionData?.session) {
+        logger.error('Error setting session for login', sessionError as Error, {
+          userId: matchingUser.id,
+          hasSession: !!sessionData?.session
+        })
+
+        // Return tokens anyway so client can try to set session
+        return NextResponse.json({
+          success: true,
+          userId: matchingUser.id,
+          message: 'Login successful, but session needs client-side setup',
+          requiresClientSession: true,
+          user: {
+            id: matchingUser.id,
+            phone: matchingUser.phone,
+            email: matchingUser.email,
+            user_metadata: matchingUser.user_metadata
+          },
+          session: {
+            access_token: tokens.access_token,
+            refresh_token: tokens.refresh_token,
+            expires_at: tokens.expires_at,
+            expires_in: tokens.expires_in,
+            token_type: tokens.token_type
+          }
+        })
+      }
+
       logger.info('Session created successfully for login', {
         userId: matchingUser.id,
         phoneNumber,
