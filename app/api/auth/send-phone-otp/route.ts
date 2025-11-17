@@ -65,9 +65,25 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    // Use service role client to bypass RLS for phone_verifications table
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+
+    if (!serviceRoleKey || !supabaseUrl) {
+      logger.error('Service role key or URL not configured', new Error('Missing env vars'))
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+    }
+
+    const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
+
     // Check for rate limiting (max 3 OTPs per hour per user/phone)
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
-    const { data: recentOtps, error: countError } = await supabase
+    const { data: recentOtps, error: countError } = await adminClient
       .from('phone_verifications')
       .select('id')
       .gte('created_at', oneHourAgo)
@@ -89,15 +105,24 @@ export async function POST(request: NextRequest) {
     const otp = generateOTP()
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes from now
 
-    // Delete existing OTPs for this user + phone to avoid unique constraint
-    await supabase
+    // Delete existing pending OTPs for this user + phone to avoid unique constraint
+    // Use service role client to bypass RLS
+    const { error: deleteError } = await adminClient
       .from('phone_verifications')
       .delete()
       .eq('phone_number', normalizedPhone)
-      .or(`user_id.eq.${userId},user_id.is.null`)
+      .eq('user_id', userId)
+      .eq('verified', false)
 
-    // Store OTP in database
-    const { error: insertError } = await supabase
+    if (deleteError) {
+      logger.error('Error deleting existing pending OTPs', deleteError as Error, {
+        phoneNumber: normalizedPhone,
+        userId
+      })
+    }
+
+    // Store OTP in database using service role client
+    const { error: insertError } = await adminClient
       .from('phone_verifications')
       .insert({
         user_id: userId,
