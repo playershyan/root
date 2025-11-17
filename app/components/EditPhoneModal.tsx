@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label'
 import { logger } from '@/lib/utils/logger'
 import { formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
 import { usePhoneVerification } from '@/lib/hooks/usePhoneVerification'
+import { useToast } from '@/app/components/notifications/useToast'
+import { ToastContainer } from '@/app/components/notifications/ToastContainer'
 
 interface EditPhoneModalProps {
   currentPhone: string
@@ -32,6 +34,7 @@ export default function EditPhoneModal({
   const [canResend, setCanResend] = useState(false)
 
   const { sendOTP, verifyOTP, isSending, isVerifying } = usePhoneVerification({ purpose })
+  const { toasts, showSuccess, showError: showToastError, removeToast } = useToast()
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
   const modalRef = useRef<HTMLDivElement>(null)
@@ -189,8 +192,12 @@ export default function EditPhoneModal({
     const verifyResult = await verifyOTP(newPhone, code)
 
     if (verifyResult.success && verifyResult.verified) {
+      // Show success toast
+      showSuccess(`Phone number verified successfully! ${formatPhoneDisplay(newPhone, '94')}`, 3000)
+
       // Success! Call parent callback
       onVerified(newPhone)
+
       // Reset and close
       setStep(1)
       setNewPhone('')
@@ -438,6 +445,9 @@ export default function EditPhoneModal({
           </div>
         )}
       </div>
+
+      {/* Toast notifications */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   )
 }

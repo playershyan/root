@@ -1141,13 +1141,13 @@ const getUploadUserId = (): string => {
   const handlePhoneVerified = (newPhone: string) => {
     setFormData(prev => ({ ...prev, phone: newPhone }))
     setShowEditPhoneModal(false)
-    showSuccess('Phone number verified and updated!', 3000)
+    // Toast is now shown in EditPhoneModal component
   }
 
   const handleWhatsAppVerified = (newWhatsApp: string) => {
     setFormData(prev => ({ ...prev, whatsapp: newWhatsApp }))
     setShowEditWhatsAppModal(false)
-    showSuccess('WhatsApp number verified and updated!', 3000)
+    // Toast is now shown in EditPhoneModal component
   }
   
   const getModelOptions = () => {
