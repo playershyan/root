@@ -114,13 +114,22 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
   const handlePhoneVerified = (newPhone: string) => {
     setFormData(prev => ({ ...prev, phone: newPhone }))
     setShowEditPhoneModal(false)
-    toast.success('Phone number verified and updated!')
+    // Toast is shown by the modal using showSuccess prop
   }
 
   const handleWhatsAppVerified = (newWhatsApp: string) => {
     setFormData(prev => ({ ...prev, whatsapp: newWhatsApp }))
     setShowEditWhatsAppModal(false)
-    toast.success('WhatsApp number verified and updated!')
+    // Toast is shown by the modal using showSuccess prop
+  }
+
+  // Toast helper functions to pass to modals
+  const showSuccess = (message: string, duration: number = 3000) => {
+    toast.success(message, { duration })
+  }
+
+  const showError = (message: string, duration: number = 3000) => {
+    toast.error(message, { duration })
   }
 
   const handleCreateBusinessProfile = async (data: CreateBusinessProfileData) => {
@@ -369,6 +378,8 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
         onVerified={handlePhoneVerified}
         onCancel={() => setShowEditPhoneModal(false)}
         purpose="profile"
+        showSuccessToast={showSuccess}
+        showErrorToast={showError}
       />
 
       {/* Edit WhatsApp Modal */}
@@ -378,6 +389,8 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
         onVerified={handleWhatsAppVerified}
         onCancel={() => setShowEditWhatsAppModal(false)}
         purpose="profile"
+        showSuccessToast={showSuccess}
+        showErrorToast={showError}
       />
     </div>
   )
