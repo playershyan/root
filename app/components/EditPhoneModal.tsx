@@ -40,8 +40,9 @@ export default function EditPhoneModal({
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
   const modalRef = useRef<HTMLDivElement>(null)
   const phoneInputRef = useRef<HTMLInputElement>(null)
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Reset state when modal opens
+  // Reset state when modal opens/closes
   useEffect(() => {
     if (isOpen) {
       setStep(1)
@@ -52,6 +53,12 @@ export default function EditPhoneModal({
       setCanResend(false)
       // Focus phone input
       setTimeout(() => phoneInputRef.current?.focus(), 100)
+    } else {
+      // Clean up timeout when modal closes
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current)
+        closeTimeoutRef.current = null
+      }
     }
   }, [isOpen])
 
@@ -107,6 +114,17 @@ export default function EditPhoneModal({
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [isOpen, onCancel])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current)
+      }
+      // Ensure body overflow is reset
+      document.body.style.overflow = 'unset'
+    }
+  }, [])
 
   const handleSendOTP = async () => {
     if (!newPhone || newPhone.trim() === '') {
@@ -197,7 +215,7 @@ export default function EditPhoneModal({
       setStep(3)
 
       // Auto-close after 2 seconds
-      setTimeout(() => {
+      closeTimeoutRef.current = setTimeout(() => {
         // Show success toast using parent's toast function
         if (showSuccessToast) {
           showSuccessToast(`Phone number verified successfully! ${formatPhoneDisplay(newPhone, '94')}`, 3000)
@@ -206,11 +224,12 @@ export default function EditPhoneModal({
         // Success! Call parent callback
         onVerified(newPhone)
 
-        // Reset and close
+        // Reset state
         setStep(1)
         setNewPhone('')
         setOtp(['', '', '', '', '', ''])
         setError('')
+        closeTimeoutRef.current = null
       }, 2000)
     } else {
       setError(verifyResult.error || 'Invalid OTP code. Please try again.')
