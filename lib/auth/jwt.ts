@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken'
+import { randomUUID } from 'crypto'
 import { logger } from '@/lib/utils/logger'
 
 /**
@@ -143,7 +144,7 @@ export function generateSupabaseTokens(userId: string, userEmail?: string, userP
 }
 
 function generateSessionId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
+  return randomUUID()
 }
 
 function getExpirySeconds(expiresIn: string): number {
