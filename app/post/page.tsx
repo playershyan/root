@@ -118,6 +118,9 @@ export default function EnhancedPostVehiclePage() {
   // Phone verification modals
   const [showEditPhoneModal, setShowEditPhoneModal] = useState(false)
   const [showEditWhatsAppModal, setShowEditWhatsAppModal] = useState(false)
+  const [showVerificationModal, setShowVerificationModal] = useState(false)
+  const [pendingPhone, setPendingPhone] = useState<string>('')
+  const [pendingOtpCode, setPendingOtpCode] = useState<string>('')
 
   // Detect edit mode
   const isEditMode = searchParams.get('edit') !== null
