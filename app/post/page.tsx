@@ -1113,13 +1113,17 @@ const getUploadUserId = (): string => {
         if (formData.phone) {
           setOriginalPhone(formData.phone)
         }
-        // Redirect to paid features page with success message
+        // TEMPORARILY DISABLED - Redirect to paid features page
+        // Redirect to profile instead
         setTimeout(() => {
+          router.push('/profile?new=true')
+          /* ORIGINAL PAID FEATURES REDIRECT (to re-enable later):
           if (result.listing && result.listing.id) {
             router.push(`/post/paid-features?new=true&listing_id=${result.listing.id}`)
           } else {
             router.push('/post/paid-features?new=true')
           }
+          */
         }, 1000)
       }
     } catch (error: any) {

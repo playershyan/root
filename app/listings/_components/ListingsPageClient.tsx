@@ -533,6 +533,7 @@ export default function ListingsPageClient({
                   </div>
                 </div>
 
+                {/* TEMPORARILY DISABLED - Urgent filter
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
@@ -544,6 +545,7 @@ export default function ListingsPageClient({
                     Urgent listings only
                   </label>
                 </div>
+                */}
 
                 <div>
                   <label className="mb-2 block font-semibold text-gray-900">Sort by</label>

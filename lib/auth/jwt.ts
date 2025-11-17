@@ -1,16 +1,21 @@
+/**
+ * JWT Token Generation - DEPRECATED / UNUSED
+ *
+ * This file was previously used to generate custom JWT tokens for phone-based authentication
+ * using text.lk SMS provider. This approach has been deprecated because:
+ *
+ * 1. Custom JWTs cannot reliably create sessions in Supabase's auth.sessions table
+ * 2. Supabase's session system is tightly coupled to native auth providers
+ * 3. Phone OTP is now only used for phone number updates (not authentication)
+ *
+ * Phone authentication will be reimplemented using Supabase native auth providers.
+ *
+ * This file is kept for reference only and should not be imported in active code.
+ */
+
 import jwt from 'jsonwebtoken'
 import { randomUUID } from 'crypto'
 import { logger } from '@/lib/utils/logger'
-
-/**
- * Generates Supabase-compatible JWT tokens for custom auth flows
- *
- * Use this when using custom OTP providers (e.g., text.lk) instead of Supabase's
- * built-in Twilio/MessageBird SMS auth.
- *
- * @param userId - Supabase auth.users.id
- * @param expiresIn - Token expiry time (default: 1 hour for access, 7 days for refresh)
- */
 export function generateSupabaseAccessToken(userId: string, expiresIn: string = '1h'): string {
   const JWT_SECRET = process.env.SUPABASE_JWT_SECRET
 

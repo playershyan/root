@@ -41,11 +41,13 @@ export default function Footer() {
                     AI features
                   </Link>
                 </li>
+                {/* TEMPORARILY DISABLED - Promote ad link
                 <li>
                   <Link href="/post/paid-features" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
                     Promote ad
                   </Link>
                 </li>
+                */}
                 <li>
                   <Link href="/membership" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
                     Membership

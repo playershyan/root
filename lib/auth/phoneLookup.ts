@@ -1,3 +1,16 @@
+/**
+ * Phone Lookup Helper - DEPRECATED / UNUSED
+ *
+ * This file was previously used to lookup users by phone number during login flow.
+ * It has been deprecated because:
+ *
+ * 1. Phone OTP is now only used for phone number updates (not authentication)
+ * 2. Authentication flows have been disabled and will be reimplemented using Supabase native providers
+ * 3. Login no longer requires phone-based user lookup
+ *
+ * This file is kept for reference only and should not be imported in active code.
+ */
+
 import { SupabaseClient } from '@supabase/supabase-js'
 import { normalizeSriLankaPhone } from '@/lib/utils/phoneFormatter'
 import { logger } from '@/lib/utils/logger'
@@ -6,14 +19,6 @@ interface UserLookupResult {
   user: any | null
   error?: string
 }
-
-/**
- * Helper to find a Supabase auth user by phone number using the admin client.
- *
- * - Normalizes the input phone to canonical format (94XXXXXXXXX)
- * - Searches for canonical format since Supabase Admin API strips + prefix
- * - NOTE: Supabase stores phone as 94XXXXXXXXX, NOT +94XXXXXXXXX (API strips +)
- */
 export async function findUserByPhone(
   adminClient: SupabaseClient,
   phoneNumber: string

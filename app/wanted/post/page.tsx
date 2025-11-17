@@ -469,6 +469,11 @@ export default function PostWantedPage() {
   const highPriorityPaymentUrl = process.env.NEXT_PUBLIC_WANTED_PAYMENT_URL
 
   const handlePostCreationRedirect = (requestId?: string) => {
+    // TEMPORARILY DISABLED - High priority payment redirect
+    // Always redirect to success page instead
+    router.push('/wanted?posted=success')
+
+    /* ORIGINAL HIGH PRIORITY REDIRECT (to re-enable later):
     if (highPriority && requestId) {
       if (highPriorityPaymentUrl) {
         const separator = highPriorityPaymentUrl.includes('?') ? '&' : '?'
@@ -485,6 +490,7 @@ export default function PostWantedPage() {
     } else {
       router.push('/wanted?posted=success')
     }
+    */
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -1228,7 +1234,7 @@ export default function PostWantedPage() {
                   </p>
                 </div>
 
-                {/* High Priority Checkbox - Only show in create mode */}
+                {/* TEMPORARILY DISABLED - High Priority Checkbox
                 {!isEditMode && (
                   <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-200 rounded-lg p-4">
                     <label className="flex items-start gap-3 cursor-pointer">
@@ -1254,6 +1260,7 @@ export default function PostWantedPage() {
                     </label>
                   </div>
                 )}
+                */}
 
                 <div className="flex justify-between">
                   <button

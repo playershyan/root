@@ -43,7 +43,7 @@ export const authConfig: AuthConfig = {
     enabled: true, // TEMPORARILY DISABLED
   },
   phone: {
-    enabled: true,
+    enabled: false, // DISABLED - Phone OTP only used for phone number updates, not authentication
   },
   redirectUrls: {
     afterLogin: '/profile',

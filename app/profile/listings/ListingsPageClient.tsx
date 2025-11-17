@@ -378,6 +378,7 @@ export default function ListingsPageClient({
                           <td className="px-4 py-4 text-sm text-gray-600">{formatListingDate(listing.created_at)}</td>
                           <td className="px-4 py-4">
                             <div className="flex items-center gap-2">
+                              {/* TEMPORARILY DISABLED - Boost button
                               {listing.status === 'active' && (
                                 <Button
                                   asChild
@@ -394,6 +395,7 @@ export default function ListingsPageClient({
                                   </Link>
                                 </Button>
                               )}
+                              */}
 
                               {listing.status !== 'sold' && listing.status !== 'deleted' && (
                                 <ListingActions
@@ -485,6 +487,7 @@ export default function ListingsPageClient({
                                 </div>
                               )}
 
+                              {/* TEMPORARILY DISABLED - Mobile Boost button
                               {listing.status === 'active' && (
                                 <Button
                                   asChild
@@ -500,6 +503,7 @@ export default function ListingsPageClient({
                                   </Link>
                                 </Button>
                               )}
+                              */}
                             </div>
                           </div>
                         </div>
