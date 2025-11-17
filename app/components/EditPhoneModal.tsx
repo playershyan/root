@@ -8,8 +8,6 @@ import { Label } from '@/components/ui/label'
 import { logger } from '@/lib/utils/logger'
 import { formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
 import { usePhoneVerification } from '@/lib/hooks/usePhoneVerification'
-import { useToast } from '@/app/components/notifications/useToast'
-import { ToastContainer } from '@/app/components/notifications/ToastContainer'
 
 interface EditPhoneModalProps {
   currentPhone: string
@@ -17,6 +15,8 @@ interface EditPhoneModalProps {
   onVerified: (newPhone: string) => void
   onCancel: () => void
   purpose: 'profile' | 'listing' | 'wanted'
+  showSuccessToast?: (message: string, duration?: number) => void
+  showErrorToast?: (message: string, duration?: number) => void
 }
 
 export default function EditPhoneModal({
@@ -24,9 +24,11 @@ export default function EditPhoneModal({
   isOpen,
   onVerified,
   onCancel,
-  purpose
+  purpose,
+  showSuccessToast,
+  showErrorToast
 }: EditPhoneModalProps) {
-  const [step, setStep] = useState<1 | 2>(1)
+  const [step, setStep] = useState<1 | 2 | 3>(1)
   const [newPhone, setNewPhone] = useState('')
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [error, setError] = useState('')
@@ -34,7 +36,6 @@ export default function EditPhoneModal({
   const [canResend, setCanResend] = useState(false)
 
   const { sendOTP, verifyOTP, isSending, isVerifying } = usePhoneVerification({ purpose })
-  const { toasts, showSuccess, showError: showToastError, removeToast } = useToast()
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
   const modalRef = useRef<HTMLDivElement>(null)
@@ -192,17 +193,25 @@ export default function EditPhoneModal({
     const verifyResult = await verifyOTP(newPhone, code)
 
     if (verifyResult.success && verifyResult.verified) {
-      // Show success toast
-      showSuccess(`Phone number verified successfully! ${formatPhoneDisplay(newPhone, '94')}`, 3000)
+      // Show success screen inside modal
+      setStep(3)
 
-      // Success! Call parent callback
-      onVerified(newPhone)
+      // Auto-close after 2 seconds
+      setTimeout(() => {
+        // Show success toast using parent's toast function
+        if (showSuccessToast) {
+          showSuccessToast(`Phone number verified successfully! ${formatPhoneDisplay(newPhone, '94')}`, 3000)
+        }
 
-      // Reset and close
-      setStep(1)
-      setNewPhone('')
-      setOtp(['', '', '', '', '', ''])
-      setError('')
+        // Success! Call parent callback
+        onVerified(newPhone)
+
+        // Reset and close
+        setStep(1)
+        setNewPhone('')
+        setOtp(['', '', '', '', '', ''])
+        setError('')
+      }, 2000)
     } else {
       setError(verifyResult.error || 'Invalid OTP code. Please try again.')
       // Clear OTP on error
@@ -264,29 +273,33 @@ export default function EditPhoneModal({
         className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close button */}
-        <button
-          onClick={onCancel}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-          disabled={isSending || isVerifying}
-        >
-          <X size={24} />
-        </button>
+        {/* Close button - hide on success step */}
+        {step !== 3 && (
+          <button
+            onClick={onCancel}
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+            disabled={isSending || isVerifying}
+          >
+            <X size={24} />
+          </button>
+        )}
 
-        {/* Header */}
-        <div className="text-center mb-6">
-          <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-            <Phone className="w-6 h-6 text-blue-600" />
+        {/* Header - hide on success step */}
+        {step !== 3 && (
+          <div className="text-center mb-6">
+            <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+              <Phone className="w-6 h-6 text-blue-600" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              {step === 1 ? 'Edit Phone Number' : 'Verify Phone Number'}
+            </h3>
+            {currentPhone && (
+              <p className="text-sm text-gray-600">
+                Current: <span className="font-medium">{formatPhoneDisplay(currentPhone, '94')}</span>
+              </p>
+            )}
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            {step === 1 ? 'Edit Phone Number' : 'Verify Phone Number'}
-          </h3>
-          {currentPhone && (
-            <p className="text-sm text-gray-600">
-              Current: <span className="font-medium">{formatPhoneDisplay(currentPhone, '94')}</span>
-            </p>
-          )}
-        </div>
+        )}
 
         {/* Error message */}
         {error && (
@@ -444,10 +457,35 @@ export default function EditPhoneModal({
             </div>
           </div>
         )}
-      </div>
 
-      {/* Toast notifications */}
-      <ToastContainer toasts={toasts} onClose={removeToast} />
+        {/* Step 3: Success */}
+        {step === 3 && (
+          <div className="space-y-6 text-center py-4">
+            {/* Success Icon */}
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+              <CheckCircle2 className="w-10 h-10 text-green-600" />
+            </div>
+
+            {/* Success Message */}
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Verification Successful!
+              </h3>
+              <p className="text-gray-600">
+                Your phone number has been verified
+              </p>
+              <p className="text-lg font-medium text-green-600 mt-2">
+                {formatPhoneDisplay(newPhone, '94')}
+              </p>
+            </div>
+
+            {/* Auto-close message */}
+            <p className="text-sm text-gray-500">
+              Closing automatically...
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
