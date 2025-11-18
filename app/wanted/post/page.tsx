@@ -21,7 +21,8 @@ import { useToast } from '@/app/components/notifications/useToast'
 import { toast } from 'sonner'
 import { Toast } from '@/app/components/notifications/Toast'
 import { logger } from '@/lib/utils/logger'
-import { Lightbulb, Edit } from 'lucide-react'
+import { formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
+import { Edit } from 'lucide-react'
 import EditPhoneModal from '@/app/components/EditPhoneModal'
 
 interface FormData {
@@ -665,9 +666,6 @@ export default function PostWantedPage() {
           <h1 className="text-3xl font-bold text-gray-900">
             {isEditMode ? 'Edit Wanted Request' : 'Post a Wanted Request'}
           </h1>
-          <p className="text-gray-600 mt-2">
-            {isEditMode ? 'Update your vehicle requirements' : 'Let sellers know what vehicle you\'re looking for'}
-          </p>
         </div>
 
         {/* Progress Steps */}
@@ -689,22 +687,6 @@ export default function PostWantedPage() {
                 2
               </div>
               <span className="ml-3 font-medium">Contact Info</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Info Box */}
-        <div className="bg-blue-50 border-b lg:border border-blue-200 lg:rounded-lg p-4 mb-4 lg:mb-8 -mx-4 lg:mx-0">
-          <div className="flex items-start gap-3">
-            <Lightbulb className="text-blue-600" size={20} />
-            <div>
-              <p className="text-blue-900 font-semibold mb-1">How it works:</p>
-              <ul className="text-blue-800 text-sm space-y-1">
-                <li>• Post your requirements and budget</li>
-                <li>• We'll notify thousands of sellers with matching vehicles</li>
-                <li>• Sellers will contact you directly</li>
-                <li>• Compare offers and choose the best deal</li>
-              </ul>
             </div>
           </div>
         </div>
@@ -1135,7 +1117,7 @@ export default function PostWantedPage() {
                   <label className="block text-sm font-medium text-gray-700">
                     Phone Number <span className="text-red-500">*</span>
                   </label>
-                  <p className="text-gray-900 mt-1">{formData.phone ? `+94 ${formData.phone}` : 'Not set'}</p>
+                  <p className="text-gray-900 mt-1">{formData.phone ? formatPhoneDisplay(formData.phone, '94') : 'Not set'}</p>
                   {errors.phone && <p className="text-red-600 text-sm mt-1">{errors.phone}</p>}
                 </div>
                 <button
@@ -1169,7 +1151,7 @@ export default function PostWantedPage() {
                     <span className="text-sm text-gray-600">Same as phone number</span>
                   </label>
                   {!formData.whatsappSameAsPhone && (
-                    <p className="text-gray-900">{formData.whatsapp ? `+94 ${formData.whatsapp}` : 'Not set'}</p>
+                    <p className="text-gray-900">{formData.whatsapp ? formatPhoneDisplay(formData.whatsapp, '94') : 'Not set'}</p>
                   )}
                   {errors.whatsapp && <p className="text-red-600 text-sm mt-1">{errors.whatsapp}</p>}
                 </div>

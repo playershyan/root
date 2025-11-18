@@ -207,20 +207,8 @@ export default function EditPhoneModal({
       return
     }
 
-    console.log('[EditPhoneModal] Verifying OTP', {
-      phone: newPhone,
-      otpCode: code,
-      purpose
-    })
-
     setError('')
     const verifyResult = await verifyOTP(newPhone, code)
-
-    console.log('[EditPhoneModal] Verify OTP result', {
-      success: verifyResult.success,
-      verified: verifyResult.verified,
-      error: verifyResult.error || 'NONE'
-    })
 
     if (verifyResult.success && verifyResult.verified) {
       // Show success screen inside modal
@@ -232,12 +220,6 @@ export default function EditPhoneModal({
         if (showSuccessToast) {
           showSuccessToast(`Phone number verified successfully! ${formatPhoneDisplay(newPhone, '94')}`, 3000)
         }
-
-        console.log('[EditPhoneModal] Calling parent onVerified', {
-          phone: newPhone,
-          otpCode: code,
-          purpose
-        })
 
         // Success! Call parent callback with phone AND OTP code for API submission
         onVerified(newPhone, code)

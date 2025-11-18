@@ -1738,7 +1738,7 @@ const getUploadUserId = (): string => {
                 <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-gray-50">
                   <div className="flex-1">
                     <Label className="text-sm font-medium text-gray-700">Phone Number <span className="text-red-500">*</span></Label>
-                    <p className="text-gray-900 mt-1">{formData.phone ? `+94 ${formData.phone}` : 'Not set'}</p>
+                    <p className="text-gray-900 mt-1">{formData.phone ? formatPhoneDisplay(formData.phone, '94') : 'Not set'}</p>
                     {errors.phone && <p className="text-red-600 text-sm mt-1">{errors.phone}</p>}
                   </div>
                   <Button
@@ -1773,7 +1773,7 @@ const getUploadUserId = (): string => {
                       <span className="text-sm text-gray-600">Same as phone number</span>
                     </label>
                     {!formData.whatsappSameAsPhone && (
-                      <p className="text-gray-900">{formData.whatsapp ? `+94 ${formData.whatsapp}` : 'Not set'}</p>
+                      <p className="text-gray-900">{formData.whatsapp ? formatPhoneDisplay(formData.whatsapp, '94') : 'Not set'}</p>
                     )}
                     {errors.whatsapp && <p className="text-red-600 text-sm mt-1">{errors.whatsapp}</p>}
                   </div>
