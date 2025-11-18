@@ -79,9 +79,13 @@ export default function EditPhoneModal({
     return () => clearInterval(interval)
   }, [isOpen, step, timer])
 
-  // Close modal on escape key
+  // Close modal on escape key and manage body overflow
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen) {
+      // Ensure body overflow is restored when modal is closed
+      document.body.style.overflow = ''
+      return
+    }
 
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -94,7 +98,7 @@ export default function EditPhoneModal({
 
     return () => {
       document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'unset'
+      document.body.style.overflow = ''
     }
   }, [isOpen, onCancel])
 
@@ -115,14 +119,15 @@ export default function EditPhoneModal({
     }
   }, [isOpen, onCancel])
 
-  // Cleanup on unmount
+  // Cleanup on unmount - ensure body overflow is always restored
   useEffect(() => {
     return () => {
       if (closeTimeoutRef.current) {
         clearTimeout(closeTimeoutRef.current)
+        closeTimeoutRef.current = null
       }
-      // Ensure body overflow is reset
-      document.body.style.overflow = 'unset'
+      // Ensure body overflow is reset to default (empty string instead of 'unset')
+      document.body.style.overflow = ''
     }
   }, [])
 
