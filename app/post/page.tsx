@@ -733,6 +733,12 @@ const getUploadUserId = (): string => {
 
           setFormData(prev => {
             if (!prev.images.includes(file)) {
+              // File was removed during upload - delete from Cloudinary immediately
+              fetch(`/api/upload/cloudinary?publicId=${encodeURIComponent(uploadedImage.publicId)}`, {
+                method: 'DELETE'
+              }).catch(err => {
+                logger.error('Failed to delete orphaned image from Cloudinary', err as Error)
+              })
               return prev
             }
             return {
