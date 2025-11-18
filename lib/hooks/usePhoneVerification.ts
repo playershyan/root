@@ -111,7 +111,8 @@ export function usePhoneVerification(options: UsePhoneVerificationOptions = {}):
         body: JSON.stringify({
           phoneNumber: formattedPhone,
           otpCode: otpCode,
-          flow: 'phone_update'
+          flow: 'phone_update',
+          purpose // Pass purpose to API so it knows whether to mark as verified
         })
       })
 

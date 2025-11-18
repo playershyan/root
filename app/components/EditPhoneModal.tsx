@@ -12,7 +12,7 @@ import { usePhoneVerification } from '@/lib/hooks/usePhoneVerification'
 interface EditPhoneModalProps {
   currentPhone: string
   isOpen: boolean
-  onVerified: (newPhone: string) => void
+  onVerified: (newPhone: string, otpCode?: string) => void
   onCancel: () => void
   purpose: 'profile' | 'listing' | 'wanted'
   showSuccessToast?: (message: string, duration?: number) => void
@@ -221,8 +221,8 @@ export default function EditPhoneModal({
           showSuccessToast(`Phone number verified successfully! ${formatPhoneDisplay(newPhone, '94')}`, 3000)
         }
 
-        // Success! Call parent callback
-        onVerified(newPhone)
+        // Success! Call parent callback with phone AND OTP code for API submission
+        onVerified(newPhone, code)
 
         // Reset state
         setStep(1)

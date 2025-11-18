@@ -19,7 +19,7 @@ import { normalizeSriLankaPhone, isValidSriLankanPhone } from '@/lib/utils/phone
 
 export async function POST(request: NextRequest) {
   try {
-    const { phoneNumber, otpCode } = await request.json()
+    const { phoneNumber, otpCode, purpose } = await request.json()
 
     if (!phoneNumber || !otpCode) {
       return NextResponse.json({
@@ -132,14 +132,23 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Increment attempt counter and mark OTP as verified
+    // Increment attempt counter
+    // For listing/wanted flows: do NOT mark as verified (API will verify it)
+    // For profile flows: mark as verified immediately
+    const shouldMarkVerified = purpose === 'profile'
+
+    const updatePayload: any = {
+      attempts: (otpRecord.attempts || 0) + 1
+    }
+
+    if (shouldMarkVerified) {
+      updatePayload.verified = true
+      updatePayload.verified_at = new Date().toISOString()
+    }
+
     const { error: updateError } = await adminClient
       .from('phone_verifications')
-      .update({
-        attempts: (otpRecord.attempts || 0) + 1,
-        verified: true,
-        verified_at: new Date().toISOString()
-      })
+      .update(updatePayload)
       .eq('id', otpRecord.id)
 
     if (updateError) {

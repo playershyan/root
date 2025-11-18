@@ -1276,14 +1276,18 @@ const getUploadUserId = (): string => {
     }
   }
 
-  const handlePhoneVerified = (newPhone: string) => {
+  const handlePhoneVerified = (newPhone: string, otpCode?: string) => {
     setFormData(prev => ({ ...prev, phone: newPhone }))
+    if (otpCode) {
+      setPendingOtpCode(otpCode)
+    }
     setShowEditPhoneModal(false)
     // Toast is now shown in EditPhoneModal component
   }
 
-  const handleWhatsAppVerified = (newWhatsApp: string) => {
+  const handleWhatsAppVerified = (newWhatsApp: string, otpCode?: string) => {
     setFormData(prev => ({ ...prev, whatsapp: newWhatsApp }))
+    // WhatsApp doesn't require OTP for API submission, only phone does
     setShowEditWhatsAppModal(false)
     // Toast is now shown in EditPhoneModal component
   }
