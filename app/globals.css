@@ -418,6 +418,17 @@
   animation: subtleShimmer 10s ease-in-out infinite;
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes subtleShimmer {
   0%,
   100% {

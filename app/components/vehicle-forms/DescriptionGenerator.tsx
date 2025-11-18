@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle, useCallback } from 'react'
-import { Sparkles, FileText, ChevronDown, Edit, X, Check } from 'lucide-react'
+import { Sparkles, FileText, ChevronDown, Edit, X, Check, Wand2, Sparkles as SparklesIcon } from 'lucide-react'
 
 interface DescriptionGeneratorProps {
   formData: any
@@ -130,11 +130,12 @@ const DescriptionGenerator = forwardRef<DescriptionGeneratorRef, DescriptionGene
             {!isExpanded && (
               <button
                 type="button"
-                onClick={() => setIsExpanded(true)}
+                onClick={handleGenerate}
+                disabled={aiLoading}
                 className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all flex items-center gap-2"
               >
                 <Sparkles className="w-4 h-4" />
-                Write/Generate
+                {aiLoading ? 'Generating...' : 'Write/Generate'}
               </button>
             )}
           </div>
@@ -148,114 +149,119 @@ const DescriptionGenerator = forwardRef<DescriptionGeneratorRef, DescriptionGene
           }`}
         >
           <div className="px-4 pb-4 space-y-4">
-            {/* Generate Button (when expanded and no description yet) */}
-            {!formData.description && (
-              <div className="flex justify-start">
-                <button
-                  type="button"
-                  onClick={handleGenerate}
-                  disabled={aiLoading}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  {aiLoading ? 'Generating...' : 'Generate Description'}
-                </button>
+            {/* Loading state when generating */}
+            {isGenerating && !formData.description && (
+              <div className="flex items-center gap-2 text-blue-600">
+                <Sparkles className="w-4 h-4 animate-pulse" />
+                <span className="text-sm">Generating description...</span>
               </div>
             )}
 
             {/* Preview Mode */}
             {formData.description && !isEditMode && (
-              <div className="relative">
-                <div className="p-4 bg-gray-50 rounded-lg border">
-                  {/* Edit Button in top right */}
-                  <div className="flex justify-end mb-3">
+              <div className="relative opacity-0 animate-[fadeIn_0.5s_ease-out_forwards]">
+                {/* Premium Card with Gradient Border */}
+                <div className="relative p-6 bg-gradient-to-br from-white via-blue-50/30 to-purple-50/20 rounded-xl border-2 border-blue-200/50 shadow-lg shadow-blue-100/50 hover:shadow-xl hover:shadow-blue-200/50 transition-all duration-300">
+                  {/* Gradient Border Effect on Hover */}
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/10 via-purple-400/10 to-pink-400/10 opacity-0 hover:opacity-100 transition-opacity duration-300 -z-10 blur-xl"></div>
+                  
+                  {/* Header with AI Badge and Edit Button */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-semibold rounded-full shadow-md">
+                        <SparklesIcon className="w-3 h-3" />
+                        <span>AI Generated</span>
+                      </div>
+                    </div>
                     <button
                       type="button"
                       onClick={handleEdit}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg hover:bg-white hover:shadow-md transition-all duration-200"
                     >
                       <Edit className="w-4 h-4" />
                       Edit
                     </button>
                   </div>
 
-                  {/* Preview Content */}
-                  <div className="text-sm text-gray-800">
-                    {formData.description.split('\n').map((line, index, lines) => {
-                      const trimmedLine = line.trim()
-                      const prevLine = index > 0 ? lines[index - 1].trim() : ''
-                      
-                      // Find the next non-empty line
-                      let nextNonEmptyLine = ''
-                      for (let i = index + 1; i < lines.length; i++) {
-                        if (lines[i].trim() !== '') {
-                          nextNonEmptyLine = lines[i].trim()
-                          break
+                  {/* Preview Content with Enhanced Typography */}
+                  <div className="relative">
+                    <div className="text-base text-gray-800 leading-relaxed space-y-2.5">
+                      {formData.description.split('\n').map((line, index, lines) => {
+                        const trimmedLine = line.trim()
+                        const prevLine = index > 0 ? lines[index - 1].trim() : ''
+                        
+                        // Find the next non-empty line
+                        let nextNonEmptyLine = ''
+                        for (let i = index + 1; i < lines.length; i++) {
+                          if (lines[i].trim() !== '') {
+                            nextNonEmptyLine = lines[i].trim()
+                            break
+                          }
                         }
-                      }
-                      
-                      // Detect section separator: empty line that comes after a non-empty line
-                      // and before another non-empty line (handles consecutive empty lines)
-                      const isSectionSeparator = trimmedLine === '' && prevLine !== '' && nextNonEmptyLine !== ''
-                      const isAfterSeparator = index > 0 && prevLine === '' && lines[index - 1].trim() === ''
+                        
+                        // Detect section separator: empty line that comes after a non-empty line
+                        // and before another non-empty line (handles consecutive empty lines)
+                        const isSectionSeparator = trimmedLine === '' && prevLine !== '' && nextNonEmptyLine !== ''
+                        const isAfterSeparator = index > 0 && prevLine === '' && lines[index - 1].trim() === ''
 
-                      // Render section separator as a visual divider (only once per separator group)
-                      if (isSectionSeparator && prevLine !== '') {
+                        // Render section separator as a visual divider (only once per separator group)
+                        if (isSectionSeparator && prevLine !== '') {
+                          return (
+                            <div key={index} className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent my-3"></div>
+                          )
+                        }
+
+                        // Skip rendering empty lines
+                        if (trimmedLine === '') {
+                          return null
+                        }
+
+                        // First line (title) - make it bold if it doesn't contain a colon
+                        if (index === 0 && !trimmedLine.includes(':')) {
+                          return (
+                            <div key={index} className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent mb-3">
+                              {trimmedLine}
+                            </div>
+                          )
+                        }
+
+                        // Lines with "Field: Value" format - make field name bold
+                        if (trimmedLine.includes(':')) {
+                          const colonIndex = trimmedLine.indexOf(':')
+                          const fieldName = trimmedLine.substring(0, colonIndex)
+                          const fieldValue = trimmedLine.substring(colonIndex + 1).trim()
+
+                          return (
+                            <div key={index} className={`flex items-start gap-2 ${isAfterSeparator ? 'mt-0' : 'mt-1'}`}>
+                              <span className="font-semibold text-gray-900 min-w-fit">{fieldName}:</span>
+                              {fieldValue && <span className="text-gray-700 flex-1">{fieldValue}</span>}
+                            </div>
+                          )
+                        }
+
+                        // Regular lines
                         return (
-                          <div key={index} className="h-4 border-b border-gray-300 my-4"></div>
-                        )
-                      }
-
-                      // Skip rendering empty lines
-                      if (trimmedLine === '') {
-                        return null
-                      }
-
-                      // First line (title) - make it bold if it doesn't contain a colon
-                      if (index === 0 && !trimmedLine.includes(':')) {
-                        return (
-                          <div key={index} className="font-bold text-gray-900 text-base mb-1">
+                          <div key={index} className={isAfterSeparator ? 'mt-0' : 'mt-1'}>
                             {trimmedLine}
                           </div>
                         )
-                      }
-
-                      // Lines with "Field: Value" format - make field name bold
-                      if (trimmedLine.includes(':')) {
-                        const colonIndex = trimmedLine.indexOf(':')
-                        const fieldName = trimmedLine.substring(0, colonIndex)
-                        const fieldValue = trimmedLine.substring(colonIndex + 1).trim()
-
-                        return (
-                          <div key={index} className={isAfterSeparator ? 'mt-0' : ''}>
-                            <strong className="font-semibold text-gray-900">{fieldName}:</strong>
-                            {fieldValue && <span> {fieldValue}</span>}
-                          </div>
-                        )
-                      }
-
-                      // Regular lines
-                      return (
-                        <div key={index} className={isAfterSeparator ? 'mt-0' : ''}>
-                          {trimmedLine}
-                        </div>
-                      )
-                    })}
+                      })}
+                    </div>
                   </div>
                 </div>
 
-                {/* Character count and status */}
-                <div className="flex justify-between mt-2">
-                  <span className="text-sm text-gray-500">
+                {/* Enhanced Footer with Status */}
+                <div className="flex items-center justify-between mt-4 px-1">
+                  <span className="text-xs text-gray-500 font-medium">
                     {formData.description.length} characters
                   </span>
                   {!isGenerating && (
-                    <span className="text-sm text-green-600 flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 border border-green-200 text-green-700 rounded-full text-xs font-semibold">
+                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      Good description
-                    </span>
+                      <span>Ready to publish</span>
+                    </div>
                   )}
                 </div>
               </div>
