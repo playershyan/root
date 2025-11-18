@@ -1266,7 +1266,8 @@ export default function PostWantedPage() {
                   <button
                     type="button"
                     onClick={handleBack}
-                    className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
+                    disabled={loading}
+                    className="px-6 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed"
                   >
                     ← Back
                   </button>
