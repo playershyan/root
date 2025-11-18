@@ -825,6 +825,23 @@ const getUploadUserId = (): string => {
       if (fileToRemove instanceof File) {
         const uploadId = uploadIdMapRef.current.get(fileToRemove)
         if (uploadId) {
+          // Cancel the ongoing upload
+          const abortController = abortControllersRef.current.get(uploadId)
+          if (abortController) {
+            abortController.abort()
+            abortControllersRef.current.delete(uploadId)
+          }
+
+          // Check if upload was in progress and decrement counter
+          const uploadInfo = uploadStatus[uploadId]
+          if (uploadInfo && ['pending', 'compressing', 'uploading'].includes(uploadInfo.status)) {
+            activeUploadsRef.current = Math.max(0, activeUploadsRef.current - 1)
+            if (activeUploadsRef.current === 0) {
+              setImagesUploading(false)
+            }
+          }
+
+          // Clean up upload status and mapping
           setUploadStatus(prev => {
             const next = { ...prev }
             delete next[uploadId]
