@@ -73,12 +73,16 @@ function parseInteger(value: number | string | undefined | null): number | null 
 
 /**
  * Validate Sri Lankan phone number format
- * Accepts: 0XXXXXXXXX (10 digits) or XXXXXXXXX (9 digits without leading 0)
+ * Accepts: 0XXXXXXXXX (10 digits), XXXXXXXXX (9 digits without leading 0), or 94XXXXXXXXX (11 digits normalized)
  */
 function isValidPhone(phone: string): boolean {
   if (!phone) return false
-  // Remove any whitespace and country code prefix
-  const cleaned = phone.replace(/^\+94\s?/, '').replace(/\s+/g, '')
+  // Remove any whitespace and country code prefix (+94 or 94)
+  let cleaned = phone.replace(/^\+94\s?/, '').replace(/\s+/g, '')
+  // Also handle normalized format (94XXXXXXXXX without +)
+  if (cleaned.startsWith('94') && cleaned.length === 11) {
+    cleaned = cleaned.substring(2) // Remove '94' prefix, leaving 9 digits
+  }
   // Sri Lankan phone numbers: exactly 10 digits starting with 0, or 9 digits without 0
   return /^0\d{9}$/.test(cleaned) || /^\d{9}$/.test(cleaned)
 }
@@ -228,7 +232,7 @@ export function sanitizeWantedRequest(input: WantedRequestInput): WantedRequestI
 
 /**
  * Format phone number to Sri Lankan international format
- * Input: 0XXXXXXXXX or XXXXXXXXX
+ * Input: 0XXXXXXXXX, XXXXXXXXX, or 94XXXXXXXXX (normalized)
  * Output: +94 XX XXX XXXX
  */
 export function formatPhoneNumber(phone: string, countryCode: string = '94'): string {
@@ -239,9 +243,13 @@ export function formatPhoneNumber(phone: string, countryCode: string = '94'): st
 
   let formattedPhone = cleanPhone
 
-  // Remove leading 0 if present
-  if (formattedPhone.startsWith('0')) {
-    formattedPhone = formattedPhone.substring(1)
+  // Handle normalized format (94XXXXXXXXX - 11 digits)
+  if (formattedPhone.startsWith('94') && formattedPhone.length === 11) {
+    formattedPhone = formattedPhone.substring(2) // Remove '94' prefix, leaving 9 digits
+  }
+  // Remove leading 0 if present (0XXXXXXXXX - 10 digits)
+  else if (formattedPhone.startsWith('0')) {
+    formattedPhone = formattedPhone.substring(1) // Remove '0' prefix, leaving 9 digits
   }
 
   // Format as +94 XX XXX XXXX
