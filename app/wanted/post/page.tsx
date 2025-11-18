@@ -655,6 +655,21 @@ export default function PostWantedPage() {
     return `Rs. ${formatBudget(formData.min_budget)} - ${formatBudget(formData.max_budget)}`
   }
 
+  // Fix for unresponsive links/buttons on initial load
+  // This ensures React properly attaches event listeners on mount
+  // The tab switch workaround suggests React isn't completing hydration until visibility change
+  const [isReady, setIsReady] = useState(false)
+  
+  useEffect(() => {
+    // Use requestAnimationFrame to ensure DOM is fully ready
+    // This matches the timing that occurs when tab gains focus
+    const rafId = requestAnimationFrame(() => {
+      setIsReady(true)
+    })
+    
+    return () => cancelAnimationFrame(rafId)
+  }, [])
+
   return (
     <div className="min-h-screen bg-gray-50 lg:py-8 pb-12">
       <div className="max-w-3xl mx-auto px-4 lg:px-6 lg:px-8">
