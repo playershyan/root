@@ -9,7 +9,8 @@ import {
   Car, Camera, MapPin, Phone, CreditCard, CheckCircle,
   AlertCircle, Upload, X, Sparkles, ChevronRight,
   FileText, User, Image as ImageIcon, Star, Edit,
-  Bus, Truck, Bike, Wrench, Tractor, Ship, ChevronDown, ChevronUp, Package
+  Bus, Truck, Bike, Wrench, Tractor, Ship, ChevronDown, ChevronUp, Package,
+  Loader2, CheckCircle2, XCircle
 } from 'lucide-react'
 import { formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
 import {
@@ -1480,6 +1481,52 @@ const getUploadUserId = (): string => {
                           {errors.images && <p className="text-red-600 text-sm mt-1">{errors.images}</p>}
                         </div>
 
+                        {/* Upload Summary Message */}
+                        {imagePreviews.length > 0 && (() => {
+                          const uploadingCount = Object.values(uploadStatus).filter(s =>
+                            ['compressing', 'uploading'].includes(s.status)
+                          ).length
+                          const errorCount = Object.values(uploadStatus).filter(s => s.status === 'error').length
+                          const uploadedCount = formData.imageUrls.length
+                          const totalCount = imagePreviews.length
+
+                          return uploadingCount > 0 || errorCount > 0 ? (
+                            <div className={`mb-4 p-3 rounded-lg border ${
+                              errorCount > 0
+                                ? 'bg-red-50 border-red-200'
+                                : 'bg-blue-50 border-blue-200'
+                            }`}>
+                              <div className="flex items-center gap-2 text-sm">
+                                {uploadingCount > 0 && (
+                                  <>
+                                    <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+                                    <span className="text-blue-900 font-medium">
+                                      Uploading {uploadingCount} of {totalCount} images...
+                                    </span>
+                                  </>
+                                )}
+                                {uploadingCount === 0 && errorCount > 0 && (
+                                  <>
+                                    <AlertCircle className="w-4 h-4 text-red-600" />
+                                    <span className="text-red-900 font-medium">
+                                      {uploadedCount} uploaded, {errorCount} failed
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          ) : uploadedCount === totalCount && totalCount > 0 ? (
+                            <div className="mb-4 p-3 rounded-lg border bg-green-50 border-green-200">
+                              <div className="flex items-center gap-2 text-sm">
+                                <CheckCircle2 className="w-4 h-4 text-green-600" />
+                                <span className="text-green-900 font-medium">
+                                  All images uploaded successfully ✓
+                                </span>
+                              </div>
+                            </div>
+                          ) : null
+                        })()}
+
                         {/* Image Preview Grid */}
                         {imagePreviews.length > 0 && (
                           <div className="mt-4 grid grid-cols-3 md:grid-cols-5 gap-4">
@@ -1492,46 +1539,89 @@ const getUploadUserId = (): string => {
                                   ? `${preview.file.name}-${preview.file.lastModified}-${index}`
                                   : `${preview.url}-${index}`
 
+                              // Determine state for visual styling
+                              const isUploaded = preview.type === 'remote'
+                              const isUploading = uploadInfo?.status === 'uploading'
+                              const isCompressing = uploadInfo?.status === 'compressing'
+                              const isError = uploadInfo?.status === 'error'
+                              const progress = uploadInfo?.progress || 0
+
+                              // Border color based on state
+                              let borderColor = 'border-gray-200'
+                              if (isUploaded) borderColor = 'border-green-500'
+                              else if (isUploading) borderColor = 'border-blue-500 animate-pulse'
+                              else if (isCompressing) borderColor = 'border-yellow-500'
+                              else if (isError) borderColor = 'border-red-500'
+
                               return (
-                                <div key={previewKey} className="relative group overflow-hidden rounded-lg border border-gray-200">
+                                <div key={previewKey} className={`relative group overflow-hidden rounded-lg border-2 ${borderColor}`}>
                                   <img
                                     src={preview.url}
                                     alt={`Preview ${index + 1}`}
                                     className="w-full h-24 object-cover"
                                   />
-                                  {index === 0 && (
-                                    <span className="absolute top-1 left-1 bg-gray-900 text-white text-xs px-2 py-1 rounded">
-                                      Main
-                                    </span>
+
+                                  {/* Corner Badge */}
+                                  <div className="absolute top-1 left-1">
+                                    {index === 0 && (
+                                      <span className="bg-gray-900 text-white text-xs px-2 py-1 rounded">
+                                        Main
+                                      </span>
+                                    )}
+                                    {index !== 0 && (
+                                      <>
+                                        {isUploaded && (
+                                          <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center">
+                                            <CheckCircle2 className="w-4 h-4 text-white" />
+                                          </div>
+                                        )}
+                                        {(isUploading || isCompressing) && (
+                                          <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                                            <Loader2 className="w-4 h-4 text-white animate-spin" />
+                                          </div>
+                                        )}
+                                        {isError && (
+                                          <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center">
+                                            <XCircle className="w-4 h-4 text-white" />
+                                          </div>
+                                        )}
+                                      </>
+                                    )}
+                                  </div>
+
+                                  {/* Progress Bar */}
+                                  {(isUploading || isCompressing) && (
+                                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200">
+                                      <div
+                                        className="h-full bg-blue-600 transition-all duration-300"
+                                        style={{ width: `${progress}%` }}
+                                      />
+                                    </div>
                                   )}
 
-                                  {isLocal && uploadInfo && (
-                                    <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm flex flex-col items-center justify-center gap-2 text-white text-xs p-2">
-                                      {uploadInfo.status === 'compressing' && <span>Compressing…</span>}
-                                      {uploadInfo.status === 'uploading' && <span>Uploading…</span>}
-                                      {uploadInfo.status === 'error' && (
-                                        <>
-                                          <span className="text-center">
-                                            {uploadInfo.message || 'Upload failed'}
-                                          </span>
-                                          {preview.file && (
-                                            <button
-                                              type="button"
-                                              onClick={() => retryImageUpload(preview.file as File)}
-                                              className="px-2 py-1 bg-white text-gray-900 rounded shadow"
-                                            >
-                                              Retry
-                                            </button>
-                                          )}
-                                        </>
+                                  {/* Improved Overlay for Errors */}
+                                  {isError && uploadInfo && (
+                                    <div className="absolute inset-0 bg-red-900/40 flex flex-col items-center justify-center gap-2 text-white text-xs p-2">
+                                      <span className="text-center font-medium">
+                                        {uploadInfo.message || 'Upload failed'}
+                                      </span>
+                                      {preview.file && (
+                                        <button
+                                          type="button"
+                                          onClick={() => retryImageUpload(preview.file as File)}
+                                          className="px-2 py-1 bg-white text-gray-900 rounded shadow hover:bg-gray-100"
+                                        >
+                                          Retry
+                                        </button>
                                       )}
                                     </div>
                                   )}
 
+                                  {/* Remove Button */}
                                   <button
                                     type="button"
                                     onClick={() => removeImage(index)}
-                                    className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
                                   >
                                     <X className="w-4 h-4" />
                                   </button>

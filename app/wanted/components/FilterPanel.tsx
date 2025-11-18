@@ -112,7 +112,7 @@ export default function FilterPanel({ makes, makeModels, allModels }: FilterPane
         </select>
       </div>
 
-      {/* TEMPORARILY DISABLED - High Priority Filter
+      {/* TEMPORARILY DISABLED - High Priority Filter (2025-11-18; see docs/implementation/DISABLED_PAID_FEATURES.md)
       <div className="mb-6 border-b pb-4">
         <label className={`flex items-center gap-2 cursor-pointer p-3 rounded-lg transition-colors ${
           currentHighPriority ? 'bg-orange-50 border-2 border-orange-200' : 'hover:bg-orange-25'
