@@ -47,6 +47,13 @@ export async function PUT(request: NextRequest) {
 
     const { name, phone, whatsapp, phoneOtpCode, location, bio, avatar_url, language } = body
 
+    console.log('[PROFILE API] Request received', {
+      userId: user.id,
+      phone,
+      hasPhoneOtpCode: !!phoneOtpCode,
+      phoneOtpCode: phoneOtpCode || 'NONE'
+    })
+
     // Get current profile to check if phone changed
     const { data: currentProfile, error: fetchError } = await supabase
       .from('profiles')
@@ -59,17 +66,36 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch profile', success: false }, { status: 500 })
     }
 
+    console.log('[PROFILE API] Current profile', {
+      currentPhone: currentProfile?.phone,
+      newPhone: phone
+    })
+
     // Check if phone number changed
     const phoneChanged = phone && phone !== currentProfile?.phone
 
+    console.log('[PROFILE API] Phone change check', {
+      phoneChanged,
+      hasOtpCode: !!phoneOtpCode
+    })
+
     // If phone changed, require OTP verification
     if (phoneChanged) {
+      console.log('[PROFILE API] Phone changed, checking OTP')
+
       if (!phoneOtpCode) {
+        console.log('[PROFILE API] ERROR: No OTP code provided')
         return NextResponse.json({
           error: 'OTP verification required for phone number change',
           requiresOTP: true
         }, { status: 400 })
       }
+
+      console.log('[PROFILE API] Searching for OTP record', {
+        phone,
+        phoneOtpCode,
+        userId: user.id
+      })
 
       // Verify OTP directly in database
       const { data: otpRecord, error: otpError } = await supabase
@@ -82,6 +108,12 @@ export async function PUT(request: NextRequest) {
         .gte('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false })
         .single()
+
+      console.log('[PROFILE API] OTP record search result', {
+        found: !!otpRecord,
+        error: otpError?.message || 'NONE',
+        errorCode: (otpError as any)?.code || 'NONE'
+      })
 
       if (otpError || !otpRecord) {
         logger.error('OTP verification failed for profile update', otpError as Error, {
@@ -110,6 +142,8 @@ export async function PUT(request: NextRequest) {
         .eq('id', otpRecord.id)
 
       // Mark OTP as verified
+      console.log('[PROFILE API] Marking OTP as verified', { otpRecordId: otpRecord.id })
+
       const { error: updateError } = await supabase
         .from('phone_verifications')
         .update({
@@ -126,8 +160,15 @@ export async function PUT(request: NextRequest) {
         }, { status: 500 })
       }
 
+      console.log('[PROFILE API] OTP verified successfully')
       logger.info('Phone OTP verified for profile update', { userId: user.id, phone })
     }
+
+    console.log('[PROFILE API] Updating profile in database', {
+      userId: user.id,
+      phone,
+      name
+    })
 
     const { data: profile, error } = await supabase
       .from('profiles')
@@ -146,9 +187,18 @@ export async function PUT(request: NextRequest) {
       .single()
 
     if (error) {
+      console.log('[PROFILE API] ERROR: Database update failed', {
+        error: error.message,
+        code: (error as any).code
+      })
       logger.error('Database error in profile update', error as Error)
       return NextResponse.json({ error: 'Failed to update profile', success: false, details: error }, { status: 500 })
     }
+
+    console.log('[PROFILE API] SUCCESS: Profile updated', {
+      userId: user.id,
+      updatedPhone: profile?.phone
+    })
 
     logger.info('Profile updated successfully', { userId: user.id })
     return NextResponse.json({ data: profile, success: true })

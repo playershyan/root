@@ -45,6 +45,7 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
   const [showCreateProfile, setShowCreateProfile] = useState(false)
   const [showEditPhoneModal, setShowEditPhoneModal] = useState(false)
   const [showEditWhatsAppModal, setShowEditWhatsAppModal] = useState(false)
+  const [pendingOtpCode, setPendingOtpCode] = useState<string>('')
 
   const [formData, setFormData] = useState({
     displayName: initialProfile?.name || '',
@@ -78,6 +79,12 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
     setIsLoading(true)
 
     try {
+      console.log('[PROFILE UPDATE] Starting submission', {
+        phone: formData.phone,
+        hasPendingOtpCode: !!pendingOtpCode,
+        pendingOtpCode: pendingOtpCode || 'NONE'
+      })
+
       const response = await fetch('/api/profiles', {
         method: 'PUT',
         headers: {
@@ -86,8 +93,14 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
         body: JSON.stringify({
           name: formData.displayName,
           phone: formData.phone,
-          whatsapp: formData.whatsapp
+          whatsapp: formData.whatsapp,
+          phoneOtpCode: pendingOtpCode || undefined
         }),
+      })
+
+      console.log('[PROFILE UPDATE] API response', {
+        status: response.status,
+        ok: response.ok
       })
 
       if (!response.ok) {
@@ -111,8 +124,18 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
     }
   }
 
-  const handlePhoneVerified = (newPhone: string) => {
+  const handlePhoneVerified = (newPhone: string, otpCode?: string) => {
+    console.log('[PHONE VERIFIED] Callback received', {
+      newPhone,
+      hasOtpCode: !!otpCode,
+      otpCode: otpCode || 'NONE'
+    })
+
     setFormData(prev => ({ ...prev, phone: newPhone }))
+    if (otpCode) {
+      setPendingOtpCode(otpCode)
+      console.log('[PHONE VERIFIED] OTP code stored in state')
+    }
     setShowEditPhoneModal(false)
     // Toast is shown by the modal using showSuccess prop
   }
