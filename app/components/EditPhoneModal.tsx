@@ -41,6 +41,7 @@ export default function EditPhoneModal({
   const modalRef = useRef<HTMLDivElement>(null)
   const phoneInputRef = useRef<HTMLInputElement>(null)
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const clickOutsideHandlerRef = useRef<((e: MouseEvent) => void) | null>(null)
 
   // Reset state when modal opens/closes
   useEffect(() => {
@@ -103,19 +104,48 @@ export default function EditPhoneModal({
   }, [isOpen, onCancel])
 
   // Close on outside click
+  // CRITICAL FIX: React StrictMode double-renders cause orphaned event listeners
+  // Solution: Store handler in ref and ALWAYS remove existing listener before adding new one
   useEffect(() => {
-    if (!isOpen) return
+    // CRITICAL: Remove any existing listener FIRST to prevent duplicates/orphans
+    // This is essential because React StrictMode unmounts and remounts components
+    if (clickOutsideHandlerRef.current) {
+      document.removeEventListener('mousedown', clickOutsideHandlerRef.current)
+      clickOutsideHandlerRef.current = null
+    }
+
+    // CRITICAL: If modal is closed, do NOT attach listener
+    // The listener would block ALL clicks on the page if attached when modal isn't rendered
+    if (!isOpen) {
+      return
+    }
 
     const handleClickOutside = (e: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+      // Defensive check: ensure modal is still open and ref exists
+      if (!isOpen || !modalRef.current) {
+        return
+      }
+      
+      // Only close if click is outside modal content
+      if (!modalRef.current.contains(e.target as Node)) {
         onCancel()
       }
     }
 
+    // Store handler in ref for reliable cleanup
+    clickOutsideHandlerRef.current = handleClickOutside
+
+    // CRITICAL: Use bubble phase (default), NOT capture phase
+    // Capture phase intercepts events BEFORE React's synthetic events
+    // This blocks Next.js Link components which rely on React event delegation
     document.addEventListener('mousedown', handleClickOutside)
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
+      // CRITICAL: Always remove listener using ref to ensure correct handler is removed
+      if (clickOutsideHandlerRef.current) {
+        document.removeEventListener('mousedown', clickOutsideHandlerRef.current)
+        clickOutsideHandlerRef.current = null
+      }
     }
   }, [isOpen, onCancel])
 
