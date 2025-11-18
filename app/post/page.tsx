@@ -1459,105 +1459,6 @@ const getUploadUserId = (): string => {
                   <p className="text-red-600 text-sm mt-3">{errors.vehicleType}</p>
                 )}
 
-              {/* Photos Section - Moved here to allow uploads while filling form */}
-              {formData.vehicleType && (
-                <div className="border-t border-gray-200 pt-8 mt-8">
-                  <div className="mb-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Photos <span className="text-red-500">*</span></h2>
-                  </div>
-
-                  <div>
-                    {/* Image Upload Area */}
-                    <div className="mb-4">
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        onChange={handleFileSelect}
-                        className="hidden"
-                      />
-                      <Button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        variant="outline"
-                        size="default"
-                        className={`w-full ${errors.images ? 'border-red-300' : ''}`}
-                      >
-                        <Upload className="w-4 h-4 mr-2" />
-                        Choose Photos
-                      </Button>
-                      <p className="text-xs text-gray-500 mt-2">
-                        At least 1 photo required. Maximum 10 photos, up to 10MB each. Formats: JPEG, JPG, PNG, TIFF, WebP.
-                      </p>
-                      {errors.images && <p className="text-red-600 text-sm mt-1">{errors.images}</p>}
-                    </div>
-
-                    {/* Image Preview Grid */}
-                    {imagePreviews.length > 0 && (
-                      <div className="mt-4 grid grid-cols-3 md:grid-cols-5 gap-4">
-                        {imagePreviews.map((preview, index) => {
-                          const isLocal = preview.type === 'local' && preview.file instanceof File
-                          const uploadId = isLocal && preview.file ? uploadIdMapRef.current.get(preview.file) : undefined
-                          const uploadInfo = uploadId ? uploadStatus[uploadId] : undefined
-                          const previewKey =
-                            preview.type === 'local' && preview.file
-                              ? `${preview.file.name}-${preview.file.lastModified}-${index}`
-                              : `${preview.url}-${index}`
-
-                          return (
-                            <div key={previewKey} className="relative group overflow-hidden rounded-lg border border-gray-200">
-                              <img
-                                src={preview.url}
-                                alt={`Preview ${index + 1}`}
-                                className="w-full h-24 object-cover"
-                              />
-                              {index === 0 && (
-                                <span className="absolute top-1 left-1 bg-gray-900 text-white text-xs px-2 py-1 rounded">
-                                  Main
-                                </span>
-                              )}
-
-                              {isLocal && uploadInfo && (
-                                <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm flex flex-col items-center justify-center gap-2 text-white text-xs p-2">
-                                  {uploadInfo.status === 'compressing' && <span>Compressing…</span>}
-                                  {uploadInfo.status === 'uploading' && <span>Uploading…</span>}
-                                  {uploadInfo.status === 'error' && (
-                                    <>
-                                      <span className="text-center">
-                                        {uploadInfo.message || 'Upload failed'}
-                                      </span>
-                                      {preview.file && (
-                                        <button
-                                          type="button"
-                                          onClick={() => retryImageUpload(preview.file as File)}
-                                          className="px-2 py-1 bg-white text-gray-900 rounded shadow"
-                                        >
-                                          Retry
-                                        </button>
-                                      )}
-                                    </>
-                                  )}
-                                </div>
-                              )}
-
-                              <button
-                                type="button"
-                                onClick={() => removeImage(index)}
-                                className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    )}
-
-                  </div>
-                </div>
-              )}
-
               {/* Vehicle Form Factory */}
               <VehicleFormFactory
                 vehicleType={formData.vehicleType}
@@ -1566,6 +1467,105 @@ const getUploadUserId = (): string => {
                 errors={errors}
                 getMakeOptions={getMakeOptions}
                 getModelOptions={getModelOptions}
+                renderBetween={
+                  formData.vehicleType ? (
+                    <div className="border-t border-gray-200 pt-8">
+                      <div className="mb-6">
+                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Photos <span className="text-red-500">*</span></h2>
+                      </div>
+
+                      <div>
+                        {/* Image Upload Area */}
+                        <div className="mb-4">
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            onChange={handleFileSelect}
+                            className="hidden"
+                          />
+                          <Button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            variant="outline"
+                            size="default"
+                            className={`w-full ${errors.images ? 'border-red-300' : ''}`}
+                          >
+                            <Upload className="w-4 h-4 mr-2" />
+                            Choose Photos
+                          </Button>
+                          <p className="text-xs text-gray-500 mt-2">
+                            At least 1 photo required. Maximum 10 photos, up to 10MB each. Formats: JPEG, JPG, PNG, TIFF, WebP.
+                          </p>
+                          {errors.images && <p className="text-red-600 text-sm mt-1">{errors.images}</p>}
+                        </div>
+
+                        {/* Image Preview Grid */}
+                        {imagePreviews.length > 0 && (
+                          <div className="mt-4 grid grid-cols-3 md:grid-cols-5 gap-4">
+                            {imagePreviews.map((preview, index) => {
+                              const isLocal = preview.type === 'local' && preview.file instanceof File
+                              const uploadId = isLocal && preview.file ? uploadIdMapRef.current.get(preview.file) : undefined
+                              const uploadInfo = uploadId ? uploadStatus[uploadId] : undefined
+                              const previewKey =
+                                preview.type === 'local' && preview.file
+                                  ? `${preview.file.name}-${preview.file.lastModified}-${index}`
+                                  : `${preview.url}-${index}`
+
+                              return (
+                                <div key={previewKey} className="relative group overflow-hidden rounded-lg border border-gray-200">
+                                  <img
+                                    src={preview.url}
+                                    alt={`Preview ${index + 1}`}
+                                    className="w-full h-24 object-cover"
+                                  />
+                                  {index === 0 && (
+                                    <span className="absolute top-1 left-1 bg-gray-900 text-white text-xs px-2 py-1 rounded">
+                                      Main
+                                    </span>
+                                  )}
+
+                                  {isLocal && uploadInfo && (
+                                    <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm flex flex-col items-center justify-center gap-2 text-white text-xs p-2">
+                                      {uploadInfo.status === 'compressing' && <span>Compressing…</span>}
+                                      {uploadInfo.status === 'uploading' && <span>Uploading…</span>}
+                                      {uploadInfo.status === 'error' && (
+                                        <>
+                                          <span className="text-center">
+                                            {uploadInfo.message || 'Upload failed'}
+                                          </span>
+                                          {preview.file && (
+                                            <button
+                                              type="button"
+                                              onClick={() => retryImageUpload(preview.file as File)}
+                                              className="px-2 py-1 bg-white text-gray-900 rounded shadow"
+                                            >
+                                              Retry
+                                            </button>
+                                          )}
+                                        </>
+                                      )}
+                                    </div>
+                                  )}
+
+                                  <button
+                                    type="button"
+                                    onClick={() => removeImage(index)}
+                                    className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
+
+                      </div>
+                    </div>
+                  ) : null
+                }
               />
 
               {/* Location Section */}

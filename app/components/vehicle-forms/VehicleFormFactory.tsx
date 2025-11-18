@@ -23,10 +23,11 @@ interface VehicleFormFactoryProps {
   errors: Record<string, string>
   getMakeOptions: () => any[]
   getModelOptions: () => string[]
+  renderBetween?: React.ReactNode
 }
 
 export default function VehicleFormFactory(props: VehicleFormFactoryProps) {
-  const { vehicleType, formData, setFormData, errors } = props
+  const { vehicleType, formData, setFormData, errors, renderBetween } = props
 
   // Get the appropriate form component
   const getFormComponent = () => {
@@ -99,6 +100,9 @@ export default function VehicleFormFactory(props: VehicleFormFactoryProps) {
           errors={errors}
         />
       )}
+
+      {/* Content to render between Basic Vehicle Info and Pricing */}
+      {renderBetween}
 
       {/* Pricing Section */}
       <PricingSection 
