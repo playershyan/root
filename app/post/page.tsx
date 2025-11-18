@@ -34,6 +34,7 @@ import { compressImageFile } from '@/lib/utils/image-compression'
 import { logger } from '@/lib/utils/logger'
 import { buildListingDescription } from '@/lib/services/descriptionBuilder'
 import { getFieldConfig, getRequiredFields } from '@/lib/utils/vehicleFieldConfig'
+import { extractPublicId } from '@/lib/utils/responsive-images'
 import EditPhoneModal from '@/app/components/EditPhoneModal'
 
 // Lazy load form components (Phase 2 optimization)
@@ -256,27 +257,36 @@ export default function EnhancedPostVehiclePage() {
           }
 
           // Load existing images (prioritize image_urls over images)
-          let imageUrls: string[] = []
+          let imageUrlStrings: string[] = []
 
           // Check image_urls first (actual storage location)
           if (listing.image_urls && Array.isArray(listing.image_urls) && listing.image_urls.length > 0) {
-            imageUrls = listing.image_urls
+            imageUrlStrings = listing.image_urls
           }
           // Fallback to images array if it has data
           else if (Array.isArray(listing.images) && listing.images.length > 0) {
-            imageUrls = listing.images
+            imageUrlStrings = listing.images
           }
           // Check nested object structure
           else if (typeof listing.images === 'object' && listing.images?.urls && listing.images.urls.length > 0) {
-            imageUrls = listing.images.urls
+            imageUrlStrings = listing.images.urls
           }
           // Last resort: primary_image_url
           else if (listing.primary_image_url) {
-            imageUrls = [listing.primary_image_url]
+            imageUrlStrings = [listing.primary_image_url]
           }
 
-          if (imageUrls.length > 0) {
-            setImagePreviews(imageUrls.map(url => ({ url, type: 'remote' as const })))
+          if (imageUrlStrings.length > 0) {
+            // Convert string URLs to objects with { url, publicId } for backward compatibility
+            const imageUrls = imageUrlStrings.map(url => {
+              const publicId = extractPublicId(url)
+              return {
+                url,
+                publicId: publicId || '' // Use empty string if extraction fails
+              }
+            })
+
+            setImagePreviews(imageUrls.map(img => ({ url: img.url, type: 'remote' as const })))
             setFormData(prev => ({
               ...prev,
               imageUrls: imageUrls,
@@ -439,7 +449,7 @@ export default function EnhancedPostVehiclePage() {
 
     const remotePreviews: Array<{ url: string; type: 'remote'; file?: File }> =
       Array.isArray(formData.imageUrls)
-        ? formData.imageUrls.map(url => ({ url, type: 'remote' as const }))
+        ? formData.imageUrls.map(img => ({ url: img.url, type: 'remote' as const }))
         : []
 
     setImagePreviews([...localPreviews, ...remotePreviews])
@@ -647,6 +657,15 @@ const getUploadUserId = (): string => {
       setImagesUploading(true)
 
       try {
+        // Check if upload was cancelled before starting compression
+        if (abortController.signal.aborted) {
+          activeUploadsRef.current = Math.max(0, activeUploadsRef.current - 1)
+          if (activeUploadsRef.current === 0) {
+            setImagesUploading(false)
+          }
+          return
+        }
+
         const compression = await compressImageFile(file, {
           maxWidth: 1920,
           maxHeight: 1440,
@@ -668,6 +687,11 @@ const getUploadUserId = (): string => {
         const payload = new FormData()
         payload.append('images', compression.file, compression.file.name)
         payload.append('listingId', uploadUserId)
+
+        // Check if upload was cancelled before starting network request
+        if (abortController.signal.aborted) {
+          throw new Error('Upload cancelled')
+        }
 
         const response = await fetch('/api/upload/cloudinary', {
           method: 'POST',
@@ -696,6 +720,10 @@ const getUploadUserId = (): string => {
             throw new Error('Upload response missing image URL')
           }
 
+          if (!uploadedImage.publicId) {
+            throw new Error('Upload response missing publicId')
+          }
+
           uploadIdMapRef.current.delete(file)
           setUploadStatus(prev => {
             const next = { ...prev }
@@ -709,7 +737,7 @@ const getUploadUserId = (): string => {
             }
             return {
               ...prev,
-              imageUrls: [...prev.imageUrls, preferredUrl],
+              imageUrls: [...prev.imageUrls, { url: preferredUrl, publicId: uploadedImage.publicId }],
               images: prev.images.filter(img => img !== file)
             }
           })
@@ -722,6 +750,20 @@ const getUploadUserId = (): string => {
           showError(`Failed to upload ${file.name}: ${errorMessage}`, 5000)
         }
       } catch (error: any) {
+        // Handle user-initiated cancellations silently
+        if (error.name === 'AbortError' || error.message === 'Upload cancelled') {
+          // Clean up upload status for cancelled uploads
+          uploadIdMapRef.current.delete(file)
+          abortControllersRef.current.delete(uploadId)
+          setUploadStatus(prev => {
+            const next = { ...prev }
+            delete next[uploadId]
+            return next
+          })
+          return
+        }
+
+        // Log and display actual upload errors
         logger.error('Image upload failed', error as Error)
         setUploadStatus(prev => ({
           ...prev,
@@ -860,6 +902,18 @@ const getUploadUserId = (): string => {
 
     const remoteIndex = index - localCount
     if (remoteIndex >= 0 && remoteIndex < formData.imageUrls.length) {
+      const imageToDelete = formData.imageUrls[remoteIndex]
+
+      // Call Cloudinary DELETE API to remove the uploaded image (only if publicId exists)
+      if (imageToDelete.publicId) {
+        fetch(`/api/upload/cloudinary?publicId=${encodeURIComponent(imageToDelete.publicId)}`, {
+          method: 'DELETE'
+        }).catch(err => {
+          logger.error('Failed to delete image from Cloudinary', err as Error)
+        })
+      }
+
+      // Remove from state
       setFormData(prev => ({
         ...prev,
         imageUrls: prev.imageUrls.filter((_, i) => i !== remoteIndex)
@@ -991,7 +1045,8 @@ const getUploadUserId = (): string => {
         return
       }
 
-      const imageUrls = [...formData.imageUrls]
+      // Extract URL strings from imageUrls objects for database storage
+      const imageUrls = formData.imageUrls.map(img => img.url)
 
       // Prepare the listing data according to the database schema
       const listingData: any = {
@@ -999,7 +1054,7 @@ const getUploadUserId = (): string => {
         title: formData.title,
         description: formData.description,
         details: formData.description, // Using description for details as well
-        price: formData.pricingType === 'finance' 
+        price: formData.pricingType === 'finance'
           ? (parseFloat(formData.askingPrice || '') || parseFloat(formData.outstandingBalance || '') || parseFloat(formData.price || ''))
           : parseFloat(formData.price || ''),
         negotiable: formData.negotiable,

@@ -25,7 +25,7 @@ export interface BaseVehicleFormData {
   askingPrice?: string
   features?: string[]
   images: File[]
-  imageUrls: string[]
+  imageUrls: Array<{ url: string; publicId: string }>
   description: string
   phone: string
   whatsapp: string
