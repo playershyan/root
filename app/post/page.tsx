@@ -148,6 +148,7 @@ export default function EnhancedPostVehiclePage() {
   const [mounted, setMounted] = useState(false)
   const [originalPhone, setOriginalPhone] = useState<string>('')
   const [phoneVerified, setPhoneVerified] = useState<boolean>(false)
+  const profileDataPopulatedRef = useRef(false)
   
   // Check authentication status and redirect if not logged in
   useEffect(() => {
@@ -311,15 +312,22 @@ export default function EnhancedPostVehiclePage() {
 
   // Auto-populate phone numbers from user profile
   useEffect(() => {
-    console.log('[POST PAGE] 👤 Profile populate useEffect triggered')
-    if (!profileLoading && profile && !isEditMode) {
+    console.log('[POST PAGE] 👤 Profile populate useEffect triggered', {
+      profileLoading,
+      hasProfile: !!profile,
+      isEditMode,
+      alreadyPopulated: profileDataPopulatedRef.current
+    })
+
+    // Only populate once, and only if not in edit mode
+    if (!profileLoading && profile && !isEditMode && !profileDataPopulatedRef.current) {
       const phoneNumber = getPhoneNumber()
       const whatsappNumber = getWhatsAppNumber()
       console.log('[POST PAGE] 📞 Phone data from profile', { phoneNumber, whatsappNumber })
 
       if (phoneNumber || whatsappNumber) {
         const populatedPhone = phoneNumber || ''
-        console.log('[POST PAGE] ✅ Populating form with phone data')
+        console.log('[POST PAGE] ✅ Populating form with phone data (one-time)')
         setFormData(prev => ({
           ...prev,
           phone: prev.phone || phoneNumber, // Only populate if empty
@@ -328,9 +336,19 @@ export default function EnhancedPostVehiclePage() {
         }))
         // Store original phone for comparison
         setOriginalPhone(populatedPhone)
+        // Mark as populated to prevent re-triggering
+        profileDataPopulatedRef.current = true
+        console.log('[POST PAGE] ✅ Profile data populated - ref set to true')
       }
     }
-  }, [profile, profileLoading, getPhoneNumber, getWhatsAppNumber, isEditMode])
+  }, [profile, profileLoading, isEditMode])
+
+  // Reset population flag when edit mode changes
+  useEffect(() => {
+    if (isEditMode) {
+      profileDataPopulatedRef.current = false
+    }
+  }, [isEditMode])
 
   // Store original phone when form data changes (for edit mode)
   useEffect(() => {
