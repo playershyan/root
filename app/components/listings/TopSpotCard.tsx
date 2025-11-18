@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import OptimizedImage from '@/components/ui/OptimizedImage'
 import { useAuth } from '@/app/contexts/AuthContext'
 import { useToast } from '@/app/components/notifications/useToast'
+import { ToastContainer } from '@/app/components/notifications/ToastContainer'
 
 // Lazy load modals
 const ContactModal = dynamic(() => import('@/app/components/modals/ContactModal'))
