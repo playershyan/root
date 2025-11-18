@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import OptimizedImage from '@/components/ui/OptimizedImage'
 import { useAuth } from '@/app/contexts/AuthContext'
 import { useToast } from '@/app/components/notifications/useToast'
+import { ToastContainer } from '@/app/components/notifications/ToastContainer'
 
 // Lazy load modals
 const ContactModal = dynamic(() => import('@/app/components/modals/ContactModal'))
@@ -65,7 +66,7 @@ export default function BoostedCard({
   onImageError
 }: BoostedCardProps) {
   const { user } = useAuth()
-  const { showError } = useToast()
+  const { toasts, showError, removeToast } = useToast()
   const images = listing.image_urls || []
   const [showContactModal, setShowContactModal] = useState(false)
   const [showConversationModal, setShowConversationModal] = useState(false)
@@ -316,6 +317,9 @@ export default function BoostedCard({
           user_id: listing.user_id
         }}
       />
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </>
   )
 }

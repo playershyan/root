@@ -65,7 +65,7 @@ export default function TopSpotCard({
   onImageError
 }: TopSpotCardProps) {
   const { user } = useAuth()
-  const { showError } = useToast()
+  const { toasts, showError, removeToast } = useToast()
   const images = listing.image_urls || []
   const [showContactModal, setShowContactModal] = useState(false)
   const [showConversationModal, setShowConversationModal] = useState(false)
@@ -316,6 +316,9 @@ export default function TopSpotCard({
           user_id: listing.user_id
         }}
       />
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </>
   )
 }
