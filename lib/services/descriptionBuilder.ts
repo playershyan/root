@@ -78,120 +78,101 @@ export const buildListingDescription = (input: ListingDescriptionInput): Descrip
   const askingPriceNumber = toInteger(input.askingPrice)
   const priceNumber = toInteger(input.price)
 
-  const sections: string[] = []
+  const items: string[] = []
 
-  // Section 1: Title, Make/Model/Trim, Year
-  const section1: string[] = []
-  if (input.title) section1.push(toCleanString(input.title))
+  // Title
+  if (input.title) items.push(toCleanString(input.title))
 
-  if (resolvedMake) section1.push(`Make: ${resolvedMake}`)
+  // Make
+  if (resolvedMake) items.push(`Make: ${resolvedMake}`)
   
   // Model: only include if field is visible for this vehicle type and value exists
   if (fieldConfig.showModel && resolvedModel) {
-    section1.push(`Model: ${resolvedModel}`)
+    items.push(`Model: ${resolvedModel}`)
   }
   
   // Trim: only include if field is visible for this vehicle type and value exists
   if (fieldConfig.showTrim && resolvedTrim) {
-    section1.push(`Trim / Grade: ${resolvedTrim}`)
+    items.push(`Trim / Grade: ${resolvedTrim}`)
   }
 
   // Year: only include if field is visible for this vehicle type and value exists
   if (fieldConfig.showYear && resolvedYear) {
-    section1.push(`Year of Manufacture: ${resolvedYear}`)
+    items.push(`Year of Manufacture: ${resolvedYear}`)
   }
 
-  if (section1.length > 0) {
-    sections.push(section1.join('\n'))
-  }
-
-  // Section 2: Mileage, Condition
-  const section2: string[] = []
   // Mileage: only include if field is visible for this vehicle type and value exists
   if (fieldConfig.showMileage && Number.isFinite(mileageNumber) && mileageNumber > 0) {
-    section2.push(`Mileage: ${mileageNumber.toLocaleString('en-LK')} km`)
+    items.push(`Mileage: ${mileageNumber.toLocaleString('en-LK')} km`)
   }
 
+  // Condition
   if (input.condition) {
-    section2.push(`Condition: ${input.condition}`)
+    items.push(`Condition: ${input.condition}`)
   }
 
-  if (section2.length > 0) {
-    sections.push(section2.join('\n'))
-  }
-
-  // Section 3: Engine Capacity, Fuel Type, Transmission (on separate lines)
-  const section3: string[] = []
+  // Engine Capacity
   if (Number.isFinite(engineCapacityNumber) && engineCapacityNumber > 0) {
-    section3.push(`Engine Capacity: ${engineCapacityNumber.toLocaleString('en-LK')} cc`)
+    items.push(`Engine Capacity: ${engineCapacityNumber.toLocaleString('en-LK')} cc`)
   }
+
+  // Fuel Type
   if (input.fuelType) {
-    section3.push(`Fuel Type: ${input.fuelType}`)
+    items.push(`Fuel Type: ${input.fuelType}`)
   }
+
   // Transmission: only include if field is visible for this vehicle type and value exists
   if (fieldConfig.showTransmission && input.transmission) {
-    section3.push(`Transmission: ${input.transmission}`)
+    items.push(`Transmission: ${input.transmission}`)
   }
 
-  if (section3.length > 0) {
-    sections.push(section3.join('\n'))
-  }
-
-  // Section 4: Key Features, Service Records
-  // Features: only include if field is visible for this vehicle type and value exists
-  const section4: string[] = []
+  // Key Features: only include if field is visible for this vehicle type and value exists
   if (fieldConfig.showFeatures && input.features?.length) {
-    section4.push(`Key Features: ${input.features.join(', ')}`)
+    items.push(`Key Features: ${input.features.join(', ')}`)
   }
 
+  // Service Records
   if (input.serviceRecordsAvailable === true) {
-    section4.push('Service Records Available: Yes')
+    items.push('Service Records Available: Yes')
   }
 
-  if (section4.length > 0) {
-    sections.push(section4.join('\n'))
-  }
-
-  // Section 5: Pricing, Negotiable, Location
-  const section5: string[] = []
+  // Pricing
   if (input.pricingType === 'cash') {
     const currency = formatCurrency(priceNumber)
-    if (currency) section5.push(`Price: ${currency}`)
+    if (currency) items.push(`Price: ${currency}`)
   } else if (input.pricingType === 'finance') {
     const askingPrice = formatCurrency(askingPriceNumber)
-    if (askingPrice) section5.push(`Asking Price: ${askingPrice}`)
+    if (askingPrice) items.push(`Asking Price: ${askingPrice}`)
 
     const outstandingBalance = formatCurrency(outstandingBalanceNumber)
-    if (outstandingBalance) section5.push(`Outstanding Balance: ${outstandingBalance}`)
+    if (outstandingBalance) items.push(`Outstanding Balance: ${outstandingBalance}`)
 
     const monthlyPayment = formatCurrency(monthlyPaymentNumber)
-    if (monthlyPayment) section5.push(`Monthly Payment: ${monthlyPayment}`)
+    if (monthlyPayment) items.push(`Monthly Payment: ${monthlyPayment}`)
 
     if (Number.isFinite(remainingTermNumber) && remainingTermNumber > 0) {
-      section5.push(`Remaining Term: ${remainingTermNumber} months`)
+      items.push(`Remaining Term: ${remainingTermNumber} months`)
     }
 
     if (input.financeType) {
-      section5.push(`Finance Type: ${input.financeType}`)
+      items.push(`Finance Type: ${input.financeType}`)
     }
   }
 
+  // Negotiable
   if (input.negotiable) {
-    section5.push('Negotiable: Yes')
+    items.push('Negotiable: Yes')
   }
 
+  // Location
   if (input.city || input.district) {
     const locationParts = [input.city, input.district].filter(Boolean)
-    section5.push(`Location: ${locationParts.join(', ')}`)
+    items.push(`Location: ${locationParts.join(', ')}`)
   }
 
-  if (section5.length > 0) {
-    sections.push(section5.join('\n'))
-  }
-
-  // Join sections with double line breaks for visual separation
-  const description = sections.length > 0 
-    ? sections.join('\n\n').trim()
+  // Join all items with single line breaks
+  const description = items.length > 0 
+    ? items.join('\n').trim()
     : 'Listing details are not complete yet.'
 
   // Calculate total line count (including section separators)
