@@ -73,6 +73,7 @@ export default function RegularAdCard({
 
   const handleMessage = (e: React.MouseEvent) => {
     e.preventDefault()
+    e.stopPropagation() // Prevent event from bubbling to parent Link
     
     if (!user) {
       // Redirect to login - the modal will handle auth

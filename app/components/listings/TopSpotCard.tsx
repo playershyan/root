@@ -72,6 +72,7 @@ export default function TopSpotCard({
 
   const handleMessage = (e: React.MouseEvent) => {
     e.preventDefault()
+    e.stopPropagation() // Prevent event from bubbling to parent Link
     
     if (!user) {
       window.location.href = '/?auth=true'
