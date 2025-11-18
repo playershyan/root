@@ -3,7 +3,7 @@ import { performance } from 'perf_hooks'
 import { cookies } from 'next/headers'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { validateListing, sanitizeListing, generateListingTitle } from '@/lib/validation/listing'
-import { formatPhoneForStorage } from '@/lib/utils/phoneFormatter'
+import { formatPhoneForStorage, normalizeSriLankaPhone } from '@/lib/utils/phoneFormatter'
 import { logger } from '@/lib/utils/logger'
 import { performanceMonitor } from '@/lib/monitoring/metrics'
 
@@ -194,10 +194,13 @@ export async function POST(request: NextRequest) {
 
     // If phone changed, verify OTP
     if (phoneChanged && body.phoneOtpCode) {
+      // Normalize phone to match storage format in phone_verifications
+      const normalizedPhone = normalizeSriLankaPhone(sanitized.phone)
+
       const { data: otpRecord, error: otpError } = await supabase
         .from('phone_verifications')
         .select('*')
-        .eq('phone_number', sanitized.phone)
+        .eq('phone_number', normalizedPhone) // Use normalized phone
         .eq('otp_code', body.phoneOtpCode)
         .eq('verified', false)
         .eq('user_id', user.id)

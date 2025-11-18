@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { logger } from '@/lib/utils/logger'
+import { normalizeSriLankaPhone } from '@/lib/utils/phoneFormatter'
 
 export const runtime = 'nodejs'
 
@@ -47,9 +48,13 @@ export async function PUT(request: NextRequest) {
 
     const { name, phone, whatsapp, phoneOtpCode, location, bio, avatar_url, language } = body
 
+    // Normalize phone number for consistent format matching
+    const normalizedPhone = phone ? normalizeSriLankaPhone(phone) : phone
+
     console.log('[PROFILE API] Request received', {
       userId: user.id,
       phone,
+      normalizedPhone,
       hasPhoneOtpCode: !!phoneOtpCode,
       phoneOtpCode: phoneOtpCode || 'NONE'
     })
@@ -68,11 +73,11 @@ export async function PUT(request: NextRequest) {
 
     console.log('[PROFILE API] Current profile', {
       currentPhone: currentProfile?.phone,
-      newPhone: phone
+      newPhone: normalizedPhone
     })
 
-    // Check if phone number changed
-    const phoneChanged = phone && phone !== currentProfile?.phone
+    // Check if phone number changed (compare normalized values)
+    const phoneChanged = normalizedPhone && normalizedPhone !== currentProfile?.phone
 
     console.log('[PROFILE API] Phone change check', {
       phoneChanged,
@@ -93,6 +98,7 @@ export async function PUT(request: NextRequest) {
 
       console.log('[PROFILE API] Searching for OTP record', {
         phone,
+        normalizedPhone,
         phoneOtpCode,
         userId: user.id
       })
@@ -102,7 +108,7 @@ export async function PUT(request: NextRequest) {
       const { data: otpRecord, error: otpError } = await supabase
         .from('phone_verifications')
         .select('*')
-        .eq('phone_number', phone)
+        .eq('phone_number', normalizedPhone) // CRITICAL: Use normalized phone to match storage format
         .eq('otp_code', phoneOtpCode)
         .eq('verified', true) // CRITICAL: Profile searches for VERIFIED records
         .eq('user_id', user.id)
@@ -135,12 +141,12 @@ export async function PUT(request: NextRequest) {
         verifiedAt: otpRecord.verified_at
       })
 
-      logger.info('Phone OTP validated for profile update', { userId: user.id, phone })
+      logger.info('Phone OTP validated for profile update', { userId: user.id, phone: normalizedPhone })
     }
 
     console.log('[PROFILE API] Updating profile in database', {
       userId: user.id,
-      phone,
+      phone: normalizedPhone,
       name
     })
 
@@ -148,7 +154,7 @@ export async function PUT(request: NextRequest) {
       .from('profiles')
       .update({
         name,
-        phone,
+        phone: normalizedPhone, // Store normalized phone
         whatsapp,
         location,
         bio,
