@@ -124,7 +124,7 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
     }
   }
 
-  const handlePhoneVerified = (newPhone: string, otpCode?: string) => {
+  const handlePhoneVerified = async (newPhone: string, otpCode?: string) => {
     console.log('[PHONE VERIFIED] Callback received', {
       newPhone,
       hasOtpCode: !!otpCode,
@@ -132,12 +132,48 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
     })
 
     setFormData(prev => ({ ...prev, phone: newPhone }))
-    if (otpCode) {
-      setPendingOtpCode(otpCode)
-      console.log('[PHONE VERIFIED] OTP code stored in state')
-    }
     setShowEditPhoneModal(false)
-    // Toast is shown by the modal using showSuccess prop
+
+    // Automatically save phone number change to database
+    if (otpCode) {
+      console.log('[PHONE VERIFIED] Auto-saving phone number to profile')
+
+      try {
+        const response = await fetch('/api/profiles', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: formData.displayName,
+            phone: newPhone,
+            whatsapp: formData.whatsapp,
+            phoneOtpCode: otpCode
+          }),
+        })
+
+        console.log('[PHONE VERIFIED] Auto-save response', {
+          status: response.status,
+          ok: response.ok
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Failed to update phone number')
+        }
+
+        const result = await response.json()
+        if (result.success) {
+          console.log('[PHONE VERIFIED] Phone number saved successfully')
+          router.refresh() // Refresh to show updated profile
+        } else {
+          throw new Error(result.error || 'Failed to update phone number')
+        }
+      } catch (error) {
+        logger.error('Error auto-saving phone number', error as Error)
+        toast.error(`Failed to save phone number: ${error instanceof Error ? error.message : 'Try again later.'}`)
+      }
+    }
   }
 
   const handleWhatsAppVerified = (newWhatsApp: string) => {

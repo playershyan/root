@@ -97,13 +97,14 @@ export async function PUT(request: NextRequest) {
         userId: user.id
       })
 
-      // Verify OTP directly in database
+      // For profile updates, the OTP is already verified by the modal (purpose='profile')
+      // So we search for verified: true records, unlike listings/wanted which search for verified: false
       const { data: otpRecord, error: otpError } = await supabase
         .from('phone_verifications')
         .select('*')
         .eq('phone_number', phone)
         .eq('otp_code', phoneOtpCode)
-        .eq('verified', false)
+        .eq('verified', true) // CRITICAL: Profile searches for VERIFIED records
         .eq('user_id', user.id)
         .gte('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false })
@@ -127,41 +128,14 @@ export async function PUT(request: NextRequest) {
         }, { status: 400 })
       }
 
-      // Check attempt limit
-      if (otpRecord.attempts >= 3) {
-        return NextResponse.json({
-          error: 'Too many verification attempts. Please request a new code.',
-          requiresOTP: true
-        }, { status: 400 })
-      }
+      // OTP already verified by modal, no need to update the record again
+      console.log('[PROFILE API] OTP record found and already verified', {
+        otpRecordId: otpRecord.id,
+        attempts: otpRecord.attempts,
+        verifiedAt: otpRecord.verified_at
+      })
 
-      // Increment attempt counter
-      await supabase
-        .from('phone_verifications')
-        .update({ attempts: (otpRecord.attempts || 0) + 1 })
-        .eq('id', otpRecord.id)
-
-      // Mark OTP as verified
-      console.log('[PROFILE API] Marking OTP as verified', { otpRecordId: otpRecord.id })
-
-      const { error: updateError } = await supabase
-        .from('phone_verifications')
-        .update({
-          verified: true,
-          verified_at: new Date().toISOString()
-        })
-        .eq('id', otpRecord.id)
-
-      if (updateError) {
-        logger.error('Error updating OTP record', updateError as Error)
-        return NextResponse.json({
-          error: 'Verification failed',
-          requiresOTP: true
-        }, { status: 500 })
-      }
-
-      console.log('[PROFILE API] OTP verified successfully')
-      logger.info('Phone OTP verified for profile update', { userId: user.id, phone })
+      logger.info('Phone OTP validated for profile update', { userId: user.id, phone })
     }
 
     console.log('[PROFILE API] Updating profile in database', {
