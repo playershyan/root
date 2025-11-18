@@ -4,6 +4,7 @@ import { verifyRecaptcha, captchaGuardFailJson } from '@/lib/security/recaptcha'
 import { incr, incrTrend } from '@/lib/security/metrics'
 import { logger } from '@/lib/utils/logger'
 import { buildListingDescription } from '@/lib/services/descriptionBuilder'
+import { getFieldConfig } from '@/lib/utils/vehicleFieldConfig'
 
 export async function POST(request: Request) {
   const totalStart = performance.now()
@@ -93,11 +94,34 @@ export async function POST(request: Request) {
       return captchaGuardFailJson(0.3)
     }
 
-    if (!make || !model || !year) {
+    // Get field configuration for the vehicle type
+    const fieldConfig = getFieldConfig(vehicleType || '')
+    
+    // Validate required fields based on vehicle category
+    const missingFields: string[] = []
+    
+    if (!make) {
+      missingFields.push('make')
+    }
+    
+    if (fieldConfig.modelRequired && !model) {
+      missingFields.push('model')
+    }
+    
+    if (fieldConfig.yearRequired && !year) {
+      missingFields.push('year')
+    }
+    
+    if (fieldConfig.mileageRequired && !mileage) {
+      missingFields.push('mileage')
+    }
+    
+    if (missingFields.length > 0) {
       status = 'validation_error'
       logTimings()
+      const fieldNames = missingFields.map(f => f.charAt(0).toUpperCase() + f.slice(1)).join(', ')
       return NextResponse.json(
-        { error: 'Make, model, and year are required' },
+        { error: `Required fields missing: ${fieldNames}` },
         { status: 400 }
       )
     }

@@ -1,3 +1,5 @@
+import { getFieldConfig } from '@/lib/utils/vehicleFieldConfig'
+
 export type PricingType = 'cash' | 'finance'
 
 export interface ListingDescriptionInput {
@@ -60,6 +62,9 @@ export interface DescriptionResult {
 }
 
 export const buildListingDescription = (input: ListingDescriptionInput): DescriptionResult => {
+  // Get field configuration based on vehicle type
+  const fieldConfig = getFieldConfig(input.vehicleType || '')
+  
   const resolvedMake = input.make === 'Other' ? input.customMake : input.make
   const resolvedModel = input.model === 'Other' ? input.customModel : input.model
   const resolvedTrim = toCleanString(input.trim)
@@ -80,10 +85,19 @@ export const buildListingDescription = (input: ListingDescriptionInput): Descrip
   if (input.title) section1.push(toCleanString(input.title))
 
   if (resolvedMake) section1.push(`Make: ${resolvedMake}`)
-  if (resolvedModel) section1.push(`Model: ${resolvedModel}`)
-  if (resolvedTrim) section1.push(`Trim / Grade: ${resolvedTrim}`)
+  
+  // Model: only include if field is visible for this vehicle type and value exists
+  if (fieldConfig.showModel && resolvedModel) {
+    section1.push(`Model: ${resolvedModel}`)
+  }
+  
+  // Trim: only include if field is visible for this vehicle type and value exists
+  if (fieldConfig.showTrim && resolvedTrim) {
+    section1.push(`Trim / Grade: ${resolvedTrim}`)
+  }
 
-  if (resolvedYear) {
+  // Year: only include if field is visible for this vehicle type and value exists
+  if (fieldConfig.showYear && resolvedYear) {
     section1.push(`Year of Manufacture: ${resolvedYear}`)
   }
 
@@ -93,7 +107,8 @@ export const buildListingDescription = (input: ListingDescriptionInput): Descrip
 
   // Section 2: Mileage, Condition
   const section2: string[] = []
-  if (Number.isFinite(mileageNumber) && mileageNumber > 0) {
+  // Mileage: only include if field is visible for this vehicle type and value exists
+  if (fieldConfig.showMileage && Number.isFinite(mileageNumber) && mileageNumber > 0) {
     section2.push(`Mileage: ${mileageNumber.toLocaleString('en-LK')} km`)
   }
 
@@ -113,7 +128,8 @@ export const buildListingDescription = (input: ListingDescriptionInput): Descrip
   if (input.fuelType) {
     section3.push(`Fuel Type: ${input.fuelType}`)
   }
-  if (input.transmission) {
+  // Transmission: only include if field is visible for this vehicle type and value exists
+  if (fieldConfig.showTransmission && input.transmission) {
     section3.push(`Transmission: ${input.transmission}`)
   }
 
@@ -122,8 +138,9 @@ export const buildListingDescription = (input: ListingDescriptionInput): Descrip
   }
 
   // Section 4: Key Features, Service Records
+  // Features: only include if field is visible for this vehicle type and value exists
   const section4: string[] = []
-  if (input.features?.length) {
+  if (fieldConfig.showFeatures && input.features?.length) {
     section4.push(`Key Features: ${input.features.join(', ')}`)
   }
 

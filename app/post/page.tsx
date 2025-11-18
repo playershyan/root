@@ -33,6 +33,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { compressImageFile } from '@/lib/utils/image-compression'
 import { logger } from '@/lib/utils/logger'
 import { buildListingDescription } from '@/lib/services/descriptionBuilder'
+import { getFieldConfig, getRequiredFields } from '@/lib/utils/vehicleFieldConfig'
 import EditPhoneModal from '@/app/components/EditPhoneModal'
 
 // Lazy load form components (Phase 2 optimization)
@@ -135,6 +136,7 @@ export default function EnhancedPostVehiclePage() {
   const [dragActive, setDragActive] = useState(false)
   const [uploadStatus, setUploadStatus] = useState<Record<string, UploadStatusState>>({})
   const uploadIdMapRef = useRef<Map<File, string>>(new Map())
+  const abortControllersRef = useRef<Map<string, AbortController>>(new Map())
   const activeUploadsRef = useRef(0)
   const [imagesUploading, setImagesUploading] = useState(false)
   const [imagePreviews, setImagePreviews] = useState<Array<{ url: string; type: 'local' | 'remote'; file?: File }>>([])
@@ -467,30 +469,40 @@ export default function EnhancedPostVehiclePage() {
     if (!formData.vehicleType) newErrors.vehicleType = 'Vehicle type is required'
     if (!formData.title) newErrors.title = 'Title is required'
 
-    // Make and model
+    // Get field configuration for the selected vehicle type
+    const fieldConfig = getFieldConfig(formData.vehicleType || '')
+
+    // Make (always required)
     if (!formData.make) {
       newErrors.make = 'Make is required'
     } else if (formData.make === 'Other' && !formData.customMake) {
       newErrors.make = 'Custom make name is required'
     }
-    if (!formData.model) {
+
+    // Model (category-specific requirement)
+    if (fieldConfig.modelRequired && !formData.model) {
       newErrors.model = 'Model is required'
     } else if (formData.model === 'Other' && !formData.customModel) {
       newErrors.model = 'Custom model name is required'
     }
 
-    // Year
-    if (!formData.year) newErrors.year = 'Year is required'
+    // Year (category-specific requirement)
+    if (fieldConfig.yearRequired && !formData.year) {
+      newErrors.year = 'Year is required'
+    }
 
-    // Mileage (not applicable for bicycles)
-    if (formData.vehicleType !== 'bicycle' && !formData.mileage) {
+    // Mileage (category-specific requirement)
+    if (fieldConfig.mileageRequired && !formData.mileage) {
       newErrors.mileage = 'Mileage is required'
+    }
+
+    // Trim (category-specific requirement)
+    if (fieldConfig.trimRequired && !formData.trim) {
+      newErrors.trim = 'Trim/Grade is required'
     }
 
     // Condition
     if (!formData.condition) newErrors.condition = 'Vehicle condition is required'
-
-    // Trim/grade (optional for all vehicles now)
 
     // Location
     if (!formData.district) newErrors.district = 'District is required'
@@ -621,6 +633,11 @@ const getUploadUserId = (): string => {
 
       const uploadId = `${file.name}-${file.lastModified}-${Math.random().toString(36).slice(2)}`
       uploadIdMapRef.current.set(file, uploadId)
+
+      // Create AbortController for this upload
+      const abortController = new AbortController()
+      abortControllersRef.current.set(uploadId, abortController)
+
       setUploadStatus(prev => ({
         ...prev,
         [uploadId]: { progress: 5, status: 'compressing' }
@@ -638,6 +655,11 @@ const getUploadUserId = (): string => {
           convertToWebP: true
         })
 
+        // Check if upload was cancelled during compression
+        if (abortController.signal.aborted) {
+          throw new Error('Upload cancelled')
+        }
+
         setUploadStatus(prev => ({
           ...prev,
           [uploadId]: { progress: 40, status: 'uploading' }
@@ -649,7 +671,8 @@ const getUploadUserId = (): string => {
 
         const response = await fetch('/api/upload/cloudinary', {
           method: 'POST',
-          body: payload
+          body: payload,
+          signal: abortController.signal
         })
 
         const result: any = await parseUploadResponse(response)
@@ -828,8 +851,32 @@ const getUploadUserId = (): string => {
   }
   
   const generateAIDescription = async () => {
-    if (!formData.make || !formData.model || !formData.year) {
-      showWarning('Fill in make, model, and year first', 3000)
+    // Get field configuration for the selected vehicle type
+    const fieldConfig = getFieldConfig(formData.vehicleType || '')
+    const requiredFields = getRequiredFields(formData.vehicleType || '')
+    
+    // Check required fields based on vehicle category
+    const missingFields: string[] = []
+    
+    if (!formData.make) {
+      missingFields.push('make')
+    }
+    
+    if (fieldConfig.modelRequired && !formData.model) {
+      missingFields.push('model')
+    }
+    
+    if (fieldConfig.yearRequired && !formData.year) {
+      missingFields.push('year')
+    }
+    
+    if (fieldConfig.mileageRequired && !formData.mileage) {
+      missingFields.push('mileage')
+    }
+    
+    if (missingFields.length > 0) {
+      const fieldNames = missingFields.map(f => f.charAt(0).toUpperCase() + f.slice(1)).join(', ')
+      showWarning(`Please fill in the required fields: ${fieldNames}`, 3000)
       return
     }
 
