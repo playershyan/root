@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAdminAccess } from '@/lib/middleware/adminAuth'
 import { withRateLimit, rateLimiters } from '@/lib/middleware/rateLimiter'
-import { processWantedRequestMatching } from '@/lib/services/wantedMatching'
 import { incr } from '@/lib/security/metrics'
 import { AuditEvents } from '@/lib/utils/audit'
 import { getServiceRoleClient } from '@/lib/supabase/serviceRoleClient'
@@ -58,13 +57,7 @@ export async function POST(request: NextRequest) {
         listing_id: listingId
       })
 
-    // Process wanted request matching for the approved listing
-    try {
-      const matchingResult = await processWantedRequestMatching(listingId)
-      AuditEvents.listingApproved(listingId, (authResult.adminUser as any).user_id, matchingResult.matchCount)
-    } catch (matchingError) {
-      // Log the error but don't fail the approval process
-    }
+    AuditEvents.listingApproved(listingId, (authResult.adminUser as any).user_id, 0)
 
     incr('admin.listing.approved')
 

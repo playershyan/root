@@ -78,25 +78,18 @@ export async function GET(request: NextRequest) {
 
     const wantedPromise = supabase
       .from('wanted_requests')
-      .select('status, is_active, new_matches_count')
+      .select('status, is_active')
       .eq('user_id', user.id)
       .neq('status', 'deleted')
-
-    const matchNotificationPromise = supabase
-      .from('listing_wanted_notifications')
-      .select('*', { count: 'exact', head: true })
-      .is('dismissed_at', null)
 
     const [
       { data: favoriteRows, count: favoritesCount, error: favoritesError },
       { data: conversationRows, count: conversationCount, error: conversationsError },
-      { data: wantedRows, error: wantedError },
-      { count: activeMatchNotifications, error: matchNotificationsError }
+      { data: wantedRows, error: wantedError }
     ] = await Promise.all([
       favoritesPromise,
       conversationsPromise,
-      wantedPromise,
-      matchNotificationPromise
+      wantedPromise
     ])
 
     if (favoritesError) {
@@ -109,14 +102,6 @@ export async function GET(request: NextRequest) {
 
     if (wantedError) {
       logger.error('Dashboard wanted requests query failed', wantedError as Error, context)
-    }
-
-    if (matchNotificationsError) {
-      logger.error(
-        'Dashboard match notifications query failed',
-        matchNotificationsError as Error,
-        context
-      )
     }
 
     const recentFavorites =
@@ -185,8 +170,7 @@ export async function GET(request: NextRequest) {
       active: 0,
       pending: 0,
       paused: 0,
-      closed: 0,
-      totalNewMatches: 0
+      closed: 0
     }
 
     if (wantedRows) {
@@ -210,10 +194,6 @@ export async function GET(request: NextRequest) {
           default:
             break
         }
-
-        if (typeof req.new_matches_count === 'number') {
-          wantedStats.totalNewMatches += req.new_matches_count
-        }
       })
     }
 
@@ -228,10 +208,7 @@ export async function GET(request: NextRequest) {
         unreadConversations: messagingStats.unreadConversations,
         recent: messagingStats.recent
       },
-      wantedRequests: wantedStats,
-      notifications: {
-        activeMatchNotifications: activeMatchNotifications ?? 0
-      }
+      wantedRequests: wantedStats
     }
 
     logger.api.success('GET', '/api/user/dashboard', Date.now() - requestStart, {
