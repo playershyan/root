@@ -9,6 +9,8 @@ import PromotionBadges from './PromotionBadges'
 import FavoriteButton from '@/app/components/FavoriteButton'
 import { Button } from '@/components/ui/button'
 import OptimizedImage from '@/components/ui/OptimizedImage'
+import { useAuth } from '@/app/contexts/AuthContext'
+import { useToast } from '@/app/components/notifications/useToast'
 
 // Lazy load modals (Phase 2 optimization)
 const ContactModal = dynamic(() => import('@/app/components/modals/ContactModal'))
@@ -63,9 +65,28 @@ export default function RegularAdCard({
   onImageLoad,
   onImageError
 }: RegularAdCardProps) {
+  const { user } = useAuth()
+  const { showError } = useToast()
   const images = listing.image_urls || []
   const [showContactModal, setShowContactModal] = useState(false)
   const [showConversationModal, setShowConversationModal] = useState(false)
+
+  const handleMessage = (e: React.MouseEvent) => {
+    e.preventDefault()
+    
+    if (!user) {
+      // Redirect to login - the modal will handle auth
+      window.location.href = '/?auth=true'
+      return
+    }
+
+    if (user.id === listing.user_id) {
+      showError('You cannot send messages to your own listing')
+      return
+    }
+
+    setShowConversationModal(true)
+  }
   
   const getPromotionBadge = () => {
     // Show promotion badges if any promotion flag is set
@@ -266,10 +287,7 @@ export default function RegularAdCard({
             Call Now
           </Button>
           <Button
-            onClick={(e) => {
-              e.preventDefault()
-              setShowConversationModal(true)
-            }}
+            onClick={handleMessage}
             variant="outline"
             size="default"
             className="flex-1 border-blue-600 text-blue-600 hover:bg-blue-50 gap-2"

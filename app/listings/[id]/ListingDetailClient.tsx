@@ -121,9 +121,25 @@ export default function ListingDetailClient({
       localStorage.removeItem('pendingAction')
       localStorage.removeItem('pendingRedirect')
       localStorage.removeItem('pendingActionData')
-      setTimeout(() => setShowOfferModal(true), 300)
+      // Check ownership before opening offer modal
+      if (user.id === listing.user_id) {
+        showError('You cannot make an offer on your own listing')
+      } else {
+        setTimeout(() => setShowOfferModal(true), 300)
+      }
     }
-  }, [user])
+    if (pendingAction === 'message' && user) {
+      localStorage.removeItem('pendingAction')
+      localStorage.removeItem('pendingRedirect')
+      localStorage.removeItem('pendingActionData')
+      // Check ownership before opening message modal
+      if (user.id === listing.user_id) {
+        showError('You cannot send messages to your own listing')
+      } else {
+        setTimeout(() => setShowConversationModal(true), 300)
+      }
+    }
+  }, [user, listing.user_id])
 
   // Calculate monthly payment
   const calculateMonthlyPayment = () => {
@@ -208,6 +224,21 @@ export default function ListingDetailClient({
     }
 
     setShowOfferModal(true)
+  }
+
+  const handleMessage = () => {
+    if (!user) {
+      openAuthWithAction(() => setShowConversationModal(true), 'message')
+      return
+    }
+
+    // Check if user owns the listing
+    if (listing.user_id && user.id === listing.user_id) {
+      showError('You cannot send messages to your own listing')
+      return
+    }
+
+    setShowConversationModal(true)
   }
 
   const handleShare = async () => {
@@ -493,7 +524,7 @@ export default function ListingDetailClient({
                   Contact
                 </button>
                 <button
-                  onClick={() => setShowConversationModal(true)}
+                  onClick={handleMessage}
                   className="btn-message btn-full btn-icon"
                 >
                   <MessageSquare className="w-4 h-4" />
@@ -652,7 +683,7 @@ export default function ListingDetailClient({
               listing={listing}
               sellerData={sellerData}
               dealer={dealer}
-              onMessageClick={() => setShowConversationModal(true)}
+              onMessageClick={handleMessage}
             />
           </div>
 

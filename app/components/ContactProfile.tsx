@@ -9,6 +9,7 @@ import ContactModal from '@/app/components/modals/ContactModal'
 import { logger } from '@/lib/utils/logger'
 import { useAuth } from '@/app/contexts/AuthContext'
 import { toast } from 'sonner'
+import { useToast } from '@/app/components/notifications/useToast'
 
 // Types
 type Listing = {
@@ -214,8 +215,15 @@ function MessageButton({ listing, onMessageClick }: {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const { user } = useAuth()
+  const { showError } = useToast()
 
   const handleMessage = async () => {
+    // Check if user owns the listing before proceeding
+    if (user && user.id === listing.user_id) {
+      showError('You cannot send messages to your own listing')
+      return
+    }
+
     // If onMessageClick prop is provided, use it instead of redirect
     if (onMessageClick) {
       onMessageClick()

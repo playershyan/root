@@ -9,6 +9,8 @@ import PromotionBadges from './PromotionBadges'
 import FavoriteButton from '@/app/components/FavoriteButton'
 import { Button } from '@/components/ui/button'
 import OptimizedImage from '@/components/ui/OptimizedImage'
+import { useAuth } from '@/app/contexts/AuthContext'
+import { useToast } from '@/app/components/notifications/useToast'
 
 // Lazy load modals
 const ContactModal = dynamic(() => import('@/app/components/modals/ContactModal'))
@@ -65,9 +67,27 @@ export default function FeaturedAdCard({
   onImageError,
   promotionType
 }: FeaturedAdCardProps) {
+  const { user } = useAuth()
+  const { showError } = useToast()
   const images = listing.image_urls || []
   const [showContactModal, setShowContactModal] = useState(false)
   const [showConversationModal, setShowConversationModal] = useState(false)
+
+  const handleMessage = (e: React.MouseEvent) => {
+    e.preventDefault()
+    
+    if (!user) {
+      window.location.href = '/?auth=true'
+      return
+    }
+
+    if (user.id === listing.user_id) {
+      showError('You cannot send messages to your own listing')
+      return
+    }
+
+    setShowConversationModal(true)
+  }
 
   const getPromotionBadge = () => {
     // Show promotion badges if any promotion flag is set (excluding featured)

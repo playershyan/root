@@ -92,6 +92,14 @@ export default function MobileFilterButton({ makes, makeModels, allModels }: Mob
     updateFilter({ yearTo: year || null })
   }
 
+  // Combined handler to update both year values atomically
+  const handleYearRangeChange = (yearFrom: string, yearTo: string) => {
+    updateFilter({ 
+      yearFrom: yearFrom || null,
+      yearTo: yearTo || null
+    })
+  }
+
   const handleSortByChange = (sort: string) => {
     updateFilter({ sortBy: sort })
   }
@@ -141,6 +149,7 @@ export default function MobileFilterButton({ makes, makeModels, allModels }: Mob
         onMaxBudgetChange={handleMaxBudgetChange}
         onYearFromChange={handleYearFromChange}
         onYearToChange={handleYearToChange}
+        onYearRangeChange={handleYearRangeChange}
         onSortByChange={handleSortByChange}
         onHighPriorityToggle={handleHighPriorityToggle}
         onClearAll={handleClearAll}

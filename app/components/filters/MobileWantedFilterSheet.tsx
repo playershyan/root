@@ -26,6 +26,7 @@ interface MobileWantedFilterSheetProps {
   onMaxBudgetChange: (budget: string) => void
   onYearFromChange: (year: string) => void
   onYearToChange: (year: string) => void
+  onYearRangeChange?: (yearFrom: string, yearTo: string) => void
   onSortByChange: (sort: string) => void
   onHighPriorityToggle: (value: boolean) => void
 
@@ -58,6 +59,7 @@ export default function MobileWantedFilterSheet({
   onMaxBudgetChange,
   onYearFromChange,
   onYearToChange,
+  onYearRangeChange,
   onSortByChange,
   onHighPriorityToggle,
   onClearAll,
@@ -345,16 +347,26 @@ export default function MobileWantedFilterSheet({
             onFromChange={setTempYearFrom}
             onToChange={setTempYearTo}
             onApply={() => {
-              onYearFromChange(tempYearFrom)
-              onYearToChange(tempYearTo)
+              // Use combined handler if available to update both values atomically
+              if (onYearRangeChange) {
+                onYearRangeChange(tempYearFrom, tempYearTo)
+              } else {
+                // Fallback to separate handlers
+                onYearFromChange(tempYearFrom)
+                onYearToChange(tempYearTo)
+              }
               showMain()
             }}
             onBack={showMain}
             onClear={() => {
               setTempYearFrom('')
               setTempYearTo('')
-              onYearFromChange('')
-              onYearToChange('')
+              if (onYearRangeChange) {
+                onYearRangeChange('', '')
+              } else {
+                onYearFromChange('')
+                onYearToChange('')
+              }
             }}
           />
         )}
