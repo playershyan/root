@@ -60,6 +60,8 @@ export default function PostWantedPage() {
   // Phone verification modals
   const [showEditPhoneModal, setShowEditPhoneModal] = useState(false)
   const [showEditWhatsAppModal, setShowEditWhatsAppModal] = useState(false)
+  const [showVerificationModal, setShowVerificationModal] = useState(false)
+  const [pendingPhone, setPendingPhone] = useState<string>('')
 
   // Detect edit mode
   const isEditMode = searchParams.get('edit') !== null
@@ -74,6 +76,7 @@ export default function PostWantedPage() {
   const [availableCities, setAvailableCities] = useState<string[]>([])
   const [originalPhone, setOriginalPhone] = useState<string>('')
   const [phoneVerified, setPhoneVerified] = useState<boolean>(false)
+  const [pendingOtpCode, setPendingOtpCode] = useState<string>('')
   
   const [formData, setFormData] = useState<FormData>({
     description: '',
