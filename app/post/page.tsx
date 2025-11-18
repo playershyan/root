@@ -8,7 +8,8 @@ import { useAuth } from '@/app/contexts/AuthContext'
 import {
   Car, Camera, MapPin, Phone, CreditCard, CheckCircle,
   AlertCircle, Upload, X, Sparkles, ChevronRight,
-  FileText, User, Image as ImageIcon, Star, Edit
+  FileText, User, Image as ImageIcon, Star, Edit,
+  Bus, Truck, Bike, Wrench, Tractor, Ship, ChevronDown, ChevronUp, Package
 } from 'lucide-react'
 import { formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
 import {
@@ -1299,6 +1300,43 @@ const getUploadUserId = (): string => {
   const currentYear = new Date().getFullYear()
   const years = Array.from({ length: 35 }, (_, i) => currentYear - i)
   
+  // Helper function to get Lucide icon component for vehicle type
+  const getVehicleIcon = (vehicleType: string, isSelected: boolean = false) => {
+    const iconColor = isSelected ? "text-blue-600" : "text-gray-700"
+    const iconProps = { className: `w-5 h-5 ${iconColor}`, size: 20 }
+    switch (vehicleType) {
+      case 'car':
+        return <Car {...iconProps} />
+      case 'van':
+        // Use Package icon as van representation
+        return <Package {...iconProps} />
+      case 'bus':
+        return <Bus {...iconProps} />
+      case 'lorry':
+        return <Truck {...iconProps} />
+      case 'motorcycle':
+        return <Bike {...iconProps} />
+      case 'three-wheeler':
+        return (
+          <svg className={`w-5 h-5 ${iconColor}`} fill="currentColor" viewBox="0 0 24 24">
+            <path d="M18.92 2.01C18.72 1.42 18.16 1 17.5 1h-11C5.84 1 5.28 1.42 5.08 2.01L3 8v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1V8L18.92 2.01zM6.5 12c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9s1.5.67 1.5 1.5S7.33 12 6.5 12zm11 0c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5S18.33 12 17.5 12zM5 7l1.27-3.82c.14-.42.52-.68.97-.68h9.53c.44 0 .82.26.97.68L19 7H5z"/>
+            <circle cx="6" cy="19" r="2"/>
+            <circle cx="18" cy="19" r="2"/>
+            <circle cx="12" cy="19" r="1.5"/>
+          </svg>
+        )
+      case 'bicycle':
+        return <Bike {...iconProps} />
+      case 'plant-machinery':
+        return <Wrench {...iconProps} />
+      case 'tractor':
+        return <Tractor {...iconProps} />
+      case 'boat':
+        return <Ship {...iconProps} />
+      default:
+        return <Car {...iconProps} />
+    }
+  }
   
   return (
     <div className="min-h-screen bg-gray-50 lg:py-8 pb-12">
@@ -1345,38 +1383,7 @@ const getUploadUserId = (): string => {
                     <div className="flex items-center gap-4">
                       {formData.vehicleType ? (
                         <>
-                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            {(() => {
-                              const selectedType = getVehicleCategories().find(t => t.value === formData.vehicleType);
-                              
-                              if (selectedType?.icon === 'custom-three-wheeler') {
-                                return (
-                                  <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M18.92 2.01C18.72 1.42 18.16 1 17.5 1h-11C5.84 1 5.28 1.42 5.08 2.01L3 8v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1V8L18.92 2.01zM6.5 12c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9s1.5.67 1.5 1.5S7.33 12 6.5 12zm11 0c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5S18.33 12 17.5 12zM5 7l1.27-3.82c.14-.42.52-.68.97-.68h9.53c.44 0 .82.26.97.68L19 7H5z"/>
-                                    <circle cx="6" cy="19" r="2"/>
-                                    <circle cx="18" cy="19" r="2"/>
-                                    <circle cx="12" cy="19" r="1.5"/>
-                                  </svg>
-                                );
-                              } else if (selectedType?.icon === 'custom-excavator') {
-                                return (
-                                  <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                                    <rect x="6" y="14" width="10" height="3" rx="1"/>
-                                    <rect x="8" y="10" width="4" height="4" rx="0.5"/>
-                                    <rect x="12" y="11" width="6" height="1" rx="0.5"/>
-                                    <rect x="17" y="7" width="1" height="5" rx="0.5"/>
-                                    <path d="M17 6 L19 4 L20 6 L18 8 Z" fill="currentColor"/>
-                                    <rect x="4" y="17" width="14" height="2" rx="1"/>
-                                    <circle cx="6" cy="18" r="1"/>
-                                    <circle cx="9" cy="18" r="1"/>
-                                    <circle cx="12" cy="18" r="1"/>
-                                    <circle cx="15" cy="18" r="1"/>
-                                  </svg>
-                                );
-                              }
-                              return <i className={`${selectedType?.icon} text-lg text-blue-600`}></i>;
-                            })()}
-                          </div>
+                          {getVehicleIcon(formData.vehicleType, true)}
                           <span className="text-lg font-medium text-gray-900">
                             {getVehicleCategories().find(t => t.value === formData.vehicleType)?.label}
                           </span>
@@ -1385,7 +1392,11 @@ const getUploadUserId = (): string => {
                         <span className="text-gray-500">Choose vehicle type...</span>
                       )}
                     </div>
-                    <i className={`fas fa-chevron-${(formData as any).showVehicleDropdown ? 'up' : 'down'} text-gray-400`}></i>
+                    {(formData as any).showVehicleDropdown ? (
+                      <ChevronUp className="w-4 h-4 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-gray-400" />
+                    )}
                   </Button>
                   
                   {/* Dropdown Options */}
@@ -1407,46 +1418,14 @@ const getUploadUserId = (): string => {
                             }`}
                           >
                             <div className="flex items-center space-x-3">
-                              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                                {type.icon === 'custom-three-wheeler' ? (
-                                  <svg 
-                                    className="w-6 h-6 text-gray-700"
-                                    fill="currentColor" 
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path d="M18.92 2.01C18.72 1.42 18.16 1 17.5 1h-11C5.84 1 5.28 1.42 5.08 2.01L3 8v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1V8L18.92 2.01zM6.5 12c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9s1.5.67 1.5 1.5S7.33 12 6.5 12zm11 0c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5S18.33 12 17.5 12zM5 7l1.27-3.82c.14-.42.52-.68.97-.68h9.53c.44 0 .82.26.97.68L19 7H5z"/>
-                                    <circle cx="6" cy="19" r="2"/>
-                                    <circle cx="18" cy="19" r="2"/>
-                                    <circle cx="12" cy="19" r="1.5"/>
-                                  </svg>
-                                ) : type.icon === 'custom-excavator' ? (
-                                  <svg 
-                                    className="w-6 h-6 text-gray-700"
-                                    fill="currentColor" 
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <rect x="6" y="14" width="10" height="3" rx="1"/>
-                                    <rect x="8" y="10" width="4" height="4" rx="0.5"/>
-                                    <rect x="12" y="11" width="6" height="1" rx="0.5"/>
-                                    <rect x="17" y="7" width="1" height="5" rx="0.5"/>
-                                    <path d="M17 6 L19 4 L20 6 L18 8 Z" fill="currentColor"/>
-                                    <rect x="4" y="17" width="14" height="2" rx="1"/>
-                                    <circle cx="6" cy="18" r="1"/>
-                                    <circle cx="9" cy="18" r="1"/>
-                                    <circle cx="12" cy="18" r="1"/>
-                                    <circle cx="15" cy="18" r="1"/>
-                                  </svg>
-                                ) : (
-                                  <i className={`${type.icon} text-lg text-gray-700`}></i>
-                                )}
-                              </div>
+                              {getVehicleIcon(type.value)}
                               <div className="flex-1">
                                 <p className="font-medium text-gray-900">{type.label}</p>
                                 <p className="text-xs text-gray-500">{type.description}</p>
                               </div>
                               {formData.vehicleType === type.value && (
                                 <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
-                                  <i className="fas fa-check text-white text-xs"></i>
+                                  <CheckCircle className="w-3 h-3 text-white" />
                                 </div>
                               )}
                             </div>
