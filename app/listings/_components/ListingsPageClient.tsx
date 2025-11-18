@@ -189,7 +189,7 @@ export default function ListingsPageClient({
   const renderListingCard = (listing: ListingSummary) => {
     const listingData = {
       ...listing,
-      user_id: listing.user_id ?? 'unknown',
+      user_id: listing.user_id || '', // Use empty string as fallback (null/undefined becomes '')
       image_urls: listing.image_urls ?? [],
       year: listing.year ?? 0,
       location: listing.location ?? '',

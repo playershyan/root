@@ -63,7 +63,8 @@ export default function UrgentListingCard({ listing }: UrgentListingCardProps) {
       return
     }
 
-    if (user.id === listing.user_id) {
+    // Check ownership - only if listing has a user_id and it matches current user
+    if (listing.user_id && listing.user_id !== '' && user.id === listing.user_id) {
       showError('You cannot send messages to your own listing')
       return
     }
