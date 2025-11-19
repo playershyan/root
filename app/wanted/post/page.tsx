@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/app/contexts/AuthContext'
@@ -648,6 +648,18 @@ export default function PostWantedPage() {
     // Toast is now shown in EditPhoneModal component
   }
 
+  // CRITICAL FIX: Memoize callbacks to prevent infinite re-renders
+  // Inline arrow functions recreate on every render, causing EditPhoneModal's useEffect to re-run infinitely
+  const handleClosePhoneModal = useCallback(() => {
+    console.log('[PostWantedPage] handleClosePhoneModal called')
+    setShowEditPhoneModal(false)
+  }, [])
+
+  const handleCloseWhatsAppModal = useCallback(() => {
+    console.log('[PostWantedPage] handleCloseWhatsAppModal called')
+    setShowEditWhatsAppModal(false)
+  }, [])
+
   const formatPreviewBudget = () => {
     if (!formData.min_budget && !formData.max_budget) return 'Not specified'
     if (!formData.min_budget) return `Up to Rs. ${formatBudget(formData.max_budget)}`
@@ -689,7 +701,7 @@ export default function PostWantedPage() {
     return () => {
       console.log('[PostWantedPage] UNMOUNT')
     }
-  })
+  }, [showEditPhoneModal, showEditWhatsAppModal, authLoading, profileLoading, user])
 
   // DEBUG: Track link/button clicks
   useEffect(() => {
@@ -748,7 +760,13 @@ export default function PostWantedPage() {
         hidden: document.hidden,
         showEditPhoneModal,
         showEditWhatsAppModal,
-        listenersOnDocument: getEventListeners?.(document)?.mousedown?.length || 'unknown'
+        listenersOnDocument: (() => {
+          try {
+            return (window as any).getEventListeners?.(document)?.mousedown?.length || 'N/A'
+          } catch {
+            return 'N/A'
+          }
+        })()
       })
     }
     
@@ -1409,10 +1427,7 @@ export default function PostWantedPage() {
         currentPhone={formData.phone}
         isOpen={showEditPhoneModal}
         onVerified={handlePhoneVerified}
-        onCancel={() => {
-          console.log('[PostWantedPage] handleClosePhoneModal called')
-          setShowEditPhoneModal(false)
-        }}
+        onCancel={handleClosePhoneModal}
         purpose="wanted"
       />
 
@@ -1421,10 +1436,7 @@ export default function PostWantedPage() {
         currentPhone={formData.whatsapp}
         isOpen={showEditWhatsAppModal}
         onVerified={handleWhatsAppVerified}
-        onCancel={() => {
-          console.log('[PostWantedPage] handleCloseWhatsAppModal called')
-          setShowEditWhatsAppModal(false)
-        }}
+        onCancel={handleCloseWhatsAppModal}
         purpose="wanted"
       />
     </div>
