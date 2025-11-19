@@ -28,6 +28,10 @@ export default function EditPhoneModal({
   showSuccessToast,
   showErrorToast
 }: EditPhoneModalProps) {
+  const modalInstanceId = useRef(Math.random().toString(36).slice(2, 9))
+  
+  console.log(`[EditPhoneModal-${modalInstanceId.current}] RENDER - isOpen:`, isOpen, 'purpose:', purpose)
+  
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [newPhone, setNewPhone] = useState('')
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
@@ -82,24 +86,37 @@ export default function EditPhoneModal({
 
   // Close modal on escape key and manage body overflow
   useEffect(() => {
+    console.log(`[EditPhoneModal-${modalInstanceId.current}] Escape key effect - isOpen:`, isOpen)
+    
     if (!isOpen) {
       // Ensure body overflow is restored when modal is closed
+      const prevOverflow = document.body.style.overflow
       document.body.style.overflow = ''
+      if (prevOverflow) {
+        console.log(`[EditPhoneModal-${modalInstanceId.current}] Restored body overflow from:`, prevOverflow)
+      }
       return
     }
 
     const handleEscape = (e: KeyboardEvent) => {
+      console.log(`[EditPhoneModal-${modalInstanceId.current}] Escape key pressed`)
       if (e.key === 'Escape') {
         onCancel()
       }
     }
 
-    document.addEventListener('keydown', handleEscape)
+    console.log(`[EditPhoneModal-${modalInstanceId.current}] Setting body overflow to hidden`)
     document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', handleEscape)
 
     return () => {
+      console.log(`[EditPhoneModal-${modalInstanceId.current}] Escape key cleanup`)
       document.removeEventListener('keydown', handleEscape)
+      const prevOverflow = document.body.style.overflow
       document.body.style.overflow = ''
+      if (prevOverflow !== '') {
+        console.log(`[EditPhoneModal-${modalInstanceId.current}] Restored body overflow from:`, prevOverflow)
+      }
     }
   }, [isOpen, onCancel])
 
@@ -107,9 +124,14 @@ export default function EditPhoneModal({
   // CRITICAL FIX: React StrictMode double-renders cause orphaned event listeners
   // Solution: Store handler in ref and ALWAYS remove existing listener before adding new one
   useEffect(() => {
+    const modalId = `EditPhoneModal-${purpose}-${Math.random().toString(36).slice(2, 9)}`
+    
+    console.log(`[${modalId}] useEffect START - isOpen:`, isOpen, 'onCancel changed:', onCancel)
+    
     // CRITICAL: Remove any existing listener FIRST to prevent duplicates/orphans
     // This is essential because React StrictMode unmounts and remounts components
     if (clickOutsideHandlerRef.current) {
+      console.log(`[${modalId}] Removing existing mousedown listener`)
       document.removeEventListener('mousedown', clickOutsideHandlerRef.current)
       clickOutsideHandlerRef.current = null
     }
@@ -117,18 +139,37 @@ export default function EditPhoneModal({
     // CRITICAL: If modal is closed, do NOT attach listener
     // The listener would block ALL clicks on the page if attached when modal isn't rendered
     if (!isOpen) {
+      console.log(`[${modalId}] Modal closed - NOT attaching listener`)
       return
     }
 
     const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      const targetTag = target?.tagName?.toLowerCase()
+      const targetHref = target?.closest('a')?.getAttribute('href')
+      const targetId = target?.id || target?.className || 'unknown'
+      
+      console.log(`[${modalId}] MOUSEDOWN CAPTURED:`, {
+        target: targetTag,
+        href: targetHref,
+        id: targetId,
+        modalOpen: isOpen,
+        modalRefExists: !!modalRef.current,
+        isInsideModal: modalRef.current?.contains(target) || false
+      })
+      
       // Defensive check: ensure modal is still open and ref exists
       if (!isOpen || !modalRef.current) {
+        console.log(`[${modalId}] Handler early return - modal closed or ref missing`)
         return
       }
       
       // Only close if click is outside modal content
-      if (!modalRef.current.contains(e.target as Node)) {
+      if (!modalRef.current.contains(target)) {
+        console.log(`[${modalId}] Click outside modal - calling onCancel`)
         onCancel()
+      } else {
+        console.log(`[${modalId}] Click inside modal - ignoring`)
       }
     }
 
@@ -138,16 +179,31 @@ export default function EditPhoneModal({
     // CRITICAL: Use bubble phase (default), NOT capture phase
     // Capture phase intercepts events BEFORE React's synthetic events
     // This blocks Next.js Link components which rely on React event delegation
-    document.addEventListener('mousedown', handleClickOutside)
+    console.log(`[${modalId}] Attaching mousedown listener - bubble phase`)
+    document.addEventListener('mousedown', handleClickOutside, false)
+    
+    // DEBUG: Check listener count (only in Chrome DevTools)
+    try {
+      const listenerCount = (window as any).getEventListeners?.(document)?.mousedown?.length
+      if (listenerCount !== undefined) {
+        console.log(`[${modalId}] Listener attached. Total mousedown listeners on document:`, listenerCount)
+      }
+    } catch (e) {
+      // getEventListeners only available in Chrome DevTools console
+    }
 
     return () => {
       // CRITICAL: Always remove listener using ref to ensure correct handler is removed
+      console.log(`[${modalId}] Cleanup running - removing listener`)
       if (clickOutsideHandlerRef.current) {
-        document.removeEventListener('mousedown', clickOutsideHandlerRef.current)
+        document.removeEventListener('mousedown', clickOutsideHandlerRef.current, false)
         clickOutsideHandlerRef.current = null
+        console.log(`[${modalId}] Listener removed successfully`)
+      } else {
+        console.warn(`[${modalId}] Cleanup called but no handler ref exists!`)
       }
     }
-  }, [isOpen, onCancel])
+  }, [isOpen, onCancel, purpose])
 
   // Cleanup on unmount - ensure body overflow is always restored
   useEffect(() => {
@@ -318,7 +374,12 @@ export default function EditPhoneModal({
     }
   }
 
-  if (!isOpen) return null
+  if (!isOpen) {
+    console.log(`[EditPhoneModal-${modalInstanceId.current}] Returning null - modal closed`)
+    return null
+  }
+
+  console.log(`[EditPhoneModal-${modalInstanceId.current}] Rendering modal overlay`)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">

@@ -655,27 +655,125 @@ export default function PostWantedPage() {
     return `Rs. ${formatBudget(formData.min_budget)} - ${formatBudget(formData.max_budget)}`
   }
 
-  // Fix for unresponsive links/buttons on initial load
-  // This ensures React properly attaches event listeners on mount
-  // The tab switch workaround suggests React isn't completing hydration until visibility change
-  const [isReady, setIsReady] = useState(false)
+  // DEBUG: Track render cycles and modal state
+  const renderCountRef = useRef(0)
+  renderCountRef.current += 1
   
   useEffect(() => {
-    // Use requestAnimationFrame to ensure DOM is fully ready
-    // This matches the timing that occurs when tab gains focus
-    const rafId = requestAnimationFrame(() => {
-      setIsReady(true)
+    const bodyOverflow = document.body.style.overflow
+    const bodyPointerEvents = window.getComputedStyle(document.body).pointerEvents
+    
+    console.log('[PostWantedPage] MOUNT/RENDER #' + renderCountRef.current, {
+      showEditPhoneModal,
+      showEditWhatsAppModal,
+      authLoading,
+      profileLoading,
+      user: !!user,
+      bodyOverflow: bodyOverflow || '(empty/default)',
+      bodyPointerEvents,
+      timestamp: Date.now()
     })
     
-    return () => cancelAnimationFrame(rafId)
+    // Check for blocking overlays
+    const overlays = document.querySelectorAll('[style*="position: fixed"], [style*="position:fixed"]')
+    if (overlays.length > 0) {
+      console.log('[PostWantedPage] Found potential overlays:', Array.from(overlays).map(el => ({
+        tag: el.tagName,
+        classes: el.className,
+        zIndex: window.getComputedStyle(el).zIndex,
+        pointerEvents: window.getComputedStyle(el).pointerEvents,
+        display: window.getComputedStyle(el).display
+      })))
+    }
+    
+    return () => {
+      console.log('[PostWantedPage] UNMOUNT')
+    }
+  })
+
+  // DEBUG: Track link/button clicks
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      const link = target.closest('a') || target.closest('button')
+      
+      if (link) {
+        const isLink = link.tagName === 'A'
+        const href = isLink ? (link as HTMLAnchorElement).href : null
+        const text = link.textContent?.trim().slice(0, 50) || 'unknown'
+        
+        console.log('[PostWantedPage] CLICK DETECTED:', {
+          type: isLink ? 'LINK' : 'BUTTON',
+          href: href?.slice(-50),
+          text,
+          target: target.tagName,
+          defaultPrevented: e.defaultPrevented,
+          timeStamp: e.timeStamp,
+          listenersOnDocument: (() => {
+            try {
+              return (window as any).getEventListeners?.(document)?.mousedown?.length || 'N/A'
+            } catch {
+              return 'N/A'
+            }
+          })()
+        })
+        
+        // Check if click is being blocked
+        setTimeout(() => {
+          if (isLink && !e.defaultPrevented) {
+            const finalHref = (link as HTMLAnchorElement).href
+            console.log('[PostWantedPage] POST-CLICK CHECK:', {
+              href: finalHref,
+              locationChanged: window.location.href !== finalHref,
+              currentLocation: window.location.href.slice(-50)
+            })
+          }
+        }, 100)
+      }
+    }
+
+    // Use capture phase to catch all clicks early
+    document.addEventListener('click', handleClick, true)
+    
+    return () => {
+      document.removeEventListener('click', handleClick, true)
+    }
   }, [])
+  
+  // DEBUG: Track visibility changes (tab switching)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      console.log('[PostWantedPage] VISIBILITY CHANGE:', {
+        visibilityState: document.visibilityState,
+        hidden: document.hidden,
+        showEditPhoneModal,
+        showEditWhatsAppModal,
+        listenersOnDocument: getEventListeners?.(document)?.mousedown?.length || 'unknown'
+      })
+    }
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [showEditPhoneModal, showEditWhatsAppModal])
 
   return (
     <div className="min-h-screen bg-gray-50 lg:py-8 pb-12">
       <div className="max-w-3xl mx-auto px-4 lg:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-4 lg:mb-8 py-4 lg:py-0 bg-white lg:bg-transparent -mx-4 px-4 lg:mx-0 border-b lg:border-0">
-          <Link href="/wanted" className="text-blue-600 hover:text-blue-700 flex items-center gap-2 mb-4">
+          <Link 
+            href="/wanted" 
+            className="text-blue-600 hover:text-blue-700 flex items-center gap-2 mb-4"
+            onClick={(e) => {
+              console.log('[PostWantedPage] Link onClick handler FIRED:', {
+                href: '/wanted',
+                defaultPrevented: e.defaultPrevented,
+                timeStamp: Date.now(),
+                eventPhase: e.eventPhase,
+                bubbles: e.bubbles
+              })
+            }}
+          >
             <span>←</span> Back to Wanted Requests
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">
@@ -1311,7 +1409,10 @@ export default function PostWantedPage() {
         currentPhone={formData.phone}
         isOpen={showEditPhoneModal}
         onVerified={handlePhoneVerified}
-        onCancel={() => setShowEditPhoneModal(false)}
+        onCancel={() => {
+          console.log('[PostWantedPage] handleClosePhoneModal called')
+          setShowEditPhoneModal(false)
+        }}
         purpose="wanted"
       />
 
@@ -1320,7 +1421,10 @@ export default function PostWantedPage() {
         currentPhone={formData.whatsapp}
         isOpen={showEditWhatsAppModal}
         onVerified={handleWhatsAppVerified}
-        onCancel={() => setShowEditWhatsAppModal(false)}
+        onCancel={() => {
+          console.log('[PostWantedPage] handleCloseWhatsAppModal called')
+          setShowEditWhatsAppModal(false)
+        }}
         purpose="wanted"
       />
     </div>
