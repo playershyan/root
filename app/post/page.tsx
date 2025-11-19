@@ -38,6 +38,7 @@ import { buildListingDescription } from '@/lib/services/descriptionBuilder'
 import { getFieldConfig, getRequiredFields } from '@/lib/utils/vehicleFieldConfig'
 import { extractPublicId } from '@/lib/utils/responsive-images'
 import EditPhoneModal from '@/app/components/EditPhoneModal'
+import SuccessPopup from '@/app/components/modals/SuccessPopup'
 
 // Lazy load form components (Phase 2 optimization)
 import type { DescriptionGeneratorRef } from '@/app/components/vehicle-forms/DescriptionGenerator'
@@ -125,6 +126,9 @@ export default function EnhancedPostVehiclePage() {
   const [showVerificationModal, setShowVerificationModal] = useState(false)
   const [pendingPhone, setPendingPhone] = useState<string>('')
   const [pendingOtpCode, setPendingOtpCode] = useState<string>('')
+
+  // Success popup state
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false)
 
   // Detect edit mode
   const isEditMode = searchParams.get('edit') !== null
@@ -1245,7 +1249,7 @@ const getUploadUserId = (): string => {
         }
 
         localStorage.removeItem('vehiclePostDraft')
-        showSuccess('Listing created successfully! Redirecting...', 2000)
+        showSuccess('Listing created successfully!', 2000)
         // Reset verification state
         setShowVerificationModal(false)
         setPendingOtpCode('')
@@ -1254,8 +1258,12 @@ const getUploadUserId = (): string => {
         if (formData.phone) {
           setOriginalPhone(formData.phone)
         }
+
+        // Show success popup
+        setShowSuccessPopup(true)
+
         // TEMPORARILY DISABLED - Redirect to paid features page
-        // Redirect to profile instead
+        // Redirect to profile instead after popup auto-closes (3 seconds)
         setTimeout(() => {
           router.push('/profile?new=true')
           /* ORIGINAL PAID FEATURES REDIRECT (to re-enable later):
@@ -1265,7 +1273,7 @@ const getUploadUserId = (): string => {
             router.push('/post/paid-features?new=true')
           }
           */
-        }, 1000)
+        }, 3000)
       }
     } catch (error: any) {
       // Show the actual error message to the user
@@ -1844,6 +1852,13 @@ const getUploadUserId = (): string => {
         purpose="listing"
         showSuccessToast={showSuccess}
         showErrorToast={showError}
+      />
+
+      {/* Success Popup */}
+      <SuccessPopup
+        isOpen={showSuccessPopup}
+        onClose={() => setShowSuccessPopup(false)}
+        autoCloseDuration={3000}
       />
     </div>
   )
