@@ -118,7 +118,7 @@ export default function EditPhoneModal({
         console.log(`[EditPhoneModal-${modalInstanceId.current}] Restored body overflow from:`, prevOverflow)
       }
     }
-  }, [isOpen, onCancel])
+  }, [isOpen]) // Removed onCancel - only called, not observed
 
   // Close on outside click
   // CRITICAL FIX: React StrictMode double-renders cause orphaned event listeners
