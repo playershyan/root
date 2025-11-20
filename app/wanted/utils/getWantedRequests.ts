@@ -110,12 +110,14 @@ const getWantedRequestsUncached = async (
 
     if (filters.minBudget) {
       const minBudget = parseFloat(filters.minBudget)
-      query = query.gte('min_budget', minBudget)
+      // Range overlap: request's max_budget must be >= filter's minBudget
+      query = query.gte('max_budget', minBudget)
     }
 
     if (filters.maxBudget) {
       const maxBudget = parseFloat(filters.maxBudget)
-      query = query.lte('max_budget', maxBudget)
+      // Range overlap: request's min_budget must be <= filter's maxBudget
+      query = query.lte('min_budget', maxBudget)
     }
 
     if (filters.yearFrom) {
