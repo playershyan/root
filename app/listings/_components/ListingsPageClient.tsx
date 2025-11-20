@@ -129,11 +129,18 @@ export default function ListingsPageClient({
     })
   }
 
-  const handleFilterChange = (partial: Partial<ListingsPageFilterState>) => {
-    setLocalFilters((prev) => ({
-      ...prev,
-      ...partial
-    }))
+  const handleFilterChange = (partial: Partial<ListingsPageFilterState>, autoApply = false) => {
+    setLocalFilters((prev) => {
+      const nextFilters = {
+        ...prev,
+        ...partial
+      }
+      // Auto-apply if requested (for dropdowns, checkboxes, badge clearing)
+      if (autoApply) {
+        applyFilters(nextFilters, 1)
+      }
+      return nextFilters
+    })
   }
 
   const handleApply = () => {
@@ -167,6 +174,8 @@ export default function ListingsPageClient({
         ? prev.fuelTypes.filter((f) => f !== fuel)
         : [...prev.fuelTypes, fuel]
       const nextState = { ...prev, fuelTypes: nextFuelTypes }
+      // Auto-apply filter changes
+      applyFilters(nextState, 1)
       return nextState
     })
   }
@@ -177,7 +186,10 @@ export default function ListingsPageClient({
       const nextTypes = exists
         ? prev.transmissionTypes.filter((t) => t !== trans)
         : [...prev.transmissionTypes, trans]
-      return { ...prev, transmissionTypes: nextTypes }
+      const nextState = { ...prev, transmissionTypes: nextTypes }
+      // Auto-apply filter changes
+      applyFilters(nextState, 1)
+      return nextState
     })
   }
 
@@ -272,55 +284,55 @@ export default function ListingsPageClient({
     if (localFilters.vehicleType) {
       badges.push({
         label: localFilters.vehicleType,
-        onClear: () => handleFilterChange({ vehicleType: '', make: '', model: '' })
+        onClear: () => handleFilterChange({ vehicleType: '', make: '', model: '' }, true)
       })
     }
     if (localFilters.location) {
       badges.push({
         label: localFilters.location,
-        onClear: () => handleFilterChange({ location: '' })
+        onClear: () => handleFilterChange({ location: '' }, true)
       })
     }
     if (localFilters.make) {
       badges.push({
         label: localFilters.make,
-        onClear: () => handleFilterChange({ make: '', model: '' })
+        onClear: () => handleFilterChange({ make: '', model: '' }, true)
       })
     }
     if (localFilters.model) {
       badges.push({
         label: localFilters.model,
-        onClear: () => handleFilterChange({ model: '' })
+        onClear: () => handleFilterChange({ model: '' }, true)
       })
     }
     if (localFilters.minYear || localFilters.maxYear) {
       badges.push({
         label: `Year ${localFilters.minYear || '—'}-${localFilters.maxYear || '—'}`,
-        onClear: () => handleFilterChange({ minYear: '', maxYear: '' })
+        onClear: () => handleFilterChange({ minYear: '', maxYear: '' }, true)
       })
     }
     if (localFilters.minPrice || localFilters.maxPrice) {
       badges.push({
         label: `Rs. ${localFilters.minPrice || '—'}-${localFilters.maxPrice || '—'}`,
-        onClear: () => handleFilterChange({ minPrice: '', maxPrice: '' })
+        onClear: () => handleFilterChange({ minPrice: '', maxPrice: '' }, true)
       })
     }
     if (localFilters.fuelTypes.length > 0) {
       badges.push({
         label: `Fuel: ${localFilters.fuelTypes.join(', ')}`,
-        onClear: () => handleFilterChange({ fuelTypes: [] })
+        onClear: () => handleFilterChange({ fuelTypes: [] }, true)
       })
     }
     if (localFilters.transmissionTypes.length > 0) {
       badges.push({
         label: `Transmission: ${localFilters.transmissionTypes.join(', ')}`,
-        onClear: () => handleFilterChange({ transmissionTypes: [] })
+        onClear: () => handleFilterChange({ transmissionTypes: [] }, true)
       })
     }
     if (localFilters.urgentOnly) {
       badges.push({
         label: 'Urgent only',
-        onClear: () => handleFilterChange({ urgentOnly: false })
+        onClear: () => handleFilterChange({ urgentOnly: false }, true)
       })
     }
     return badges
@@ -396,7 +408,7 @@ export default function ListingsPageClient({
                         vehicleType: event.target.value,
                         make: '',
                         model: ''
-                      })
+                      }, true)
                     }
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
@@ -412,7 +424,7 @@ export default function ListingsPageClient({
                 <div>
                   <LocationFilter
                     selectedLocation={localFilters.location || null}
-                    onLocationChange={(location) => handleFilterChange({ location: location || '' })}
+                    onLocationChange={(location) => handleFilterChange({ location: location || '' }, true)}
                     expanded={locationExpanded}
                     onToggleExpand={() => setLocationExpanded(!locationExpanded)}
                     variant="listings"
@@ -424,7 +436,7 @@ export default function ListingsPageClient({
                   <select
                     value={localFilters.make}
                     onChange={(event) =>
-                      handleFilterChange({ make: event.target.value, model: '' })
+                      handleFilterChange({ make: event.target.value, model: '' }, true)
                     }
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     disabled={!localFilters.vehicleType}
@@ -442,7 +454,7 @@ export default function ListingsPageClient({
                   <label className="mb-2 block font-semibold text-gray-900">Model</label>
                   <select
                     value={localFilters.model}
-                    onChange={(event) => handleFilterChange({ model: event.target.value })}
+                    onChange={(event) => handleFilterChange({ model: event.target.value }, true)}
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     disabled={availableModels.length === 0}
                   >
@@ -552,7 +564,7 @@ export default function ListingsPageClient({
                   <select
                     value={localFilters.sort}
                     onChange={(event) =>
-                      handleFilterChange({ sort: event.target.value as SortOption })
+                      handleFilterChange({ sort: event.target.value as SortOption }, true)
                     }
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
@@ -675,13 +687,13 @@ export default function ListingsPageClient({
         isOpen={mobileFilterOpen}
         onClose={() => setMobileFilterOpen(false)}
         category={localFilters.vehicleType}
-        onCategoryChange={(category) => handleFilterChange({ vehicleType: category, make: '', model: '' })}
+        onCategoryChange={(category) => handleFilterChange({ vehicleType: category, make: '', model: '' }, true)}
         selectedLocation={localFilters.location || null}
-        onLocationChange={(location) => handleFilterChange({ location: location || '' })}
+        onLocationChange={(location) => handleFilterChange({ location: location || '' }, true)}
         make={localFilters.make || 'All Makes'}
-        onMakeChange={(make) => handleFilterChange({ make: make === 'All Makes' ? '' : make, model: '' })}
+        onMakeChange={(make) => handleFilterChange({ make: make === 'All Makes' ? '' : make, model: '' }, true)}
         model={localFilters.model || 'All Models'}
-        onModelChange={(model) => handleFilterChange({ model: model === 'All Models' ? '' : model })}
+        onModelChange={(model) => handleFilterChange({ model: model === 'All Models' ? '' : model }, true)}
         minYear={localFilters.minYear}
         onMinYearChange={(year) => handleFilterChange({ minYear: year })}
         maxYear={localFilters.maxYear}
@@ -691,13 +703,13 @@ export default function ListingsPageClient({
         maxPrice={localFilters.maxPrice}
         onMaxPriceChange={(price) => handleFilterChange({ maxPrice: price })}
         fuelTypes={localFilters.fuelTypes}
-        onFuelTypesChange={(fuels) => handleFilterChange({ fuelTypes: fuels })}
+        onFuelTypesChange={(fuels) => handleFilterChange({ fuelTypes: fuels }, true)}
         transmissionTypes={localFilters.transmissionTypes}
-        onTransmissionTypesChange={(transmissions) => handleFilterChange({ transmissionTypes: transmissions })}
+        onTransmissionTypesChange={(transmissions) => handleFilterChange({ transmissionTypes: transmissions }, true)}
         urgentOnly={localFilters.urgentOnly}
-        onUrgentOnlyChange={(urgent) => handleFilterChange({ urgentOnly: urgent })}
+        onUrgentOnlyChange={(urgent) => handleFilterChange({ urgentOnly: urgent }, true)}
         sortBy={toSortParam(localFilters.sort)}
-        onSortByChange={(sort) => handleFilterChange({ sort: fromSortParam(sort) })}
+        onSortByChange={(sort) => handleFilterChange({ sort: fromSortParam(sort) }, true)}
       />
     </div>
   )
