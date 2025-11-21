@@ -178,11 +178,13 @@ export async function POST(request: NextRequest) {
       logger.error('Error fetching user profile', profileError as Error)
     }
 
-    // Check if phone number changed
+    // Check if phone number is new or changed (requires OTP verification)
+    const phoneIsNew = sanitized.phone && !userProfile?.phone
     const phoneChanged = sanitized.phone && userProfile?.phone && sanitized.phone !== userProfile.phone
+    const phoneRequiresOtp = phoneIsNew || phoneChanged
 
-    // If phone changed, require OTP verification
-    if (phoneChanged && !body.phoneOtpCode) {
+    // If phone is new or changed, require OTP verification
+    if (phoneRequiresOtp && !body.phoneOtpCode) {
       return finish('failure',
         NextResponse.json({
           error: 'OTP verification required for phone number change',
@@ -192,8 +194,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // If phone changed, verify OTP
-    if (phoneChanged && body.phoneOtpCode) {
+    // If phone is new or changed, verify OTP
+    if (phoneRequiresOtp && body.phoneOtpCode) {
       // Normalize phone to match storage format in phone_verifications
       const normalizedPhone = normalizeSriLankaPhone(sanitized.phone)
 
