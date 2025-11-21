@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     // Get user's profile to check if phone changed
     const { data: userProfile, error: profileError } = await supabase
       .from('profiles')
-      .select('phone')
+      .select('phone, whatsapp')
       .eq('id', user.id)
       .single()
 
@@ -154,24 +154,21 @@ export async function POST(request: NextRequest) {
         const profileUpdates: any = {}
         let shouldUpdateProfile = false
 
-        // Update phone if empty in profile
+        // Update phone if empty in profile (use normalized format to match profile storage)
         if (!userProfile.phone || userProfile.phone.trim() === '') {
-          profileUpdates.phone = sanitized.phone
+          profileUpdates.phone = normalizedPhone
           shouldUpdateProfile = true
         }
 
         // Update whatsapp if empty in profile
         // Only update if explicitly provided AND different from phone
         if (sanitized.whatsapp && sanitized.whatsapp !== sanitized.phone) {
-          // Check current whatsapp field in profile
-          const { data: fullProfile } = await supabase
-            .from('profiles')
-            .select('whatsapp')
-            .eq('id', user.id)
-            .single()
+          // Normalize whatsapp number
+          const normalizedWhatsApp = normalizeSriLankaPhone(sanitized.whatsapp)
 
-          if (fullProfile && (!fullProfile.whatsapp || fullProfile.whatsapp.trim() === '')) {
-            profileUpdates.whatsapp = sanitized.whatsapp
+          // Check if whatsapp is empty in profile
+          if (!userProfile.whatsapp || userProfile.whatsapp.trim() === '') {
+            profileUpdates.whatsapp = normalizedWhatsApp
             shouldUpdateProfile = true
           }
         }
