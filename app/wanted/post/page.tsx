@@ -235,17 +235,28 @@ export default function PostWantedPage() {
 
       if (phoneNumber || whatsappNumber) {
         const populatedPhone = phoneNumber || ''
-        setFormData(prev => ({
-          ...prev,
-          phone: prev.phone || phoneNumber, // Only populate if empty
-          whatsapp: prev.whatsapp || whatsappNumber || phoneNumber, // Populate WhatsApp, fallback to phone
-          whatsappSameAsPhone: prev.whatsappSameAsPhone !== false ? (whatsappNumber === phoneNumber || !whatsappNumber) : prev.whatsappSameAsPhone
-        }))
+        setFormData(prev => {
+          // CRITICAL: Only update if values actually need to change (prevent infinite loop)
+          const needsUpdate =
+            (!prev.phone && phoneNumber) ||
+            (!prev.whatsapp && (whatsappNumber || phoneNumber))
+
+          if (!needsUpdate) return prev
+
+          return {
+            ...prev,
+            phone: prev.phone || phoneNumber, // Only populate if empty
+            whatsapp: prev.whatsapp || whatsappNumber || phoneNumber, // Populate WhatsApp, fallback to phone
+            whatsappSameAsPhone: prev.whatsappSameAsPhone !== false ? (whatsappNumber === phoneNumber || !whatsappNumber) : prev.whatsappSameAsPhone
+          }
+        })
         // Store original phone for comparison
-        setOriginalPhone(populatedPhone)
+        if (!originalPhone && populatedPhone) {
+          setOriginalPhone(populatedPhone)
+        }
       }
     }
-  }, [profile, profileLoading, getPhoneNumber, getWhatsAppNumber, isEditMode])
+  }, [profile, profileLoading, getPhoneNumber, getWhatsAppNumber, isEditMode, originalPhone])
 
   // Store original phone when form data changes (for edit mode)
   useEffect(() => {
@@ -257,10 +268,10 @@ export default function PostWantedPage() {
 
   // Auto-update WhatsApp when phone changes and checkbox is checked
   useEffect(() => {
-    if (formData.whatsappSameAsPhone) {
+    if (formData.whatsappSameAsPhone && formData.whatsapp !== formData.phone) {
       setFormData(prev => ({ ...prev, whatsapp: prev.phone }))
     }
-  }, [formData.phone, formData.whatsappSameAsPhone])
+  }, [formData.phone, formData.whatsappSameAsPhone, formData.whatsapp])
   
   const currentYear = new Date().getFullYear()
   const minYear = 1990
