@@ -147,6 +147,55 @@ export async function POST(request: NextRequest) {
         .eq('id', otpRecord.id)
 
       logger.info('Phone OTP verified for wanted request', { userId: user.id, phone: sanitized.phone })
+
+      // Auto-populate profile contact fields if empty (opt-in via saveToProfile flag)
+      const saveToProfile = body.saveToProfile !== false // Default to true
+      if (saveToProfile && userProfile) {
+        const profileUpdates: any = {}
+        let shouldUpdateProfile = false
+
+        // Update phone if empty in profile
+        if (!userProfile.phone || userProfile.phone.trim() === '') {
+          profileUpdates.phone = sanitized.phone
+          shouldUpdateProfile = true
+        }
+
+        // Update whatsapp if empty in profile
+        // Only update if explicitly provided AND different from phone
+        if (sanitized.whatsapp && sanitized.whatsapp !== sanitized.phone) {
+          // Check current whatsapp field in profile
+          const { data: fullProfile } = await supabase
+            .from('profiles')
+            .select('whatsapp')
+            .eq('id', user.id)
+            .single()
+
+          if (fullProfile && (!fullProfile.whatsapp || fullProfile.whatsapp.trim() === '')) {
+            profileUpdates.whatsapp = sanitized.whatsapp
+            shouldUpdateProfile = true
+          }
+        }
+
+        // Perform update if needed
+        if (shouldUpdateProfile) {
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update(profileUpdates)
+            .eq('id', user.id)
+
+          if (updateError) {
+            logger.error('Failed to update profile contact fields', updateError as Error, {
+              userId: user.id,
+              updates: profileUpdates
+            })
+          } else {
+            logger.info('Profile contact fields auto-populated', {
+              userId: user.id,
+              fields: Object.keys(profileUpdates)
+            })
+          }
+        }
+      }
     }
 
     // Format phone number (Sri Lankan format only)
