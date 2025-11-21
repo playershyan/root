@@ -12,7 +12,7 @@ import { usePhoneVerification } from '@/lib/hooks/usePhoneVerification'
 interface EditPhoneModalProps {
   currentPhone: string
   isOpen: boolean
-  onVerified: (newPhone: string, otpCode?: string) => void
+  onVerified: (newPhone: string, otpCode?: string, saveToProfile?: boolean) => void
   onCancel: () => void
   purpose: 'profile' | 'listing' | 'wanted'
   showSuccessToast?: (message: string, duration?: number) => void
@@ -38,6 +38,7 @@ export default function EditPhoneModal({
   const [error, setError] = useState('')
   const [timer, setTimer] = useState(60)
   const [canResend, setCanResend] = useState(false)
+  const [saveToProfile, setSaveToProfile] = useState(true)
 
   const { sendOTP, verifyOTP, isSending, isVerifying } = usePhoneVerification({ purpose })
 
@@ -56,6 +57,7 @@ export default function EditPhoneModal({
       setError('')
       setTimer(60)
       setCanResend(false)
+      setSaveToProfile(true)
       // Focus phone input
       setTimeout(() => phoneInputRef.current?.focus(), 100)
     } else {
@@ -312,8 +314,8 @@ export default function EditPhoneModal({
           showSuccessToast(`Phone number verified successfully! ${formatPhoneDisplay(newPhone, '94')}`, 3000)
         }
 
-        // Success! Call parent callback with phone AND OTP code for API submission
-        onVerified(newPhone, code)
+        // Success! Call parent callback with phone, OTP code, and saveToProfile preference
+        onVerified(newPhone, code, saveToProfile)
 
         // Reset state
         setStep(1)
@@ -453,6 +455,25 @@ export default function EditPhoneModal({
                 Enter your Sri Lankan mobile number (e.g., 0771234567)
               </p>
             </div>
+
+            {/* Show save to profile checkbox for listing/wanted purposes */}
+            {(purpose === 'listing' || purpose === 'wanted') && (
+              <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <input
+                  type="checkbox"
+                  id="saveToProfile"
+                  checked={saveToProfile}
+                  onChange={(e) => setSaveToProfile(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label htmlFor="saveToProfile" className="text-sm text-gray-700 cursor-pointer">
+                  <span className="font-medium">Save to profile for future listings</span>
+                  <p className="text-xs text-gray-600 mt-1">
+                    If your profile contact information is empty, we'll automatically save this verified number so you won't need to verify it again.
+                  </p>
+                </label>
+              </div>
+            )}
 
             <Button
               onClick={handleSendOTP}
