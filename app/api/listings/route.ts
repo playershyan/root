@@ -247,14 +247,33 @@ export async function POST(request: NextRequest) {
 
       // Auto-populate profile contact fields if empty (opt-in via saveToProfile flag)
       const saveToProfile = body.saveToProfile !== false // Default to true
+
+      logger.info('[AUTO-POPULATE] Starting profile auto-population check', {
+        userId: user.id,
+        saveToProfile,
+        hasUserProfile: !!userProfile,
+        currentPhone: userProfile?.phone || 'EMPTY',
+        currentWhatsapp: userProfile?.whatsapp || 'EMPTY',
+        newPhone: normalizedPhone,
+        newWhatsapp: sanitized.whatsapp || 'NOT_PROVIDED'
+      })
+
       if (saveToProfile && userProfile) {
         const profileUpdates: any = {}
         let shouldUpdateProfile = false
 
         // Update phone if empty in profile (use normalized format to match profile storage)
-        if (!userProfile.phone || userProfile.phone.trim() === '') {
+        const phoneIsEmpty = !userProfile.phone || userProfile.phone.trim() === ''
+        logger.info('[AUTO-POPULATE] Phone check', {
+          currentPhone: userProfile.phone,
+          phoneIsEmpty,
+          normalizedPhone
+        })
+
+        if (phoneIsEmpty) {
           profileUpdates.phone = normalizedPhone
           shouldUpdateProfile = true
+          logger.info('[AUTO-POPULATE] Will update phone field', { normalizedPhone })
         }
 
         // Update whatsapp if empty in profile
@@ -262,33 +281,62 @@ export async function POST(request: NextRequest) {
         if (sanitized.whatsapp && sanitized.whatsapp !== sanitized.phone) {
           // Normalize whatsapp number
           const normalizedWhatsApp = normalizeSriLankaPhone(sanitized.whatsapp)
+          const whatsappIsEmpty = !userProfile.whatsapp || userProfile.whatsapp.trim() === ''
+
+          logger.info('[AUTO-POPULATE] WhatsApp check', {
+            currentWhatsapp: userProfile.whatsapp,
+            whatsappIsEmpty,
+            normalizedWhatsApp,
+            isDifferentFromPhone: sanitized.whatsapp !== sanitized.phone
+          })
 
           // Check if whatsapp is empty in profile
-          if (!userProfile.whatsapp || userProfile.whatsapp.trim() === '') {
+          if (whatsappIsEmpty) {
             profileUpdates.whatsapp = normalizedWhatsApp
             shouldUpdateProfile = true
+            logger.info('[AUTO-POPULATE] Will update whatsapp field', { normalizedWhatsApp })
           }
         }
 
         // Perform update if needed
         if (shouldUpdateProfile) {
+          logger.info('[AUTO-POPULATE] Executing profile update', {
+            userId: user.id,
+            updates: profileUpdates
+          })
+
           const { error: updateError } = await supabase
             .from('profiles')
             .update(profileUpdates)
             .eq('id', user.id)
 
           if (updateError) {
-            logger.error('Failed to update profile contact fields', updateError as Error, {
+            logger.error('[AUTO-POPULATE] Failed to update profile contact fields', updateError as Error, {
               userId: user.id,
-              updates: profileUpdates
+              updates: profileUpdates,
+              errorCode: (updateError as any).code,
+              errorMessage: updateError.message,
+              errorDetails: updateError
             })
           } else {
-            logger.info('Profile contact fields auto-populated', {
+            logger.info('[AUTO-POPULATE] SUCCESS - Profile contact fields updated', {
               userId: user.id,
-              fields: Object.keys(profileUpdates)
+              fields: Object.keys(profileUpdates),
+              values: profileUpdates
             })
           }
+        } else {
+          logger.info('[AUTO-POPULATE] No update needed - profile fields already populated', {
+            userId: user.id,
+            currentPhone: userProfile.phone,
+            currentWhatsapp: userProfile.whatsapp
+          })
         }
+      } else {
+        logger.info('[AUTO-POPULATE] Skipped - saveToProfile disabled or no userProfile', {
+          saveToProfile,
+          hasUserProfile: !!userProfile
+        })
       }
     }
 
