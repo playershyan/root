@@ -73,12 +73,13 @@ export const rateLimiters = {
   }) : null,
 
   // AI endpoints: Dual limit (per minute and daily)
+  // Note: AI guide endpoint is cache retrieval only, not real-time generation
   ai: redis ? new Ratelimit({
     redis,
     limiter: Ratelimit.tokenBucket(
-      Number(process.env.AI_RATE_LIMIT_PER_MINUTE || 10),
+      Number(process.env.AI_RATE_LIMIT_PER_MINUTE || 30), // Increased from 10 to 30
       '1 m',
-      3
+      10 // Increased burst from 3 to 10
     ),
     analytics: true,
     prefix: 'rl:ai',
@@ -87,7 +88,7 @@ export const rateLimiters = {
   aiDaily: redis ? new Ratelimit({
     redis,
     limiter: Ratelimit.fixedWindow(
-      Number(process.env.AI_DAILY_LIMIT || 100),
+      Number(process.env.AI_DAILY_LIMIT || 500), // Increased from 100 to 500
       '24 h'
     ),
     analytics: true,

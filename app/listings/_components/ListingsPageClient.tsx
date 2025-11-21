@@ -98,7 +98,7 @@ export default function ListingsPageClient({
     setLocalFilters(filters)
   }, [filters])
 
-  // Fetch buying guide when search context changes
+  // Fetch buying guide when search context changes (debounced)
   useEffect(() => {
     // Reset dismissed state when search context changes
     setGuideDismissed(false)
@@ -120,6 +120,12 @@ export default function ListingsPageClient({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ searchContext })
         })
+
+        if (response.status === 429) {
+          console.warn('Rate limit reached for AI guide')
+          setBuyingGuide(null)
+          return
+        }
 
         const data = await response.json()
 
@@ -143,7 +149,9 @@ export default function ListingsPageClient({
       }
     }
 
-    fetchBuyingGuide()
+    // Debounce: wait 800ms after user stops typing
+    const timeoutId = setTimeout(fetchBuyingGuide, 800)
+    return () => clearTimeout(timeoutId)
   }, [localFilters.search, localFilters.make, localFilters.model])
 
   const availableMakes = useMemo(() => {
