@@ -13,6 +13,7 @@ import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { setCachedGuide } from '@/lib/services/guideCache'
 import { generateGuideCacheKey } from '@/lib/utils/vehicleExtraction'
+import { VEHICLE_DATA } from '@/lib/constants/vehicleData'
 
 // Verify cron secret to prevent unauthorized access
 function verifyCronAuth(request: Request): boolean {
@@ -38,16 +39,38 @@ interface VehicleModel {
   generations?: string[]
 }
 
-const POPULAR_VEHICLES: VehicleModel[] = [
-  { make: 'Toyota', model: 'Prius', generations: ['2015-2019', '2020-2024'] },
-  { make: 'Toyota', model: 'Aqua', generations: ['2015-2019', '2020-2024'] },
-  { make: 'Toyota', model: 'Axio', generations: ['2015-2019', '2020-2024'] },
-  { make: 'Honda', model: 'Vezel', generations: ['2015-2019', '2020-2024'] },
-  { make: 'Honda', model: 'Fit', generations: ['2015-2019', '2020-2024'] },
-  { make: 'Nissan', model: 'Leaf', generations: ['2015-2019', '2020-2024'] },
-  { make: 'Suzuki', model: 'Wagon R', generations: ['2015-2019', '2020-2024'] },
-  { make: 'Suzuki', model: 'Alto', generations: ['2015-2019', '2020-2024'] },
-]
+/**
+ * Extract popular vehicles from vehicles.json
+ * Prioritizes car category, selects top models from most common makes
+ */
+function getPopularVehicles(): VehicleModel[] {
+  const vehicles: VehicleModel[] = []
+
+  // Focus on car category (most common searches)
+  const carCategory = VEHICLE_DATA.categories['car']
+  if (!carCategory) return vehicles
+
+  // Priority makes for Sri Lankan market
+  const priorityMakes = ['Toyota', 'Honda', 'Nissan', 'Suzuki', 'Mazda', 'BMW', 'Mercedes-Benz']
+
+  for (const makeName of priorityMakes) {
+    const makeObj = carCategory.makes.find(m => m.name === makeName)
+    if (!makeObj) continue
+
+    // Select top 3 most popular models per make (or all if less than 3)
+    const topModels = makeObj.models.slice(0, 3).filter(m => m !== 'Other')
+
+    for (const model of topModels) {
+      vehicles.push({
+        make: makeName,
+        model,
+        generations: ['2015-2019', '2020-2024']
+      })
+    }
+  }
+
+  return vehicles
+}
 
 async function generateGuideContent(make: string, model: string, context: string) {
   const completion = await openai.chat.completions.create({
@@ -115,7 +138,10 @@ export async function GET(request: Request) {
   let failCount = 0
 
   try {
-    for (const vehicle of POPULAR_VEHICLES) {
+    const popularVehicles = getPopularVehicles()
+    console.log(`Generating guides for ${popularVehicles.length} popular vehicles`)
+
+    for (const vehicle of popularVehicles) {
       // Generate general guide
       try {
         const cacheKey = generateGuideCacheKey(vehicle.make, vehicle.model)
