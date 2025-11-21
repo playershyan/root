@@ -12,6 +12,7 @@ export interface Profile {
   id: string
   email: string
   phone?: string
+  whatsapp?: string
   name?: string
   location?: string
   language: string
