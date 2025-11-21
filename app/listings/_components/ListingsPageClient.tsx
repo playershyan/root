@@ -10,6 +10,7 @@ import BoostedCard from '@/app/components/listings/BoostedCard'
 import UrgentListingCard from '@/app/components/listings/UrgentListingCard'
 import RegularAdCard from '@/app/components/listings/RegularAdCard'
 import LocationFilter from '@/app/components/LocationFilter'
+import BuyingGuideCard from '@/app/components/BuyingGuideCard'
 import { Button } from '@/components/ui/button'
 import { getVehicleCategories, getMakesByCategory } from '@/lib/constants/vehicleData'
 import { GRID_LAYOUTS, SECTION_STYLES } from '@/app/components/listings/card-design-system'
@@ -82,10 +83,68 @@ export default function ListingsPageClient({
   const [localFilters, setLocalFilters] = useState<ListingsPageFilterState>(filters)
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
   const [locationExpanded, setLocationExpanded] = useState(false)
+  const [buyingGuide, setBuyingGuide] = useState<{
+    make: string
+    model: string
+    year?: number
+    generation?: string
+    compact: string
+    detailed: string
+  } | null>(null)
+  const [guideLoading, setGuideLoading] = useState(false)
+  const [guideDismissed, setGuideDismissed] = useState(false)
 
   useEffect(() => {
     setLocalFilters(filters)
   }, [filters])
+
+  // Fetch buying guide when search context changes
+  useEffect(() => {
+    // Reset dismissed state when search context changes
+    setGuideDismissed(false)
+
+    const fetchBuyingGuide = async () => {
+      // Only fetch if we have make and model, or a search query
+      const searchContext = localFilters.search ||
+        `${localFilters.make || ''} ${localFilters.model || ''}`.trim()
+
+      if (!searchContext) {
+        setBuyingGuide(null)
+        return
+      }
+
+      setGuideLoading(true)
+      try {
+        const response = await fetch('/api/generate-ai-guide', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ searchContext })
+        })
+
+        const data = await response.json()
+
+        if (data.available) {
+          setBuyingGuide({
+            make: data.make,
+            model: data.model,
+            year: data.year,
+            generation: data.generation,
+            compact: data.compact,
+            detailed: data.detailed
+          })
+        } else {
+          setBuyingGuide(null)
+        }
+      } catch (error) {
+        console.error('Failed to fetch buying guide:', error)
+        setBuyingGuide(null)
+      } finally {
+        setGuideLoading(false)
+      }
+    }
+
+    fetchBuyingGuide()
+  }, [localFilters.search, localFilters.make, localFilters.model])
 
   const availableMakes = useMemo(() => {
     if (!localFilters.vehicleType) return []
@@ -613,6 +672,14 @@ export default function ListingsPageClient({
                 <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
                   Showing results for <strong>{localFilters.search}</strong>
                 </div>
+              )}
+
+              {/* AI Buying Guide */}
+              {!guideDismissed && buyingGuide && (
+                <BuyingGuideCard
+                  guide={buyingGuide}
+                  onDismiss={() => setGuideDismissed(true)}
+                />
               )}
 
               {/* All Listings - Unified container */}
