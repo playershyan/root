@@ -1,8 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { BookOpen, ChevronDown, ChevronUp, Sparkles, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Sparkles, X } from 'lucide-react'
 
 interface BuyingGuide {
   make: string
@@ -19,7 +17,6 @@ interface BuyingGuideCardProps {
 }
 
 export default function BuyingGuideCard({ guide, onDismiss }: BuyingGuideCardProps) {
-  const [showDetailed, setShowDetailed] = useState(false)
 
   return (
     <div className="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl p-4 md:p-6 mb-6 shadow-sm">
@@ -61,40 +58,11 @@ export default function BuyingGuideCard({ guide, onDismiss }: BuyingGuideCardPro
         )}
       </div>
 
-      {/* Compact Content */}
+      {/* Content */}
       <div
-        className="prose prose-sm max-w-none text-gray-700 mb-4"
+        className="prose prose-sm max-w-none text-gray-700"
         dangerouslySetInnerHTML={{ __html: guide.compact }}
       />
-
-      {/* Detailed Content (Expandable) */}
-      {showDetailed && (
-        <div
-          className="prose prose-sm max-w-none text-gray-700 border-t border-blue-200 pt-4 mt-4"
-          dangerouslySetInnerHTML={{ __html: guide.detailed }}
-        />
-      )}
-
-      {/* Toggle Button */}
-      <Button
-        onClick={() => setShowDetailed(!showDetailed)}
-        variant="outline"
-        size="sm"
-        className="w-full mt-4 border-blue-300 text-blue-700 hover:bg-blue-100 hover:border-blue-400"
-      >
-        <BookOpen className="w-4 h-4 mr-2" />
-        {showDetailed ? (
-          <>
-            Show Less
-            <ChevronUp className="w-4 h-4 ml-2" />
-          </>
-        ) : (
-          <>
-            View Full Buying Guide
-            <ChevronDown className="w-4 h-4 ml-2" />
-          </>
-        )}
-      </Button>
 
       {/* Disclaimer */}
       <div className="mt-4 pt-3 border-t border-blue-200">
