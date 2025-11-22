@@ -7,6 +7,7 @@ import { formatPhoneForStorage, normalizeSriLankaPhone } from '@/lib/utils/phone
 import { logger } from '@/lib/utils/logger'
 import { performanceMonitor } from '@/lib/monitoring/metrics'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { autoPopulateProfileContacts } from '@/lib/services/profileAutoPopulate'
 
 /**
  * POST /api/listings
@@ -250,87 +251,18 @@ export async function POST(request: NextRequest) {
         .eq('id', otpRecord.id)
 
       logger.info('Phone OTP verified for listing', { userId: user.id, phone: sanitized.phone })
-
-      // Auto-populate profile contact fields if empty (opt-in via saveToProfile flag)
-      const saveToProfile = body.saveToProfile !== false // Default to true
-
-      console.log('=== AUTO-POPULATE START ===')
-      console.log('saveToProfile:', saveToProfile)
-      
-      // Re-fetch profile to ensure we have latest data before auto-populate
-      let profileForUpdate = userProfile
-      if (!profileForUpdate || profileError) {
-        const { data: refetchedProfile, error: refetchError } = await supabase
-          .from('profiles')
-          .select('phone, whatsapp')
-          .eq('id', user.id)
-          .single()
-        
-        if (refetchError && refetchError.code !== 'PGRST116') {
-          console.error('Error re-fetching profile for auto-populate:', refetchError)
-        } else {
-          profileForUpdate = refetchedProfile || null
-        }
-      }
-      
-      console.log('userProfile:', profileForUpdate)
-      console.log('currentPhone:', profileForUpdate?.phone || 'EMPTY')
-      console.log('currentWhatsapp:', profileForUpdate?.whatsapp || 'EMPTY')
-      console.log('normalizedPhone:', normalizedPhone)
-
-      if (saveToProfile) {
-        const profileUpdates: any = {}
-        let shouldUpdateProfile = false
-
-        // Update phone if empty in profile (use normalized format to match profile storage)
-        const phoneIsEmpty = !profileForUpdate?.phone || profileForUpdate.phone.trim() === ''
-        console.log('phoneIsEmpty:', phoneIsEmpty)
-
-        if (phoneIsEmpty) {
-          profileUpdates.phone = normalizedPhone
-          shouldUpdateProfile = true
-        }
-
-        // Update whatsapp if empty in profile
-        // Only update if explicitly provided AND different from phone
-        if (sanitized.whatsapp && sanitized.whatsapp !== sanitized.phone) {
-          const normalizedWhatsApp = normalizeSriLankaPhone(sanitized.whatsapp)
-          const whatsappIsEmpty = !profileForUpdate?.whatsapp || profileForUpdate.whatsapp.trim() === ''
-          console.log('whatsappIsEmpty:', whatsappIsEmpty, 'normalizedWhatsApp:', normalizedWhatsApp)
-
-          if (whatsappIsEmpty) {
-            profileUpdates.whatsapp = normalizedWhatsApp
-            shouldUpdateProfile = true
-          }
-        }
-
-        // Perform update if needed
-        if (shouldUpdateProfile) {
-          // Use admin client to bypass RLS - user already authenticated and phone verified
-          const { error: updateError } = await supabaseAdmin
-            .from('profiles')
-            .update(profileUpdates)
-            .eq('id', user.id)
-
-          if (updateError) {
-            logger.error('Failed to update profile contact fields', updateError as Error, {
-              userId: user.id,
-              updates: profileUpdates,
-              errorCode: (updateError as any).code
-            })
-          } else {
-            logger.info('Profile contact fields auto-populated', {
-              userId: user.id,
-              fields: Object.keys(profileUpdates)
-            })
-          }
-        }
-      } else {
-        console.log('SKIPPED: saveToProfile =', saveToProfile)
-      }
-
-
     }
+
+    // Auto-populate profile contact fields if empty
+    // This runs REGARDLESS of whether OTP was required (fixes the main bug)
+    // It only updates empty fields, so it's safe to run every time
+    const saveToProfile = body.saveToProfile !== false // Default to true
+    await autoPopulateProfileContacts(
+      user.id,
+      sanitized.phone,
+      sanitized.whatsapp,
+      saveToProfile
+    )
 
     // Format phone numbers (add +94 country code)
     const formattedPhone = formatPhoneForStorage(sanitized.phone || '', '94')
