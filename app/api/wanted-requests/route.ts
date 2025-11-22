@@ -6,6 +6,7 @@ import { validateWantedRequest, sanitizeWantedRequest, formatPhoneNumber, genera
 import { normalizeSriLankaPhone } from '@/lib/utils/phoneFormatter'
 import { incr } from '@/lib/security/metrics'
 import { logger } from '@/lib/utils/logger'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
 // TEMPORARY CONFIGURATION: Auto-approve wanted requests (bypass admin moderation)
 // Set to false to require admin approval before wanted requests go live
@@ -192,7 +193,8 @@ export async function POST(request: NextRequest) {
         if (shouldUpdateProfile) {
           console.log('EXECUTING PROFILE UPDATE WITH:', profileUpdates)
 
-          const { error: updateError } = await supabase
+          // Use admin client to bypass RLS - user already authenticated and phone verified
+          const { error: updateError } = await supabaseAdmin
             .from('profiles')
             .update(profileUpdates)
             .eq('id', user.id)
