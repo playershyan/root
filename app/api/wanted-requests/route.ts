@@ -7,7 +7,6 @@ import { normalizeSriLankaPhone } from '@/lib/utils/phoneFormatter'
 import { incr } from '@/lib/security/metrics'
 import { logger } from '@/lib/utils/logger'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
-import { autoPopulateProfileContacts } from '@/lib/services/profileAutoPopulate'
 
 // TEMPORARY CONFIGURATION: Auto-approve wanted requests (bypass admin moderation)
 // Set to false to require admin approval before wanted requests go live
@@ -155,17 +154,6 @@ export async function POST(request: NextRequest) {
 
       logger.info('Phone OTP verified for wanted request', { userId: user.id, phone: sanitized.phone })
     }
-
-    // Auto-populate profile contact fields if empty
-    // This runs REGARDLESS of whether OTP was required (fixes the main bug)
-    // It only updates empty fields, so it's safe to run every time
-    const saveToProfile = body.saveToProfile !== false // Default to true
-    await autoPopulateProfileContacts(
-      user.id,
-      sanitized.phone,
-      sanitized.whatsapp,
-      saveToProfile
-    )
 
     // Format phone number (Sri Lankan format only)
     const formattedPhone = formatPhoneNumber(sanitized.phone || '', '94')

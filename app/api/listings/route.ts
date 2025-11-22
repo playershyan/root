@@ -7,7 +7,6 @@ import { formatPhoneForStorage, normalizeSriLankaPhone } from '@/lib/utils/phone
 import { logger } from '@/lib/utils/logger'
 import { performanceMonitor } from '@/lib/monitoring/metrics'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
-import { autoPopulateProfileContacts } from '@/lib/services/profileAutoPopulate'
 
 /**
  * POST /api/listings
@@ -252,17 +251,6 @@ export async function POST(request: NextRequest) {
 
       logger.info('Phone OTP verified for listing', { userId: user.id, phone: sanitized.phone })
     }
-
-    // Auto-populate profile contact fields if empty
-    // This runs REGARDLESS of whether OTP was required (fixes the main bug)
-    // It only updates empty fields, so it's safe to run every time
-    const saveToProfile = body.saveToProfile !== false // Default to true
-    await autoPopulateProfileContacts(
-      user.id,
-      sanitized.phone,
-      sanitized.whatsapp,
-      saveToProfile
-    )
 
     // Format phone numbers (add +94 country code)
     const formattedPhone = formatPhoneForStorage(sanitized.phone || '', '94')

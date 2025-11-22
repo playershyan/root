@@ -126,7 +126,6 @@ export default function EnhancedPostVehiclePage() {
   const [showVerificationModal, setShowVerificationModal] = useState(false)
   const [pendingPhone, setPendingPhone] = useState<string>('')
   const [pendingOtpCode, setPendingOtpCode] = useState<string>('')
-  const [saveToProfile, setSaveToProfile] = useState<boolean>(true)
 
   // Success popup state
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
@@ -1195,8 +1194,7 @@ const getUploadUserId = (): string => {
             whatsapp: formData.whatsapp, // Send raw whatsapp, API will format
             email: listingData.email,
             imageUrls: listingData.image_urls || [],
-            phoneOtpCode: pendingOtpCode || undefined, // Include OTP if phone changed
-            saveToProfile: saveToProfile // Include save preference for profile auto-population
+            phoneOtpCode: pendingOtpCode || undefined // Include OTP if phone changed
           })
         })
 
@@ -1286,13 +1284,10 @@ const getUploadUserId = (): string => {
     }
   }
 
-  const handlePhoneVerified = (newPhone: string, otpCode?: string, saveToProfilePref?: boolean) => {
+  const handlePhoneVerified = (newPhone: string, otpCode?: string) => {
     setFormData(prev => ({ ...prev, phone: newPhone }))
     if (otpCode) {
       setPendingOtpCode(otpCode)
-    }
-    if (saveToProfilePref !== undefined) {
-      setSaveToProfile(saveToProfilePref)
     }
     setShowEditPhoneModal(false)
     // Toast is now shown in EditPhoneModal component

@@ -78,7 +78,6 @@ export default function PostWantedPage() {
   const [originalPhone, setOriginalPhone] = useState<string>('')
   const [phoneVerified, setPhoneVerified] = useState<boolean>(false)
   const [pendingOtpCode, setPendingOtpCode] = useState<string>('')
-  const [saveToProfile, setSaveToProfile] = useState<boolean>(true)
 
   const [formData, setFormData] = useState<FormData>({
     description: '',
@@ -544,7 +543,6 @@ export default function PostWantedPage() {
       phone: formData.phone,
       whatsapp: formData.whatsappSameAsPhone ? formData.phone : formData.whatsapp || null,
       phoneOtpCode: pendingOtpCode || undefined, // Include OTP if phone changed
-      saveToProfile: saveToProfile, // Include save preference for profile auto-population
       fuel_type: formData.fuel_type || null,
       transmission: formData.transmission || null,
       max_mileage: formData.max_mileage || null
@@ -645,13 +643,10 @@ export default function PostWantedPage() {
     }
   }
 
-  const handlePhoneVerified = (newPhone: string, otpCode?: string, saveToProfilePref?: boolean) => {
+  const handlePhoneVerified = (newPhone: string, otpCode?: string) => {
     setFormData(prev => ({ ...prev, phone: newPhone }))
     if (otpCode) {
       setPendingOtpCode(otpCode)
-    }
-    if (saveToProfilePref !== undefined) {
-      setSaveToProfile(saveToProfilePref)
     }
     setShowEditPhoneModal(false)
     // Toast is now shown in EditPhoneModal component
