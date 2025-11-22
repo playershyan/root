@@ -180,8 +180,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if phone number is new or changed (requires OTP verification)
-    const phoneIsNew = sanitized.phone && !userProfile?.phone
-    const phoneChanged = sanitized.phone && userProfile?.phone && sanitized.phone !== userProfile.phone
+    // Normalize both for proper comparison
+    const normalizedInputPhone = sanitized.phone ? normalizeSriLankaPhone(sanitized.phone) : null
+    const phoneIsNew = normalizedInputPhone && !userProfile?.phone
+    // Compare normalized values to avoid false positives from format differences
+    const phoneChanged = normalizedInputPhone && userProfile?.phone && normalizedInputPhone !== userProfile.phone
     const phoneRequiresOtp = phoneIsNew || phoneChanged
 
     // If phone is new or changed, require OTP verification
@@ -253,17 +256,34 @@ export async function POST(request: NextRequest) {
 
       console.log('=== AUTO-POPULATE START ===')
       console.log('saveToProfile:', saveToProfile)
-      console.log('userProfile:', userProfile)
-      console.log('currentPhone:', userProfile?.phone || 'EMPTY')
-      console.log('currentWhatsapp:', userProfile?.whatsapp || 'EMPTY')
+      
+      // Re-fetch profile to ensure we have latest data before auto-populate
+      let profileForUpdate = userProfile
+      if (!profileForUpdate || profileError) {
+        const { data: refetchedProfile, error: refetchError } = await supabase
+          .from('profiles')
+          .select('phone, whatsapp')
+          .eq('id', user.id)
+          .single()
+        
+        if (refetchError && refetchError.code !== 'PGRST116') {
+          console.error('Error re-fetching profile for auto-populate:', refetchError)
+        } else {
+          profileForUpdate = refetchedProfile || null
+        }
+      }
+      
+      console.log('userProfile:', profileForUpdate)
+      console.log('currentPhone:', profileForUpdate?.phone || 'EMPTY')
+      console.log('currentWhatsapp:', profileForUpdate?.whatsapp || 'EMPTY')
       console.log('normalizedPhone:', normalizedPhone)
 
-      if (saveToProfile && userProfile) {
+      if (saveToProfile) {
         const profileUpdates: any = {}
         let shouldUpdateProfile = false
 
         // Update phone if empty in profile (use normalized format to match profile storage)
-        const phoneIsEmpty = !userProfile.phone || userProfile.phone.trim() === ''
+        const phoneIsEmpty = !profileForUpdate?.phone || profileForUpdate.phone.trim() === ''
         console.log('phoneIsEmpty:', phoneIsEmpty)
 
         if (phoneIsEmpty) {
@@ -276,7 +296,7 @@ export async function POST(request: NextRequest) {
         // Only update if explicitly provided AND different from phone
         if (sanitized.whatsapp && sanitized.whatsapp !== sanitized.phone) {
           const normalizedWhatsApp = normalizeSriLankaPhone(sanitized.whatsapp)
-          const whatsappIsEmpty = !userProfile.whatsapp || userProfile.whatsapp.trim() === ''
+          const whatsappIsEmpty = !profileForUpdate?.whatsapp || profileForUpdate.whatsapp.trim() === ''
           console.log('whatsappIsEmpty:', whatsappIsEmpty, 'normalizedWhatsApp:', normalizedWhatsApp)
 
           if (whatsappIsEmpty) {
@@ -309,7 +329,7 @@ export async function POST(request: NextRequest) {
           console.log('SKIPPED: Profile already has phone/whatsapp')
         }
       } else {
-        console.log('SKIPPED: saveToProfile =', saveToProfile, 'hasUserProfile =', !!userProfile)
+        console.log('SKIPPED: saveToProfile =', saveToProfile)
       }
       console.log('=== AUTO-POPULATE END ===')
 
