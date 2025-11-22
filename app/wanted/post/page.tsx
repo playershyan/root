@@ -22,6 +22,7 @@ import { toast } from 'sonner'
 import { Toast } from '@/app/components/notifications/Toast'
 import { logger } from '@/lib/utils/logger'
 import { formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
+import { loadContactFromCache, saveContactToCache } from '@/lib/utils/contactCache'
 import { Edit } from 'lucide-react'
 import EditPhoneModal from '@/app/components/EditPhoneModal'
 
@@ -227,12 +228,13 @@ export default function PostWantedPage() {
     }
   }, [isEditMode, editId, user, router])
 
-  // Auto-populate phone number and WhatsApp from user profile
+  // Auto-populate phone number and WhatsApp from user profile OR cache
   useEffect(() => {
     if (!profileLoading && profile && !isEditMode) {
       const phoneNumber = getPhoneNumber()
       const whatsappNumber = getWhatsAppNumber()
 
+      // Priority 1: Use profile contact info if available
       if (phoneNumber || whatsappNumber) {
         const populatedPhone = phoneNumber || ''
         setFormData(prev => {
@@ -253,6 +255,26 @@ export default function PostWantedPage() {
         // Store original phone for comparison
         if (!originalPhone && populatedPhone) {
           setOriginalPhone(populatedPhone)
+        }
+      } else {
+        // Priority 2: If profile has no contact info, load from cache
+        const cached = loadContactFromCache()
+        if (cached && (cached.phone || cached.whatsapp)) {
+          setFormData(prev => {
+            const needsUpdate = (!prev.phone && cached.phone) || (!prev.whatsapp && cached.whatsapp)
+            if (!needsUpdate) return prev
+
+            return {
+              ...prev,
+              phone: prev.phone || cached.phone || '',
+              whatsapp: prev.whatsapp || cached.whatsapp || cached.phone || '',
+              whatsappSameAsPhone: prev.whatsappSameAsPhone !== false ? (cached.whatsapp === cached.phone || !cached.whatsapp) : prev.whatsappSameAsPhone
+            }
+          })
+          // Store cached phone as original for comparison
+          if (!originalPhone && cached.phone) {
+            setOriginalPhone(cached.phone)
+          }
         }
       }
     }
@@ -643,17 +665,29 @@ export default function PostWantedPage() {
     }
   }
 
-  const handlePhoneVerified = (newPhone: string, otpCode?: string) => {
+  const handlePhoneVerified = (newPhone: string, otpCode?: string, shouldCache?: boolean) => {
     setFormData(prev => ({ ...prev, phone: newPhone }))
     if (otpCode) {
       setPendingOtpCode(otpCode)
     }
+
+    // Save to cache if requested (only when profile has no contact info)
+    if (shouldCache) {
+      saveContactToCache(newPhone, formData.whatsapp || newPhone)
+    }
+
     setShowEditPhoneModal(false)
     // Toast is now shown in EditPhoneModal component
   }
 
-  const handleWhatsAppVerified = (newWhatsApp: string, otpCode?: string) => {
+  const handleWhatsAppVerified = (newWhatsApp: string, otpCode?: string, shouldCache?: boolean) => {
     setFormData(prev => ({ ...prev, whatsapp: newWhatsApp }))
+
+    // Save to cache if requested (only when profile has no contact info)
+    if (shouldCache) {
+      saveContactToCache(formData.phone || newWhatsApp, newWhatsApp)
+    }
+
     // WhatsApp doesn't require OTP for API submission, only phone does
     setShowEditWhatsAppModal(false)
     // Toast is now shown in EditPhoneModal component
@@ -1440,6 +1474,7 @@ export default function PostWantedPage() {
         onVerified={handlePhoneVerified}
         onCancel={handleClosePhoneModal}
         purpose="wanted"
+        hasProfileContact={!!(profile?.phone || profile?.whatsapp)}
       />
 
       {/* Edit WhatsApp Modal */}
@@ -1449,6 +1484,7 @@ export default function PostWantedPage() {
         onVerified={handleWhatsAppVerified}
         onCancel={handleCloseWhatsAppModal}
         purpose="wanted"
+        hasProfileContact={!!(profile?.phone || profile?.whatsapp)}
       />
     </div>
   )
