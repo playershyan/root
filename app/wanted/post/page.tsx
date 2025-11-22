@@ -1474,7 +1474,7 @@ export default function PostWantedPage() {
         onVerified={handlePhoneVerified}
         onCancel={handleClosePhoneModal}
         purpose="wanted"
-        hasProfileContact={!!(profile?.phone || profile?.whatsapp)}
+        hasProfileContact={!!(getPhoneNumber() || getWhatsAppNumber())}
       />
 
       {/* Edit WhatsApp Modal */}
@@ -1484,7 +1484,7 @@ export default function PostWantedPage() {
         onVerified={handleWhatsAppVerified}
         onCancel={handleCloseWhatsAppModal}
         purpose="wanted"
-        hasProfileContact={!!(profile?.phone || profile?.whatsapp)}
+        hasProfileContact={!!(getPhoneNumber() || getWhatsAppNumber())}
       />
     </div>
   )
