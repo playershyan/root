@@ -154,25 +154,16 @@ export async function POST(request: NextRequest) {
       // Auto-populate profile contact fields if empty (opt-in via saveToProfile flag)
       const saveToProfile = body.saveToProfile !== false // Default to true
 
-      console.log('=== AUTO-POPULATE START ===')
-      console.log('saveToProfile:', saveToProfile)
-      console.log('userProfile:', userProfile)
-      console.log('currentPhone:', userProfile?.phone || 'EMPTY')
-      console.log('currentWhatsapp:', userProfile?.whatsapp || 'EMPTY')
-      console.log('normalizedPhone:', normalizedPhone)
-
       if (saveToProfile && userProfile) {
         const profileUpdates: any = {}
         let shouldUpdateProfile = false
 
         // Update phone if empty in profile (use normalized format to match profile storage)
         const phoneIsEmpty = !userProfile.phone || userProfile.phone.trim() === ''
-        console.log('phoneIsEmpty:', phoneIsEmpty)
 
         if (phoneIsEmpty) {
           profileUpdates.phone = normalizedPhone
           shouldUpdateProfile = true
-          console.log('WILL UPDATE PHONE TO:', normalizedPhone)
         }
 
         // Update whatsapp if empty in profile
@@ -180,19 +171,15 @@ export async function POST(request: NextRequest) {
         if (sanitized.whatsapp && sanitized.whatsapp !== sanitized.phone) {
           const normalizedWhatsApp = normalizeSriLankaPhone(sanitized.whatsapp)
           const whatsappIsEmpty = !userProfile.whatsapp || userProfile.whatsapp.trim() === ''
-          console.log('whatsappIsEmpty:', whatsappIsEmpty, 'normalizedWhatsApp:', normalizedWhatsApp)
 
           if (whatsappIsEmpty) {
             profileUpdates.whatsapp = normalizedWhatsApp
             shouldUpdateProfile = true
-            console.log('WILL UPDATE WHATSAPP TO:', normalizedWhatsApp)
           }
         }
 
         // Perform update if needed
         if (shouldUpdateProfile) {
-          console.log('EXECUTING PROFILE UPDATE WITH:', profileUpdates)
-
           // Use admin client to bypass RLS - user already authenticated and phone verified
           const { error: updateError } = await supabaseAdmin
             .from('profiles')
@@ -200,21 +187,20 @@ export async function POST(request: NextRequest) {
             .eq('id', user.id)
 
           if (updateError) {
-            console.error('PROFILE UPDATE FAILED:', updateError)
-            console.error('Error code:', (updateError as any).code)
-            console.error('Error message:', updateError.message)
+            logger.error('Failed to update profile contact fields', updateError as Error, {
+              userId: user.id,
+              updates: profileUpdates,
+              errorCode: (updateError as any).code
+            })
           } else {
-            console.log('✅ PROFILE UPDATE SUCCESS')
-            console.log('Updated fields:', Object.keys(profileUpdates))
-            console.log('Updated values:', profileUpdates)
+            logger.info('Profile contact fields auto-populated', {
+              userId: user.id,
+              fields: Object.keys(profileUpdates)
+            })
           }
-        } else {
-          console.log('SKIPPED: Profile already has phone/whatsapp')
         }
-      } else {
-        console.log('SKIPPED: saveToProfile =', saveToProfile, 'hasUserProfile =', !!userProfile)
       }
-      console.log('=== AUTO-POPULATE END ===')
+
 
     }
 
