@@ -12,9 +12,10 @@ import { usePhoneVerification } from '@/lib/hooks/usePhoneVerification'
 interface EditPhoneModalProps {
   currentPhone: string
   isOpen: boolean
-  onVerified: (newPhone: string, otpCode?: string) => void
+  onVerified: (newPhone: string, otpCode?: string, shouldCache?: boolean) => void
   onCancel: () => void
   purpose: 'profile' | 'listing' | 'wanted'
+  hasProfileContact?: boolean // If true, caching is disabled (profile contact takes precedence)
   showSuccessToast?: (message: string, duration?: number) => void
   showErrorToast?: (message: string, duration?: number) => void
 }
@@ -25,6 +26,7 @@ export default function EditPhoneModal({
   onVerified,
   onCancel,
   purpose,
+  hasProfileContact = false,
   showSuccessToast,
   showErrorToast
 }: EditPhoneModalProps) {
@@ -38,6 +40,7 @@ export default function EditPhoneModal({
   const [error, setError] = useState('')
   const [timer, setTimer] = useState(60)
   const [canResend, setCanResend] = useState(false)
+  const [saveContactInfo, setSaveContactInfo] = useState(true)
 
   const { sendOTP, verifyOTP, isSending, isVerifying } = usePhoneVerification({ purpose })
 
@@ -312,8 +315,13 @@ export default function EditPhoneModal({
           showSuccessToast(`Phone number verified successfully! ${formatPhoneDisplay(newPhone, '94')}`, 3000)
         }
 
-        // Success! Call parent callback with phone and OTP code
-        onVerified(newPhone, code)
+        // Success! Call parent callback with phone, OTP code, and cache preference
+        // Only allow caching if:
+        // 1. Purpose is listing/wanted (not profile)
+        // 2. User doesn't have profile contact set (hasProfileContact = false)
+        // 3. User has checkbox checked (saveContactInfo = true)
+        const shouldCache = (purpose === 'listing' || purpose === 'wanted') && !hasProfileContact && saveContactInfo
+        onVerified(newPhone, code, shouldCache)
 
         // Reset state
         setStep(1)
@@ -515,6 +523,25 @@ export default function EditPhoneModal({
                 />
               ))}
             </div>
+
+            {/* Save contact info checkbox - only show for listing/wanted and when profile has no contact */}
+            {(purpose === 'listing' || purpose === 'wanted') && !hasProfileContact && (
+              <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <input
+                  type="checkbox"
+                  id="saveContactInfo"
+                  checked={saveContactInfo}
+                  onChange={(e) => setSaveContactInfo(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label htmlFor="saveContactInfo" className="text-sm text-gray-700 cursor-pointer">
+                  <span className="font-medium">Save contact info</span>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Remember this phone number for future listings and wanted requests.
+                  </p>
+                </label>
+              </div>
+            )}
 
             <Button
               onClick={() => handleVerifyOTP()}

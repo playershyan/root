@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { logger } from '@/lib/utils/logger'
+import { clearContactCache } from '@/lib/utils/contactCache'
 
 interface AuthContextType {
   user: User | null
@@ -60,6 +61,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await supabase.auth.signOut()
       setUser(null)
+      // Clear cached contact information on logout
+      clearContactCache()
       window.location.href = '/'
     } catch (error) {
       logger.error('Error signing out', error as Error)

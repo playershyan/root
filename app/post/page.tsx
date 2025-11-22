@@ -13,6 +13,7 @@ import {
   Loader2, CheckCircle2, XCircle
 } from 'lucide-react'
 import { formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
+import { loadContactFromCache, saveContactToCache } from '@/lib/utils/contactCache'
 import {
   DISTRICTS,
   getCitiesByDistrictId,
@@ -319,13 +320,14 @@ export default function EnhancedPostVehiclePage() {
     setMounted(true)
   }, [])
 
-  // Auto-populate phone numbers from user profile
+  // Auto-populate phone numbers from user profile OR cache
   useEffect(() => {
     // Only populate once, and only if not in edit mode
     if (!profileLoading && profile && !isEditMode && !profileDataPopulatedRef.current) {
       const phoneNumber = getPhoneNumber()
       const whatsappNumber = getWhatsAppNumber()
 
+      // Priority 1: Use profile contact info if available
       if (phoneNumber || whatsappNumber) {
         const populatedPhone = phoneNumber || ''
         setFormData(prev => ({
@@ -338,9 +340,26 @@ export default function EnhancedPostVehiclePage() {
         setOriginalPhone(populatedPhone)
         // Mark as populated to prevent re-triggering
         profileDataPopulatedRef.current = true
+      } else {
+        // Priority 2: If profile has no contact info, load from cache
+        const cached = loadContactFromCache()
+        if (cached && (cached.phone || cached.whatsapp)) {
+          setFormData(prev => ({
+            ...prev,
+            phone: prev.phone || cached.phone || '',
+            whatsapp: prev.whatsapp || cached.whatsapp || '',
+            email: prev.email || profile.email || ''
+          }))
+          // Store cached phone as original for comparison
+          if (cached.phone) {
+            setOriginalPhone(cached.phone)
+          }
+          // Mark as populated to prevent re-triggering
+          profileDataPopulatedRef.current = true
+        }
       }
     }
-  }, [profile, profileLoading, isEditMode])
+  }, [profile, profileLoading, isEditMode, getPhoneNumber, getWhatsAppNumber])
 
   // Reset population flag when edit mode changes
   useEffect(() => {
@@ -1284,11 +1303,17 @@ const getUploadUserId = (): string => {
     }
   }
 
-  const handlePhoneVerified = (newPhone: string, otpCode?: string) => {
+  const handlePhoneVerified = (newPhone: string, otpCode?: string, shouldCache?: boolean) => {
     setFormData(prev => ({ ...prev, phone: newPhone }))
     if (otpCode) {
       setPendingOtpCode(otpCode)
     }
+
+    // Save to cache if requested (only when profile has no contact info)
+    if (shouldCache) {
+      saveContactToCache(newPhone, formData.whatsapp || newPhone)
+    }
+
     setShowEditPhoneModal(false)
     // Toast is now shown in EditPhoneModal component
   }
@@ -1839,6 +1864,7 @@ const getUploadUserId = (): string => {
         onVerified={handlePhoneVerified}
         onCancel={() => setShowEditPhoneModal(false)}
         purpose="listing"
+        hasProfileContact={!!(profile?.phone || profile?.whatsapp)}
         showSuccessToast={showSuccess}
         showErrorToast={showError}
       />
@@ -1850,6 +1876,7 @@ const getUploadUserId = (): string => {
         onVerified={handleWhatsAppVerified}
         onCancel={() => setShowEditWhatsAppModal(false)}
         purpose="listing"
+        hasProfileContact={!!(profile?.phone || profile?.whatsapp)}
         showSuccessToast={showSuccess}
         showErrorToast={showError}
       />
