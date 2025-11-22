@@ -252,46 +252,6 @@ export async function POST(request: NextRequest) {
       logger.info('Phone OTP verified for listing', { userId: user.id, phone: sanitized.phone })
     }
 
-    // Auto-populate profile contact fields if empty
-    // This runs REGARDLESS of whether OTP was required
-    if (body.saveToProfile !== false) {
-      try {
-        // Fetch current profile
-        const { data: currentProfile } = await supabaseAdmin
-          .from('profiles')
-          .select('phone, whatsapp')
-          .eq('id', user.id)
-          .single()
-
-        const updates: { phone?: string; whatsapp?: string } = {}
-
-        // Normalize inputs
-        const normalizedPhone = normalizeSriLankaPhone(sanitized.phone)
-        const normalizedWhatsApp = sanitized.whatsapp ? normalizeSriLankaPhone(sanitized.whatsapp) : null
-
-        // Update phone if empty
-        if (!currentProfile?.phone || currentProfile.phone.trim() === '') {
-          updates.phone = normalizedPhone
-        }
-
-        // Update whatsapp if empty (ALWAYS if provided, regardless of whether it equals phone)
-        if (normalizedWhatsApp && (!currentProfile?.whatsapp || currentProfile.whatsapp.trim() === '')) {
-          updates.whatsapp = normalizedWhatsApp
-        }
-
-        // Perform update
-        if (Object.keys(updates).length > 0) {
-          await supabaseAdmin
-            .from('profiles')
-            .update(updates)
-            .eq('id', user.id)
-        }
-      } catch (error) {
-        // Don't fail listing creation if profile update fails
-        logger.error('Auto-populate profile failed', error as Error, { userId: user.id })
-      }
-    }
-
     // Format phone numbers (add +94 country code)
     const formattedPhone = formatPhoneForStorage(sanitized.phone || '', '94')
     const formattedWhatsApp = sanitized.whatsapp
