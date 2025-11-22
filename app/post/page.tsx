@@ -1318,8 +1318,14 @@ const getUploadUserId = (): string => {
     // Toast is now shown in EditPhoneModal component
   }
 
-  const handleWhatsAppVerified = (newWhatsApp: string, otpCode?: string) => {
+  const handleWhatsAppVerified = (newWhatsApp: string, otpCode?: string, shouldCache?: boolean) => {
     setFormData(prev => ({ ...prev, whatsapp: newWhatsApp }))
+
+    // Save to cache if requested (only when profile has no contact info)
+    if (shouldCache) {
+      saveContactToCache(formData.phone || newWhatsApp, newWhatsApp)
+    }
+
     // WhatsApp doesn't require OTP for API submission, only phone does
     setShowEditWhatsAppModal(false)
     // Toast is now shown in EditPhoneModal component
