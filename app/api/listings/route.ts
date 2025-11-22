@@ -6,6 +6,7 @@ import { validateListing, sanitizeListing, generateListingTitle } from '@/lib/va
 import { formatPhoneForStorage, normalizeSriLankaPhone } from '@/lib/utils/phoneFormatter'
 import { logger } from '@/lib/utils/logger'
 import { performanceMonitor } from '@/lib/monitoring/metrics'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
 /**
  * POST /api/listings
@@ -289,7 +290,8 @@ export async function POST(request: NextRequest) {
         if (shouldUpdateProfile) {
           console.log('EXECUTING PROFILE UPDATE WITH:', profileUpdates)
 
-          const { error: updateError } = await supabase
+          // Use admin client to bypass RLS - user already authenticated and phone verified
+          const { error: updateError } = await supabaseAdmin
             .from('profiles')
             .update(profileUpdates)
             .eq('id', user.id)
