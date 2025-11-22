@@ -1870,7 +1870,7 @@ const getUploadUserId = (): string => {
         onVerified={handlePhoneVerified}
         onCancel={() => setShowEditPhoneModal(false)}
         purpose="listing"
-        hasProfileContact={!!(profile?.phone || profile?.whatsapp)}
+        hasProfileContact={!!(getPhoneNumber() || getWhatsAppNumber())}
         showSuccessToast={showSuccess}
         showErrorToast={showError}
       />
@@ -1882,7 +1882,7 @@ const getUploadUserId = (): string => {
         onVerified={handleWhatsAppVerified}
         onCancel={() => setShowEditWhatsAppModal(false)}
         purpose="listing"
-        hasProfileContact={!!(profile?.phone || profile?.whatsapp)}
+        hasProfileContact={!!(getPhoneNumber() || getWhatsAppNumber())}
         showSuccessToast={showSuccess}
         showErrorToast={showError}
       />
