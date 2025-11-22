@@ -4,7 +4,7 @@
 This document verifies the current Text.lk SMS Gateway API implementation against the official API documentation.
 
 **API Base URL:** `https://app.text.lk/api/v3`  
-**Default Sender ID:** `TextLKDemo` (as requested)  
+**Default Sender ID:** `VERAVERIFY1`  
 **API Token Format:** Bearer token (from environment variable `TEXTLK_API_KEY`)
 
 ---
@@ -31,7 +31,7 @@ This document verifies the current Text.lk SMS Gateway API implementation agains
 await textlkService.sendSMS({
   to: '94771234567',
   message: 'Hello from vera.lk',
-  senderId: 'TextLKDemo'
+  senderId: 'VERAVERIFY1'
 })
 
 // Multiple recipients
@@ -64,7 +64,7 @@ await textlkService.sendSMS({
 await textlkService.sendCampaign({
   contactListId: '6415907d0d37a',
   message: 'Campaign message',
-  senderId: 'TextLKDemo'
+  senderId: 'VERAVERIFY1'
 })
 
 // Multiple contact lists
@@ -177,11 +177,11 @@ const isValid = textlkService.validatePhoneNumber('0771234567')
 Required in `.env.local`:
 ```bash
 TEXTLK_API_KEY=1599|Oji0gLWw2K770jtFO9yTljmhgxUshJtMdzg9Li34544cf3d8
-TEXTLK_SENDER_ID=TextLKDemo  # Optional, defaults to 'TextLKDemo'
+TEXTLK_SENDER_ID=VERAVERIFY1  # Optional, defaults to 'VERAVERIFY1'
 ```
 
 ### Default Values
-- **Sender ID:** `TextLKDemo` (as requested)
+- **Sender ID:** `VERAVERIFY1`
 - **Base URL:** `https://app.text.lk/api/v3`
 - **API Token:** Loaded from `TEXTLK_API_KEY` environment variable
 
@@ -260,7 +260,7 @@ Supports three formats:
 
 ## Verification Checklist
 
-- [x] Default sender ID set to `TextLKDemo`
+- [x] Default sender ID set to `VERAVERIFY1`
 - [x] Send SMS with single recipient
 - [x] Send SMS with multiple recipients (comma-separated)
 - [x] Send SMS with `dlt_template_id` parameter

@@ -33,7 +33,7 @@ export class TextLKService {
 
   constructor() {
     this.apiKey = process.env.TEXTLK_API_KEY || ''
-    this.senderId = process.env.TEXTLK_SENDER_ID || 'TextLKDemo'
+    this.senderId = process.env.TEXTLK_SENDER_ID || 'VERAVERIFY1'
 
     if (!this.apiKey && process.env.NODE_ENV === 'production') {
       logger.warn('Text.lk API key not configured. SMS will not be sent.', new Error('Missing API key'))

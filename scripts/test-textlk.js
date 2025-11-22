@@ -72,7 +72,7 @@ async function testTextLK(phoneNumber) {
   // Check environment variables
   log('1️⃣  Checking Environment Variables...', 'cyan')
   const apiKey = process.env.TEXTLK_API_KEY
-  const senderId = process.env.TEXTLK_SENDER_ID || 'TextLKDemo'
+  const senderId = process.env.TEXTLK_SENDER_ID || 'VERAVERIFY1'
 
   if (!apiKey) {
     log('❌ Missing Text.lk API credentials in .env.local', 'red')
