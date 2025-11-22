@@ -250,15 +250,12 @@ export async function POST(request: NextRequest) {
       // Auto-populate profile contact fields if empty (opt-in via saveToProfile flag)
       const saveToProfile = body.saveToProfile !== false // Default to true
 
-      logger.info('[AUTO-POPULATE] Starting profile auto-population check', {
-        userId: user.id,
-        saveToProfile,
-        hasUserProfile: !!userProfile,
-        currentPhone: userProfile?.phone || 'EMPTY',
-        currentWhatsapp: userProfile?.whatsapp || 'EMPTY',
-        newPhone: normalizedPhone,
-        newWhatsapp: sanitized.whatsapp || 'NOT_PROVIDED'
-      })
+      console.log('=== AUTO-POPULATE START ===')
+      console.log('saveToProfile:', saveToProfile)
+      console.log('userProfile:', userProfile)
+      console.log('currentPhone:', userProfile?.phone || 'EMPTY')
+      console.log('currentWhatsapp:', userProfile?.whatsapp || 'EMPTY')
+      console.log('normalizedPhone:', normalizedPhone)
 
       if (saveToProfile && userProfile) {
         const profileUpdates: any = {}
@@ -266,46 +263,31 @@ export async function POST(request: NextRequest) {
 
         // Update phone if empty in profile (use normalized format to match profile storage)
         const phoneIsEmpty = !userProfile.phone || userProfile.phone.trim() === ''
-        logger.info('[AUTO-POPULATE] Phone check', {
-          currentPhone: userProfile.phone,
-          phoneIsEmpty,
-          normalizedPhone
-        })
+        console.log('phoneIsEmpty:', phoneIsEmpty)
 
         if (phoneIsEmpty) {
           profileUpdates.phone = normalizedPhone
           shouldUpdateProfile = true
-          logger.info('[AUTO-POPULATE] Will update phone field', { normalizedPhone })
+          console.log('WILL UPDATE PHONE TO:', normalizedPhone)
         }
 
         // Update whatsapp if empty in profile
         // Only update if explicitly provided AND different from phone
         if (sanitized.whatsapp && sanitized.whatsapp !== sanitized.phone) {
-          // Normalize whatsapp number
           const normalizedWhatsApp = normalizeSriLankaPhone(sanitized.whatsapp)
           const whatsappIsEmpty = !userProfile.whatsapp || userProfile.whatsapp.trim() === ''
+          console.log('whatsappIsEmpty:', whatsappIsEmpty, 'normalizedWhatsApp:', normalizedWhatsApp)
 
-          logger.info('[AUTO-POPULATE] WhatsApp check', {
-            currentWhatsapp: userProfile.whatsapp,
-            whatsappIsEmpty,
-            normalizedWhatsApp,
-            isDifferentFromPhone: sanitized.whatsapp !== sanitized.phone
-          })
-
-          // Check if whatsapp is empty in profile
           if (whatsappIsEmpty) {
             profileUpdates.whatsapp = normalizedWhatsApp
             shouldUpdateProfile = true
-            logger.info('[AUTO-POPULATE] Will update whatsapp field', { normalizedWhatsApp })
+            console.log('WILL UPDATE WHATSAPP TO:', normalizedWhatsApp)
           }
         }
 
         // Perform update if needed
         if (shouldUpdateProfile) {
-          logger.info('[AUTO-POPULATE] Executing profile update', {
-            userId: user.id,
-            updates: profileUpdates
-          })
+          console.log('EXECUTING PROFILE UPDATE WITH:', profileUpdates)
 
           const { error: updateError } = await supabase
             .from('profiles')
@@ -313,33 +295,22 @@ export async function POST(request: NextRequest) {
             .eq('id', user.id)
 
           if (updateError) {
-            logger.error('[AUTO-POPULATE] Failed to update profile contact fields', updateError as Error, {
-              userId: user.id,
-              updates: profileUpdates,
-              errorCode: (updateError as any).code,
-              errorMessage: updateError.message,
-              errorDetails: updateError
-            })
+            console.error('PROFILE UPDATE FAILED:', updateError)
+            console.error('Error code:', (updateError as any).code)
+            console.error('Error message:', updateError.message)
           } else {
-            logger.info('[AUTO-POPULATE] SUCCESS - Profile contact fields updated', {
-              userId: user.id,
-              fields: Object.keys(profileUpdates),
-              values: profileUpdates
-            })
+            console.log('✅ PROFILE UPDATE SUCCESS')
+            console.log('Updated fields:', Object.keys(profileUpdates))
+            console.log('Updated values:', profileUpdates)
           }
         } else {
-          logger.info('[AUTO-POPULATE] No update needed - profile fields already populated', {
-            userId: user.id,
-            currentPhone: userProfile.phone,
-            currentWhatsapp: userProfile.whatsapp
-          })
+          console.log('SKIPPED: Profile already has phone/whatsapp')
         }
       } else {
-        logger.info('[AUTO-POPULATE] Skipped - saveToProfile disabled or no userProfile', {
-          saveToProfile,
-          hasUserProfile: !!userProfile
-        })
+        console.log('SKIPPED: saveToProfile =', saveToProfile, 'hasUserProfile =', !!userProfile)
       }
+      console.log('=== AUTO-POPULATE END ===')
+
     }
 
     // Format phone numbers (add +94 country code)
