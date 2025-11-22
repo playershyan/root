@@ -22,11 +22,40 @@ const inter = Inter({
 })
 
 export function generateMetadata(): Metadata {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://vera.lk'
+  const title = 'VERA - Verified Exchange & Resource Assistant'
+  const description = 'Sri Lanka\'s trusted marketplace for vehicles. Verified listings powered by AI.'
+  const ogImage = `${baseUrl}/og-image.png`
+
   return {
-    title: 'VERA - Verified Exchange & Resource Assistant',
-    description: 'Sri Lanka\'s trusted marketplace for vehicles, properties, tech, and more. Verified listings powered by AI.',
+    title,
+    description,
+    metadataBase: new URL(baseUrl), // Ensures all relative URLs are resolved correctly
     icons: {
       icon: '/V (3).svg',
+    },
+    openGraph: {
+      type: 'website',
+      siteName: 'VERA',
+      title,
+      description,
+      url: baseUrl,
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: 'VERA - Verified Exchange & Resource Assistant',
+          type: 'image/png', // Helps WhatsApp identify the image type
+        },
+      ],
+      locale: 'en_LK',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [ogImage],
     },
     other: {
       ...Sentry.getTraceData()
