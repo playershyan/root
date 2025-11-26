@@ -102,60 +102,65 @@ export async function POST(request: NextRequest) {
     const phoneChanged = normalizedInputPhone && userProfile?.phone && normalizedInputPhone !== userProfile.phone
     const phoneRequiresOtp = phoneIsNew || phoneChanged
 
-    // If phone is new or changed, require OTP verification
-    if (phoneRequiresOtp && !body.phoneOtpCode) {
-      return NextResponse.json({
-        error: 'OTP verification required for phone number change',
-        requiresOTP: true
-      }, { status: 400 })
-    }
-
-    // If phone is new or changed, verify OTP
-    if (phoneRequiresOtp && body.phoneOtpCode) {
-      // Normalize phone to match storage format in phone_verifications
-      const normalizedPhone = normalizeSriLankaPhone(sanitized.phone)
-
-      const { data: otpRecord, error: otpError } = await supabase
-        .from('phone_verifications')
-        .select('*')
-        .eq('phone_number', normalizedPhone) // Use normalized phone
-        .eq('otp_code', body.phoneOtpCode)
-        .eq('verified', false)
-        .eq('user_id', user.id)
-        .gte('expires_at', new Date().toISOString())
-        .order('created_at', { ascending: false })
-        .single()
-
-      if (otpError || !otpRecord) {
-        logger.error('OTP verification failed for wanted request', otpError as Error, {
-          phone: sanitized.phone,
-          userId: user.id
-        })
+    // Bypass OTP verification for privileged user
+    if (user.id !== PRIVILEGED_USER_ID) {
+      // If phone is new or changed, require OTP verification
+      if (phoneRequiresOtp && !body.phoneOtpCode) {
         return NextResponse.json({
-          error: 'Invalid or expired verification code. Please request a new code.',
+          error: 'OTP verification required for phone number change',
           requiresOTP: true
         }, { status: 400 })
       }
 
-      // Check attempt limit
-      if (otpRecord.attempts >= 3) {
-        return NextResponse.json({
-          error: 'Too many verification attempts. Please request a new code.',
-          requiresOTP: true
-        }, { status: 400 })
+      // If phone is new or changed, verify OTP
+      if (phoneRequiresOtp && body.phoneOtpCode) {
+        // Normalize phone to match storage format in phone_verifications
+        const normalizedPhone = normalizeSriLankaPhone(sanitized.phone)
+
+        const { data: otpRecord, error: otpError } = await supabase
+          .from('phone_verifications')
+          .select('*')
+          .eq('phone_number', normalizedPhone) // Use normalized phone
+          .eq('otp_code', body.phoneOtpCode)
+          .eq('verified', false)
+          .eq('user_id', user.id)
+          .gte('expires_at', new Date().toISOString())
+          .order('created_at', { ascending: false })
+          .single()
+
+        if (otpError || !otpRecord) {
+          logger.error('OTP verification failed for wanted request', otpError as Error, {
+            phone: sanitized.phone,
+            userId: user.id
+          })
+          return NextResponse.json({
+            error: 'Invalid or expired verification code. Please request a new code.',
+            requiresOTP: true
+          }, { status: 400 })
+        }
+
+        // Check attempt limit
+        if (otpRecord.attempts >= 3) {
+          return NextResponse.json({
+            error: 'Too many verification attempts. Please request a new code.',
+            requiresOTP: true
+          }, { status: 400 })
+        }
+
+        // Increment attempt counter and mark as verified
+        await supabase
+          .from('phone_verifications')
+          .update({
+            attempts: (otpRecord.attempts || 0) + 1,
+            verified: true,
+            verified_at: new Date().toISOString()
+          })
+          .eq('id', otpRecord.id)
+
+        logger.info('Phone OTP verified for wanted request', { userId: user.id, phone: sanitized.phone })
       }
-
-      // Increment attempt counter and mark as verified
-      await supabase
-        .from('phone_verifications')
-        .update({
-          attempts: (otpRecord.attempts || 0) + 1,
-          verified: true,
-          verified_at: new Date().toISOString()
-        })
-        .eq('id', otpRecord.id)
-
-      logger.info('Phone OTP verified for wanted request', { userId: user.id, phone: sanitized.phone })
+    } else {
+      logger.info('Phone OTP bypassed for privileged user wanted request', { userId: user.id, phone: sanitized.phone })
     }
 
     // Format phone number (Sri Lankan format only)
