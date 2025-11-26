@@ -523,25 +523,27 @@ export default function EnhancedPostVehiclePage() {
       newErrors.make = 'Custom make name is required'
     }
 
-    // Model (category-specific requirement)
-    if (fieldConfig.modelRequired && !formData.model) {
-      newErrors.model = 'Model is required'
-    } else if (formData.model === 'Other' && !formData.customModel) {
-      newErrors.model = 'Custom model name is required'
+    // Model (only validate if field is shown)
+    if (fieldConfig.showModel) {
+      if (fieldConfig.modelRequired && !formData.model) {
+        newErrors.model = 'Model is required'
+      } else if (formData.model === 'Other' && !formData.customModel) {
+        newErrors.model = 'Custom model name is required'
+      }
     }
 
-    // Year (category-specific requirement)
-    if (fieldConfig.yearRequired && !formData.year) {
+    // Year (only validate if field is shown)
+    if (fieldConfig.showYear && fieldConfig.yearRequired && !formData.year) {
       newErrors.year = 'Year is required'
     }
 
-    // Mileage (category-specific requirement)
-    if (fieldConfig.mileageRequired && !formData.mileage) {
+    // Mileage (only validate if field is shown)
+    if (fieldConfig.showMileage && fieldConfig.mileageRequired && !formData.mileage) {
       newErrors.mileage = 'Mileage is required'
     }
 
-    // Trim (category-specific requirement)
-    if (fieldConfig.trimRequired && !formData.trim) {
+    // Trim (only validate if field is shown)
+    if (fieldConfig.showTrim && fieldConfig.trimRequired && !formData.trim) {
       newErrors.trim = 'Trim/Grade is required'
     }
 
