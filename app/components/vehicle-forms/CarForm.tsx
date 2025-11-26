@@ -18,7 +18,7 @@ export default function CarForm(props: VehicleFormProps) {
     showFeatures: true,
     modelRequired: true,
     mileageRequired: true,
-    trimRequired: true,
+    trimRequired: false,
     engineCapacityRequired: false,
     transmissionRequired: false
   }
