@@ -23,7 +23,7 @@ const inter = Inter({
 
 export function generateMetadata(): Metadata {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://vera.lk'
-  const title = 'VERA - Verified Exchange & Resource Assistant'
+  const title = 'Vera - Vehicle trading platform Sri Lanka'
   const description = 'Sri Lanka\'s trusted marketplace for vehicles. Verified listings powered by AI.'
   const ogImage = `${baseUrl}/og-image.png`
 
@@ -45,7 +45,7 @@ export function generateMetadata(): Metadata {
           url: ogImage,
           width: 1200,
           height: 630,
-          alt: 'VERA - Verified Exchange & Resource Assistant',
+          alt: 'Vera - Vehicle trading platform Sri Lanka',
           type: 'image/png', // Helps WhatsApp identify the image type
         },
       ],
