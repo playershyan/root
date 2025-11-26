@@ -8,6 +8,9 @@ import { incr } from '@/lib/security/metrics'
 import { logger } from '@/lib/utils/logger'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
+// Special privilege UID - bypasses validation and OTP requirements
+const PRIVILEGED_USER_ID = '9b288153-3836-45ff-8f0b-8a196e423477'
+
 // TEMPORARY CONFIGURATION: Auto-approve wanted requests (bypass admin moderation)
 // Set to false to require admin approval before wanted requests go live
 const AUTO_APPROVE_WANTED_REQUESTS = true
@@ -205,9 +208,9 @@ export async function POST(request: NextRequest) {
       fuel_type: sanitized.fuel_type || null,
       transmission: sanitized.transmission || null,
       max_mileage: sanitized.max_mileage ? parseInt(String(sanitized.max_mileage)) : null,
-      // Auto-approval status (controlled by AUTO_APPROVE_WANTED_REQUESTS flag)
-      status: AUTO_APPROVE_WANTED_REQUESTS ? 'active' : 'pending',
-      is_active: AUTO_APPROVE_WANTED_REQUESTS
+      // Auto-approval status (privileged user or AUTO_APPROVE_WANTED_REQUESTS flag)
+      status: (user.id === PRIVILEGED_USER_ID || AUTO_APPROVE_WANTED_REQUESTS) ? 'active' : 'pending',
+      is_active: (user.id === PRIVILEGED_USER_ID || AUTO_APPROVE_WANTED_REQUESTS)
     }
 
     // Insert into database
@@ -235,7 +238,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       request: newRequest,
-      message: AUTO_APPROVE_WANTED_REQUESTS 
+      message: (user.id === PRIVILEGED_USER_ID || AUTO_APPROVE_WANTED_REQUESTS)
         ? 'Wanted request created successfully and is now live'
         : 'Wanted request created successfully and is pending approval'
     }, { status: 201 })
