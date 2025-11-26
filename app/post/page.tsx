@@ -53,6 +53,9 @@ const VehicleFormFactory = dynamic(() => import('@/app/components/vehicle-forms/
 // Vehicle makes and models are now loaded from vehicleData.ts
 // Form constants are now in the vehicle-forms types
 
+// Special privilege UID - bypasses validation and OTP requirements
+const PRIVILEGED_USER_ID = '9b288153-3836-45ff-8f0b-8a196e423477'
+
 // VehicleType is now imported from vehicleData.ts
 type PricingType = 'cash' | 'finance'
 type AIStyle = 'professional' | 'personal' | 'detailed' | 'urgent'
@@ -498,6 +501,12 @@ export default function EnhancedPostVehiclePage() {
   }, [selectedDistrict])
   
   const validateForm = (): boolean => {
+    // Bypass all validation for privileged user
+    if (user?.id === PRIVILEGED_USER_ID) {
+      setErrors({})
+      return true
+    }
+
     const newErrors: Record<string, string> = {}
 
     // Vehicle type and title

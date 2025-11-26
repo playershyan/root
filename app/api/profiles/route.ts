@@ -4,6 +4,9 @@ import { cookies } from 'next/headers'
 import { logger } from '@/lib/utils/logger'
 import { normalizeSriLankaPhone } from '@/lib/utils/phoneFormatter'
 
+// Special privilege UID - bypasses validation and OTP requirements
+const PRIVILEGED_USER_ID = '9b288153-3836-45ff-8f0b-8a196e423477'
+
 export const runtime = 'nodejs'
 
 export async function GET() {
@@ -84,64 +87,70 @@ export async function PUT(request: NextRequest) {
       hasOtpCode: !!phoneOtpCode
     })
 
-    // If phone changed, require OTP verification
+    // If phone changed, require OTP verification (unless privileged user)
     if (phoneChanged) {
       console.log('[PROFILE API] Phone changed, checking OTP')
 
-      if (!phoneOtpCode) {
-        console.log('[PROFILE API] ERROR: No OTP code provided')
-        return NextResponse.json({
-          error: 'OTP verification required for phone number change',
-          requiresOTP: true
-        }, { status: 400 })
-      }
+      // Bypass OTP verification for privileged user
+      if (user.id === PRIVILEGED_USER_ID) {
+        console.log('[PROFILE API] Privileged user - bypassing OTP verification')
+        logger.info('Phone updated without OTP (privileged user)', { userId: user.id, phone: normalizedPhone })
+      } else {
+        if (!phoneOtpCode) {
+          console.log('[PROFILE API] ERROR: No OTP code provided')
+          return NextResponse.json({
+            error: 'OTP verification required for phone number change',
+            requiresOTP: true
+          }, { status: 400 })
+        }
 
-      console.log('[PROFILE API] Searching for OTP record', {
-        phone,
-        normalizedPhone,
-        phoneOtpCode,
-        userId: user.id
-      })
-
-      // For profile updates, the OTP is already verified by the modal (purpose='profile')
-      // So we search for verified: true records, unlike listings/wanted which search for verified: false
-      const { data: otpRecord, error: otpError } = await supabase
-        .from('phone_verifications')
-        .select('*')
-        .eq('phone_number', normalizedPhone) // CRITICAL: Use normalized phone to match storage format
-        .eq('otp_code', phoneOtpCode)
-        .eq('verified', true) // CRITICAL: Profile searches for VERIFIED records
-        .eq('user_id', user.id)
-        .gte('expires_at', new Date().toISOString())
-        .order('created_at', { ascending: false })
-        .single()
-
-      console.log('[PROFILE API] OTP record search result', {
-        found: !!otpRecord,
-        error: otpError?.message || 'NONE',
-        errorCode: (otpError as any)?.code || 'NONE'
-      })
-
-      if (otpError || !otpRecord) {
-        logger.error('OTP verification failed for profile update', otpError as Error, {
+        console.log('[PROFILE API] Searching for OTP record', {
           phone,
-          userId: user.id,
-          hasRecord: !!otpRecord
+          normalizedPhone,
+          phoneOtpCode,
+          userId: user.id
         })
-        return NextResponse.json({
-          error: 'Invalid or expired verification code. Please request a new code.',
-          requiresOTP: true
-        }, { status: 400 })
+
+        // For profile updates, the OTP is already verified by the modal (purpose='profile')
+        // So we search for verified: true records, unlike listings/wanted which search for verified: false
+        const { data: otpRecord, error: otpError } = await supabase
+          .from('phone_verifications')
+          .select('*')
+          .eq('phone_number', normalizedPhone) // CRITICAL: Use normalized phone to match storage format
+          .eq('otp_code', phoneOtpCode)
+          .eq('verified', true) // CRITICAL: Profile searches for VERIFIED records
+          .eq('user_id', user.id)
+          .gte('expires_at', new Date().toISOString())
+          .order('created_at', { ascending: false })
+          .single()
+
+        console.log('[PROFILE API] OTP record search result', {
+          found: !!otpRecord,
+          error: otpError?.message || 'NONE',
+          errorCode: (otpError as any)?.code || 'NONE'
+        })
+
+        if (otpError || !otpRecord) {
+          logger.error('OTP verification failed for profile update', otpError as Error, {
+            phone,
+            userId: user.id,
+            hasRecord: !!otpRecord
+          })
+          return NextResponse.json({
+            error: 'Invalid or expired verification code. Please request a new code.',
+            requiresOTP: true
+          }, { status: 400 })
+        }
+
+        // OTP already verified by modal, no need to update the record again
+        console.log('[PROFILE API] OTP record found and already verified', {
+          otpRecordId: otpRecord.id,
+          attempts: otpRecord.attempts,
+          verifiedAt: otpRecord.verified_at
+        })
+
+        logger.info('Phone OTP validated for profile update', { userId: user.id, phone: normalizedPhone })
       }
-
-      // OTP already verified by modal, no need to update the record again
-      console.log('[PROFILE API] OTP record found and already verified', {
-        otpRecordId: otpRecord.id,
-        attempts: otpRecord.attempts,
-        verifiedAt: otpRecord.verified_at
-      })
-
-      logger.info('Phone OTP validated for profile update', { userId: user.id, phone: normalizedPhone })
     }
 
     console.log('[PROFILE API] Updating profile in database', {
