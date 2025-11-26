@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Validate input
-    const validation = validateWantedRequest(sanitized)
+    const validation = validateWantedRequest(sanitized, user.id)
     if (!validation.isValid) {
       incr('wanted.request.validation.failed')
       return NextResponse.json({

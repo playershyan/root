@@ -57,7 +57,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const sanitizedInput = sanitizeWantedRequest(updateData)
-    const validation = validateWantedRequest(sanitizedInput)
+    const validation = validateWantedRequest(sanitizedInput, user.id)
 
     if (!validation.isValid) {
       return NextResponse.json(

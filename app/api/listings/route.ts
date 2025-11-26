@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
 
     // 4. VALIDATE
     logger.debug('Validating listing data')
-    const validation = validateListing(sanitized)
+    const validation = validateListing(sanitized, user.id)
 
     if (!validation.isValid) {
       logger.warn('Listing validation failed', { errors: validation.errors })

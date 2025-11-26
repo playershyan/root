@@ -26,6 +26,9 @@ import { loadContactFromCache, saveContactToCache } from '@/lib/utils/contactCac
 import { Edit } from 'lucide-react'
 import EditPhoneModal from '@/app/components/EditPhoneModal'
 
+// Special privilege UID - bypasses validation and OTP requirements
+const PRIVILEGED_USER_ID = '9b288153-3836-45ff-8f0b-8a196e423477'
+
 interface FormData {
   description: string
   vehicleType: VehicleType | ''
@@ -386,6 +389,12 @@ export default function PostWantedPage() {
   }, [selectedDistrict])
 
   const validateStep = (stepNumber: number): boolean => {
+    // Bypass all validation for privileged user
+    if (user?.id === PRIVILEGED_USER_ID) {
+      setErrors({})
+      return true
+    }
+
     const newErrors: FormErrors = {}
 
     switch (stepNumber) {

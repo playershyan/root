@@ -8,6 +8,10 @@ import { Label } from '@/components/ui/label'
 import { logger } from '@/lib/utils/logger'
 import { formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
 import { usePhoneVerification } from '@/lib/hooks/usePhoneVerification'
+import { useAuth } from '@/app/contexts/AuthContext'
+
+// Special privilege UID - bypasses validation and OTP requirements
+const PRIVILEGED_USER_ID = '9b288153-3836-45ff-8f0b-8a196e423477'
 
 interface EditPhoneModalProps {
   currentPhone: string
@@ -31,9 +35,10 @@ export default function EditPhoneModal({
   showErrorToast
 }: EditPhoneModalProps) {
   const modalInstanceId = useRef(Math.random().toString(36).slice(2, 9))
-  
+
   console.log(`[EditPhoneModal-${modalInstanceId.current}] RENDER - isOpen:`, isOpen, 'purpose:', purpose)
-  
+
+  const { user } = useAuth()
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [newPhone, setNewPhone] = useState('')
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
@@ -234,6 +239,25 @@ export default function EditPhoneModal({
     }
 
     setError('')
+
+    // Bypass OTP for privileged user
+    if (user?.id === PRIVILEGED_USER_ID) {
+      if (showSuccessToast) {
+        showSuccessToast(`Phone number updated successfully! ${formatPhoneDisplay(newPhone, '94')}`, 3000)
+      }
+
+      // Call parent callback with phone (no OTP code needed)
+      const shouldCache = (purpose === 'listing' || purpose === 'wanted') && !hasProfileContact && saveContactInfo
+      onVerified(newPhone, undefined, shouldCache)
+
+      // Reset state and close
+      setStep(1)
+      setNewPhone('')
+      setOtp(['', '', '', '', '', ''])
+      setError('')
+      return
+    }
+
     const result = await sendOTP(newPhone)
 
     if (result.success) {
