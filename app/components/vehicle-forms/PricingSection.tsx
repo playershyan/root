@@ -64,76 +64,12 @@ export default function PricingSection({ formData, setFormData, errors, showPric
       ) : (
         // Finance section (keeping the existing finance form)
         <div className="space-y-6">
-          {/* Finance Provider Info */}
-          <div className="bg-white border border-gray-300 rounded-lg p-5">
-            <h4 className="text-base font-medium text-gray-900 mb-4">Finance Information</h4>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Finance Type <span className="text-red-500">*</span></label>
-              <select
-                name="financeType"
-                value={formData.financeType || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, financeType: e.target.value }))}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
-                  errors.financeType ? 'border-red-300' : 'border-gray-300'
-                }`}
-              >
-                <option value="">Select Type</option>
-                <option value="Bank Loan">Bank Loan</option>
-                <option value="Lease">Lease</option>
-                <option value="Hire Purchase">Hire Purchase</option>
-              </select>
-              {errors.financeType && <p className="text-red-600 text-sm mt-1">{errors.financeType}</p>}
-            </div>
-          </div>
-
-          {/* Current Payment Terms */}
-          <div className="bg-white border border-gray-300 rounded-lg p-5">
-            <h4 className="text-base font-medium text-gray-900 mb-4">Current Payment Terms</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Monthly Payment <span className="text-red-500">*</span></label>
-                <input
-                  type="number"
-                  name="monthlyPayment"
-                  value={formData.monthlyPayment || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, monthlyPayment: e.target.value }))}
-                  placeholder="e.g., 65000"
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
-                    errors.monthlyPayment ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Current monthly payment amount
-                </p>
-                {errors.monthlyPayment && <p className="text-red-600 text-sm mt-1">{errors.monthlyPayment}</p>}
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Remaining Term <span className="text-red-500">*</span></label>
-                <input
-                  type="text"
-                  name="remainingTerm"
-                  value={formData.remainingTerm || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, remainingTerm: e.target.value }))}
-                  placeholder="e.g., 36 months, 2 years"
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
-                    errors.remainingTerm ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Time left on the finance agreement
-                </p>
-                {errors.remainingTerm && <p className="text-red-600 text-sm mt-1">{errors.remainingTerm}</p>}
-              </div>
-            </div>
-          </div>
-
           {/* Financial Details */}
           <div className="bg-white border border-gray-300 rounded-lg p-5">
             <h4 className="text-base font-medium text-gray-900 mb-4">Financial Details</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Outstanding Balance <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Outstanding Balance</label>
                 <input
                   type="number"
                   name="outstandingBalance"
@@ -149,7 +85,7 @@ export default function PricingSection({ formData, setFormData, errors, showPric
                 </p>
                 {errors.outstandingBalance && <p className="text-red-600 text-sm mt-1">{errors.outstandingBalance}</p>}
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Asking Price <span className="text-red-500">*</span></label>
                 <input
@@ -178,6 +114,48 @@ export default function PricingSection({ formData, setFormData, errors, showPric
                   What you're asking for the takeover
                 </p>
                 {errors.askingPrice && <p className="text-red-600 text-sm mt-1">{errors.askingPrice}</p>}
+              </div>
+            </div>
+          </div>
+
+          {/* Current Payment Terms */}
+          <div className="bg-white border border-gray-300 rounded-lg p-5">
+            <h4 className="text-base font-medium text-gray-900 mb-4">Current Payment Terms</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Monthly Payment</label>
+                <input
+                  type="number"
+                  name="monthlyPayment"
+                  value={formData.monthlyPayment || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, monthlyPayment: e.target.value }))}
+                  placeholder="e.g., 65000"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
+                    errors.monthlyPayment ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Current monthly payment amount
+                </p>
+                {errors.monthlyPayment && <p className="text-red-600 text-sm mt-1">{errors.monthlyPayment}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Remaining Term</label>
+                <input
+                  type="text"
+                  name="remainingTerm"
+                  value={formData.remainingTerm || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, remainingTerm: e.target.value }))}
+                  placeholder="e.g., 36 months, 2 years"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 ${
+                    errors.remainingTerm ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Time left on the finance agreement
+                </p>
+                {errors.remainingTerm && <p className="text-red-600 text-sm mt-1">{errors.remainingTerm}</p>}
               </div>
             </div>
           </div>

@@ -558,11 +558,7 @@ export default function EnhancedPostVehiclePage() {
     if (!formData.price) newErrors.price = 'Price is required'
 
     if (formData.pricingType === 'finance') {
-      if (!formData.financeType) newErrors.financeType = 'Finance type is required'
-      if (!formData.outstandingBalance) newErrors.outstandingBalance = 'Outstanding balance is required'
       if (!formData.askingPrice) newErrors.askingPrice = 'Asking price is required'
-      if (!formData.monthlyPayment) newErrors.monthlyPayment = 'Monthly payment is required'
-      if (!formData.remainingTerm) newErrors.remainingTerm = 'Remaining term is required'
     }
 
     // Images
