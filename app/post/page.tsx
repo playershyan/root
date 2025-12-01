@@ -1118,12 +1118,12 @@ const getUploadUserId = (): string => {
         email: formData.email,
         // Finance information
         pricing_type: formData.pricingType,
-        finance_type: formData.pricingType === 'finance' ? formData.financeType : null,
+        finance_type: formData.pricingType === 'finance' && formData.financeType ? formData.financeType : null,
         outstanding_balance: formData.pricingType === 'finance' && formData.outstandingBalance
           ? parseFloat(formData.outstandingBalance) : null,
         monthly_payment: formData.pricingType === 'finance' && formData.monthlyPayment
           ? parseFloat(formData.monthlyPayment) : null,
-        remaining_term: formData.pricingType === 'finance' ? formData.remainingTerm : null,
+        remaining_term: formData.pricingType === 'finance' && formData.remainingTerm ? formData.remainingTerm : null,
         asking_price: formData.pricingType === 'finance' && formData.askingPrice
           ? parseFloat(formData.askingPrice) : null,
         // Promotion flags
