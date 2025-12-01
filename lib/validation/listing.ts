@@ -185,27 +185,9 @@ export function validateListing(input: ListingInput, userId?: string): Validatio
 
   // Finance validation
   if (input.pricingType === 'finance') {
-    if (!hasValue(input.financeType)) {
-      errors.financeType = 'Finance type is required'
-    }
-
-    const balance = toFloat(input.outstandingBalance)
-    if (balance === null || balance < 0) {
-      errors.outstandingBalance = 'Valid outstanding balance is required'
-    }
-
     const asking = toFloat(input.askingPrice)
     if (asking === null || asking < 0) {
       errors.askingPrice = 'Valid asking price is required'
-    }
-
-    const monthly = toFloat(input.monthlyPayment)
-    if (monthly === null || monthly < 0) {
-      errors.monthlyPayment = 'Valid monthly payment is required'
-    }
-
-    if (!hasValue(input.remainingTerm)) {
-      errors.remainingTerm = 'Remaining term is required'
     }
   }
 
