@@ -4,7 +4,7 @@ import FinancePriceDisplay from './FinancePriceDisplay'
 
 export interface PriceDisplayProps {
   pricingType?: 'cash' | 'finance'
-  price: number
+  price: number | null
   negotiable?: boolean
   financeType?: string
   outstandingBalance?: number

@@ -2,7 +2,7 @@ import React from 'react'
 import Link from 'next/link'
 
 interface CashPriceDisplayProps {
-  price: number
+  price: number | null
   negotiable?: boolean
   showFinanceCalculator?: boolean
   monthlyPayment?: number | null
@@ -30,9 +30,9 @@ export default function CashPriceDisplay({
     return (
       <div className="mb-3">
         <p className={`text-2xl font-bold ${priceColorClass}`}>
-          Rs. {price.toLocaleString()}
+          {price === null ? 'Price on Request' : `Rs. ${price.toLocaleString()}`}
         </p>
-        {negotiable && (
+        {negotiable && price !== null && (
           <span className="inline-block mt-1 px-2 py-0.5 bg-green-50 text-green-700 text-xs rounded-full">
             Negotiable
           </span>
@@ -44,14 +44,14 @@ export default function CashPriceDisplay({
   return (
     <>
       <p className={`text-4xl font-bold ${priceColorClass}`}>
-        Rs. {price.toLocaleString()}
+        {price === null ? 'Price on Request' : `Rs. ${price.toLocaleString()}`}
       </p>
-      {negotiable && (
+      {negotiable && price !== null && (
         <span className="inline-block mt-2 px-3 py-1 bg-green-50 text-green-700 text-sm rounded-full">
           <i className="fas fa-tag mr-1"></i> Negotiable
         </span>
       )}
-      {showFinanceCalculator && monthlyPayment && (
+      {showFinanceCalculator && monthlyPayment && price !== null && (
         <p className="text-sm text-gray-600 mt-2">
           From Rs. {monthlyPayment.toLocaleString()}/month
           <Link href="#finance-calculator" className={`${linkColorClass} hover:underline ml-1`}>

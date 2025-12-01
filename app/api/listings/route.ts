@@ -153,8 +153,11 @@ export async function POST(request: NextRequest) {
     const previousOwners = sanitized.previousOwners ? parseInt(String(sanitized.previousOwners), 10) : null
 
     // Determine final price (for finance listings, use asking price)
-    let finalPrice: number
-    if (sanitized.pricingType === 'finance' && sanitized.askingPrice) {
+    // Allow null price for privileged user (Price on Request)
+    let finalPrice: number | null
+    if (user.id === PRIVILEGED_USER_ID && !sanitized.price) {
+      finalPrice = null
+    } else if (sanitized.pricingType === 'finance' && sanitized.askingPrice) {
       finalPrice = parseFloat(String(sanitized.askingPrice))
     } else {
       finalPrice = parseFloat(String(sanitized.price))

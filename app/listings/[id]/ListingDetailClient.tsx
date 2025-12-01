@@ -24,7 +24,7 @@ type Listing = {
   description: string | null
   ai_generated_description: string | null
   ai_summary: string | null
-  price: number
+  price: number | null
   make: string
   model: string
   year: number
@@ -109,7 +109,7 @@ export default function ListingDetailClient({
   const [lightboxIndex, setLightboxIndex] = useState(0)
   
   // Finance Calculator States
-  const [loanAmount, setLoanAmount] = useState(listing.price)
+  const [loanAmount, setLoanAmount] = useState(listing.price || 0)
   const [downPayment, setDownPayment] = useState(0)
   const [loanTerm, setLoanTerm] = useState(5)
   const [interestRate, setInterestRate] = useState(0)
@@ -246,7 +246,7 @@ export default function ListingDetailClient({
       try {
         await navigator.share({
           title: listing.title,
-          text: `Check out this ${listing.make} ${listing.model} for Rs. ${listing.price.toLocaleString()}`,
+          text: `Check out this ${listing.make} ${listing.model}${listing.price !== null ? ` for Rs. ${listing.price.toLocaleString()}` : ' - Price on Request'}`,
           url: window.location.href,
         })
       } catch (err) {
@@ -832,8 +832,8 @@ export default function ListingDetailClient({
                     </div>
                   )}
                   <p className="text-2xl font-bold text-blue-600 mt-2">
-                    Rs. {similar.price.toLocaleString()}
-                    {similar.pricing_type === 'finance' && similar.finance_type === 'transfer' && similar.outstanding_balance && (
+                    {similar.price !== null ? `Rs. ${similar.price.toLocaleString()}` : 'Price on Request'}
+                    {similar.pricing_type === 'finance' && similar.finance_type === 'transfer' && similar.outstanding_balance && similar.price !== null && (
                       <span className="text-xs text-gray-500 block">
                         + Rs. {similar.outstanding_balance.toLocaleString()} outstanding
                       </span>
@@ -897,8 +897,8 @@ export default function ListingDetailClient({
                       </div>
                     )}
                     <p className="text-lg font-bold text-blue-600 mt-1">
-                      Rs. {similar.price.toLocaleString()}
-                      {similar.pricing_type === 'finance' && similar.finance_type === 'transfer' && similar.outstanding_balance && (
+                      {similar.price !== null ? `Rs. ${similar.price.toLocaleString()}` : 'Price on Request'}
+                      {similar.pricing_type === 'finance' && similar.finance_type === 'transfer' && similar.outstanding_balance && similar.price !== null && (
                         <span className="text-xs text-gray-500 block">
                           + Rs. {similar.outstanding_balance.toLocaleString()}
                         </span>
