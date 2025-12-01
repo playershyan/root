@@ -152,6 +152,12 @@ export default function EnhancedPostVehiclePage() {
   const [imagesUploading, setImagesUploading] = useState(false)
   const [imagePreviews, setImagePreviews] = useState<Array<{ url: string; type: 'local' | 'remote'; file?: File }>>([])
   const [mounted, setMounted] = useState(false)
+
+  // Drag and drop state for image reordering
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+  const touchStartPos = useRef<{ x: number; y: number; index: number } | null>(null)
+  const touchCurrentPos = useRef<{ x: number; y: number } | null>(null)
   const [originalPhone, setOriginalPhone] = useState<string>('')
   const [phoneVerified, setPhoneVerified] = useState<boolean>(false)
   const profileDataPopulatedRef = useRef(false)
@@ -958,7 +964,120 @@ const getUploadUserId = (): string => {
       }))
     }
   }
-  
+
+  // Reorder images by swapping two positions
+  const reorderImages = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return
+
+    // Create new arrays with swapped positions
+    const newPreviews = [...imagePreviews]
+    const [movedPreview] = newPreviews.splice(fromIndex, 1)
+    newPreviews.splice(toIndex, 0, movedPreview)
+    setImagePreviews(newPreviews)
+
+    // Update formData to match the new order
+    const localCount = formData.images.length
+
+    // Both are local images
+    if (fromIndex < localCount && toIndex < localCount) {
+      const newImages = [...formData.images]
+      const [movedImage] = newImages.splice(fromIndex, 1)
+      newImages.splice(toIndex, 0, movedImage)
+      setFormData(prev => ({ ...prev, images: newImages }))
+    }
+    // Both are remote images
+    else if (fromIndex >= localCount && toIndex >= localCount) {
+      const newImageUrls = [...formData.imageUrls]
+      const fromRemoteIndex = fromIndex - localCount
+      const toRemoteIndex = toIndex - localCount
+      const [movedImageUrl] = newImageUrls.splice(fromRemoteIndex, 1)
+      newImageUrls.splice(toRemoteIndex, 0, movedImageUrl)
+      setFormData(prev => ({ ...prev, imageUrls: newImageUrls }))
+    }
+    // Mixed: one is local, one is remote - this is more complex
+    // We need to handle the transition between local and remote arrays
+    else {
+      // For simplicity, we'll just reorder in imagePreviews
+      // The actual formData will be synced when submission happens
+      // This prevents complex state management during drag operations
+    }
+  }
+
+  // Desktop drag handlers
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+    // Set a transparent drag image to avoid default ghost image
+    if (e.dataTransfer.setDragImage) {
+      const img = new Image()
+      img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+      e.dataTransfer.setDragImage(img, 0, 0)
+    }
+  }
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    if (draggedIndex === null) return
+    setDragOverIndex(index)
+  }
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault()
+    if (draggedIndex === null) return
+
+    reorderImages(draggedIndex, dropIndex)
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }
+
+  // Mobile touch handlers
+  const handleTouchStart = (e: React.TouchEvent, index: number) => {
+    const touch = e.touches[0]
+    touchStartPos.current = { x: touch.clientX, y: touch.clientY, index }
+    touchCurrentPos.current = { x: touch.clientX, y: touch.clientY }
+
+    // Set dragged index after a short delay to differentiate from tap
+    setTimeout(() => {
+      if (touchStartPos.current && touchStartPos.current.index === index) {
+        setDraggedIndex(index)
+      }
+    }, 200)
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartPos.current || draggedIndex === null) return
+
+    e.preventDefault() // Prevent scrolling while dragging
+    const touch = e.touches[0]
+    touchCurrentPos.current = { x: touch.clientX, y: touch.clientY }
+
+    // Find which element we're over
+    const element = document.elementFromPoint(touch.clientX, touch.clientY)
+    const imageElement = element?.closest('[data-image-index]')
+    if (imageElement) {
+      const overIndex = parseInt(imageElement.getAttribute('data-image-index') || '-1')
+      if (overIndex >= 0) {
+        setDragOverIndex(overIndex)
+      }
+    }
+  }
+
+  const handleTouchEnd = () => {
+    if (draggedIndex !== null && dragOverIndex !== null && draggedIndex !== dragOverIndex) {
+      reorderImages(draggedIndex, dragOverIndex)
+    }
+
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+    touchStartPos.current = null
+    touchCurrentPos.current = null
+  }
+
   const generateAIDescription = async () => {
     // Get field configuration for the selected vehicle type
     const fieldConfig = getFieldConfig(formData.vehicleType || '')
@@ -1579,7 +1698,11 @@ const getUploadUserId = (): string => {
 
                         {/* Image Preview Grid */}
                         {imagePreviews.length > 0 && (
-                          <div className="mt-4 grid grid-cols-3 md:grid-cols-5 gap-4">
+                          <>
+                            <p className="text-xs text-gray-500 mt-4 mb-2">
+                              Click and hold to change the image positions
+                            </p>
+                            <div className="mt-2 grid grid-cols-3 md:grid-cols-5 gap-4">
                             {imagePreviews.map((preview, index) => {
                               const isLocal = preview.type === 'local' && preview.file instanceof File
                               const uploadId = isLocal && preview.file ? uploadIdMapRef.current.get(preview.file) : undefined
@@ -1603,8 +1726,27 @@ const getUploadUserId = (): string => {
                               else if (isCompressing) borderColor = 'border-yellow-500'
                               else if (isError) borderColor = 'border-red-500'
 
+                              // Drag state styling
+                              const isDragging = draggedIndex === index
+                              const isDragOver = dragOverIndex === index && draggedIndex !== index
+                              const dragClasses = isDragging ? 'opacity-50 scale-95' : ''
+                              const dragOverClasses = isDragOver ? 'border-blue-500 border-4 scale-105' : ''
+                              const cursorClass = 'cursor-move'
+
                               return (
-                                <div key={previewKey} className={`relative group overflow-hidden rounded-lg border-2 ${borderColor}`}>
+                                <div
+                                  key={previewKey}
+                                  className={`relative group overflow-hidden rounded-lg border-2 transition-all duration-200 ${borderColor} ${dragClasses} ${dragOverClasses} ${cursorClass}`}
+                                  draggable={true}
+                                  data-image-index={index}
+                                  onDragStart={(e) => handleDragStart(e, index)}
+                                  onDragOver={(e) => handleDragOver(e, index)}
+                                  onDrop={(e) => handleDrop(e, index)}
+                                  onDragEnd={handleDragEnd}
+                                  onTouchStart={(e) => handleTouchStart(e, index)}
+                                  onTouchMove={handleTouchMove}
+                                  onTouchEnd={handleTouchEnd}
+                                >
                                   <img
                                     src={preview.url}
                                     alt={`Preview ${index + 1}`}
@@ -1679,6 +1821,7 @@ const getUploadUserId = (): string => {
                               )
                             })}
                           </div>
+                          </>
                         )}
 
                       </div>
