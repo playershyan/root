@@ -321,10 +321,10 @@ export async function POST(request: NextRequest) {
 
       // Finance
       pricing_type: sanitized.pricingType || 'cash',
-      finance_type: sanitized.pricingType === 'finance' ? sanitized.financeType : null,
+      finance_type: sanitized.pricingType === 'finance' && sanitized.financeType ? sanitized.financeType : null,
       outstanding_balance: outstandingBalance,
       monthly_payment: monthlyPayment,
-      remaining_term: sanitized.pricingType === 'finance' ? sanitized.remainingTerm : null,
+      remaining_term: sanitized.pricingType === 'finance' && sanitized.remainingTerm ? sanitized.remainingTerm : null,
       asking_price: askingPrice,
 
       // Additional info
