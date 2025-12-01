@@ -106,9 +106,43 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
     ? listing.price.toLocaleString()
     : 'N/A'
 
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://vera.lk'
+  const listingUrl = `${baseUrl}/listings/${params.id}`
+
+  // Get the primary image for OG tags
+  const ogImage = listing.primary_image_url ||
+                  (listing.image_urls && listing.image_urls.length > 0 ? listing.image_urls[0] : null) ||
+                  listing.image_url ||
+                  `${baseUrl}/og-image.png`
+
+  const title = `${listing.title} - Rs. ${formattedPrice} | VERA`
+  const description = listing.description || listing.ai_generated_description || `${listing.make} ${listing.model} ${listing.year} for sale in ${listing.location}`
+
   return {
-    title: `${listing.title} - Rs. ${formattedPrice} | VERA`,
-    description: listing.description || listing.ai_generated_description || `${listing.make} ${listing.model} ${listing.year} for sale in ${listing.location}`,
+    title,
+    description,
+    openGraph: {
+      type: 'website',
+      siteName: 'VERA',
+      title,
+      description,
+      url: listingUrl,
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: listing.title,
+        },
+      ],
+      locale: 'en_LK',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [ogImage],
+    },
   }
 }
 
