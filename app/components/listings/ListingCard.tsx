@@ -11,7 +11,7 @@ interface ListingCardProps {
   listing: {
     id: string
     title: string
-    price: number
+    price: number | null
     location: string
     make: string
     model: string
@@ -33,7 +33,8 @@ interface ListingCardProps {
 export default function ListingCard({ listing }: ListingCardProps) {
   const [imageError, setImageError] = useState(false)
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (price: number | null) => {
+    if (price === null) return 'Price on Request'
     return `Rs. ${price.toLocaleString()}`
   }
 

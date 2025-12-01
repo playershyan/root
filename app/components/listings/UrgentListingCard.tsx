@@ -21,7 +21,7 @@ interface UrgentListingCardProps {
   listing: {
     id: string
     title: string
-    price: number
+    price: number | null
     location: string
     make: string
     model: string

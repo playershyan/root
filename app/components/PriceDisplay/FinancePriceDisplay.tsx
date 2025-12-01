@@ -1,7 +1,7 @@
 import React from 'react'
 
 interface FinancePriceDisplayProps {
-  price: number // This will be the outstanding balance
+  price: number | null // This will be the outstanding balance
   financeType?: string
   outstandingBalance?: number
   askingPrice?: number
@@ -21,6 +21,25 @@ export default function FinancePriceDisplay({
   variant = 'detail',
   colorScheme = 'blue'
 }: FinancePriceDisplayProps) {
+  // Handle null price case
+  if (price === null) {
+    const priceColorClass = colorScheme === 'gold' ? 'text-amber-600' : 'text-blue-600'
+    if (variant === 'card') {
+      return (
+        <div className="mb-3">
+          <p className={`text-2xl font-bold ${priceColorClass}`}>
+            Price on Request
+          </p>
+        </div>
+      )
+    }
+    return (
+      <p className={`text-4xl font-bold ${priceColorClass}`}>
+        Price on Request
+      </p>
+    )
+  }
+
   const displayBalance = outstandingBalance || price
   const displayAskingPrice = askingPrice || displayBalance
 
