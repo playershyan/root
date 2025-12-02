@@ -1,6 +1,12 @@
 -- Add is_paused filter to promoted slots rotation functions
 -- Ensures paused listings don't appear in featured/top_spot/boosted/urgent slots
 
+-- Drop existing functions to allow signature changes
+DROP FUNCTION IF EXISTS public.get_rotated_featured_ads(TEXT, INTEGER);
+DROP FUNCTION IF EXISTS public.get_rotated_top_spot_ads(TEXT, INTEGER);
+DROP FUNCTION IF EXISTS public.get_rotated_boost_ads(TEXT, INTEGER);
+DROP FUNCTION IF EXISTS public.get_promoted_slots_bundle(TEXT, INTEGER, INTEGER, INTEGER, INTEGER);
+
 -- Update get_rotated_featured_ads to filter out paused listings
 CREATE OR REPLACE FUNCTION public.get_rotated_featured_ads(
   p_vehicle_type TEXT DEFAULT NULL,
