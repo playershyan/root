@@ -2050,7 +2050,29 @@ const getUploadUserId = (): string => {
               <div className="flex flex-col sm:flex-row gap-3 justify-end">
                 <Button
                   type="button"
-                  onClick={() => router.push('/listings')}
+                  onClick={() => {
+                    if (hasUnsavedChanges) {
+                      if (window.confirm('Are you sure you want to cancel? All form data will be cleared.')) {
+                        // Clear form data
+                        setFormData(initialFormData)
+                        // Clear draft from localStorage
+                        localStorage.removeItem('vehiclePostDraft')
+                        // Clear images
+                        setImagePreviews([])
+                        // Clear upload status
+                        setUploadStatus({})
+                        // Clear errors
+                        setErrors({})
+                        // Reset selected district and cities
+                        setSelectedDistrict('')
+                        setAvailableCities([])
+                        // Navigate to listings
+                        router.push('/listings')
+                      }
+                    } else {
+                      router.push('/listings')
+                    }
+                  }}
                   variant="outline"
                   size="default"
                   className="order-2 sm:order-1"
