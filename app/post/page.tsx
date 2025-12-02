@@ -1003,8 +1003,8 @@ const getUploadUserId = (): string => {
     }
   }
 
-  // Desktop drag handlers
-  const handleDragStart = (e: React.DragEvent, index: number) => {
+  // Desktop drag handlers for image reordering
+  const handleImageDragStart = (e: React.DragEvent, index: number) => {
     setDraggedIndex(index)
     e.dataTransfer.effectAllowed = 'move'
     // Set a transparent drag image to avoid default ghost image
@@ -1015,13 +1015,13 @@ const getUploadUserId = (): string => {
     }
   }
 
-  const handleDragOver = (e: React.DragEvent, index: number) => {
+  const handleImageDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault()
     if (draggedIndex === null) return
     setDragOverIndex(index)
   }
 
-  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+  const handleImageDrop = (e: React.DragEvent, dropIndex: number) => {
     e.preventDefault()
     if (draggedIndex === null) return
 
@@ -1030,13 +1030,13 @@ const getUploadUserId = (): string => {
     setDragOverIndex(null)
   }
 
-  const handleDragEnd = () => {
+  const handleImageDragEnd = () => {
     setDraggedIndex(null)
     setDragOverIndex(null)
   }
 
-  // Mobile touch handlers
-  const handleTouchStart = (e: React.TouchEvent, index: number) => {
+  // Mobile touch handlers for image reordering
+  const handleImageTouchStart = (e: React.TouchEvent, index: number) => {
     const touch = e.touches[0]
     touchStartPos.current = { x: touch.clientX, y: touch.clientY, index }
     touchCurrentPos.current = { x: touch.clientX, y: touch.clientY }
@@ -1049,7 +1049,7 @@ const getUploadUserId = (): string => {
     }, 200)
   }
 
-  const handleTouchMove = (e: React.TouchEvent) => {
+  const handleImageTouchMove = (e: React.TouchEvent) => {
     if (!touchStartPos.current || draggedIndex === null) return
 
     e.preventDefault() // Prevent scrolling while dragging
@@ -1067,7 +1067,7 @@ const getUploadUserId = (): string => {
     }
   }
 
-  const handleTouchEnd = () => {
+  const handleImageTouchEnd = () => {
     if (draggedIndex !== null && dragOverIndex !== null && draggedIndex !== dragOverIndex) {
       reorderImages(draggedIndex, dragOverIndex)
     }
@@ -1739,13 +1739,13 @@ const getUploadUserId = (): string => {
                                   className={`relative group overflow-hidden rounded-lg border-2 transition-all duration-200 ${borderColor} ${dragClasses} ${dragOverClasses} ${cursorClass}`}
                                   draggable={true}
                                   data-image-index={index}
-                                  onDragStart={(e) => handleDragStart(e, index)}
-                                  onDragOver={(e) => handleDragOver(e, index)}
-                                  onDrop={(e) => handleDrop(e, index)}
-                                  onDragEnd={handleDragEnd}
-                                  onTouchStart={(e) => handleTouchStart(e, index)}
-                                  onTouchMove={handleTouchMove}
-                                  onTouchEnd={handleTouchEnd}
+                                  onDragStart={(e) => handleImageDragStart(e, index)}
+                                  onDragOver={(e) => handleImageDragOver(e, index)}
+                                  onDrop={(e) => handleImageDrop(e, index)}
+                                  onDragEnd={handleImageDragEnd}
+                                  onTouchStart={(e) => handleImageTouchStart(e, index)}
+                                  onTouchMove={handleImageTouchMove}
+                                  onTouchEnd={handleImageTouchEnd}
                                 >
                                   <img
                                     src={preview.url}
