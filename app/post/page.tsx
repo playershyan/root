@@ -165,6 +165,25 @@ export default function EnhancedPostVehiclePage() {
       localStorage.removeItem('vehiclePostDraft')
     }
   })
+
+  // Handle clear form and stay on page
+  const handleClearAndStay = () => {
+    // Clear form data
+    setFormData(initialFormData)
+    // Clear draft from localStorage
+    localStorage.removeItem('vehiclePostDraft')
+    // Clear images
+    setImagePreviews([])
+    // Clear upload status
+    setUploadStatus({})
+    // Clear errors
+    setErrors({})
+    // Reset selected district and cities
+    setSelectedDistrict('')
+    setAvailableCities([])
+    // Close modal
+    handleCancel()
+  }
   const [editDataLoading, setEditDataLoading] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -2111,6 +2130,7 @@ const getUploadUserId = (): string => {
         isOpen={showUnsavedModal}
         onDiscard={handleDiscard}
         onCancel={handleCancel}
+        onClearAndStay={handleClearAndStay}
       />
     </div>
   )
