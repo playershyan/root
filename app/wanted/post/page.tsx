@@ -25,6 +25,8 @@ import { formatPhoneDisplay } from '@/lib/utils/phoneFormatter'
 import { loadContactFromCache, saveContactToCache } from '@/lib/utils/contactCache'
 import { Edit } from 'lucide-react'
 import EditPhoneModal from '@/app/components/EditPhoneModal'
+import UnsavedChangesModal from '@/app/components/modals/UnsavedChangesModal'
+import { useUnsavedChangesWarning } from '@/lib/hooks/useUnsavedChangesWarning'
 
 // Special privilege UID - bypasses validation and OTP requirements
 const PRIVILEGED_USER_ID = '9b288153-3836-45ff-8f0b-8a196e423477'
@@ -102,6 +104,23 @@ export default function PostWantedPage() {
     fuel_type: '',
     transmission: '',
     max_mileage: ''
+  })
+
+  // Check if form has unsaved changes
+  const hasUnsavedChanges = !!(
+    formData.description ||
+    formData.vehicleType ||
+    formData.make ||
+    formData.model ||
+    formData.min_budget ||
+    formData.max_budget ||
+    formData.location
+  )
+
+  // Handle unsaved changes warning for internal navigation
+  const { showModal: showUnsavedModal, handleDiscard, handleCancel: handleCancelNavigation } = useUnsavedChangesWarning({
+    hasUnsavedChanges: hasUnsavedChanges && !isEditMode,
+    isSubmitting: loading
   })
 
   // Check authentication status and redirect if not logged in
@@ -1525,6 +1544,13 @@ export default function PostWantedPage() {
         onCancel={handleCloseWhatsAppModal}
         purpose="wanted"
         hasProfileContact={!!(getPhoneNumber() || getWhatsAppNumber())}
+      />
+
+      {/* Unsaved Changes Modal */}
+      <UnsavedChangesModal
+        isOpen={showUnsavedModal}
+        onDiscard={handleDiscard}
+        onCancel={handleCancelNavigation}
       />
     </div>
   )

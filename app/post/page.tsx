@@ -40,6 +40,8 @@ import { getFieldConfig, getRequiredFields } from '@/lib/utils/vehicleFieldConfi
 import { extractPublicId } from '@/lib/utils/responsive-images'
 import EditPhoneModal from '@/app/components/EditPhoneModal'
 import SuccessPopup from '@/app/components/modals/SuccessPopup'
+import UnsavedChangesModal from '@/app/components/modals/UnsavedChangesModal'
+import { useUnsavedChangesWarning } from '@/lib/hooks/useUnsavedChangesWarning'
 
 // Lazy load form components (Phase 2 optimization)
 import type { DescriptionGeneratorRef } from '@/app/components/vehicle-forms/DescriptionGenerator'
@@ -136,6 +138,28 @@ export default function EnhancedPostVehiclePage() {
 
   // Detect edit mode
   const isEditMode = searchParams.get('edit') !== null
+
+  // Check if form has unsaved changes
+  const hasUnsavedChanges = !!(
+    formData.vehicleType ||
+    formData.title ||
+    formData.make ||
+    formData.model ||
+    formData.price ||
+    formData.description ||
+    formData.images.length > 0 ||
+    formData.imageUrls.length > 0
+  )
+
+  // Handle unsaved changes warning for internal navigation
+  const { showModal: showUnsavedModal, handleDiscard, handleCancel } = useUnsavedChangesWarning({
+    hasUnsavedChanges: hasUnsavedChanges && !isEditMode,
+    isSubmitting: loading,
+    onDiscard: () => {
+      // Clear draft when discarding
+      localStorage.removeItem('vehiclePostDraft')
+    }
+  })
 
   const [formData, setFormData] = useState<FormData>(initialFormData)
   const [selectedDistrict, setSelectedDistrict] = useState<string>('')
@@ -2080,6 +2104,13 @@ const getUploadUserId = (): string => {
         isOpen={showSuccessPopup}
         onClose={() => setShowSuccessPopup(false)}
         autoCloseDuration={3000}
+      />
+
+      {/* Unsaved Changes Modal */}
+      <UnsavedChangesModal
+        isOpen={showUnsavedModal}
+        onDiscard={handleDiscard}
+        onCancel={handleCancel}
       />
     </div>
   )
