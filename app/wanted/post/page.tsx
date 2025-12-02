@@ -82,6 +82,7 @@ export default function PostWantedPage() {
   const [originalPhone, setOriginalPhone] = useState<string>('')
   const [phoneVerified, setPhoneVerified] = useState<boolean>(false)
   const [pendingOtpCode, setPendingOtpCode] = useState<string>('')
+  const isSubmittingRef = useRef(false)
 
   const [formData, setFormData] = useState<FormData>({
     description: '',
@@ -102,7 +103,7 @@ export default function PostWantedPage() {
     transmission: '',
     max_mileage: ''
   })
-  
+
   // Check authentication status and redirect if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
@@ -110,6 +111,34 @@ export default function PostWantedPage() {
       router.push('/?auth=true&redirect=/wanted/post')
     }
   }, [user, authLoading, router])
+
+  // Warn user before leaving page if form has data
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Don't show warning if form is empty or user is submitting
+      if (isSubmittingRef.current) return
+
+      // Check if form has any meaningful data
+      const hasData = formData.description ||
+                      formData.vehicleType ||
+                      formData.make ||
+                      formData.model ||
+                      formData.min_budget ||
+                      formData.max_budget ||
+                      formData.location
+
+      if (hasData) {
+        e.preventDefault()
+        e.returnValue = '' // Chrome requires returnValue to be set
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [formData])
 
   // Load existing wanted request data for edit mode
   useEffect(() => {
@@ -552,6 +581,7 @@ export default function PostWantedPage() {
 
   const submitWantedRequest = async () => {
     setLoading(true)
+    isSubmittingRef.current = true // Prevent beforeunload warning during submission
 
     const locationString = formData.location && selectedDistrict
       ? `${formData.location}, ${selectedDistrict}`
@@ -669,6 +699,7 @@ export default function PostWantedPage() {
         isEditMode
       })
       showError('Error posting request. Please try again.', 4000)
+      isSubmittingRef.current = false
     } finally {
       setLoading(false)
     }

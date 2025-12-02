@@ -161,7 +161,9 @@ export default function EnhancedPostVehiclePage() {
   const [originalPhone, setOriginalPhone] = useState<string>('')
   const [phoneVerified, setPhoneVerified] = useState<boolean>(false)
   const profileDataPopulatedRef = useRef(false)
-  
+  const [formDirty, setFormDirty] = useState(false)
+  const isSubmittingRef = useRef(false)
+
   // Check authentication status and redirect if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
@@ -169,6 +171,39 @@ export default function EnhancedPostVehiclePage() {
       router.push('/?auth=true&redirect=/post')
     }
   }, [user, authLoading, router])
+
+  // Warn user before leaving page if form has data
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Don't show warning if form is empty or user is submitting
+      if (isSubmittingRef.current) return
+
+      // Check if form has any meaningful data
+      const hasData = formData.vehicleType ||
+                      formData.title ||
+                      formData.make ||
+                      formData.model ||
+                      formData.price ||
+                      formData.description ||
+                      formData.images.length > 0 ||
+                      formData.imageUrls.length > 0
+
+      if (hasData) {
+        e.preventDefault()
+        e.returnValue = '' // Chrome requires returnValue to be set
+
+        // Clear draft when user confirms reload
+        // Note: Modern browsers don't allow custom messages, but we can still clear the draft
+        localStorage.removeItem('vehiclePostDraft')
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [formData])
 
   // Load existing listing data when editing
   useEffect(() => {
@@ -1177,12 +1212,14 @@ const getUploadUserId = (): string => {
 
   const submitListing = async () => {
     setLoading(true)
+    isSubmittingRef.current = true // Prevent beforeunload warning during submission
     try {
       // Check if user is authenticated
       if (!user) {
         router.push('/?auth=true&redirect=/post')
         showWarning('Sign in required to post a listing.', 5000)
         setLoading(false)
+        isSubmittingRef.current = false
         return
       }
 
@@ -1424,6 +1461,7 @@ const getUploadUserId = (): string => {
       // Show the actual error message to the user
       const errorMessage = error?.message || 'Error posting vehicle. Try again later.'
       showError(errorMessage, 7000)
+      isSubmittingRef.current = false
     } finally {
       setLoading(false)
     }
