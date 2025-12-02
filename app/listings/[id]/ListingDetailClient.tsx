@@ -944,8 +944,8 @@ export default function ListingDetailClient({
         listing={{
           id: listing.id,
           title: listing.title,
-          phone: sellerData?.phone || dealer.phone || listing.phone,
-          whatsapp: sellerData?.type === 'business' ? sellerData.whatsapp : sellerData?.whatsapp || dealer.whatsapp || listing.whatsapp,
+          phone: listing.phone || sellerData?.phone || dealer.phone,
+          whatsapp: listing.whatsapp || sellerData?.whatsapp || dealer.whatsapp,
           price: listing.price,
           location: listing.location,
           make: listing.make,
