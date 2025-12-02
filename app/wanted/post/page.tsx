@@ -123,37 +123,6 @@ export default function PostWantedPage() {
     isSubmitting: loading
   })
 
-  // Handle clear form and stay on page
-  const handleClearAndStay = () => {
-    // Clear form data
-    setFormData({
-      description: '',
-      vehicleType: '',
-      min_budget: '',
-      max_budget: '',
-      make: '',
-      customMake: '',
-      model: '',
-      customModel: '',
-      min_year: '',
-      max_year: '',
-      location: '',
-      phone: '',
-      whatsapp: '',
-      whatsappSameAsPhone: true,
-      fuel_type: '',
-      transmission: '',
-      max_mileage: ''
-    })
-    // Clear errors
-    setErrors({})
-    // Reset selected district and cities
-    setSelectedDistrict('')
-    setAvailableCities([])
-    // Close modal
-    handleCancelNavigation()
-  }
-
   // Check authentication status and redirect if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
@@ -1582,7 +1551,6 @@ export default function PostWantedPage() {
         isOpen={showUnsavedModal}
         onDiscard={handleDiscard}
         onCancel={handleCancelNavigation}
-        onClearAndStay={handleClearAndStay}
       />
     </div>
   )

@@ -7,14 +7,12 @@ interface UnsavedChangesModalProps {
   isOpen: boolean
   onDiscard: () => void
   onCancel: () => void
-  onClearAndStay?: () => void
 }
 
 export default function UnsavedChangesModal({
   isOpen,
   onDiscard,
-  onCancel,
-  onClearAndStay
+  onCancel
 }: UnsavedChangesModalProps) {
   if (!isOpen) return null
 
@@ -68,35 +66,23 @@ export default function UnsavedChangesModal({
         </div>
 
         {/* Actions */}
-        <div className="px-6 pb-6 flex flex-col gap-3">
-          <div className="flex flex-col-reverse sm:flex-row gap-3">
-            <Button
-              onClick={onCancel}
-              variant="outline"
-              size="default"
-              className="flex-1"
-            >
-              Keep Editing
-            </Button>
-            <Button
-              onClick={onDiscard}
-              variant="primary"
-              size="default"
-              className="flex-1 bg-orange-600 hover:bg-orange-700"
-            >
-              Discard & Leave
-            </Button>
-          </div>
-          {onClearAndStay && (
-            <Button
-              onClick={onClearAndStay}
-              variant="danger"
-              size="default"
-              className="w-full"
-            >
-              Clear Form & Stay
-            </Button>
-          )}
+        <div className="px-6 pb-6 flex flex-col-reverse sm:flex-row gap-3">
+          <Button
+            onClick={onCancel}
+            variant="outline"
+            size="default"
+            className="flex-1"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={onDiscard}
+            variant="primary"
+            size="default"
+            className="flex-1 bg-orange-600 hover:bg-orange-700"
+          >
+            Discard Changes
+          </Button>
         </div>
       </div>
     </div>
