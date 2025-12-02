@@ -139,6 +139,11 @@ export default function EnhancedPostVehiclePage() {
   // Detect edit mode
   const isEditMode = searchParams.get('edit') !== null
 
+  const [formData, setFormData] = useState<FormData>(initialFormData)
+  const [selectedDistrict, setSelectedDistrict] = useState<string>('')
+  const [availableCities, setAvailableCities] = useState<string[]>([])
+  const [loading, setLoading] = useState(false)
+
   // Check if form has unsaved changes
   const hasUnsavedChanges = !!(
     formData.vehicleType ||
@@ -160,11 +165,6 @@ export default function EnhancedPostVehiclePage() {
       localStorage.removeItem('vehiclePostDraft')
     }
   })
-
-  const [formData, setFormData] = useState<FormData>(initialFormData)
-  const [selectedDistrict, setSelectedDistrict] = useState<string>('')
-  const [availableCities, setAvailableCities] = useState<string[]>([])
-  const [loading, setLoading] = useState(false)
   const [editDataLoading, setEditDataLoading] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
