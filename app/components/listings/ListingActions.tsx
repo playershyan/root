@@ -165,7 +165,7 @@ export default function ListingActions({
       
       {canEditListing(listing) && (
         <Link
-          href={`/edit/${listing.id}`}
+          href={`/post?edit=${listing.id}`}
           className="text-gray-600 hover:text-gray-700 text-sm font-medium flex items-center gap-1"
         >
           <Edit2 className="w-4 h-4" />
