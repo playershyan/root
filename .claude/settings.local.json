@@ -34,7 +34,11 @@
       "Bash(npm ls:*)",
       "Bash(powershell -Command \"(Get-Content ''D:\\projects\\root\\data\\cities.json'' | Measure-Object -Line).Lines\")",
       "Bash(node -e:*)",
-      "Bash(powershell -Command \"if (Test-Path .next) { Remove-Item -Recurse -Force .next; Write-Output ''Cache cleared'' } else { Write-Output ''No cache found'' }\")"
+      "Bash(powershell -Command \"if (Test-Path .next) { Remove-Item -Recurse -Force .next; Write-Output ''Cache cleared'' } else { Write-Output ''No cache found'' }\")",
+      "Bash(git pull:*)",
+      "Bash(git push:*)",
+      "Bash(powershell -Command \"(Get-Content ''D:\\projects\\root\\app\\wanted\\post\\page.tsx'' | Measure-Object -Line).Lines\")",
+      "Bash(git revert:*)"
     ],
     "deny": [],
     "ask": []
