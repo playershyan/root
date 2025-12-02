@@ -275,10 +275,10 @@ export default async function ListingDetailPage({
         logoUrl: businessProfile.logo_url,
         bannerUrl: businessProfile.banner_url,
         profileImageUrl: businessProfile.profile_image_url,
-        // Use business contact info when business profile is active
+        // Prioritize listing-specific contact info over profile
         location: businessProfile.address || listing.location,
-        phone: businessProfile.phone || listing.phone,
-        whatsapp: businessProfile.whatsapp || businessProfile.phone || listing.whatsapp || listing.phone,
+        phone: listing.phone || businessProfile.phone,
+        whatsapp: listing.whatsapp || businessProfile.whatsapp || businessProfile.phone,
         email: listing.email,
         avatar: sellerProfile.avatar_url,
         rating: 4.5, // TODO: Implement actual rating system
@@ -290,8 +290,8 @@ export default async function ListingDetailPage({
         type: 'individual',
         name: sellerProfile.name || 'Private Seller',
         location: sellerProfile.location || listing.location,
-        phone: sellerProfile.phone || listing.phone,
-        whatsapp: sellerProfile.whatsapp || sellerProfile.phone || listing.whatsapp || listing.phone,
+        phone: listing.phone || sellerProfile.phone,
+        whatsapp: listing.whatsapp || sellerProfile.whatsapp || sellerProfile.phone,
         email: sellerProfile.email || listing.email,
         avatar: sellerProfile.avatar_url,
         bio: sellerProfile.bio
