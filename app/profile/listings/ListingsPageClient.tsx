@@ -128,7 +128,7 @@ export default function ListingsPageClient({
       const response = await fetch('/api/listings/pause', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ listingId })
+        body: JSON.stringify({ listingId, action: 'pause' })
       })
 
       if (!response.ok) {
@@ -147,10 +147,10 @@ export default function ListingsPageClient({
   // Handle resume listing
   const handleResume = async (listingId: string) => {
     try {
-      const response = await fetch('/api/listings/resume', {
+      const response = await fetch('/api/listings/pause', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ listingId })
+        body: JSON.stringify({ listingId, action: 'resume' })
       })
 
       if (!response.ok) {
@@ -405,7 +405,7 @@ export default function ListingsPageClient({
                                   onMarkAsSold={() => handleMarkAsSold(listing.id)}
                                   onDelete={() => handleDelete(listing.id)}
                                   onShare={() => handleShare(listing.id)}
-                                  viewMode="mobile"
+                                  viewMode="desktop"
                                 />
                               )}
                             </div>
