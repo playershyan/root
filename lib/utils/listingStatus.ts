@@ -30,10 +30,12 @@ export interface ListingData {
   image_url?: string
   image_urls?: string[]
   primary_image_url?: string
+  is_paused?: boolean
   isPaused?: boolean
   isReportedTakedown?: boolean
   is_reported_takedown?: boolean
   rejectionReason?: string
+  rejection_reason?: string
   takedownReason?: string
   takedown_reason?: string
   pause_date?: string
@@ -43,10 +45,10 @@ export interface ListingData {
 export function getListingStatus(listing: ListingData): ListingStatusType {
   if (listing.status === 'active') return 'active'
   if (listing.status === 'sold') return 'sold'
-  if (listing.status === 'pending' && listing.isPaused) return 'paused'
+  if (listing.status === 'pending' && (listing.is_paused || listing.isPaused)) return 'paused'
   if (listing.status === 'pending') return 'under_review'
-  if (listing.status === 'deleted' && listing.isReportedTakedown) return 'reported'
-  if (listing.status === 'deleted' && listing.rejectionReason) return 'rejected'
+  if (listing.status === 'deleted' && (listing.is_reported_takedown || listing.isReportedTakedown)) return 'reported'
+  if (listing.status === 'deleted' && (listing.rejection_reason || listing.rejectionReason)) return 'rejected'
   if (listing.status === 'deleted') return 'deleted'
   return 'active'
 }
@@ -109,15 +111,18 @@ export function getStatusInfo(listing: ListingData): ListingStatusInfo {
 }
 
 export function canPauseListing(listing: ListingData): boolean {
-  return listing.status === 'active' && !listing.isPaused
+  const isPaused = listing.is_paused || listing.isPaused
+  return listing.status === 'active' && !isPaused
 }
 
 export function canResumeListing(listing: ListingData): boolean {
-  return listing.status === 'pending' && listing.isPaused === true
+  const isPaused = listing.is_paused || listing.isPaused
+  return listing.status === 'pending' && isPaused === true
 }
 
 export function canEditListing(listing: ListingData): boolean {
-  return listing.status === 'active' || (listing.status === 'pending' && listing.isPaused)
+  const isPaused = listing.is_paused || listing.isPaused
+  return listing.status === 'active' || (listing.status === 'pending' && isPaused)
 }
 
 export function canDeleteListing(listing: ListingData): boolean {
@@ -129,23 +134,26 @@ export function canMarkAsSold(listing: ListingData): boolean {
 }
 
 export function filterListingsByStatus(
-  listings: ListingData[], 
+  listings: ListingData[],
   filter: 'all' | 'active' | 'sold' | 'pending' | 'paused' | 'reported'
 ): ListingData[] {
   if (filter === 'all') return listings
-  
+
   return listings.filter(listing => {
+    const isPaused = listing.is_paused || listing.isPaused
+    const isReported = listing.is_reported_takedown || listing.isReportedTakedown
+
     switch (filter) {
       case 'active':
         return listing.status === 'active'
       case 'sold':
         return listing.status === 'sold'
       case 'pending':
-        return listing.status === 'pending' && !listing.isPaused
+        return listing.status === 'pending' && !isPaused
       case 'paused':
-        return listing.status === 'pending' && listing.isPaused
+        return listing.status === 'pending' && isPaused
       case 'reported':
-        return listing.status === 'deleted' && listing.isReportedTakedown
+        return listing.status === 'deleted' && isReported
       default:
         return true
     }
