@@ -42,6 +42,8 @@ interface Listing {
   image_urls?: string[]
   is_sold?: boolean
   is_reported?: boolean
+  is_paused?: boolean
+  pause_date?: string
   rejection_reason?: string
   // Promotion fields
   is_featured?: boolean

@@ -56,6 +56,7 @@ async function fetchListingsFeed(filters: ListingsFeedFilters, excludeFeaturedId
     `, { count: 'exact' })
     .eq('status', 'active')
     .eq('is_sold', false)
+    .eq('is_paused', false)
 
   // Exclude featured listings that are shown at the top (first 2 spots)
   // Only exclude on page 1 to avoid duplicates
