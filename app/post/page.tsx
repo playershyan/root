@@ -40,6 +40,8 @@ import { getFieldConfig, getRequiredFields } from '@/lib/utils/vehicleFieldConfi
 import { extractPublicId } from '@/lib/utils/responsive-images'
 import EditPhoneModal from '@/app/components/EditPhoneModal'
 import SuccessPopup from '@/app/components/modals/SuccessPopup'
+import UnsavedChangesModal from '@/app/components/modals/UnsavedChangesModal'
+import { useUnsavedChangesWarning } from '@/lib/hooks/useUnsavedChangesWarning'
 
 // Lazy load form components (Phase 2 optimization)
 import type { DescriptionGeneratorRef } from '@/app/components/vehicle-forms/DescriptionGenerator'
@@ -141,6 +143,28 @@ export default function EnhancedPostVehiclePage() {
   const [selectedDistrict, setSelectedDistrict] = useState<string>('')
   const [availableCities, setAvailableCities] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
+
+  // Check if form has unsaved changes
+  const hasUnsavedChanges = !!(
+    formData.vehicleType ||
+    formData.title ||
+    formData.make ||
+    formData.model ||
+    formData.price ||
+    formData.description ||
+    formData.images.length > 0 ||
+    formData.imageUrls.length > 0
+  )
+
+  // Handle unsaved changes warning for internal navigation
+  const { showModal: showUnsavedModal, handleDiscard, handleCancel } = useUnsavedChangesWarning({
+    hasUnsavedChanges: hasUnsavedChanges && !isEditMode,
+    isSubmitting: loading,
+    onDiscard: () => {
+      // Clear draft when discarding
+      localStorage.removeItem('vehiclePostDraft')
+    }
+  })
   const [editDataLoading, setEditDataLoading] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -152,10 +176,18 @@ export default function EnhancedPostVehiclePage() {
   const [imagesUploading, setImagesUploading] = useState(false)
   const [imagePreviews, setImagePreviews] = useState<Array<{ url: string; type: 'local' | 'remote'; file?: File }>>([])
   const [mounted, setMounted] = useState(false)
+
+  // Drag and drop state for image reordering
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+  const touchStartPos = useRef<{ x: number; y: number; index: number } | null>(null)
+  const touchCurrentPos = useRef<{ x: number; y: number } | null>(null)
   const [originalPhone, setOriginalPhone] = useState<string>('')
   const [phoneVerified, setPhoneVerified] = useState<boolean>(false)
   const profileDataPopulatedRef = useRef(false)
-  
+  const [formDirty, setFormDirty] = useState(false)
+  const isSubmittingRef = useRef(false)
+
   // Check authentication status and redirect if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
@@ -163,6 +195,39 @@ export default function EnhancedPostVehiclePage() {
       router.push('/?auth=true&redirect=/post')
     }
   }, [user, authLoading, router])
+
+  // Warn user before leaving page if form has data
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Don't show warning if form is empty or user is submitting
+      if (isSubmittingRef.current) return
+
+      // Check if form has any meaningful data
+      const hasData = formData.vehicleType ||
+                      formData.title ||
+                      formData.make ||
+                      formData.model ||
+                      formData.price ||
+                      formData.description ||
+                      formData.images.length > 0 ||
+                      formData.imageUrls.length > 0
+
+      if (hasData) {
+        e.preventDefault()
+        e.returnValue = '' // Chrome requires returnValue to be set
+
+        // Clear draft when user confirms reload
+        // Note: Modern browsers don't allow custom messages, but we can still clear the draft
+        localStorage.removeItem('vehiclePostDraft')
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [formData])
 
   // Load existing listing data when editing
   useEffect(() => {
@@ -523,25 +588,27 @@ export default function EnhancedPostVehiclePage() {
       newErrors.make = 'Custom make name is required'
     }
 
-    // Model (category-specific requirement)
-    if (fieldConfig.modelRequired && !formData.model) {
-      newErrors.model = 'Model is required'
-    } else if (formData.model === 'Other' && !formData.customModel) {
-      newErrors.model = 'Custom model name is required'
+    // Model (only validate if field is shown)
+    if (fieldConfig.showModel) {
+      if (fieldConfig.modelRequired && !formData.model) {
+        newErrors.model = 'Model is required'
+      } else if (formData.model === 'Other' && !formData.customModel) {
+        newErrors.model = 'Custom model name is required'
+      }
     }
 
-    // Year (category-specific requirement)
-    if (fieldConfig.yearRequired && !formData.year) {
+    // Year (only validate if field is shown)
+    if (fieldConfig.showYear && fieldConfig.yearRequired && !formData.year) {
       newErrors.year = 'Year is required'
     }
 
-    // Mileage (category-specific requirement)
-    if (fieldConfig.mileageRequired && !formData.mileage) {
+    // Mileage (only validate if field is shown)
+    if (fieldConfig.showMileage && fieldConfig.mileageRequired && !formData.mileage) {
       newErrors.mileage = 'Mileage is required'
     }
 
-    // Trim (category-specific requirement)
-    if (fieldConfig.trimRequired && !formData.trim) {
+    // Trim (only validate if field is shown)
+    if (fieldConfig.showTrim && fieldConfig.trimRequired && !formData.trim) {
       newErrors.trim = 'Trim/Grade is required'
     }
 
@@ -556,11 +623,7 @@ export default function EnhancedPostVehiclePage() {
     if (!formData.price) newErrors.price = 'Price is required'
 
     if (formData.pricingType === 'finance') {
-      if (!formData.financeType) newErrors.financeType = 'Finance type is required'
-      if (!formData.outstandingBalance) newErrors.outstandingBalance = 'Outstanding balance is required'
       if (!formData.askingPrice) newErrors.askingPrice = 'Asking price is required'
-      if (!formData.monthlyPayment) newErrors.monthlyPayment = 'Monthly payment is required'
-      if (!formData.remainingTerm) newErrors.remainingTerm = 'Remaining term is required'
     }
 
     // Images
@@ -992,6 +1055,148 @@ const getUploadUserId = (): string => {
         showWarning(`Please fill in the required fields: ${fieldNames}`, 3000)
         return
       }
+
+  // Reorder images by swapping two positions
+  const reorderImages = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return
+
+    // Create new arrays with swapped positions
+    const newPreviews = [...imagePreviews]
+    const [movedPreview] = newPreviews.splice(fromIndex, 1)
+    newPreviews.splice(toIndex, 0, movedPreview)
+    setImagePreviews(newPreviews)
+
+    // Update formData to match the new order
+    const localCount = formData.images.length
+
+    // Both are local images
+    if (fromIndex < localCount && toIndex < localCount) {
+      const newImages = [...formData.images]
+      const [movedImage] = newImages.splice(fromIndex, 1)
+      newImages.splice(toIndex, 0, movedImage)
+      setFormData(prev => ({ ...prev, images: newImages }))
+    }
+    // Both are remote images
+    else if (fromIndex >= localCount && toIndex >= localCount) {
+      const newImageUrls = [...formData.imageUrls]
+      const fromRemoteIndex = fromIndex - localCount
+      const toRemoteIndex = toIndex - localCount
+      const [movedImageUrl] = newImageUrls.splice(fromRemoteIndex, 1)
+      newImageUrls.splice(toRemoteIndex, 0, movedImageUrl)
+      setFormData(prev => ({ ...prev, imageUrls: newImageUrls }))
+    }
+    // Mixed: one is local, one is remote - this is more complex
+    // We need to handle the transition between local and remote arrays
+    else {
+      // For simplicity, we'll just reorder in imagePreviews
+      // The actual formData will be synced when submission happens
+      // This prevents complex state management during drag operations
+    }
+  }
+
+  // Desktop drag handlers for image reordering
+  const handleImageDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+    // Set a transparent drag image to avoid default ghost image
+    if (e.dataTransfer.setDragImage) {
+      const img = new Image()
+      img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+      e.dataTransfer.setDragImage(img, 0, 0)
+    }
+  }
+
+  const handleImageDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    if (draggedIndex === null) return
+    setDragOverIndex(index)
+  }
+
+  const handleImageDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault()
+    if (draggedIndex === null) return
+
+    reorderImages(draggedIndex, dropIndex)
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }
+
+  const handleImageDragEnd = () => {
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }
+
+  // Mobile touch handlers for image reordering
+  const handleImageTouchStart = (e: React.TouchEvent, index: number) => {
+    const touch = e.touches[0]
+    touchStartPos.current = { x: touch.clientX, y: touch.clientY, index }
+    touchCurrentPos.current = { x: touch.clientX, y: touch.clientY }
+
+    // Set dragged index after a short delay to differentiate from tap
+    setTimeout(() => {
+      if (touchStartPos.current && touchStartPos.current.index === index) {
+        setDraggedIndex(index)
+      }
+    }, 200)
+  }
+
+  const handleImageTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartPos.current || draggedIndex === null) return
+
+    e.preventDefault() // Prevent scrolling while dragging
+    const touch = e.touches[0]
+    touchCurrentPos.current = { x: touch.clientX, y: touch.clientY }
+
+    // Find which element we're over
+    const element = document.elementFromPoint(touch.clientX, touch.clientY)
+    const imageElement = element?.closest('[data-image-index]')
+    if (imageElement) {
+      const overIndex = parseInt(imageElement.getAttribute('data-image-index') || '-1')
+      if (overIndex >= 0) {
+        setDragOverIndex(overIndex)
+      }
+    }
+  }
+
+  const handleImageTouchEnd = () => {
+    if (draggedIndex !== null && dragOverIndex !== null && draggedIndex !== dragOverIndex) {
+      reorderImages(draggedIndex, dragOverIndex)
+    }
+
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+    touchStartPos.current = null
+    touchCurrentPos.current = null
+  }
+
+  const generateAIDescription = async (): Promise<boolean> => {
+    // Get field configuration for the selected vehicle type
+    const fieldConfig = getFieldConfig(formData.vehicleType || '')
+    const requiredFields = getRequiredFields(formData.vehicleType || '')
+
+    // Check required fields based on vehicle category
+    const missingFields: string[] = []
+
+    if (!formData.make) {
+      missingFields.push('make')
+    }
+
+    if (fieldConfig.modelRequired && !formData.model) {
+      missingFields.push('model')
+    }
+
+    if (fieldConfig.yearRequired && !formData.year) {
+      missingFields.push('year')
+    }
+
+    if (fieldConfig.mileageRequired && !formData.mileage) {
+      missingFields.push('mileage')
+    }
+
+    if (missingFields.length > 0) {
+      const fieldNames = missingFields.map(f => f.charAt(0).toUpperCase() + f.slice(1)).join(', ')
+      showWarning(`Please fill in the required fields: ${fieldNames}`, 3000)
+      return false
     }
 
     const overallStart = performance.now()
@@ -1046,9 +1251,11 @@ const getUploadUserId = (): string => {
       })
 
       showSuccess('Description generated successfully!', 2000)
+      return true
     } catch (error) {
       logger.error('AI description inline generation failed', error as Error)
       showError('Could not build the description. Try again later.', 4000)
+      return false
     } finally {
       setAiLoading(false)
     }
@@ -1063,12 +1270,14 @@ const getUploadUserId = (): string => {
 
   const submitListing = async () => {
     setLoading(true)
+    isSubmittingRef.current = true // Prevent beforeunload warning during submission
     try {
       // Check if user is authenticated
       if (!user) {
         router.push('/?auth=true&redirect=/post')
         showWarning('Sign in required to post a listing.', 5000)
         setLoading(false)
+        isSubmittingRef.current = false
         return
       }
 
@@ -1123,12 +1332,12 @@ const getUploadUserId = (): string => {
         email: formData.email,
         // Finance information
         pricing_type: formData.pricingType,
-        finance_type: formData.pricingType === 'finance' ? formData.financeType : null,
+        finance_type: formData.pricingType === 'finance' && formData.financeType ? formData.financeType : null,
         outstanding_balance: formData.pricingType === 'finance' && formData.outstandingBalance
           ? parseFloat(formData.outstandingBalance) : null,
         monthly_payment: formData.pricingType === 'finance' && formData.monthlyPayment
           ? parseFloat(formData.monthlyPayment) : null,
-        remaining_term: formData.pricingType === 'finance' ? formData.remainingTerm : null,
+        remaining_term: formData.pricingType === 'finance' && formData.remainingTerm ? formData.remainingTerm : null,
         asking_price: formData.pricingType === 'finance' && formData.askingPrice
           ? parseFloat(formData.askingPrice) : null,
         // Promotion flags
@@ -1310,6 +1519,7 @@ const getUploadUserId = (): string => {
       // Show the actual error message to the user
       const errorMessage = error?.message || 'Error posting vehicle. Try again later.'
       showError(errorMessage, 7000)
+      isSubmittingRef.current = false
     } finally {
       setLoading(false)
     }
@@ -1584,7 +1794,11 @@ const getUploadUserId = (): string => {
 
                         {/* Image Preview Grid */}
                         {imagePreviews.length > 0 && (
-                          <div className="mt-4 grid grid-cols-3 md:grid-cols-5 gap-4">
+                          <>
+                            <p className="text-xs text-gray-500 mt-4 mb-2">
+                              Click and hold to change the image positions
+                            </p>
+                            <div className="mt-2 grid grid-cols-3 md:grid-cols-5 gap-4">
                             {imagePreviews.map((preview, index) => {
                               const isLocal = preview.type === 'local' && preview.file instanceof File
                               const uploadId = isLocal && preview.file ? uploadIdMapRef.current.get(preview.file) : undefined
@@ -1608,8 +1822,27 @@ const getUploadUserId = (): string => {
                               else if (isCompressing) borderColor = 'border-yellow-500'
                               else if (isError) borderColor = 'border-red-500'
 
+                              // Drag state styling
+                              const isDragging = draggedIndex === index
+                              const isDragOver = dragOverIndex === index && draggedIndex !== index
+                              const dragClasses = isDragging ? 'opacity-50 scale-95' : ''
+                              const dragOverClasses = isDragOver ? 'border-blue-500 border-4 scale-105' : ''
+                              const cursorClass = 'cursor-move'
+
                               return (
-                                <div key={previewKey} className={`relative group overflow-hidden rounded-lg border-2 ${borderColor}`}>
+                                <div
+                                  key={previewKey}
+                                  className={`relative group overflow-hidden rounded-lg border-2 transition-all duration-200 ${borderColor} ${dragClasses} ${dragOverClasses} ${cursorClass}`}
+                                  draggable={true}
+                                  data-image-index={index}
+                                  onDragStart={(e) => handleImageDragStart(e, index)}
+                                  onDragOver={(e) => handleImageDragOver(e, index)}
+                                  onDrop={(e) => handleImageDrop(e, index)}
+                                  onDragEnd={handleImageDragEnd}
+                                  onTouchStart={(e) => handleImageTouchStart(e, index)}
+                                  onTouchMove={handleImageTouchMove}
+                                  onTouchEnd={handleImageTouchEnd}
+                                >
                                   <img
                                     src={preview.url}
                                     alt={`Preview ${index + 1}`}
@@ -1684,6 +1917,7 @@ const getUploadUserId = (): string => {
                               )
                             })}
                           </div>
+                          </>
                         )}
 
                       </div>
@@ -1850,7 +2084,29 @@ const getUploadUserId = (): string => {
               <div className="flex flex-col sm:flex-row gap-3 justify-end">
                 <Button
                   type="button"
-                  onClick={() => router.push('/listings')}
+                  onClick={() => {
+                    if (hasUnsavedChanges) {
+                      if (window.confirm('Are you sure you want to cancel? All form data will be cleared.')) {
+                        // Clear form data
+                        setFormData(initialFormData)
+                        // Clear draft from localStorage
+                        localStorage.removeItem('vehiclePostDraft')
+                        // Clear images
+                        setImagePreviews([])
+                        // Clear upload status
+                        setUploadStatus({})
+                        // Clear errors
+                        setErrors({})
+                        // Reset selected district and cities
+                        setSelectedDistrict('')
+                        setAvailableCities([])
+                        // Navigate to listings
+                        router.push('/listings')
+                      }
+                    } else {
+                      router.push('/listings')
+                    }
+                  }}
                   variant="outline"
                   size="default"
                   className="order-2 sm:order-1"
@@ -1904,6 +2160,13 @@ const getUploadUserId = (): string => {
         isOpen={showSuccessPopup}
         onClose={() => setShowSuccessPopup(false)}
         autoCloseDuration={3000}
+      />
+
+      {/* Unsaved Changes Modal */}
+      <UnsavedChangesModal
+        isOpen={showUnsavedModal}
+        onDiscard={handleDiscard}
+        onCancel={handleCancel}
       />
     </div>
   )

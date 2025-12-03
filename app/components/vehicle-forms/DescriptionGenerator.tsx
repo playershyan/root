@@ -6,7 +6,7 @@ import { Sparkles, FileText, ChevronDown, Edit, X, Check, Wand2, Sparkles as Spa
 interface DescriptionGeneratorProps {
   formData: any
   setFormData: React.Dispatch<React.SetStateAction<any>>
-  onGenerate: () => Promise<void>
+  onGenerate: () => Promise<boolean>
   aiLoading: boolean
   errors?: Record<string, string>
 }
@@ -98,10 +98,13 @@ const DescriptionGenerator = forwardRef<DescriptionGeneratorRef, DescriptionGene
 
   const handleGenerate = async () => {
     setIsGenerating(true)
-    setIsExpanded(true)
-    setIsEditMode(false) // Show preview after generation
-    await onGenerate()
+    const success = await onGenerate()
     setIsGenerating(false)
+    // Only expand if description was successfully generated
+    if (success) {
+      setIsExpanded(true)
+      setIsEditMode(false)
+    }
   }
 
   const handleEdit = () => {

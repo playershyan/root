@@ -35,7 +35,7 @@ export function getFieldConfig(vehicleType: string): VehicleFieldConfig {
         modelRequired: true,
         yearRequired: true,
         mileageRequired: true,
-        trimRequired: true,
+        trimRequired: false,
         showModel: true,
         showYear: true,
         showMileage: true,

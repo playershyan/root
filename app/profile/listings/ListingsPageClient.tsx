@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ArrowLeft, Car, Camera, Zap, CheckCircle, Star, Crown, TrendingUp, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Car, Camera, Zap, CheckCircle, Star, Crown, TrendingUp, AlertTriangle, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import FilterDropdown from './components/FilterDropdown'
 import LoadMoreButton from './components/LoadMoreButton'
 import ListingStatusBadge from '@/app/components/listings/ListingStatusBadge'
@@ -41,6 +42,8 @@ interface Listing {
   image_urls?: string[]
   is_sold?: boolean
   is_reported?: boolean
+  is_paused?: boolean
+  pause_date?: string
   rejection_reason?: string
   // Promotion fields
   is_featured?: boolean
@@ -75,6 +78,15 @@ export default function ListingsPageClient({
   const [listings, setListings] = useState(initialListings)
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false)
   const [paymentMessage, setPaymentMessage] = useState('')
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    type: 'sold' | 'delete' | null
+    listingId: string | null
+  }>({
+    isOpen: false,
+    type: null,
+    listingId: null
+  })
 
   // Sync state with props when server data refreshes
   useEffect(() => {
@@ -128,7 +140,7 @@ export default function ListingsPageClient({
       const response = await fetch('/api/listings/pause', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ listingId })
+        body: JSON.stringify({ listingId, action: 'pause' })
       })
 
       if (!response.ok) {
@@ -147,10 +159,10 @@ export default function ListingsPageClient({
   // Handle resume listing
   const handleResume = async (listingId: string) => {
     try {
-      const response = await fetch('/api/listings/resume', {
+      const response = await fetch('/api/listings/pause', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ listingId })
+        body: JSON.stringify({ listingId, action: 'resume' })
       })
 
       if (!response.ok) {
@@ -167,14 +179,32 @@ export default function ListingsPageClient({
   }
 
   // Handle mark as sold
-  const handleMarkAsSold = async (listingId: string) => {
-    if (!confirm('Mark this listing as sold?')) return
+  const handleMarkAsSold = (listingId: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      type: 'sold',
+      listingId
+    })
+  }
+
+  // Handle delete listing
+  const handleDelete = (listingId: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      type: 'delete',
+      listingId
+    })
+  }
+
+  // Execute mark as sold
+  const executeMarkAsSold = async () => {
+    if (!confirmDialog.listingId) return
 
     try {
       const response = await fetch('/api/listings/mark-sold', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ listingId })
+        body: JSON.stringify({ listingId: confirmDialog.listingId })
       })
 
       if (!response.ok) {
@@ -190,9 +220,9 @@ export default function ListingsPageClient({
     }
   }
 
-  // Handle delete listing
-  const handleDelete = async (listingId: string) => {
-    if (!confirm('Move this listing to bin?')) return
+  // Execute delete listing
+  const executeDelete = async () => {
+    if (!confirmDialog.listingId) return
 
     try {
       const { data: { session } } = await supabase.auth.getSession()
@@ -203,7 +233,7 @@ export default function ListingsPageClient({
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          item_id: listingId,
+          item_id: confirmDialog.listingId,
           item_type: 'listing'
         })
       })
@@ -215,6 +245,24 @@ export default function ListingsPageClient({
     } catch (error) {
       logger.error('Error deleting listing', error as Error)
       toast.error('Failed to move listing to bin')
+    }
+  }
+
+  // Close confirm dialog
+  const closeConfirmDialog = () => {
+    setConfirmDialog({
+      isOpen: false,
+      type: null,
+      listingId: null
+    })
+  }
+
+  // Handle confirm action
+  const handleConfirm = () => {
+    if (confirmDialog.type === 'sold') {
+      executeMarkAsSold()
+    } else if (confirmDialog.type === 'delete') {
+      executeDelete()
     }
   }
 
@@ -405,7 +453,7 @@ export default function ListingsPageClient({
                                   onMarkAsSold={() => handleMarkAsSold(listing.id)}
                                   onDelete={() => handleDelete(listing.id)}
                                   onShare={() => handleShare(listing.id)}
-                                  viewMode="mobile"
+                                  viewMode="desktop"
                                 />
                               )}
                             </div>
@@ -519,6 +567,23 @@ export default function ListingsPageClient({
           </div>
         </div>
       </div>
+
+      {/* Confirmation Dialogs */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={closeConfirmDialog}
+        onConfirm={handleConfirm}
+        title={confirmDialog.type === 'sold' ? 'Mark as Sold' : 'Move to Bin'}
+        description={
+          confirmDialog.type === 'sold'
+            ? 'Mark this listing as sold? This will update the status and notify interested buyers.'
+            : 'Move this listing to bin? You can restore it later from the bin page.'
+        }
+        confirmText={confirmDialog.type === 'sold' ? 'Mark as Sold' : 'Move to Bin'}
+        cancelText="Cancel"
+        confirmVariant={confirmDialog.type === 'sold' ? 'primary' : 'destructive'}
+        icon={confirmDialog.type === 'sold' ? <CheckCircle className="w-6 h-6" /> : <Trash2 className="w-6 h-6" />}
+      />
     </div>
   )
 }
