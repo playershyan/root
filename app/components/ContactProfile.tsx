@@ -92,9 +92,9 @@ function BusinessProfile({ seller, listing, onMessageClick }: {
         {/* Business Profile */}
         <div className="flex items-center gap-3 mb-6">
           <div className="w-16 h-16 rounded-xl flex items-center justify-center border-2 border-white shadow-md">
-            {seller.profileImageUrl || seller.logoUrl ? (
-              <img 
-                src={seller.profileImageUrl || seller.logoUrl} 
+            {seller.profileImageUrl || seller.logoUrl || seller.avatar ? (
+              <img
+                src={seller.profileImageUrl || seller.logoUrl || seller.avatar}
                 alt={seller.name}
                 className="w-full h-full object-cover rounded-xl"
               />
