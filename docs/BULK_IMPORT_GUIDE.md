@@ -140,10 +140,15 @@ Mercedes Benz C200,Mercedes Benz,,2016,75000,3500000,Used,Petrol,Automatic,,2000
 2. Choose CSV or JSON mode
 3. Paste your data or load sample data
 4. Click "Start Import"
-5. View results:
+5. Watch progress:
+   - Progress bar shows batch processing (5 listings per batch)
+   - Prevents timeout on large imports
+6. View results:
    - Green: Successfully imported listings
    - Red: Failed imports with error details
    - Links to view imported listings
+
+**Note:** Large CSV files are automatically split into batches of 5 listings to prevent server timeouts. Each batch processes sequentially with progress display.
 
 ## Using the API Directly
 
