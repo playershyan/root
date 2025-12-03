@@ -274,7 +274,8 @@ async function importListing(
       transmission: sanitized.transmission || null,
       color: sanitized.color || null,
       engine_capacity: engineCapacity,
-      grade: sanitized.trim || null,
+      trim: sanitized.trim || null,
+      grade: sanitized.trim || null, // trim/grade is single field - store same value in both columns
       condition: sanitized.condition || null,
       location,
       city: sanitized.city || null,
