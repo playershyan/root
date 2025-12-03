@@ -355,11 +355,11 @@ export default async function ListingDetailPage({
   const specifications: Record<string, string | number> = {
     'Make': listing.make,
     'Model': listing.model,
-    'Year': listing.year,
+    'Year': listing.year === 0 ? 'Not Specified' : listing.year,
   }
 
   // Add optional fields only if they have values
-  if (listing.mileage) specifications['Mileage'] = `${listing.mileage.toLocaleString()} km`
+  if (listing.mileage !== null && listing.mileage !== undefined) specifications['Mileage'] = `${listing.mileage.toLocaleString()} km`
   if (listing.fuel_type) specifications['Fuel Type'] = listing.fuel_type
   if (listing.transmission) specifications['Transmission'] = listing.transmission
   if (listing.engine_capacity) specifications['Engine Capacity'] = `${listing.engine_capacity}cc`
