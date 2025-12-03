@@ -137,7 +137,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
         <div className="grid grid-cols-3 gap-3 mb-4">
           <div className="flex flex-col">
             <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wide mb-0.5">Year</span>
-            <span className="text-sm font-semibold text-slate-700">{listing.year}</span>
+            <span className="text-sm font-semibold text-slate-700">{listing.year === 0 ? 'Not Specified' : listing.year}</span>
           </div>
 
           {listing.mileage && (
