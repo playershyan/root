@@ -9,10 +9,10 @@
           "id": "toyota",
           "name": "Toyota",
           "models": [
-            "Prius", "Camry", "Corolla", "Yaris", "Vitz", "Aqua", 
-            "Allion", "Premio", "CHR", "Highlander", "Land Cruiser", 
-            "Land Cruiser Prado", "RAV4", "Fortuner", "Alphard", 
-            "Vellfire", "Harrier", "Rush", "Raize"
+            "Prius", "Camry", "Corolla", "Yaris", "Vitz", "Aqua",
+            "Allion", "Premio", "CHR", "Highlander", "Land Cruiser",
+            "Land Cruiser Prado", "RAV4", "Fortuner", "Alphard",
+            "Vellfire", "Harrier", "Rush", "Raize", "Hilux", "Hiace"
           ]
         },
         {
