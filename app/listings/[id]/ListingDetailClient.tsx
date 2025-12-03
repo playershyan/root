@@ -286,7 +286,7 @@ export default function ListingDetailClient({
       <div className="lg:bg-white lg:rounded-xl lg:shadow-sm overflow-hidden mb-2 lg:mb-6 bg-white lg:bg-white border-b lg:border">
         <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] lg:items-start gap-2 lg:gap-6 px-4 lg:p-6 py-4 lg:py-6">
             {/* Image Gallery */}
-          <div className="relative">
+          <div className="relative min-w-0">
             {/* Main Image */}
             <div className="relative h-[400px] bg-gray-100 rounded-lg overflow-hidden">
               {images.length > 0 ? (
@@ -379,7 +379,7 @@ export default function ListingDetailClient({
           </div>
 
           {/* Vehicle Header Info */}
-          <div className="flex flex-col">
+          <div className="flex flex-col min-w-0">
             {/* Title and Actions */}
             <div className="flex justify-between items-start mb-4">
               <div className="flex-1">
