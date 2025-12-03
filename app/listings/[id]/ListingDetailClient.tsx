@@ -460,9 +460,9 @@ export default function ListingDetailClient({
                 {sellerData?.type === 'business' ? (
                   <>
                     <div className="w-12 h-12 rounded-lg flex items-center justify-center border border-gray-200">
-                      {(sellerData.profileImageUrl || sellerData.logoUrl) ? (
+                      {(sellerData.profileImageUrl || sellerData.logoUrl || sellerData.avatar) ? (
                         <img
-                          src={sellerData.profileImageUrl || sellerData.logoUrl}
+                          src={sellerData.profileImageUrl || sellerData.logoUrl || sellerData.avatar}
                           alt={sellerData.name}
                           className="w-full h-full object-cover rounded-lg"
                         />
