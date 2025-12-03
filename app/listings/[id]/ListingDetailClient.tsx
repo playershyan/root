@@ -284,7 +284,7 @@ export default function ListingDetailClient({
     <>
       {/* Vehicle Top Section - Full Width */}
       <div className="lg:bg-white lg:rounded-xl lg:shadow-sm overflow-hidden mb-2 lg:mb-6 bg-white lg:bg-white border-b lg:border">
-        <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-2 lg:gap-6 px-4 lg:p-6 py-4 lg:py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] lg:items-start gap-2 lg:gap-6 px-4 lg:p-6 py-4 lg:py-6">
             {/* Image Gallery */}
           <div className="relative">
             {/* Main Image */}
