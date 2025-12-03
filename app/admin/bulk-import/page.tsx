@@ -12,9 +12,9 @@ export default function BulkImportPage() {
   const [result, setResult] = useState<any>(null)
   const [mode, setMode] = useState<'csv' | 'json'>('csv')
 
-  const sampleCSV = `title,make,model,year,mileage,price,condition,fuelType,transmission,city,district,phone,imageUrls,vehicleType
-2015 Honda Civic,Honda,Civic,2015,85000,2500000,Used,Petrol,Automatic,Colombo,Colombo,0771234567,https://example.com/img1.jpg,Car
-2018 Toyota Aqua,Toyota,Aqua,2018,45000,,Used,Hybrid,Automatic,Kandy,Kandy,0772345678,https://example.com/img2.jpg,Car`
+  const sampleCSV = `title,make,model,year,mileage,price,condition,fuelType,transmission,trim,grade,city,district,phone,imageUrls,vehicleType
+2015 Honda Civic,Honda,Civic,2015,85000,2500000,Used,Petrol,Automatic,EX,,,Colombo,Colombo,0771234567,https://example.com/img1.jpg,Car
+2018 Toyota Aqua,Toyota,Aqua,2018,45000,,Used,Hybrid,Automatic,,S,Kandy,Kandy,0772345678,https://example.com/img2.jpg,Car`
 
   const sampleJSON = `[
   {
@@ -27,6 +27,8 @@ export default function BulkImportPage() {
     "condition": "Used",
     "fuelType": "Petrol",
     "transmission": "Automatic",
+    "trim": "EX",
+    "grade": "",
     "city": "Colombo",
     "district": "Colombo",
     "phone": "0771234567",
@@ -275,6 +277,8 @@ export default function BulkImportPage() {
               <li><code className="bg-gray-200 px-1 rounded">condition</code> - Used, New, Refurbished</li>
               <li><code className="bg-gray-200 px-1 rounded">fuelType</code> - Petrol, Diesel, Hybrid, Electric</li>
               <li><code className="bg-gray-200 px-1 rounded">transmission</code> - Automatic, Manual</li>
+              <li><code className="bg-gray-200 px-1 rounded">trim</code> - Vehicle trim level (e.g., EX, LX, Sport)</li>
+              <li><code className="bg-gray-200 px-1 rounded">grade</code> - Vehicle grade (e.g., G, S, X)</li>
               <li><code className="bg-gray-200 px-1 rounded">city</code>, <code className="bg-gray-200 px-1 rounded">district</code> - Location</li>
               <li><code className="bg-gray-200 px-1 rounded">phone</code> - Contact number</li>
               <li><code className="bg-gray-200 px-1 rounded">imageUrls</code> - Comma-separated image URLs (uploaded to Cloudinary)</li>

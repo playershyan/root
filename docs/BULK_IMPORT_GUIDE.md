@@ -31,16 +31,16 @@ At minimum, include identifying information (at least one):
 ### All Available Fields
 
 ```csv
-title,make,customMake,model,customModel,year,mileage,price,condition,fuelType,transmission,city,district,phone,whatsapp,email,imageUrls,vehicleType,engineCapacity,color,trim,negotiable,pricingType,financeType,outstandingBalance,monthlyPayment,remainingTerm,askingPrice
+title,make,customMake,model,customModel,year,mileage,price,condition,fuelType,transmission,trim,grade,city,district,phone,whatsapp,email,imageUrls,vehicleType,engineCapacity,color,negotiable,pricingType,financeType,outstandingBalance,monthlyPayment,remainingTerm,askingPrice
 ```
 
 ### Example CSV
 
 ```csv
-title,make,model,year,mileage,price,condition,fuelType,transmission,city,district,phone,imageUrls,vehicleType
-2015 Honda Civic,Honda,Civic,2015,85000,2500000,Used,Petrol,Automatic,Colombo,Colombo,0771234567,https://example.com/img1.jpg|https://example.com/img2.jpg,Car
-2018 Toyota Aqua,Toyota,Aqua,2018,45000,,Used,Hybrid,Automatic,Kandy,Kandy,0772345678,https://example.com/img.jpg,Car
-Mercedes Benz C200,Mercedes Benz,,2016,75000,3500000,Used,Petrol,Automatic,Galle,Galle,0773456789,,Car
+title,make,model,year,mileage,price,condition,fuelType,transmission,trim,grade,city,district,phone,imageUrls,vehicleType
+2015 Honda Civic,Honda,Civic,2015,85000,2500000,Used,Petrol,Automatic,EX,,Colombo,Colombo,0771234567,https://example.com/img1.jpg|https://example.com/img2.jpg,Car
+2018 Toyota Aqua,Toyota,Aqua,2018,45000,,Used,Hybrid,Automatic,,S,Kandy,Kandy,0772345678,https://example.com/img.jpg,Car
+Mercedes Benz C200,Mercedes Benz,,2016,75000,3500000,Used,Petrol,Automatic,,,Galle,Galle,0773456789,,Car
 ```
 
 **Note**: Leave price empty for "Price on Request" listings.
@@ -61,6 +61,8 @@ Mercedes Benz C200,Mercedes Benz,,2016,75000,3500000,Used,Petrol,Automatic,Galle
     "condition": "Used",
     "fuelType": "Petrol",
     "transmission": "Automatic",
+    "trim": "EX",
+    "grade": "",
     "city": "Colombo",
     "district": "Colombo",
     "phone": "0771234567",
@@ -77,6 +79,8 @@ Mercedes Benz C200,Mercedes Benz,,2016,75000,3500000,Used,Petrol,Automatic,Galle
     "condition": "Used",
     "fuelType": "Hybrid",
     "transmission": "Automatic",
+    "trim": "",
+    "grade": "S",
     "city": "Kandy",
     "district": "Kandy",
     "phone": "0772345678",
