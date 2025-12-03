@@ -54,6 +54,7 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (!profile) {
+        // Only set Google avatar for new profiles
         await supabase.from('profiles').insert({
           id: data.user.id,
           email: payload.email,
@@ -62,6 +63,7 @@ export async function POST(request: NextRequest) {
           created_at: new Date().toISOString()
         })
       }
+      // If profile exists, don't update avatar_url - user may have uploaded custom avatar
     }
 
     return NextResponse.json({ success: true, user: data.user })
