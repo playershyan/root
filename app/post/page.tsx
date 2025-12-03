@@ -1023,38 +1023,6 @@ const getUploadUserId = (): string => {
       }))
     }
   }
-  
-  const generateAIDescription = async () => {
-    // Bypass required field validation for privileged user
-    if (user?.id !== PRIVILEGED_USER_ID) {
-      // Get field configuration for the selected vehicle type
-      const fieldConfig = getFieldConfig(formData.vehicleType || '')
-      const requiredFields = getRequiredFields(formData.vehicleType || '')
-
-      // Check required fields based on vehicle category
-      const missingFields: string[] = []
-
-      if (!formData.make) {
-        missingFields.push('make')
-      }
-
-      if (fieldConfig.modelRequired && !formData.model) {
-        missingFields.push('model')
-      }
-
-      if (fieldConfig.yearRequired && !formData.year) {
-        missingFields.push('year')
-      }
-
-      if (fieldConfig.mileageRequired && !formData.mileage) {
-        missingFields.push('mileage')
-      }
-
-      if (missingFields.length > 0) {
-        const fieldNames = missingFields.map(f => f.charAt(0).toUpperCase() + f.slice(1)).join(', ')
-        showWarning(`Please fill in the required fields: ${fieldNames}`, 3000)
-        return
-      }
 
   // Reorder images by swapping two positions
   const reorderImages = (fromIndex: number, toIndex: number) => {
@@ -1170,33 +1138,36 @@ const getUploadUserId = (): string => {
   }
 
   const generateAIDescription = async (): Promise<boolean> => {
-    // Get field configuration for the selected vehicle type
-    const fieldConfig = getFieldConfig(formData.vehicleType || '')
-    const requiredFields = getRequiredFields(formData.vehicleType || '')
+    // Bypass required field validation for privileged user
+    if (user?.id !== PRIVILEGED_USER_ID) {
+      // Get field configuration for the selected vehicle type
+      const fieldConfig = getFieldConfig(formData.vehicleType || '')
+      const requiredFields = getRequiredFields(formData.vehicleType || '')
 
-    // Check required fields based on vehicle category
-    const missingFields: string[] = []
+      // Check required fields based on vehicle category
+      const missingFields: string[] = []
 
-    if (!formData.make) {
-      missingFields.push('make')
-    }
+      if (!formData.make) {
+        missingFields.push('make')
+      }
 
-    if (fieldConfig.modelRequired && !formData.model) {
-      missingFields.push('model')
-    }
+      if (fieldConfig.modelRequired && !formData.model) {
+        missingFields.push('model')
+      }
 
-    if (fieldConfig.yearRequired && !formData.year) {
-      missingFields.push('year')
-    }
+      if (fieldConfig.yearRequired && !formData.year) {
+        missingFields.push('year')
+      }
 
-    if (fieldConfig.mileageRequired && !formData.mileage) {
-      missingFields.push('mileage')
-    }
+      if (fieldConfig.mileageRequired && !formData.mileage) {
+        missingFields.push('mileage')
+      }
 
-    if (missingFields.length > 0) {
-      const fieldNames = missingFields.map(f => f.charAt(0).toUpperCase() + f.slice(1)).join(', ')
-      showWarning(`Please fill in the required fields: ${fieldNames}`, 3000)
-      return false
+      if (missingFields.length > 0) {
+        const fieldNames = missingFields.map(f => f.charAt(0).toUpperCase() + f.slice(1)).join(', ')
+        showWarning(`Please fill in the required fields: ${fieldNames}`, 3000)
+        return false
+      }
     }
 
     const overallStart = performance.now()
