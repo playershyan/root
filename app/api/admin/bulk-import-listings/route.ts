@@ -52,17 +52,42 @@ interface ImportResult {
 }
 
 /**
+ * Parse CSV line respecting quoted fields
+ */
+function parseCSVLine(line: string): string[] {
+  const values: string[] = []
+  let current = ''
+  let insideQuotes = false
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i]
+
+    if (char === '"') {
+      insideQuotes = !insideQuotes
+    } else if (char === ',' && !insideQuotes) {
+      values.push(current.trim())
+      current = ''
+    } else {
+      current += char
+    }
+  }
+
+  values.push(current.trim())
+  return values
+}
+
+/**
  * Parse CSV string into array of objects
  */
 function parseCSV(csvText: string): ListingImportRow[] {
   const lines = csvText.trim().split('\n')
   if (lines.length < 2) return []
 
-  const headers = lines[0].split(',').map(h => h.trim())
+  const headers = parseCSVLine(lines[0])
   const rows: ListingImportRow[] = []
 
   for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(',').map(v => v.trim())
+    const values = parseCSVLine(lines[i])
     const row: any = {}
 
     headers.forEach((header, index) => {
