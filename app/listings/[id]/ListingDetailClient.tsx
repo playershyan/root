@@ -489,11 +489,21 @@ export default function ListingDetailClient({
                   </>
                 ) : sellerData?.type === 'individual' ? (
                   <>
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-full flex items-center justify-center font-medium text-sm">
-                      <span>
-                        {sellerData.name.split(' ').map(n => n[0]).join('')}
-                      </span>
-                    </div>
+                    {sellerData.avatar ? (
+                      <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-blue-100">
+                        <img
+                          src={sellerData.avatar}
+                          alt={sellerData.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-full flex items-center justify-center font-medium text-sm">
+                        <span>
+                          {sellerData.name.split(' ').map(n => n[0]).join('')}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex-1">
                       <p className="font-semibold text-gray-900">{sellerData.name}</p>
                       <p className="text-xs text-gray-500 mt-0.5">Private Seller</p>
