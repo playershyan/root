@@ -11,6 +11,7 @@ export default function BulkImportPage() {
   const [importing, setImporting] = useState(false)
   const [result, setResult] = useState<any>(null)
   const [mode, setMode] = useState<'csv' | 'json'>('csv')
+  const [progress, setProgress] = useState<{ current: number; total: number } | null>(null)
 
   const sampleCSV = `title,make,model,year,mileage,price,condition,fuelType,transmission,trim,engineCapacity,city,district,phone,imageUrls,vehicleType
 2015 Honda Civic,Honda,Civic,2015,85000,2500000,Used,Petrol,Automatic,EX,1800,Colombo,Colombo,0771234567,https://example.com/img1.jpg,Car
@@ -40,29 +41,96 @@ export default function BulkImportPage() {
   const handleImport = async () => {
     setImporting(true)
     setResult(null)
+    setProgress(null)
+
+    const BATCH_SIZE = 5 // Process 5 listings at a time to prevent timeout
 
     try {
-      const payload = mode === 'csv'
-        ? { csv: csvText }
-        : { listings: JSON.parse(jsonText) }
-
-      const response = await fetch('/api/admin/bulk-import-listings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      })
-
-      // Check if response is JSON
-      const contentType = response.headers.get('content-type')
-      if (!contentType || !contentType.includes('application/json')) {
-        const text = await response.text()
-        throw new Error(`Server returned non-JSON response (${response.status}): ${text.substring(0, 200)}`)
+      // Parse CSV into rows or use JSON
+      let allRows: any[] = []
+      if (mode === 'csv') {
+        const lines = csvText.trim().split('\n')
+        if (lines.length < 2) {
+          throw new Error('CSV must have headers and at least one data row')
+        }
+        const headers = lines[0]
+        allRows = lines.slice(1).map(line => ({ headers, line }))
+      } else {
+        const parsed = JSON.parse(jsonText)
+        allRows = Array.isArray(parsed) ? parsed : parsed.listings || []
       }
 
-      const data = await response.json()
-      setResult(data)
+      // Split into batches
+      const batches: any[][] = []
+      for (let i = 0; i < allRows.length; i += BATCH_SIZE) {
+        batches.push(allRows.slice(i, i + BATCH_SIZE))
+      }
+
+      setProgress({ current: 0, total: batches.length })
+
+      // Aggregate results
+      const aggregatedResult: any = {
+        success: true,
+        imported: 0,
+        failed: 0,
+        listings: [],
+        errors: []
+      }
+
+      // Process each batch sequentially
+      for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+        const batch = batches[batchIndex]
+
+        // Reconstruct CSV or JSON payload for this batch
+        let payload: any
+        if (mode === 'csv') {
+          const batchCSV = [batch[0].headers, ...batch.map((r: any) => r.line)].join('\n')
+          payload = { csv: batchCSV }
+        } else {
+          payload = { listings: batch }
+        }
+
+        const response = await fetch('/api/admin/bulk-import-listings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        })
+
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type')
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await response.text()
+          throw new Error(`Server returned non-JSON response (${response.status}): ${text.substring(0, 200)}`)
+        }
+
+        const batchResult = await response.json()
+
+        // Aggregate results
+        if (batchResult.success) {
+          aggregatedResult.imported += batchResult.imported || 0
+          aggregatedResult.failed += batchResult.failed || 0
+          aggregatedResult.listings.push(...(batchResult.listings || []))
+          aggregatedResult.errors.push(...(batchResult.errors || []))
+        } else {
+          // Batch failed entirely
+          aggregatedResult.failed += batch.length
+          aggregatedResult.errors.push({
+            row: `Batch ${batchIndex + 1}`,
+            error: batchResult.error || 'Batch failed',
+            data: null
+          })
+        }
+
+        setProgress({ current: batchIndex + 1, total: batches.length })
+      }
+
+      // Calculate duration
+      aggregatedResult.message = `Import completed: ${aggregatedResult.imported} imported, ${aggregatedResult.failed} failed`
+      aggregatedResult.duration = `${batches.length} batches processed`
+
+      setResult(aggregatedResult)
     } catch (error) {
       setResult({
         error: (error as Error).message,
@@ -70,6 +138,7 @@ export default function BulkImportPage() {
       })
     } finally {
       setImporting(false)
+      setProgress(null)
     }
   }
 
@@ -161,23 +230,39 @@ export default function BulkImportPage() {
           )}
 
           {/* Import Button */}
-          <button
-            onClick={handleImport}
-            disabled={importing || (mode === 'csv' ? !csvText : !jsonText)}
-            className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            {importing ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Importing...
-              </>
-            ) : (
-              <>
-                <Upload className="w-5 h-5" />
-                Start Import
-              </>
+          <div className="mt-4">
+            <button
+              onClick={handleImport}
+              disabled={importing || (mode === 'csv' ? !csvText : !jsonText)}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {importing ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  {progress ? `Processing batch ${progress.current} of ${progress.total}...` : 'Importing...'}
+                </>
+              ) : (
+                <>
+                  <Upload className="w-5 h-5" />
+                  Start Import
+                </>
+              )}
+            </button>
+            {progress && (
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-sm text-gray-600 mb-1">
+                  <span>Progress: {progress.current} / {progress.total} batches</span>
+                  <span>{Math.round((progress.current / progress.total) * 100)}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${(progress.current / progress.total) * 100}%` }}
+                  />
+                </div>
+              </div>
             )}
-          </button>
+          </div>
         </div>
 
         {/* Results */}
