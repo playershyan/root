@@ -4,6 +4,7 @@ import { withRateLimit, rateLimiters } from '@/lib/middleware/rateLimiter'
 import { incr } from '@/lib/security/metrics'
 import { AuditEvents } from '@/lib/utils/audit'
 import { getServiceRoleClient } from '@/lib/supabase/serviceRoleClient'
+import { emailService } from '@/lib/services/emailService'
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,6 +57,23 @@ export async function POST(request: NextRequest) {
         message: `Your listing "${listing.title}" has been approved and is now live.${approvalNotes ? ` Admin notes: ${approvalNotes}` : ''}`,
         listing_id: listingId
       })
+
+    // Fetch user email from profiles table
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('id', listing.user_id)
+      .single()
+
+    // Send email notification to listing owner
+    if (profile?.email) {
+      await emailService.sendListingApprovedEmail(
+        profile.email,
+        listing.title,
+        listingId,
+        approvalNotes
+      )
+    }
 
     AuditEvents.listingApproved(listingId, (authResult.adminUser as any).user_id, 0)
 
