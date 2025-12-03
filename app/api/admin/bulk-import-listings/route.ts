@@ -219,8 +219,8 @@ async function importListing(
       imageUrls: uploadedImageUrls
     })
 
-    // Parse numbers
-    const year = sanitized.year ? parseInt(String(sanitized.year), 10) : null
+    // Parse numbers - privileged user can have missing year (defaults to 0)
+    const year = sanitized.year ? parseInt(String(sanitized.year), 10) : 0
     const mileage = sanitized.mileage ? parseInt(String(sanitized.mileage), 10) : null
     const engineCapacity = sanitized.engineCapacity ? parseInt(String(sanitized.engineCapacity), 10) : null
 

@@ -250,7 +250,7 @@ export default function RegularAdCard({
           <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
             <div className="flex items-center gap-1">
               <Calendar className="text-blue-500 w-4 h-4" />
-              <span>{listing.year}</span>
+              <span>{listing.year === 0 ? 'Not Specified' : listing.year}</span>
             </div>
             <div className="flex items-center gap-1">
               <Activity className="text-gray-500 w-4 h-4" />

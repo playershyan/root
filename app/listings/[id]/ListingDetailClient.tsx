@@ -409,7 +409,7 @@ export default function ListingDetailClient({
             {/* Key Details Pills */}
             <div className="flex flex-wrap gap-2 mb-6">
               <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
-                <Calendar className="mr-1" size={16} /> {listing.year}
+                <Calendar className="mr-1" size={16} /> {listing.year === 0 ? 'Year Not Specified' : listing.year}
               </span>
               {listing.mileage && (
                 <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">

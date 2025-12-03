@@ -160,7 +160,7 @@ export default function GoldFeaturedCard({ listing, size = 'regular' }: GoldFeat
             <div className="flex flex-wrap gap-3 text-sm text-gray-600 mb-4">
               <span className="flex items-center gap-1">
                 <Calendar className="w-3 h-3 text-amber-500" />
-                {listing.year}
+                {listing.year === 0 ? 'Not Specified' : listing.year}
               </span>
               {listing.mileage && (
                 <span className="flex items-center gap-1">
