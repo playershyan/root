@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, FormEvent, useEffect } from 'react'
+import { useState, FormEvent, useEffect, useRef } from 'react'
 import { ArrowLeft, Camera, User, Mail, Phone, MapPin, Edit } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -14,6 +14,7 @@ import BusinessProfileManagement from '@/app/components/profile/BusinessProfileM
 import CreateBusinessProfile from '@/app/components/profile/CreateBusinessProfile'
 import { CreateBusinessProfileData } from '@/lib/types/businessProfile'
 import EditPhoneModal from '@/app/components/EditPhoneModal'
+import ProfileImagePreview from '@/app/components/profile/ProfileImagePreview'
 
 interface ProfileData {
   name?: string
@@ -46,6 +47,11 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
   const [showEditPhoneModal, setShowEditPhoneModal] = useState(false)
   const [showEditWhatsAppModal, setShowEditWhatsAppModal] = useState(false)
   const [pendingOtpCode, setPendingOtpCode] = useState<string>('')
+  const [showImagePreview, setShowImagePreview] = useState(false)
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null)
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [formData, setFormData] = useState({
     displayName: initialProfile?.name || '',
@@ -237,6 +243,121 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
     }
   }
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Please upload a valid image file (JPEG, PNG, or WebP)')
+      return
+    }
+
+    // Validate file size (10MB)
+    const maxSize = 10 * 1024 * 1024
+    if (file.size > maxSize) {
+      toast.error('Image size must be less than 10MB')
+      return
+    }
+
+    // Create preview URL
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const imageUrl = event.target?.result as string
+      setSelectedImage(imageUrl)
+      setShowImagePreview(true)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleImagePreviewSave = async (imageData: { url: string; position: { x: number; y: number }; zoom: number; rotation: number }) => {
+    setIsUploadingImage(true)
+    setShowImagePreview(false)
+
+    try {
+      // Convert base64 to blob
+      const response = await fetch(imageData.url)
+      const blob = await response.blob()
+
+      // Create FormData with unique naming
+      const timestamp = Date.now()
+      const uploadFormData = new FormData()
+      uploadFormData.append('images', blob, `profile-${timestamp}.jpg`)
+      uploadFormData.append('listingId', 'avatars')
+
+      // Upload to Cloudinary
+      const uploadResponse = await fetch('/api/upload/cloudinary', {
+        method: 'POST',
+        body: uploadFormData
+      })
+
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json()
+        throw new Error(errorData.error || 'Failed to upload image')
+      }
+
+      const uploadResult = await uploadResponse.json()
+
+      if (!uploadResult.success || !uploadResult.images?.[0]?.url) {
+        throw new Error('Failed to get uploaded image URL')
+      }
+
+      const imageUrl = uploadResult.images[0].url
+      setUploadedImageUrl(imageUrl)
+
+      // Update profile with new avatar URL
+      const profileResponse = await fetch('/api/profiles', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          avatar_url: imageUrl,
+          name: formData.displayName,
+          phone: formData.phone,
+          whatsapp: formData.whatsapp
+        }),
+      })
+
+      if (!profileResponse.ok) {
+        const errorData = await profileResponse.json()
+        throw new Error(errorData.error || 'Failed to update profile')
+      }
+
+      const result = await profileResponse.json()
+      if (result.success) {
+        toast.success('Profile photo updated successfully!')
+        router.refresh()
+      } else {
+        throw new Error(result.error || 'Failed to update profile')
+      }
+    } catch (error) {
+      logger.error('Error uploading profile image', error as Error)
+      toast.error(`Failed to upload image: ${error instanceof Error ? error.message : 'Try again later.'}`)
+    } finally {
+      setIsUploadingImage(false)
+      setSelectedImage(null)
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleImagePreviewCancel = () => {
+    setShowImagePreview(false)
+    setSelectedImage(null)
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const handleCameraClick = () => {
+    fileInputRef.current?.click()
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -289,10 +410,10 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
             
             <div className="flex items-start gap-6">
               {/* Avatar */}
-              <div className="relative">
-                {initialProfile?.avatar_url ? (
+              <div className="relative group">
+                {uploadedImageUrl || initialProfile?.avatar_url ? (
                   <img
-                    src={initialProfile.avatar_url}
+                    src={uploadedImageUrl || initialProfile.avatar_url}
                     alt="Profile"
                     className="w-24 h-24 rounded-full object-cover"
                   />
@@ -301,14 +422,26 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
                     <User className="w-12 h-12 text-gray-400" />
                   </div>
                 )}
-                {isEditing && (
-                  <button
-                    type="button"
-                    className="absolute bottom-0 right-0 p-2 bg-white rounded-full shadow-sm border border-gray-200 hover:bg-gray-50"
-                  >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
+                <button
+                  type="button"
+                  onClick={handleCameraClick}
+                  disabled={isUploadingImage}
+                  className="absolute bottom-0 right-0 p-2 bg-white rounded-full shadow-sm border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                  title="Change profile photo"
+                >
+                  {isUploadingImage ? (
+                    <div className="w-4 h-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin" />
+                  ) : (
                     <Camera className="w-4 h-4 text-gray-600" />
-                  </button>
-                )}
+                  )}
+                </button>
               </div>
 
               {/* Info */}
@@ -451,6 +584,15 @@ export default function AccountPageClient({ initialProfile, stats, email }: Acco
         showSuccessToast={showSuccess}
         showErrorToast={showError}
       />
+
+      {/* Image Preview Modal */}
+      {showImagePreview && selectedImage && (
+        <ProfileImagePreview
+          imageUrl={selectedImage}
+          onSave={handleImagePreviewSave}
+          onCancel={handleImagePreviewCancel}
+        />
+      )}
     </div>
   )
 }
