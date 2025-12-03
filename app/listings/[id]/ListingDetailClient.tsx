@@ -411,7 +411,7 @@ export default function ListingDetailClient({
               <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
                 <Calendar className="mr-1" size={16} /> {listing.year === 0 ? 'Year Not Specified' : listing.year}
               </span>
-              {listing.mileage && (
+              {(listing.mileage !== null && listing.mileage !== undefined) && (
                 <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
                   <Activity className="mr-1" size={16} /> {listing.mileage.toLocaleString()} km
                 </span>
