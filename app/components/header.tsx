@@ -13,6 +13,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { AuthModal } from './auth'
 import { useUnreadMessages } from '@/lib/hooks/useUnreadMessages'
 import { useAuthWithRedirect } from '../hooks/useAuthWithRedirect'
+import { useUserProfile } from '../hooks/useUserProfile'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
@@ -85,6 +86,8 @@ export default function Header() {
   
   // Get user from auth context
   const { user: authUser, signOut } = useAuth()
+  const { profile } = useUserProfile()
+
   const user = authUser ? {
     id: authUser.id,
     name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
@@ -93,8 +96,10 @@ export default function Header() {
     favorites: 0
   } : null
 
-  const displayName = user?.name || authUser?.email || 'User'
-  const avatarUrl = (authUser?.user_metadata?.avatar_url as string)
+  const displayName = profile?.name || user?.name || authUser?.email || 'User'
+  // Prioritize uploaded avatar from profiles table over Google OAuth avatar
+  const avatarUrl = profile?.avatar_url
+    || (authUser?.user_metadata?.avatar_url as string)
     || (authUser?.user_metadata?.picture as string)
     || (authUser?.user_metadata?.profile_image_url as string)
     || ''

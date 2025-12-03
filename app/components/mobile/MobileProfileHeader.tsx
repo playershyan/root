@@ -3,11 +3,12 @@
 import { Bell } from 'lucide-react'
 import ProfileMenu from './ProfileMenu'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 interface MobileProfileHeaderProps {
   userName?: string
   userInitials?: string
+  avatarUrl?: string
   hasBusinessProfile?: boolean
   currentPage?: string
   onNotificationsClick?: () => void
@@ -17,6 +18,7 @@ interface MobileProfileHeaderProps {
 export default function MobileProfileHeader({
   userName = 'User',
   userInitials = 'U',
+  avatarUrl,
   hasBusinessProfile = false,
   currentPage = 'profile',
   onNotificationsClick,
@@ -54,6 +56,7 @@ export default function MobileProfileHeader({
 
           {/* User Avatar */}
           <Avatar className="h-11 w-11">
+            <AvatarImage src={avatarUrl} alt={userName} />
             <AvatarFallback className="bg-gradient-to-br from-blue-600 to-blue-700 text-white">
               {userInitials}
             </AvatarFallback>
