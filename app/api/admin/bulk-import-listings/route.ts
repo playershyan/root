@@ -26,7 +26,6 @@ interface ListingImportRow {
   transmission?: string
   color?: string
   trim?: string
-  grade?: string
   district?: string
   city?: string
   price?: string | number
@@ -167,7 +166,6 @@ async function importListing(
       make: actualMake,
       model: actualModel,
       trim: row.trim,
-      grade: row.grade,
       year: row.year?.toString(),
       mileage: row.mileage,
       condition: row.condition,
@@ -205,7 +203,6 @@ async function importListing(
       color: row.color,
       engineCapacity: row.engineCapacity,
       trim: row.trim,
-      grade: row.grade,
       district: row.district,
       city: row.city,
       price: row.price,
@@ -278,7 +275,7 @@ async function importListing(
       color: sanitized.color || null,
       engine_capacity: engineCapacity,
       trim: sanitized.trim || null,
-      grade: sanitized.grade || null,
+      grade: sanitized.trim || null, // trim/grade is single field - store same value in both columns
       condition: sanitized.condition || null,
       location,
       city: sanitized.city || null,
