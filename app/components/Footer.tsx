@@ -241,7 +241,18 @@ export default function Footer() {
               </Link>
               {/* Copyright - shown first on mobile, second on desktop */}
               <div className="text-gray-500 text-xs text-center md:text-left order-1 md:order-none">
-                © {new Date().getFullYear()} Capitalist One (Pvt) Ltd. All rights reserved.
+                <div>© {new Date().getFullYear()} Capitalist One (Pvt) Ltd. All rights reserved.</div>
+                <div className="mt-1">
+                  Designed & developed by{' '}
+                  <a
+                    href="https://www.holtzmanlabs.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                  >
+                    Holtzman Labs
+                  </a>
+                </div>
               </div>
             </div>
 
